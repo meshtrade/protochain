@@ -1,0 +1,11 @@
+version: v2
+modules:
+  - path: lib/proto
+    name: buf.build/brbussy/protosol
+
+lint:
+  use:
+    - STANDARD
+  except:
+    - RPC_REQUEST_RESPONSE_UNIQUE
+    - RPC_RESPONSE_STANDARD_NAME

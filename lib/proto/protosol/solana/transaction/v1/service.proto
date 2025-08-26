@@ -1,0 +1,103 @@
+syntax = "proto3";
+
+package protosol.solana.transaction.v1;
+
+import "protosol/solana/transaction/v1/transaction.proto";
+import "protosol/solana/type/v1/commitment_level.proto";
+
+option go_package = "github.com/BRBussy/protosol/lib/go/protosol/solana/transaction/v1;transaction_v1";
+
+service Service {
+  // Transaction composition workflow
+  rpc CompileTransaction(CompileTransactionRequest) returns (CompileTransactionResponse);
+  rpc EstimateTransaction(EstimateTransactionRequest) returns (EstimateTransactionResponse);
+  rpc SimulateTransaction(SimulateTransactionRequest) returns (SimulateTransactionResponse);
+  rpc SignTransaction(SignTransactionRequest) returns (SignTransactionResponse);
+  rpc SubmitTransaction(SubmitTransactionRequest) returns (SubmitTransactionResponse);
+  
+  // Transaction retrieval
+  rpc GetTransaction(GetTransactionRequest) returns (GetTransactionResponse);
+}
+
+// Request/Response messages
+message CompileTransactionRequest {
+  Transaction transaction = 1;  // Must be in DRAFT state
+  string fee_payer = 2;         // Who pays transaction fees
+  string recent_blockhash = 3;  // Optional - will fetch if empty
+}
+
+message CompileTransactionResponse {
+  Transaction transaction = 1;  // Now in COMPILED state
+}
+
+message EstimateTransactionRequest {
+  Transaction transaction = 1;  // Must be in COMPILED state
+  optional protosol.solana.type.v1.CommitmentLevel commitment_level = 2;  // Commitment level for fee estimation
+}
+
+message EstimateTransactionResponse {
+  uint64 compute_units = 1;     // Estimated compute units required
+  uint64 fee_lamports = 2;      // Estimated total transaction fee
+  uint64 priority_fee = 3;      // Current network priority fee estimate
+}
+
+// Fee Management Philosophy:
+// - Fee calculation is CLIENT responsibility
+// - Services only provide EstimateTransaction for client decision-making
+// - Clients call: build instructions → compile → estimate → set fees → sign → submit
+// - No automatic fee management in services - pure SDK wrapper approach
+
+message SimulateTransactionRequest {
+  Transaction transaction = 1;  // Must be compiled
+  optional protosol.solana.type.v1.CommitmentLevel commitment_level = 2;  // Commitment level for simulation
+}
+
+message SimulateTransactionResponse {
+  bool success = 1;
+  string error = 2;
+  repeated string logs = 3;
+}
+
+message SignTransactionRequest {
+  Transaction transaction = 1;
+  
+  oneof signing_method {
+    SignWithPrivateKeys private_keys = 2;
+    SignWithSeeds seeds = 3;
+  }
+}
+
+message SignTransactionResponse {
+  Transaction transaction = 1;
+}
+
+message SignWithPrivateKeys {
+  repeated string private_keys = 1;  // Base58 encoded private keys
+}
+
+message SignWithSeeds {
+  repeated KeySeed seeds = 1;
+}
+
+message KeySeed {
+  string seed = 1;
+  optional string passphrase = 2;
+}
+
+message SubmitTransactionRequest {
+  Transaction transaction = 1;  // Must be fully signed
+  optional protosol.solana.type.v1.CommitmentLevel commitment_level = 2;  // Commitment level for transaction submission
+}
+
+message SubmitTransactionResponse {
+  string signature = 1;  // Transaction signature
+}
+
+message GetTransactionRequest {
+  string signature = 1;
+  optional protosol.solana.type.v1.CommitmentLevel commitment_level = 2;  // Commitment level for transaction retrieval
+}
+
+message GetTransactionResponse {
+  Transaction transaction = 1;
+}

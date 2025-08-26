@@ -1,0 +1,53 @@
+{
+  "name": "@protosol/api",
+  "version": "1.0.0",
+  "description": "TypeScript bindings for Protosol gRPC APIs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist && rm -rf node_modules/.cache",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "prepublishOnly": "yarn build"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.7.0",
+    "@connectrpc/connect": "^1.6.0",
+    "@connectrpc/connect-node": "^1.6.0",
+    "@connectrpc/connect-web": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "dist/**/*",
+    "src/index.ts",
+    "README.md"
+  ],
+  "keywords": [
+    "protobuf",
+    "grpc",
+    "typescript",
+    "protosol",
+    "solana",
+    "blockchain",
+    "financial-services"
+  ],
+  "author": "BRBussy",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

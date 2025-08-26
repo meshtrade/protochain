@@ -1,0 +1,11 @@
+# Generated protobuf files
+src/*.rs
+!src/lib.rs
+
+# Rust build artifacts
+target/
+Cargo.lock
+
+# IDE
+.idea/
+*.iml
