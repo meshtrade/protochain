@@ -11,6 +11,7 @@ solana-client.workspace = true
 solana-sdk.workspace = true
 solana-transaction-status.workspace = true
 solana-pubsub-client.workspace = true
+solana-rpc-client-api.workspace = true
 serde_json.workspace = true
 futures-util.workspace = true
 tokio-stream.workspace = true

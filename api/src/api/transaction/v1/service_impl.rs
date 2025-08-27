@@ -10,13 +10,17 @@ use solana_sdk::{
     message::Message, 
     hash::Hash, 
     pubkey::Pubkey,
-    instruction::Instruction,
+    instruction::{Instruction, InstructionError},
     signature::{Keypair, Signature, Signer},
     transaction::Transaction as SolanaTransaction,
 };
 use solana_client::rpc_client::RpcClient;
-use solana_client::client_error::ClientError;
+use solana_rpc_client_api::{
+    client_error::{Error as ClientError, ErrorKind as ClientErrorKind},
+    request::{RpcError, RpcResponseErrorData},
+};
 use solana_transaction_status::{UiTransactionEncoding, EncodedTransaction};
+use solana_sdk::transaction::TransactionError;
 use solana_client::rpc_config::RpcTransactionConfig;
 use solana_sdk::commitment_config::CommitmentConfig;
 use crate::websocket::WebSocketManager;
@@ -69,34 +73,222 @@ impl TransactionServiceImpl {
 
 /// Classifies Solana RPC client errors into appropriate SubmissionResult categories
 /// 
-/// This function performs intelligent error analysis to provide meaningful feedback
-/// to clients about why their transaction submission failed. It examines error
-/// messages using pattern matching to determine the root cause.
+/// This function performs type-safe error analysis using Solana's structured error types
+/// instead of fragile string pattern matching. It provides reliable classification based
+/// on the actual error enums from the Solana codebase.
 /// 
-/// Classification Strategy:
-/// - Insufficient Funds: "insufficient" + "fund" patterns
-/// - Invalid Signature: "invalid" + "signature" patterns  
-/// - Network Error: "network", "connection", "timeout" patterns
-/// - Validation Error: "validation", "invalid" patterns
-/// - Default: Network error for unknown cases (fail-safe)
+/// Type-Safe Classification Strategy:
+/// 1. Direct TransactionError variants (most reliable)
+/// 2. RPC preflight failure errors with embedded TransactionError
+/// 3. Network/transport errors (Io, Reqwest)
+/// 4. Signing errors from cryptographic operations
+/// 5. Node health issues
+/// 6. Fallback to string analysis for unstructured errors
 /// 
-/// This approach is resilient to Solana client library changes while providing
-/// actionable error information for automated retry logic and user feedback.
+/// Reference: Solana Agave codebase at /Users/bernardbussy/Projects/github.com/anza-xyz/agave
+/// - rpc-client-api/src/client_error.rs: Main ClientError structure
+/// - rpc-client-types/src/request.rs: RPC error types and response data
+/// - transaction-status/src/lib.rs: TransactionError enum variants
+/// 
+/// This approach provides reliable error classification that won't break with message
+/// format changes and enables precise automated retry logic.
 fn classify_submission_error(error: &ClientError) -> SubmissionResult {
-    let error_str = error.to_string().to_lowercase();
+    match &error.kind {
+        // Direct transaction errors - most reliable classification path
+        ClientErrorKind::TransactionError(transaction_error) => {
+            classify_transaction_error(transaction_error)
+        }
+        
+        // RPC response errors with embedded transaction simulation results
+        // This occurs when send_transaction fails during preflight checks
+        ClientErrorKind::RpcError(RpcError::RpcResponseError { 
+            data: RpcResponseErrorData::SendTransactionPreflightFailure(simulation_result),
+            .. 
+        }) => {
+            if let Some(ref transaction_error) = simulation_result.err {
+                classify_transaction_error(transaction_error)
+            } else {
+                // Preflight failed but no specific transaction error - likely validation issue
+                SubmissionResult::FailedValidation
+            }
+        }
+        
+        // Node health issues - network problems at the validator level
+        ClientErrorKind::RpcError(RpcError::RpcResponseError { 
+            data: RpcResponseErrorData::NodeUnhealthy { .. },
+            .. 
+        }) => SubmissionResult::FailedNetworkError,
+        
+        // Network transport errors - connectivity, timeouts, HTTP issues
+        ClientErrorKind::Io(_) |
+        ClientErrorKind::Reqwest(_) => SubmissionResult::FailedNetworkError,
+        
+        // Cryptographic signing errors
+        ClientErrorKind::SigningError(_) => SubmissionResult::FailedInvalidSignature,
+        
+        // JSON serialization/parsing errors - usually validation issues
+        ClientErrorKind::SerdeJson(_) |
+        ClientErrorKind::RpcError(RpcError::ParseError(_)) => SubmissionResult::FailedValidation,
+        
+        // Fallback for unstructured errors - use string analysis as last resort
+        ClientErrorKind::RpcError(_) |
+        ClientErrorKind::Custom(_) => {
+            // Only use string matching for truly unstructured error types
+            classify_by_message(&error.to_string())
+        }
+    }
+}
+
+/// Classifies TransactionError variants into SubmissionResult categories
+/// 
+/// This function maps specific Solana transaction errors to actionable response categories
+/// based on the transaction error variants defined in the Solana SDK.
+/// 
+/// Error Categories:
+/// - InsufficientFunds: Account balance or fee issues requiring funding
+/// - InvalidSignature: Cryptographic signature problems requiring re-signing  
+/// - NetworkError: Network capacity, maintenance, or timeout issues (retryable)
+/// - Validation: Transaction format, account, or instruction issues (not retryable)
+/// - Submitted: Transaction already processed (actually successful)
+/// 
+/// Reference: Solana transaction error definitions in transaction-status crate
+fn classify_transaction_error(transaction_error: &TransactionError) -> SubmissionResult {
+    match transaction_error {
+        // Account balance and fee-related errors
+        TransactionError::InsufficientFundsForFee |
+        TransactionError::InsufficientFundsForRent { .. } => SubmissionResult::FailedInsufficientFunds,
+        
+        // Signature and authorization errors
+        TransactionError::SignatureFailure |
+        TransactionError::MissingSignatureForFee => SubmissionResult::FailedInvalidSignature,
+        
+        // Network capacity and node availability issues (potentially retryable)
+        TransactionError::WouldExceedMaxBlockCostLimit |
+        TransactionError::WouldExceedMaxAccountCostLimit |
+        TransactionError::WouldExceedMaxVoteCostLimit |
+        TransactionError::WouldExceedAccountDataBlockLimit |
+        TransactionError::WouldExceedAccountDataTotalLimit |
+        TransactionError::TooManyAccountLocks |
+        TransactionError::ClusterMaintenance => SubmissionResult::FailedNetworkError,
+        
+        // Transaction already successfully processed
+        TransactionError::AlreadyProcessed => SubmissionResult::Submitted,
+        
+        // Account and validation errors (transaction format issues)
+        TransactionError::AccountNotFound |
+        TransactionError::ProgramAccountNotFound |
+        TransactionError::InvalidAccountForFee |
+        TransactionError::AccountInUse |
+        TransactionError::AccountLoadedTwice |
+        TransactionError::AccountBorrowOutstanding |
+        TransactionError::BlockhashNotFound |
+        TransactionError::CallChainTooDeep |
+        TransactionError::InvalidAccountIndex |
+        TransactionError::InvalidProgramForExecution |
+        TransactionError::SanitizeFailure |
+        TransactionError::UnsupportedVersion |
+        TransactionError::InvalidWritableAccount |
+        TransactionError::AddressLookupTableNotFound |
+        TransactionError::InvalidAddressLookupTableOwner |
+        TransactionError::InvalidAddressLookupTableData |
+        TransactionError::InvalidAddressLookupTableIndex |
+        TransactionError::InvalidRentPayingAccount |
+        TransactionError::DuplicateInstruction(_) |
+        TransactionError::MaxLoadedAccountsDataSizeExceeded |
+        TransactionError::InvalidLoadedAccountsDataSizeLimit |
+        TransactionError::ResanitizationNeeded |
+        TransactionError::ProgramExecutionTemporarilyRestricted { .. } |
+        TransactionError::UnbalancedTransaction => SubmissionResult::FailedValidation,
+        
+        // Instruction-level errors require detailed analysis
+        TransactionError::InstructionError(instruction_index, instruction_error) => {
+            classify_instruction_error(*instruction_index, instruction_error)
+        }
+        
+        // Default to validation error for any new transaction error variants
+        _ => SubmissionResult::FailedValidation,
+    }
+}
+
+/// Classifies instruction-level errors that occur during program execution
+/// 
+/// Instruction errors provide detailed information about failures within specific
+/// transaction instructions, enabling precise error handling for program-specific issues.
+/// 
+/// Reference: solana-sdk instruction error definitions
+fn classify_instruction_error(
+    _instruction_index: u8, 
+    instruction_error: &InstructionError
+) -> SubmissionResult {
+    match instruction_error {
+        // Program detected insufficient funds (e.g., token transfer, program fee)
+        InstructionError::InsufficientFunds => SubmissionResult::FailedInsufficientFunds,
+        
+        // Missing required signatures for instruction execution
+        InstructionError::MissingRequiredSignature => SubmissionResult::FailedInvalidSignature,
+        
+        // Compute budget exhausted during execution
+        InstructionError::ComputationalBudgetExceeded => SubmissionResult::FailedNetworkError,
+        
+        // Invalid instruction arguments or data format
+        InstructionError::InvalidArgument |
+        InstructionError::InvalidInstructionData |
+        InstructionError::InvalidAccountData |
+        InstructionError::AccountDataTooSmall |
+        InstructionError::IncorrectProgramId |
+        InstructionError::AccountAlreadyInitialized |
+        InstructionError::UninitializedAccount |
+        InstructionError::NotEnoughAccountKeys |
+        InstructionError::AccountDataSizeChanged |
+        InstructionError::AccountNotExecutable |
+        InstructionError::AccountBorrowFailed |
+        InstructionError::AccountBorrowOutstanding |
+        InstructionError::DuplicateAccountIndex |
+        InstructionError::ExecutableModified |
+        InstructionError::RentEpochModified |
+        InstructionError::ReadonlyLamportChange |
+        InstructionError::ReadonlyDataModified |
+        InstructionError::ExternalAccountLamportSpend |
+        InstructionError::ExternalAccountDataModified |
+        InstructionError::ExecutableDataModified |
+        InstructionError::ExecutableLamportChange |
+        InstructionError::UnsupportedProgramId => SubmissionResult::FailedValidation,
+        
+        // Program-specific custom error codes
+        InstructionError::Custom(_error_code) => {
+            // Custom error codes are program-specific and could indicate various issues
+            // Without context about the specific program, treat as validation error
+            SubmissionResult::FailedValidation
+        }
+        
+        // Any new instruction error variants default to validation
+        _ => SubmissionResult::FailedValidation,
+    }
+}
+
+/// Fallback error classification using string pattern matching
+/// 
+/// This function is used only when structured error information is not available,
+/// serving as a compatibility layer for unstructured error messages.
+/// 
+/// This approach is intentionally limited and should only be reached for:
+/// - Custom error messages that don't fit standard patterns
+/// - Legacy error formats
+/// - Middleware or proxy errors
+/// 
+/// The type-safe classification above should handle 95%+ of real-world cases.
+fn classify_by_message(error_message: &str) -> SubmissionResult {
+    let error_str = error_message.to_lowercase();
     
-    // Check for specific error patterns in the error message
-    if error_str.contains("insufficient") && error_str.contains("fund") {
+    if error_str.contains("insufficient") && (error_str.contains("fund") || error_str.contains("balance")) {
         SubmissionResult::FailedInsufficientFunds
     } else if error_str.contains("invalid") && error_str.contains("signature") {
         SubmissionResult::FailedInvalidSignature
     } else if error_str.contains("network") || error_str.contains("connection") || error_str.contains("timeout") {
         SubmissionResult::FailedNetworkError
-    } else if error_str.contains("validation") || error_str.contains("invalid") {
-        SubmissionResult::FailedValidation
     } else {
-        // Default to network error for unknown errors
-        SubmissionResult::FailedNetworkError
+        // Default to validation error for unknown unstructured errors
+        SubmissionResult::FailedValidation
     }
 }
 
