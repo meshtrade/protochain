@@ -200,14 +200,22 @@ impl TransactionService for TransactionServiceImpl {
             inner_instructions: false,
         }) {
             Ok(simulation_result) => {
-                let compute_units = simulation_result.value.units_consumed.unwrap_or(200_000);
+                // Handle both None and 0 cases by providing reasonable fallback
+                let compute_units = match simulation_result.value.units_consumed {
+                    Some(units) if units > 0 => units,
+                    _ => {
+                        // Fallback estimation based on instruction count
+                        let instruction_count = transaction.instructions.len() as u64;
+                        (instruction_count * 50_000).max(200_000).min(1_400_000)
+                    }
+                };
                 let logs = simulation_result.value.logs.unwrap_or_default();
                 (compute_units, logs)
             }
             Err(_) => {
                 // Fallback to basic estimation if simulation fails
                 let instruction_count = transaction.instructions.len() as u64;
-                let estimated_compute_units = (instruction_count * 50_000).min(1_400_000);
+                let estimated_compute_units = (instruction_count * 50_000).max(200_000).min(1_400_000);
                 (estimated_compute_units, vec![])
             }
         };

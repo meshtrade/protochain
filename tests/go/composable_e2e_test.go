@@ -471,7 +471,10 @@ func (suite *ComposableE2ETestSuite) Test_05_TransactionLifecycle_EstimateSimula
 	suite.Require().NotNil(simulateResp, "Should return simulation result")
 
 	// Validate simulation (may succeed or fail depending on network state)
-	suite.Assert().NotNil(simulateResp.Logs, "Should have logs")
+	// Note: logs can be nil for failed simulations like AccountNotFound
+	if simulateResp.Success {
+		suite.Assert().NotNil(simulateResp.Logs, "Successful simulations should have logs")
+	}
 
 	suite.T().Logf("✅ Transaction simulation completed:")
 	suite.T().Logf("   Success: %t", simulateResp.Success)
@@ -522,7 +525,7 @@ func (suite *ComposableE2ETestSuite) Test_06_TransactionLifecycle_SigningFlow() 
 
 	// Validate signed transaction
 	signedTx := signResp.Transaction
-	suite.Assert().Equal(transaction_v1.TransactionState_TRANSACTION_STATE_PARTIALLY_SIGNED, signedTx.State, "Should be in partially signed state")
+	suite.Assert().Equal(transaction_v1.TransactionState_TRANSACTION_STATE_FULLY_SIGNED, signedTx.State, "Should be in fully signed state (single signer transaction)")
 	suite.Assert().NotEmpty(signedTx.Signatures, "Should have signatures")
 	suite.Assert().Greater(len(signedTx.Signatures), 0, "Should have at least one signature")
 
@@ -539,13 +542,18 @@ func (suite *ComposableE2ETestSuite) Test_06_TransactionLifecycle_SigningFlow() 
 func (suite *ComposableE2ETestSuite) Test_07_CompleteComposableFlow() {
 	suite.T().Log("🎯 Complete Composable Flow: Draft → Compile → Estimate → Simulate → Sign")
 
-	// Generate test accounts
+	// Generate test accounts including a fee payer
+	payerResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
+	suite.Require().NoError(err, "Should generate fee payer")
+
 	account1Resp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
 	suite.Require().NoError(err, "Should generate account 1")
 
 	account2Resp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
 	suite.Require().NoError(err, "Should generate account 2")
 
+	payerAddr := payerResp.KeyPair.PublicKey
+	payerPrivateKey := payerResp.KeyPair.PrivateKey
 	account1Addr := account1Resp.KeyPair.PublicKey
 	account1PrivKey := account1Resp.KeyPair.PrivateKey
 	account2Addr := account2Resp.KeyPair.PublicKey
@@ -557,7 +565,7 @@ func (suite *ComposableE2ETestSuite) Test_07_CompleteComposableFlow() {
 	suite.T().Log("📤 Step 1: Creating composable instructions")
 
 	createInstr1, err := suite.systemProgramService.Create(suite.ctx, &system_program_v1.CreateRequest{
-		Payer:      suite.config.TestAccountAddress,
+		Payer:      payerAddr,
 		NewAccount: account1Addr,
 		Lamports:   2000000000, // 2 SOL
 		Space:      0,
@@ -565,7 +573,7 @@ func (suite *ComposableE2ETestSuite) Test_07_CompleteComposableFlow() {
 	suite.Require().NoError(err, "Should create instruction 1")
 
 	createInstr2, err := suite.systemProgramService.Create(suite.ctx, &system_program_v1.CreateRequest{
-		Payer:      suite.config.TestAccountAddress,
+		Payer:      payerAddr,
 		NewAccount: account2Addr,
 		Lamports:   1000000000, // 1 SOL
 		Space:      0,
@@ -604,7 +612,7 @@ func (suite *ComposableE2ETestSuite) Test_07_CompleteComposableFlow() {
 	suite.T().Log("📤 Step 3: Compiling transaction")
 	compileResp, err := suite.transactionService.CompileTransaction(suite.ctx, &transaction_v1.CompileTransactionRequest{
 		Transaction: draftTx,
-		FeePayer:    suite.config.TestAccountAddress,
+		FeePayer:    payerAddr,
 	})
 	suite.Require().NoError(err, "Should compile transaction")
 	compiledTx := compileResp.Transaction
@@ -636,7 +644,6 @@ func (suite *ComposableE2ETestSuite) Test_07_CompleteComposableFlow() {
 
 	// Step 6: Sign with multiple keys
 	suite.T().Log("📤 Step 6: Signing with multiple private keys")
-	payerPrivateKey := "342bf55fc1a02135e3e9d6dc2a17849b9a3d29c8a0498532f931325e5424b199"
 	signResp, err := suite.transactionService.SignTransaction(suite.ctx, &transaction_v1.SignTransactionRequest{
 		Transaction: compiledTx,
 		SigningMethod: &transaction_v1.SignTransactionRequest_PrivateKeys{
