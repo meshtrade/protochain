@@ -5,3 +5,5 @@ in api/src/api/transaction/v1/service_impl.rs in the submit transaction method a
 that means we wait for the result after submission. This essentially makes the submissionn synchronous right?
 This is NOT the flow we want. We should just return submission_result and signature result without waiting for a response.
 The client can poll for the response using monitor_transaction IF THEY WANT to.
+If I am correctly understanding this, then please remove that polling from the submit method. and also:
+1. update the documentation in the proto file for this service method to be explicit that this is an asynchronous submission.
