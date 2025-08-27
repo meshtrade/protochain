@@ -94,23 +94,41 @@ func GRPCAdaptor(p *protogen.Plugin, f *protogen.File, svc *protogen.Service) er
 
 		// start receiver method that adapts a particular service
 		g.P("// ", method.GoName, " exposes the ", method.GoName, " method of the ", svc.GoName, " interface over gRPC")
-		g.P("func (a *", grpcAdaptorName, ") ", method.GoName, "(ctx ", ContextPkg.Ident("Context"), ", request *", method.Input.GoIdent, ") (*", method.Output.GoIdent, ", error) {")
-		g.P("\tctx, span := a.tracer.Start(")
-		g.P("\t\tctx,")
-		g.P("\t\t", svc.GoName, "ServiceProviderName+\"", "GRPCAdaptor.", method.GoName, "\",")
-		g.P("\t)")
-		g.P("\tdefer span.End()")
-		g.P()
+		
+		// Check if this is a server streaming method
+		if method.Desc.IsStreamingServer() {
+			// Generate server streaming method signature (gRPC uses value type, not pointer)
+			g.P("func (a *", grpcAdaptorName, ") ", method.GoName, "(request *", method.Input.GoIdent, ", stream ", GRPCPkg.Ident("ServerStreamingServer"), "[", method.Output.GoIdent, "]) error {")
+			g.P("\tctx := stream.Context()")
+			g.P("\tctx, span := a.tracer.Start(")
+			g.P("\t\tctx,")
+			g.P("\t\t", svc.GoName, "ServiceProviderName+\"", "GRPCAdaptor.", method.GoName, "\",")
+			g.P("\t)")
+			g.P("\tdefer span.End()")
+			g.P()
 
-		g.P("\t// call the service interface implementation")
-		responseVarName := strings.ToLower(string(method.GoName[0])) + method.GoName[1:] + "Response"
-		g.P("\t", responseVarName, ", err := a.", serviceFieldName, ".", method.GoName, "(ctx, request)")
-		g.P("\tif err != nil {")
-		g.P("\t\treturn nil, err")
-		g.P("\t}")
-		g.P()
+			g.P("\t// call the service interface implementation for streaming")
+			g.P("\treturn a.", serviceFieldName, ".", method.GoName, "(ctx, request, stream)")
+		} else {
+			// Generate regular unary method signature (existing behavior)
+			g.P("func (a *", grpcAdaptorName, ") ", method.GoName, "(ctx ", ContextPkg.Ident("Context"), ", request *", method.Input.GoIdent, ") (*", method.Output.GoIdent, ", error) {")
+			g.P("\tctx, span := a.tracer.Start(")
+			g.P("\t\tctx,")
+			g.P("\t\t", svc.GoName, "ServiceProviderName+\"", "GRPCAdaptor.", method.GoName, "\",")
+			g.P("\t)")
+			g.P("\tdefer span.End()")
+			g.P()
 
-		g.P("\treturn ", responseVarName, ", nil")
+			g.P("\t// call the service interface implementation")
+			responseVarName := strings.ToLower(string(method.GoName[0])) + method.GoName[1:] + "Response"
+			g.P("\t", responseVarName, ", err := a.", serviceFieldName, ".", method.GoName, "(ctx, request)")
+			g.P("\tif err != nil {")
+			g.P("\t\treturn nil, err")
+			g.P("\t}")
+			g.P()
+
+			g.P("\treturn ", responseVarName, ", nil")
+		}
 		g.P("}")
 
 		// add space between methods (but not after the last)

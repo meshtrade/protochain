@@ -10,7 +10,12 @@ tonic.workspace = true
 solana-client.workspace = true
 solana-sdk.workspace = true
 solana-transaction-status.workspace = true
+solana-pubsub-client.workspace = true
 serde_json.workspace = true
+futures-util.workspace = true
+tokio-stream.workspace = true
+dashmap.workspace = true
+uuid.workspace = true
 
 # Additional dependencies
 serde = { version = "1.0", features = ["derive"] }

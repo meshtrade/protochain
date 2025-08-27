@@ -7,6 +7,7 @@ const (
 	ContextPkg = protogen.GoImportPath("context")
 	FmtPkg     = protogen.GoImportPath("fmt")
 	StringsPkg = protogen.GoImportPath("strings")
+	IOPkg      = protogen.GoImportPath("io")
 
 	// External packages
 	TracingPkg = protogen.GoImportPath("go.opentelemetry.io/otel/trace")

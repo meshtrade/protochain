@@ -6,7 +6,7 @@ members = [
 ]
 
 [workspace.dependencies]
-tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread", "full"] }
 tonic = "0.12"
 tonic-reflection = "0.12"
 prost = "0.13"
@@ -14,4 +14,9 @@ async-trait = "0.1"
 solana-client = "1.18"
 solana-sdk = "1.18"
 solana-transaction-status = "1.18"
+solana-pubsub-client = "1.18"
 serde_json = "1.0"
+futures-util = "0.3"
+tokio-stream = "0.1"
+dashmap = "5.5"
+uuid = { version = "1.0", features = ["v4"] }

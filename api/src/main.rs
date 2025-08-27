@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::time::Duration;
 use tonic::transport::Server;
 use anyhow::Result;
 
@@ -11,6 +12,7 @@ use protosol_api::protosol::solana::program::system::v1::service_server::Service
 mod service_providers;
 mod api;
 mod config;
+mod websocket;
 
 use service_providers::ServiceProviders;
 use api::API;
@@ -44,7 +46,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     
     // Initialize service providers with configuration
-    let service_providers = Arc::new(ServiceProviders::new_with_config(config.clone())?);
+    let service_providers = Arc::new(ServiceProviders::new_with_config(config.clone()).await?);
     
     println!("🌐 Network Configuration: {}", service_providers.get_network_info());
     
@@ -57,18 +59,54 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("📡 Services: Transaction v1, Account v1, System Program v1");
     println!("📋 Ready to accept connections!");
     
+    // Start periodic cleanup task for WebSocket subscriptions
+    let websocket_manager_cleanup = service_providers.websocket_manager.clone();
+    let cleanup_task = tokio::spawn(async move {
+        let mut interval = tokio::time::interval(Duration::from_secs(60));
+        loop {
+            interval.tick().await;
+            websocket_manager_cleanup.cleanup_expired_subscriptions().await;
+        }
+    });
+    
     // Build and start the gRPC server with our service implementations
     // Clone the services from the Arc containers
     let transaction_service = (*api.transaction_v1.transaction_service).clone();
     let account_service = (*api.account_v1.account_service).clone();
     let system_program_service = (*api.program.system.v1.system_program_service).clone();
     
-    Server::builder()
+    // Clone service providers for graceful shutdown
+    let service_providers_shutdown = Arc::clone(&service_providers);
+    
+    // Set up graceful shutdown
+    let server = Server::builder()
         .add_service(TransactionServiceServer::new(transaction_service))
         .add_service(AccountServiceServer::new(account_service))
         .add_service(SystemProgramServiceServer::new(system_program_service))
-        .serve(addr)
-        .await?;
+        .serve(addr);
+    
+    // Wait for server or shutdown signal
+    tokio::select! {
+        result = server => {
+            if let Err(e) = result {
+                eprintln!("❌ Server error: {}", e);
+            }
+        }
+        _ = tokio::signal::ctrl_c() => {
+            println!("\n🛑 Shutdown signal received");
+            println!("🧹 Cleaning up resources...");
+            
+            // Abort cleanup task
+            cleanup_task.abort();
+            
+            // Shutdown WebSocket manager
+            if let Err(e) = service_providers_shutdown.websocket_manager.shutdown().await {
+                eprintln!("⚠️ WebSocket shutdown error: {}", e);
+            }
+            
+            println!("✅ Graceful shutdown complete");
+        }
+    }
 
     Ok(())
 }

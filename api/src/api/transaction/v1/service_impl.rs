@@ -1,6 +1,8 @@
 use std::sync::Arc;
 use std::str::FromStr;
 use tonic::{Request, Response, Status};
+use tokio_stream::wrappers::ReceiverStream;
+use tokio::sync::mpsc;
 use solana_sdk::{
     message::Message, 
     hash::Hash, 
@@ -10,9 +12,11 @@ use solana_sdk::{
     transaction::Transaction as SolanaTransaction,
 };
 use solana_client::rpc_client::RpcClient;
+use solana_client::client_error::ClientError;
 use solana_transaction_status::{UiTransactionEncoding, EncodedTransaction};
 use solana_client::rpc_config::RpcTransactionConfig;
 use solana_sdk::commitment_config::CommitmentConfig;
+use crate::websocket::WebSocketManager;
 
 use crate::api::program::system::v1::conversion::proto_instruction_to_sdk;
 use crate::api::transaction::v1::validation::{
@@ -31,12 +35,35 @@ use protosol_api::protosol::solana::r#type::v1::CommitmentLevel;
 #[derive(Clone)]
 pub struct TransactionServiceImpl {
     rpc_client: Arc<RpcClient>,
+    websocket_manager: Arc<WebSocketManager>,
 }
 
 impl TransactionServiceImpl {
-    /// Creates a new TransactionServiceImpl with the provided RPC client
-    pub fn new(rpc_client: Arc<RpcClient>) -> Self {
-        Self { rpc_client }
+    /// Creates a new TransactionServiceImpl with the provided RPC client and WebSocket manager
+    pub fn new(rpc_client: Arc<RpcClient>, websocket_manager: Arc<WebSocketManager>) -> Self {
+        Self { 
+            rpc_client,
+            websocket_manager,
+        }
+    }
+}
+
+/// Classifies submission errors into appropriate SubmissionResult categories
+fn classify_submission_error(error: &ClientError) -> SubmissionResult {
+    let error_str = error.to_string().to_lowercase();
+    
+    // Check for specific error patterns in the error message
+    if error_str.contains("insufficient") && error_str.contains("fund") {
+        SubmissionResult::FailedInsufficientFunds
+    } else if error_str.contains("invalid") && error_str.contains("signature") {
+        SubmissionResult::FailedInvalidSignature
+    } else if error_str.contains("network") || error_str.contains("connection") || error_str.contains("timeout") {
+        SubmissionResult::FailedNetworkError
+    } else if error_str.contains("validation") || error_str.contains("invalid") {
+        SubmissionResult::FailedValidation
+    } else {
+        // Default to network error for unknown errors
+        SubmissionResult::FailedNetworkError
     }
 }
 
@@ -64,6 +91,7 @@ fn commitment_level_to_config(commitment_level: Option<i32>) -> CommitmentConfig
 
 #[tonic::async_trait]
 impl TransactionService for TransactionServiceImpl {
+    type MonitorTransactionStream = ReceiverStream<Result<MonitorTransactionResponse, Status>>;
     /// Compiles a draft transaction with instructions into an executable transaction
     async fn compile_transaction(
         &self,
@@ -368,8 +396,8 @@ impl TransactionService for TransactionServiceImpl {
                     keypairs
                 }
                 sign_transaction_request::SigningMethod::Seeds(_seed_method) => {
-                    // TODO: Implement seed-based signing in future iteration
-                    return Err(Status::unimplemented("Seed-based signing not yet implemented"));
+                    // Seed-based signing not implemented in current version
+                    return Err(Status::unimplemented("Seed-based signing not available"));
                 }
             },
             None => return Err(Status::invalid_argument("Signing method is required")),
@@ -490,13 +518,24 @@ impl TransactionService for TransactionServiceImpl {
         // - send_and_confirm_transaction_with_spinner_and_commitment(): Chosen for explicit control
         let commitment = commitment_level_to_config(req.commitment_level);
         println!("Submitting transaction with commitment level: {:?}", commitment);
-        let signature = self.rpc_client.send_and_confirm_transaction_with_spinner_and_commitment(
+        let (signature_result, submission_result, error_message) = match self.rpc_client.send_and_confirm_transaction_with_spinner_and_commitment(
             &solana_transaction, 
             commitment
-        ).map_err(|e| Status::internal(format!("Transaction submission failed: {}", e)))?;
+        ) {
+            Ok(signature) => {
+                (signature.to_string(), SubmissionResult::Submitted, None)
+            }
+            Err(e) => {
+                let classification = classify_submission_error(&e);
+                let error_msg = format!("Transaction submission failed: {}", e);
+                (String::new(), classification, Some(error_msg))
+            }
+        };
         
         Ok(Response::new(SubmitTransactionResponse {
-            signature: signature.to_string(),
+            signature: signature_result,
+            submission_result: submission_result.into(),
+            error_message,
         }))
     }
     
@@ -567,4 +606,96 @@ impl TransactionService for TransactionServiceImpl {
             }
         }
     }
+    
+    /// Monitors a transaction for status changes until target commitment level
+    async fn monitor_transaction(
+        &self,
+        request: Request<MonitorTransactionRequest>,
+    ) -> Result<Response<Self::MonitorTransactionStream>, Status> {
+        let req = request.into_inner();
+        
+        // Validate signature format
+        if req.signature.is_empty() {
+            return Err(Status::invalid_argument("Transaction signature is required"));
+        }
+        
+        // Parse signature to validate format
+        req.signature.parse::<solana_sdk::signature::Signature>()
+            .map_err(|_| Status::invalid_argument("Invalid signature format"))?;
+        
+        // Validate commitment level
+        let commitment_level = CommitmentLevel::try_from(req.commitment_level)
+            .map_err(|_| Status::invalid_argument("Invalid commitment level"))?;
+        
+        // Validate timeout (if provided)
+        let timeout_seconds = req.timeout_seconds.unwrap_or(60);
+        if timeout_seconds < 5 || timeout_seconds > 300 {
+            return Err(Status::invalid_argument("Timeout must be between 5 and 300 seconds"));
+        }
+        
+        println!("🔍 Starting transaction monitoring for signature: {}", req.signature);
+        
+        // Create response stream channel
+        let (tx, rx) = mpsc::channel(100);
+        
+        // Subscribe to signature updates via WebSocket manager
+        let websocket_rx = match self.websocket_manager.subscribe_to_signature(
+            req.signature.clone(),
+            commitment_level,
+            req.include_logs,
+            Some(timeout_seconds),
+        ).await {
+            Ok(rx) => rx,
+            Err(e) => {
+                return Err(e);
+            }
+        };
+        
+        // Spawn task to bridge WebSocket updates to gRPC stream
+        let signature_for_task = req.signature.clone();
+        tokio::spawn(async move {
+            bridge_websocket_to_grpc_stream(signature_for_task, websocket_rx, tx).await;
+        });
+        
+        println!("✅ Transaction monitoring stream established for: {}", req.signature);
+        
+        Ok(Response::new(ReceiverStream::new(rx)))
+    }
+    
 }
+
+/// Bridges WebSocket subscription updates to gRPC streaming response
+async fn bridge_websocket_to_grpc_stream(
+        signature: String,
+        mut websocket_rx: tokio::sync::mpsc::UnboundedReceiver<MonitorTransactionResponse>,
+        grpc_tx: mpsc::Sender<Result<MonitorTransactionResponse, Status>>,
+    ) {
+        println!("🌉 Starting stream bridge for signature: {}", signature);
+        
+        while let Some(response) = websocket_rx.recv().await {
+            println!("📨 Received WebSocket update for {}: status={:?}", signature, response.status());
+            
+            // Check if client is still connected
+            if grpc_tx.send(Ok(response.clone())).await.is_err() {
+                println!("🔌 Client disconnected for signature: {}", signature);
+                break;
+            }
+            
+            // Check if this is a terminal status
+            let is_terminal = matches!(
+                response.status(),
+                TransactionStatus::Confirmed |
+                TransactionStatus::Finalized |
+                TransactionStatus::Failed |
+                TransactionStatus::Dropped |
+                TransactionStatus::Timeout
+            );
+            
+            if is_terminal {
+                println!("🏁 Terminal status reached for signature: {} - status={:?}", signature, response.status());
+                break;
+            }
+        }
+        
+        println!("🌉 Stream bridge completed for signature: {}", signature);
+    }

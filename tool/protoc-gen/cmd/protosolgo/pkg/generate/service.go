@@ -136,13 +136,40 @@ func Service(p *protogen.Plugin, f *protogen.File, svc *protogen.Service) error 
 
 	// Generate method implementations with the Execute pattern
 	for i, method := range svc.Methods {
-		g.P("// ", method.GoName, " executes the ", method.GoName, " RPC method with automatic")
-		g.P("// client-side validation, timeout handling, distributed tracing, and authentication.")
-		g.P("func (s *", serviceStructName, ") ", method.GoName, "(ctx ", ContextPkg.Ident("Context"), ", request *", method.Input.GoIdent, ") (*", method.Output.GoIdent, ", error) {")
-		g.P("\treturn ", APIPkg.Ident("Execute"), "(s.Executor(), ctx, \"", method.GoName, "\", request, func(ctx ", ContextPkg.Ident("Context"), ") (*", method.Output.GoIdent, ", error) {")
-		g.P("\t\treturn s.GrpcClient().", method.GoName, "(ctx, request)")
-		g.P("\t})")
-		g.P("}")
+		if method.Desc.IsStreamingServer() {
+			// Generate streaming method implementation - delegate to underlying client
+			g.P("// ", method.GoName, " executes the ", method.GoName, " server streaming RPC method.")
+			g.P("// For streaming methods, this delegates directly to the underlying gRPC client.")
+			g.P("func (s *", serviceStructName, ") ", method.GoName, "(ctx ", ContextPkg.Ident("Context"), ", request *", method.Input.GoIdent, ", stream ", GRPCPkg.Ident("ServerStreamingServer"), "[", method.Output.GoIdent, "]) error {")
+			g.P("\t// For streaming methods, delegate directly to the gRPC client stream")
+			g.P("\tclientStream, err := s.GrpcClient().", method.GoName, "(ctx, request)")
+			g.P("\tif err != nil {")
+			g.P("\t\treturn err")
+			g.P("\t}")
+			g.P("\t// Forward all responses from client stream to server stream")
+			g.P("\tfor {")
+			g.P("\t\tresp, err := clientStream.Recv()")
+			g.P("\t\tif err != nil {")
+			g.P("\t\t\tif err == ", IOPkg.Ident("EOF"), " {")
+			g.P("\t\t\t\treturn nil")
+			g.P("\t\t\t}")
+			g.P("\t\t\treturn err")
+			g.P("\t\t}")
+			g.P("\t\tif err := stream.Send(resp); err != nil {")
+			g.P("\t\t\treturn err")
+			g.P("\t\t}")
+			g.P("\t}")
+			g.P("}")
+		} else {
+			// Generate regular unary method implementation
+			g.P("// ", method.GoName, " executes the ", method.GoName, " RPC method with automatic")
+			g.P("// client-side validation, timeout handling, distributed tracing, and authentication.")
+			g.P("func (s *", serviceStructName, ") ", method.GoName, "(ctx ", ContextPkg.Ident("Context"), ", request *", method.Input.GoIdent, ") (*", method.Output.GoIdent, ", error) {")
+			g.P("\treturn ", APIPkg.Ident("Execute"), "(s.Executor(), ctx, \"", method.GoName, "\", request, func(ctx ", ContextPkg.Ident("Context"), ") (*", method.Output.GoIdent, ", error) {")
+			g.P("\t\treturn s.GrpcClient().", method.GoName, "(ctx, request)")
+			g.P("\t})")
+			g.P("}")
+		}
 
 		// add space between methods (but not after the last)
 		if i != len(svc.Methods)-1 {

@@ -15,8 +15,9 @@ service Service {
   rpc SignTransaction(SignTransactionRequest) returns (SignTransactionResponse);
   rpc SubmitTransaction(SubmitTransactionRequest) returns (SubmitTransactionResponse);
   
-  // Transaction retrieval
+  // Transaction retrieval and monitoring
   rpc GetTransaction(GetTransactionRequest) returns (GetTransactionResponse);
+  rpc MonitorTransaction(MonitorTransactionRequest) returns (stream MonitorTransactionResponse);
 }
 
 // Request/Response messages
@@ -91,6 +92,17 @@ message SubmitTransactionRequest {
 
 message SubmitTransactionResponse {
   string signature = 1;  // Transaction signature
+  SubmissionResult submission_result = 2;  // Submission outcome
+  optional string error_message = 3;  // Error details if submission failed
+}
+
+enum SubmissionResult {
+  SUBMISSION_RESULT_UNSPECIFIED = 0;
+  SUBMISSION_RESULT_SUBMITTED = 1;                  // Transaction successfully submitted to network
+  SUBMISSION_RESULT_FAILED_VALIDATION = 2;          // Transaction failed pre-submission validation
+  SUBMISSION_RESULT_FAILED_NETWORK_ERROR = 3;       // Network/RPC error prevented submission
+  SUBMISSION_RESULT_FAILED_INSUFFICIENT_FUNDS = 4;  // Fee payer has insufficient balance
+  SUBMISSION_RESULT_FAILED_INVALID_SIGNATURE = 5;   // Transaction signature validation failed
 }
 
 message GetTransactionRequest {
@@ -100,4 +112,33 @@ message GetTransactionRequest {
 
 message GetTransactionResponse {
   Transaction transaction = 1;
+}
+
+// Transaction monitoring messages
+message MonitorTransactionRequest {
+  string signature = 1;                                               // Transaction signature to monitor
+  protosol.solana.type.v1.CommitmentLevel commitment_level = 2;       // Target commitment level
+  bool include_logs = 3;                                              // Include program execution logs
+  optional uint32 timeout_seconds = 4;                               // Monitor timeout (default: 60)
+}
+
+message MonitorTransactionResponse {
+  string signature = 1;                                               // Transaction signature being monitored
+  TransactionStatus status = 2;                                       // Current transaction status
+  optional uint64 slot = 3;                                          // Blockchain slot where transaction was processed
+  optional string error_message = 4;                                  // Error details if transaction failed
+  repeated string logs = 5;                                           // Program execution logs (if requested)
+  optional uint64 compute_units_consumed = 6;                        // Compute units consumed by transaction
+  protosol.solana.type.v1.CommitmentLevel current_commitment = 7;     // Current commitment level achieved
+}
+
+enum TransactionStatus {
+  TRANSACTION_STATUS_UNSPECIFIED = 0;
+  TRANSACTION_STATUS_RECEIVED = 1;           // Transaction received by validator
+  TRANSACTION_STATUS_PROCESSED = 2;          // Transaction processed (commitment: processed)
+  TRANSACTION_STATUS_CONFIRMED = 3;          // Transaction confirmed (commitment: confirmed)
+  TRANSACTION_STATUS_FINALIZED = 4;          // Transaction finalized (commitment: finalized)
+  TRANSACTION_STATUS_FAILED = 5;             // Transaction failed during execution
+  TRANSACTION_STATUS_DROPPED = 6;            // Transaction dropped from network
+  TRANSACTION_STATUS_TIMEOUT = 7;            // Monitoring timeout reached
 }

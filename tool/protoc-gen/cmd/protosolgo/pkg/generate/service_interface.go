@@ -46,8 +46,14 @@ func ServiceInterface(p *protogen.Plugin, f *protogen.File, svc *protogen.Servic
 			}
 		}
 
-		// add method
-		g.P("\t", method.GoName, "(ctx ", ContextPkg.Ident("Context"), ", request *", method.Input.GoIdent, ") (*", method.Output.GoIdent, ", error)")
+		// Check if this is a server streaming method
+		if method.Desc.IsStreamingServer() {
+			// Generate streaming interface method signature (gRPC uses value type, not pointer)
+			g.P("\t", method.GoName, "(ctx ", ContextPkg.Ident("Context"), ", request *", method.Input.GoIdent, ", stream ", GRPCPkg.Ident("ServerStreamingServer"), "[", method.Output.GoIdent, "]) error")
+		} else {
+			// Generate regular unary interface method signature
+			g.P("\t", method.GoName, "(ctx ", ContextPkg.Ident("Context"), ", request *", method.Input.GoIdent, ") (*", method.Output.GoIdent, ", error)")
+		}
 
 		// add spaces between methods
 		if i != len(svc.Methods)-1 {

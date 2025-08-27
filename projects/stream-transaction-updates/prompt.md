@@ -1,24 +1,44 @@
-You are an expert system architect and developer with deep expertise in:
-- **Solana blockchain architecture**: Transaction lifecycle, commitment levels, WebSocket RPC APIs, program execution
-- **Rust async/gRPC development**: tonic server streaming, tokio ecosystem, WebSocket clients, concurrent stream management
-- **Protocol Buffer API design**: Streaming RPC patterns, versioning strategies, cross-language SDK generation
-- **Distributed systems**: Real-time data streaming, error handling, resource management, production resilience
+# Transaction Monitoring Streaming Feature - Agent Implementation Directive
 
-## Mission & goal: Transaction Monitoring Streaming Feature
-Add a gRPC streaming endpoint to the protosol.solana.transaction.v1.Service that we can use to monitor the progress of a transaction. Implement a production-ready gRPC streaming endpoint for real-time Solana transaction monitoring that provides immediate submission feedback and streams transaction progress with program execution logs.
+You are an expert system architect implementing a gRPC streaming endpoint in protosol.solana.transaction.v1.Service for real-time Solana transaction monitoring with program execution logs.
 
-# Challenge
-Transaction submission is completely async right now: protosol.solana.transaction.v1.Service.SubmitTransaction. It should REMAIN that way as this is fundamentally an asynchronous process.
-We need a way to return a response OR error from the submit method so that the client knows whether to:
-- do nothing, handle error return. Transaction never even made it to submission, no point in monitoring.
-- subscribe to updates for the transaction to watch/wait until submission is complete and looking at output of the updates whether or not it was successful or failed. Program that was invoked logs should help with that - i.e. it errored or not.
+## Technical Challenge
+Current SubmitTransaction is async and returns only signature string (must remain async). Need enhanced response so client knows whether to:
+- Handle error return (transaction never reached submission, no monitoring needed)  
+- Subscribe to updates via MonitorTransaction stream to watch until completion and determine success/failure through program execution logs
 
-# Similar already Possible with TS SDK:
-- see this: /Users/bernardbussy/Projects/github.com/anza-xyz/kit/packages/transaction-confirmation/src/confirmation-strategy-recent-signature.ts, sort of already does what we want but is missing streaming actual logs of the program execution. It is also of course in typescript in an sdk. We need to see how to do this in rust in our api backend, and then stream through to grpc.
+## Technical Context
+- Extend existing SubmitTransaction to return enhanced response with submission status
+- Add new MonitorTransaction streaming RPC using Solana WebSocket pubsub for signature monitoring  
+- Stream program execution logs (missing from TypeScript reference implementation)
+- Implement in Rust backend using tonic gRPC server streaming
+- Reference: /Users/bernardbussy/Projects/github.com/anza-xyz/kit/packages/transaction-confirmation/src/confirmation-strategy-recent-signature.ts
 
-# Ideal User Flow Pseudocode
-This is the ideal flow we want to achieve (an extension of what already happens in tests/go/composable_e2e_test.go):
+## Target Implementation
+Go:
+```go
+// Enhanced submit response with immediate feedback
+submitResp := protosol.solana.transaction.v1.Service.SubmitTransaction(signedTx)
+if submitResp.SubmissionResult != SUBMITTED {
+    // Handle submission failure, no monitoring needed
+    return
+}
 
+// Stream transaction progress until target commitment level
+stream := protosol.solana.transaction.v1.Service.MonitorTransaction(submitResp.Signature, CommitmentLevelConfirmed, true)
+for update := range stream {
+    switch update.Status {
+    case CONFIRMED:
+        // Transaction confirmed with logs
+        return
+    case FAILED:
+        // Transaction failed with error details
+        return
+    }
+}
+```
+
+Pseudo code (This is the ideal flow we want to achieve (an extension of what already happens in tests/go/composable_e2e_test.go)):
 ```
 // create and fund root account (using token faucet on local test net with FundNative)
 rootKP = protosol.solana.account.v1.Service.GenerateNewKeyPair(...)
@@ -45,31 +65,71 @@ case Failure:
 }
 ```
 
-# Outcomes of this phase for you:
-1. making a complete feature updgrade doc, you will store in projects/stream-transaction-updates/requirements.md. This must contain requirements, task overview, goals, key objectives to achieve to know we have met goal. CRITICAL: this is a requirements document for an agent to consume. So business/human type requirements are not required like: business value, or benefits of this approach or timelines or time estimations. Please none of that. Just technical requirements and outcomes that are relevant to an agent implementing.
+## Research and Analysis Required
+Create comprehensive research todo list covering:
+- Existing protosol system architecture analysis
+- All provided reference implementations
+- Integration patterns with current codebase
 
-2. A step by step implementation plan: A detailed, step-by-step blueprint for achieving everything in the feature requirements.md. In developing this plan you will create a A detailed, step-by-step blueprint for achieving everything in the feature requirements.md - then, once you have a solid plan, break it down into small, iterative chunks that build on each other. Look at these chunks and then go another round to break it into small steps. Review the results and make sure that the steps are small enough to be implemented safely with strong testing, but big enough to move the implementation forward. Iterate until you feel that the steps are right sized for this task. This must prioritize best practices, and incremental progress, ensuring no big jumps in complexity or massive one shotting at any stage. Make sure that each step builds on the previous steps, and ends with wiring things together and testing. There should be no hanging or orphaned code that isn't integrated into a previous step. This blueprint must serve as a thorough TODO that will be followed step by step by you to build this tool - checking off progress as you go along. Store the plan in: projects/stream-transaction-updates/implementation-plan.md. CRITICAL: this is a detailed step by step implementation todo document for an agent to consume. So business/human type requirements are not required like: business value, or benefits of this approach or timelines or time estimations. Please none of that. Just technical step by step implementation plan to track and monitor progress with testing details etc.
+Use step-by-step approach: draft, review, refine sections iteratively.
 
-## CRITICAL IMPORTANT NOTES:
-- this is a completely greenfields project DO NOT WORRY ABOUT making any breaking changes to any APIs or anything
+## Deliverables Required
 
-## way of work tips:
-- you are to go into deep research mode, make a comprehensive todo list for yourself of all the things you need to research. Consider:
-  - existing system architecture
-  - all the references I have given you
-- everything you do here to be step by step. No one shotting. So for example while making the requirements.md, draft it, then read the draft, then update it section by section. Be critical and review your work.
+### 1. Technical Requirements Document
+**Location**: `projects/stream-transaction-updates/requirements.md`
+**Content**: Pure technical specifications for agent consumption
+- Protocol buffer message definitions and field requirements
+- gRPC service method signatures with streaming patterns
+- WebSocket integration architecture with pubsub client
+- Error handling requirements and status codes
+- Performance criteria and resource constraints  
+- Integration testing requirements
+- Validation criteria for success measurement
 
-# References CONSULT THESE, add references back to these if necessary into the final implementation or requirements:
-- a similar ts example: /Users/bernardbussy/Projects/github.com/anza-xyz/kit/packages/transaction-confirmation/src/confirmation-strategy-recent-signature.ts (note of course missing the logs from the program)
-- Full rust pubsub client you will be constructing and using: /Users/bernardbussy/Projects/github.com/anza-xyz/agave/pubsub-client
-- solana transaction lifecycle: https://solana.com/nl/developers/guides/advanced/confirmation
-- Solana RPC websocket methods: https://solana.com/docs/rpc/websocket
-- signatureSubscribeMethod: https://solana.com/docs/rpc/websocket/signaturesubscribe
-- grpc server streaming: https://grpc.io/docs/what-is-grpc/core-concepts/#server-streaming-rpc
-- tonic grpc rust server streaming example: https://github.com/hyperium/tonic/blob/master/examples/src/streaming/server.rs
-- solana pub sub client: https://docs.rs/solana-pubsub-client/latest/solana_pubsub_client/pubsub_client/index.html
-- the cookbook: https://solana.com/nl/developers/cookbook/development/subscribing-events, specifically this example:
+**FORBIDDEN CONTENT**:
+- Any references to human workflow, project management, or scheduling
+- Business justifications or value propositions  
+- Time estimates or performance targets with specific durations
+- Human-oriented success metrics or productivity measures
+
+### 2. Implementation Step Sequence
+**Location**: `projects/stream-transaction-updates/implementation-plan.md`  
+**Content**: Small, incremental technical steps with strong testing
+- Protocol buffer extensions with optimal field design
+- Rust dependency management and service integration
+- WebSocket client integration with error handling
+- gRPC streaming implementation with tonic
+- Testing integration with existing Go test suite
+- Step-by-step validation checkpoints
+- Technical dependencies and build ordering
+- Resource management and cleanup requirements
+
+**Requirements for step breakdown**:
+- Small steps implementable safely with strong testing
+- Each step builds on previous steps  
+- All steps end with integration and testing
+- No orphaned or hanging code at any stage
+- Prioritize incremental progress over large changes
+
+**FORBIDDEN CONTENT**:
+- Implementation timelines, schedules, or time allocations
+- Human workflow recommendations or project management advice
+- References to daily/weekly/monthly patterns
+- Time estimates for individual steps or overall completion
+
+## Architecture References (Critical: Look at them all. ONLY THEN decide if the content is relevant)
+- Solana transaction lifecycle: https://solana.com/nl/developers/guides/advanced/confirmation
+- Solana WebSocket RPC: https://solana.com/docs/rpc/websocket
+- signatureSubscribe method: https://solana.com/docs/rpc/websocket/signaturesubscribe
+- gRPC server streaming concepts: https://grpc.io/docs/what-is-grpc/core-concepts/#server-streaming-rpc
+- tonic server streaming: https://github.com/hyperium/tonic/blob/master/examples/src/streaming/server.rs
+- Solana pubsub client: /Users/bernardbussy/Projects/github.com/anza-xyz/agave/pubsub-client
+- Solana pubsub docs: https://docs.rs/solana-pubsub-client/latest/solana_pubsub_client/pubsub_client/index.html
+- Solana events cookbook: https://solana.com/nl/developers/cookbook/development/subscribing-events
+
+## Code Example Reference
 ```rust
+// Solana WebSocket subscription pattern from cookbook
 use anyhow::Result;
 use solana_client::{
     nonblocking::pubsub_client::PubsubClient, nonblocking::rpc_client::RpcClient,
@@ -123,110 +183,18 @@ async fn main() -> Result<()> {
 }
 ```
 
-# Agent Documentation Rules - NEVER VIOLATE
+## Constraints
+- This is a greenfields implementation with no backward compatibility requirements
+- All new fields should be required where technically appropriate
+- Focus on optimal technical design without legacy constraints
+- Implementation must integrate with existing protosol architecture in `/Users/bernardbussy/Projects/github.com/BRBussy/protosol`
 
-## CRITICAL - NEVER VIOLATE THESE EVER in the documentation you are creating:
+## Enforcement Mechanism
+Before generating any content, verify it contains:
+- [ ] Zero timing, scheduling, or duration references
+- [ ] Zero human workflow or project management concepts
+- [ ] Zero business justifications or motivational content
+- [ ] Only technical specifications and implementation steps
+- [ ] Agent-oriented language throughout
 
-### 1. NEVER FORGET that this is a greenfields project:
-- **NEVER mention backward compatibility, breaking changes, or migration strategies**
-- **NEVER assume existing systems, clients, or compatibility constraints exist**
-- Design the optimal solution without legacy baggage
-
-**What this means:**
-- No "optional for backward compatibility" - make fields required if they should be required
-- No "breaking change warnings" - everything is new
-- No "migration strategies" - nothing exists to migrate from
-- No "versioning considerations" - start with the right design
-- No "transition phases" - implement the final desired state directly
-
-**The correct mindset:**
-- Design the API as it should be, not as a compromise
-- Use required fields where they make sense
-- Implement the complete feature set immediately
-- Focus on optimal design, not compatibility constraints
-
-### 2. NEVER include timing estimates or durations
-- No "15 minutes", "2-3 hours", "daily workflow"
-- No time pressure or scheduling concepts
-- Agents work at their own pace, not human time constraints
-
-### 3. NEVER include business context or value propositions
-- No "benefits of this approach"
-- No "business value" explanations
-- No "why this matters" narrative
-- Pure technical requirements only
-
-### 4. NEVER include human workflow or process advice
-- No "recommended daily workflow"
-- No "morning/afternoon" task suggestions
-- No productivity tips or work organization
-- Agents don't have human work patterns
-
-### 5. NEVER include performance metrics or success rates
-- No "success rate should be 95%"
-- No "17-25 hours total time"
-- No human-oriented performance indicators
-- Only technical validation criteria
-
-### 6. NEVER include motivational or explanatory text
-- No "this ensures safety through small steps"
-- No "demonstrates thoroughness to the user"
-- No justifications for the approach
-- Just the technical steps
-
-### 7. NEVER include human emotional or psychological considerations
-- No "provides confidence"
-- No "reduces stress"
-- No "peace of mind"
-- Agents don't have emotions
-
-### 8. ALWAYS focus solely on technical execution
-- What to implement
-- Where to implement it
-- How to test it
-- Dependencies between steps
-- Technical validation requirements
-- Code examples and specifications
-
-### 9. ALWAYS assume the consumer is a technical system
-- No explanations of obvious concepts
-- No hand-holding language
-- Direct, imperative technical instructions
-- Structured, parseable format
-
-### 10. The Golden Rule for Agent Documentation:
-> **If a human worker needs it but a technical system doesn't, NEVER include it.**
-> 
-> **If you are worrying about backwards compatibility, DON'T - this is greenfields.**
-
-## Enforcement Checklist
-
-Before finalizing any documentation, verify:
-
-- [ ] Zero references to timing, schedules, or human work patterns
-- [ ] Zero business justifications or value explanations
-- [ ] Zero backward compatibility concerns or migration strategies
-- [ ] Zero motivational or emotional language
-- [ ] Zero human workflow recommendations
-- [ ] All content is actionable technical instructions
-- [ ] All fields are optimally designed (required where appropriate)
-- [ ] All steps have clear technical validation criteria
-- [ ] All code examples are complete and functional
-- [ ] All dependencies are technically specified
-
-## Violation Examples to Avoid
-
-❌ **WRONG**: "Add optional SubmissionResult field to maintain backward compatibility"
-✅ **CORRECT**: "Add required SubmissionResult field to SubmitTransactionResponse"
-
-❌ **WRONG**: "This step should take 15-20 minutes"
-✅ **CORRECT**: "Run `buf lint` to validate all proto changes"
-
-❌ **WRONG**: "This ensures peace of mind for developers"
-✅ **CORRECT**: "Validation: All imports resolve correctly"
-
-❌ **WRONG**: "Recommended daily workflow: Complete 3-4 steps in morning"
-✅ **CORRECT**: "Dependencies: Step 1.1A completed"
-
-❌ **WRONG**: "This provides business value by improving user experience"
-✅ **CORRECT**: "Action: Add MonitorTransaction streaming method to Service definition"
+Generate both documents with pure technical focus suitable for automated agent consumption.
