@@ -69,6 +69,66 @@ impl TransactionServiceImpl {
             websocket_manager,
         }
     }
+
+    /// Waits for transaction confirmation with polling (replicates spinner method behavior)
+    /// 
+    /// This method implements the polling logic that the spinner methods use internally,
+    /// providing proper confirmation waiting without UI dependencies.
+    /// 
+    /// The method polls the RPC every 500ms checking for transaction confirmation at the
+    /// specified commitment level, with a configurable timeout.
+    async fn wait_for_confirmation_with_polling(
+        &self,
+        signature: &Signature,
+        commitment: CommitmentConfig,
+        timeout_seconds: u64,
+    ) -> Result<bool, ClientError> {
+        use tokio::time::{sleep, timeout, Duration};
+        
+        let timeout_duration = Duration::from_secs(timeout_seconds);
+        let poll_interval = Duration::from_millis(500); // Poll every 500ms
+        
+        let confirmation_future = async {
+            loop {
+                match self.rpc_client.confirm_transaction_with_commitment(signature, commitment) {
+                    Ok(response) => {
+                        if response.value {
+                            debug!(
+                                signature = %signature,
+                                commitment_level = ?commitment,
+                                "🎯 Transaction confirmed via polling"
+                            );
+                            return Ok(true);
+                        }
+                        // Transaction not yet confirmed at this commitment level, continue polling
+                    }
+                    Err(e) => {
+                        // Only return error for non-recoverable issues
+                        // "Transaction not found" errors are expected during polling
+                        if !e.to_string().contains("not found") {
+                            return Err(e);
+                        }
+                    }
+                }
+                
+                // Wait before next poll
+                sleep(poll_interval).await;
+            }
+        };
+        
+        match timeout(timeout_duration, confirmation_future).await {
+            Ok(result) => result,
+            Err(_) => {
+                debug!(
+                    signature = %signature,
+                    timeout_seconds = timeout_seconds,
+                    commitment_level = ?commitment,
+                    "⏰ Transaction confirmation polling timed out"
+                );
+                Ok(false) // Timeout, but not an error - return false for "not confirmed"
+            }
+        }
+    }
 }
 
 /// Classifies Solana RPC client errors into appropriate SubmissionResult categories
@@ -802,8 +862,8 @@ impl TransactionService for TransactionServiceImpl {
     /// and commitment level management for reliable transaction broadcasting.
     /// 
     /// Submission Strategy:
-    /// Uses send_and_confirm_transaction_with_spinner_and_commitment() instead of
-    /// basic send_transaction() for several critical reasons:
+    /// Uses send_transaction_with_config() + confirm_transaction_with_commitment() instead of
+    /// basic send_transaction() or UI-oriented spinner methods for several critical reasons:
     /// 
     /// 1. CONSISTENCY: Matches GetAccount API commitment level (confirmed) to prevent
     ///    "account not found" errors when transactions reference recently funded accounts
@@ -866,47 +926,92 @@ impl TransactionService for TransactionServiceImpl {
             "🚀 Submitting transaction to Solana network"
         );
         
-        // CRITICAL: Use send_and_confirm_transaction_with_spinner_and_commitment instead of send_transaction
+        // CRITICAL: Use send_transaction_with_config + confirm_transaction_with_commitment 
+        // instead of UI-oriented spinner methods
         // 
         // Reasoning for this design choice:
-        // 1. CONSISTENCY: The GetAccount API uses CommitmentConfig::confirmed() to handle timing issues
-        //    where newly funded accounts aren't immediately visible. Transaction submission needs 
-        //    the same commitment level for consistency.
+        // 1. BACKEND APPROPRIATE: The spinner methods are behind #[cfg(feature = "spinner")]
+        //    and are designed for CLI/terminal UI with progress bars, not backend services.
         //
-        // 2. SIMULATION RELIABILITY: send_transaction() uses default commitment (often 'processed')
-        //    which can cause "Attempt to debit an account but found no record of a prior credit" 
-        //    errors when the transaction simulation can't see recently funded accounts.
+        // 2. CONSISTENCY: Maintains the same commitment level handling as GetAccount API
+        //    to prevent timing issues where newly funded accounts aren't immediately visible.
         //
-        // 3. ATOMIC TRANSACTION SUPPORT: For multi-instruction atomic transactions that create 
-        //    accounts and immediately transfer from them, we need confirmed commitment to ensure
+        // 3. SIMULATION RELIABILITY: Using explicit commitment config prevents
+        //    "Attempt to debit an account but found no record of a prior credit" errors
+        //    when transactions can't see recently funded accounts.
+        //
+        // 4. ATOMIC TRANSACTION SUPPORT: Multi-instruction transactions that create 
+        //    accounts and immediately transfer need confirmed commitment to ensure
         //    the validator sees all prior transactions that funded the fee payer.
         //
-        // 4. LOCAL VALIDATOR COMPATIBILITY: Local test validators can have different timing 
-        //    characteristics than mainnet. Confirmed commitment provides reliable behavior
-        //    across different network conditions.
-        //
-        // Alternative approaches considered:
-        // - send_transaction(): Fast but unreliable due to commitment timing
-        // - send_and_confirm_transaction(): Better but uses default commitment 
-        // - send_and_confirm_transaction_with_spinner_and_commitment(): Chosen for explicit control
+        // 5. PROPER SEPARATION: Uses backend-appropriate RPC methods without UI dependencies
+        //    (send_transaction_with_config + confirm_transaction_with_commitment)
         let commitment = commitment_level_to_config(req.commitment_level);
         debug!(
             commitment_level = ?commitment,
             fee_payer = %transaction.fee_payer,
             "Transaction submission configured with commitment level"
         );
-        let (signature_result, submission_result, error_message) = match self.rpc_client.send_and_confirm_transaction_with_spinner_and_commitment(
-            &solana_transaction, 
-            commitment
+
+        // Submit the transaction with proper configuration
+        let (signature_result, submission_result, error_message) = match self.rpc_client.send_transaction_with_config(
+            &solana_transaction,
+            solana_client::rpc_config::RpcSendTransactionConfig {
+                skip_preflight: false,
+                preflight_commitment: Some(commitment.commitment),
+                encoding: Some(solana_transaction_status::UiTransactionEncoding::Base64),
+                max_retries: Some(3),
+                min_context_slot: None,
+            }
         ) {
             Ok(signature) => {
-                info!(
+                debug!(
                     signature = %signature,
                     fee_payer = %transaction.fee_payer,
-                    commitment_level = ?commitment,
-                    "✅ Transaction submitted successfully"
+                    "📡 Transaction submitted, waiting for confirmation"
                 );
-                (signature.to_string(), SubmissionResult::Submitted, None)
+                
+                // Wait for transaction confirmation with polling (similar to what spinner does internally)
+                let confirmation_result = self.wait_for_confirmation_with_polling(
+                    &signature, 
+                    commitment,
+                    30 // 30 second timeout
+                ).await;
+                
+                match confirmation_result {
+                    Ok(confirmed) => {
+                        if confirmed {
+                            info!(
+                                signature = %signature,
+                                fee_payer = %transaction.fee_payer,
+                                commitment_level = ?commitment,
+                                "✅ Transaction confirmed successfully"
+                            );
+                            (signature.to_string(), SubmissionResult::Submitted, None)
+                        } else {
+                            warn!(
+                                signature = %signature,
+                                fee_payer = %transaction.fee_payer,
+                                commitment_level = ?commitment,
+                                "⚠️ Transaction not confirmed within timeout"
+                            );
+                            (signature.to_string(), SubmissionResult::FailedNetworkError, Some("Transaction not confirmed within timeout".to_string()))
+                        }
+                    }
+                    Err(e) => {
+                        let classification = classify_submission_error(&e);
+                        let error_msg = format!("Transaction confirmation failed: {}", e);
+                        error!(
+                            error = %e,
+                            signature = %signature,
+                            fee_payer = %transaction.fee_payer,
+                            commitment_level = ?commitment,
+                            classification = ?classification,
+                            "Transaction confirmation failed"
+                        );
+                        (signature.to_string(), classification, Some(error_msg))
+                    }
+                }
             }
             Err(e) => {
                 let classification = classify_submission_error(&e);
