@@ -17,6 +17,11 @@ tokio-stream.workspace = true
 dashmap.workspace = true
 uuid.workspace = true
 
+# Structured logging dependencies
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tracing-appender.workspace = true
+
 # Additional dependencies
 serde = { version = "1.0", features = ["derive"] }
 anyhow = "1.0"

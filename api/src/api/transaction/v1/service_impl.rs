@@ -5,6 +5,7 @@ use tonic::{Request, Response, Status};
 use tokio_stream::wrappers::ReceiverStream;
 use tokio::sync::mpsc;
 use tokio::time::timeout;
+use tracing::{info, warn, error, debug};
 use solana_sdk::{
     message::Message, 
     hash::Hash, 
@@ -667,7 +668,11 @@ impl TransactionService for TransactionServiceImpl {
         }
         
         // Submit the transaction to the Solana network with explicit commitment level
-        println!("🚀 Submitting transaction to Solana network...");
+        info!(
+            fee_payer = %transaction.fee_payer,
+            data_length = transaction.data.len(),
+            "🚀 Submitting transaction to Solana network"
+        );
         
         // CRITICAL: Use send_and_confirm_transaction_with_spinner_and_commitment instead of send_transaction
         // 
@@ -693,17 +698,34 @@ impl TransactionService for TransactionServiceImpl {
         // - send_and_confirm_transaction(): Better but uses default commitment 
         // - send_and_confirm_transaction_with_spinner_and_commitment(): Chosen for explicit control
         let commitment = commitment_level_to_config(req.commitment_level);
-        println!("Submitting transaction with commitment level: {:?}", commitment);
+        debug!(
+            commitment_level = ?commitment,
+            fee_payer = %transaction.fee_payer,
+            "Transaction submission configured with commitment level"
+        );
         let (signature_result, submission_result, error_message) = match self.rpc_client.send_and_confirm_transaction_with_spinner_and_commitment(
             &solana_transaction, 
             commitment
         ) {
             Ok(signature) => {
+                info!(
+                    signature = %signature,
+                    fee_payer = %transaction.fee_payer,
+                    commitment_level = ?commitment,
+                    "✅ Transaction submitted successfully"
+                );
                 (signature.to_string(), SubmissionResult::Submitted, None)
             }
             Err(e) => {
                 let classification = classify_submission_error(&e);
                 let error_msg = format!("Transaction submission failed: {}", e);
+                error!(
+                    error = %e,
+                    fee_payer = %transaction.fee_payer,
+                    commitment_level = ?commitment,
+                    classification = ?classification,
+                    "Transaction submission failed"
+                );
                 (String::new(), classification, Some(error_msg))
             }
         };
@@ -754,6 +776,7 @@ impl TransactionService for TransactionServiceImpl {
         let req = request.into_inner();
         
         if req.signature.is_empty() {
+            error!("GetTransaction called with empty signature");
             return Err(Status::invalid_argument("Transaction signature is required"));
         }
         
@@ -844,24 +867,49 @@ impl TransactionService for TransactionServiceImpl {
         
         // Validate signature format
         if req.signature.is_empty() {
+            error!("MonitorTransaction called with empty signature");
             return Err(Status::invalid_argument("Transaction signature is required"));
         }
         
         // Parse signature to validate format
         req.signature.parse::<solana_sdk::signature::Signature>()
-            .map_err(|_| Status::invalid_argument("Invalid signature format"))?;
+            .map_err(|_| {
+                error!(
+                    signature = %req.signature,
+                    "Invalid signature format provided to MonitorTransaction"
+                );
+                Status::invalid_argument("Invalid signature format")
+            })?;
         
         // Validate commitment level
         let commitment_level = CommitmentLevel::try_from(req.commitment_level)
-            .map_err(|_| Status::invalid_argument("Invalid commitment level"))?;
+            .map_err(|_| {
+                error!(
+                    commitment_level = req.commitment_level,
+                    signature = %req.signature,
+                    "Invalid commitment level provided to MonitorTransaction"
+                );
+                Status::invalid_argument("Invalid commitment level")
+            })?;
         
         // Validate timeout (if provided)
         let timeout_seconds = req.timeout_seconds.unwrap_or(60);
         if timeout_seconds < 5 || timeout_seconds > 300 {
+            error!(
+                timeout_seconds = timeout_seconds,
+                signature = %req.signature,
+                "Invalid timeout value provided to MonitorTransaction"
+            );
             return Err(Status::invalid_argument("Timeout must be between 5 and 300 seconds"));
         }
         
-        println!("🔍 Starting transaction monitoring for signature: {}", req.signature);
+        info!(
+            signature = %req.signature,
+            commitment_level = ?commitment_level,
+            timeout_seconds = timeout_seconds,
+            include_logs = req.include_logs,
+            "🔍 Starting transaction monitoring"
+        );
         
         // Create response stream channel with bounded capacity
         // Buffer size 100 provides good balance between memory usage and throughput
@@ -893,7 +941,11 @@ impl TransactionService for TransactionServiceImpl {
             ).await;
         });
         
-        println!("✅ Transaction monitoring stream established for: {}", req.signature);
+        info!(
+            signature = %req.signature,
+            commitment_level = ?commitment_level,
+            "✅ Transaction monitoring stream established"
+        );
         
         Ok(Response::new(ReceiverStream::new(rx)))
     }
@@ -927,14 +979,23 @@ async fn bridge_websocket_to_grpc_stream(
     grpc_tx: mpsc::Sender<Result<MonitorTransactionResponse, Status>>,
     timeout_seconds: u32,
 ) {
-        println!("🌉 Starting stream bridge for signature: {} with timeout: {}s", signature, timeout_seconds);
+        debug!(
+            signature = %signature,
+            timeout_seconds = timeout_seconds,
+            "🌉 Starting stream bridge"
+        );
         
         let bridge_timeout = Duration::from_secs(timeout_seconds as u64 + 5); // Add 5s buffer
         
         // Use timeout to prevent indefinite hanging if WebSocket stops responding
         let bridge_result = timeout(bridge_timeout, async {
             while let Some(response) = websocket_rx.recv().await {
-                println!("📨 Received WebSocket update for {}: status={:?}", signature, response.status());
+                debug!(
+                    signature = %signature,
+                    status = ?response.status(),
+                    slot = response.slot,
+                    "📨 Received WebSocket update"
+                );
                 
                 // Try to send to gRPC client - if this fails, client has disconnected
                 match grpc_tx.send(Ok(response.clone())).await {
@@ -942,7 +1003,10 @@ async fn bridge_websocket_to_grpc_stream(
                         // Successfully sent to client
                     }
                     Err(_) => {
-                        println!("🔌 Client disconnected for signature: {} (gRPC channel closed)", signature);
+                        info!(
+                            signature = %signature,
+                            "🔌 Client disconnected (gRPC channel closed)"
+                        );
                         return; // Early return - no need to continue processing
                     }
                 }
@@ -958,21 +1022,36 @@ async fn bridge_websocket_to_grpc_stream(
                 );
                 
                 if is_terminal {
-                    println!("🏁 Terminal status reached for signature: {} - status={:?}", signature, response.status());
+                    info!(
+                        signature = %signature,
+                        status = ?response.status(),
+                        slot = response.slot,
+                        "🏁 Terminal status reached"
+                    );
                     return; // End stream on terminal status
                 }
             }
             
             // WebSocket channel closed (sender dropped)
-            println!("📡 WebSocket stream ended for signature: {} (sender closed)", signature);
+            debug!(
+                signature = %signature,
+                "📡 WebSocket stream ended (sender closed)"
+            );
         }).await;
         
         match bridge_result {
             Ok(_) => {
-                println!("✅ Stream bridge completed normally for signature: {}", signature);
+                debug!(
+                    signature = %signature,
+                    "✅ Stream bridge completed normally"
+                );
             }
             Err(_) => {
-                println!("⏰ Stream bridge timed out for signature: {} after {}s", signature, timeout_seconds + 5);
+                warn!(
+                    signature = %signature,
+                    timeout_seconds = timeout_seconds + 5,
+                    "⏰ Stream bridge timed out"
+                );
                 // Send timeout notification to client if channel is still open
                 let timeout_response = MonitorTransactionResponse {
                     signature: signature.clone(),
@@ -985,7 +1064,12 @@ async fn bridge_websocket_to_grpc_stream(
                 };
                 
                 // Best effort - ignore if client already disconnected
-                let _ = grpc_tx.send(Ok(timeout_response)).await;
+                if grpc_tx.send(Ok(timeout_response)).await.is_err() {
+                    debug!(
+                        signature = %signature,
+                        "Client disconnected before timeout notification could be sent"
+                    );
+                }
             }
         }
     }

@@ -9,6 +9,7 @@ use solana_client::rpc_config::RpcSignatureSubscribeConfig;
 use solana_client::rpc_response::{Response, RpcSignatureResult, ProcessedSignatureResult, ReceivedSignatureResult};
 use solana_sdk::{signature::Signature, commitment_config::CommitmentConfig};
 use tonic::Status;
+use tracing::{info, warn, error, debug};
 
 use protosol_api::protosol::solana::transaction::v1::{
     MonitorTransactionResponse,
@@ -34,19 +35,32 @@ pub struct WebSocketManager {
 impl WebSocketManager {
     /// Creates a new WebSocket manager with connection to Solana WebSocket endpoint
     pub async fn new(ws_url: &str) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
-        println!("🔌 Creating WebSocket manager for: {}", ws_url);
+        info!(
+            ws_url = %ws_url,
+            "🔌 Creating WebSocket manager"
+        );
         
         // Test WebSocket connectivity by creating a temporary PubsubClient
         match PubsubClient::new(ws_url).await {
             Ok(_test_client) => {
-                println!("✅ WebSocket connection validated successfully");
+                info!(
+                    ws_url = %ws_url,
+                    "✅ WebSocket connection validated successfully"
+                );
             }
             Err(e) => {
-                println!("⚠️ WebSocket connection failed: {}. Will create per-subscription.", e);
+                warn!(
+                    ws_url = %ws_url,
+                    error = %e,
+                    "⚠️ WebSocket connection failed, will create per-subscription"
+                );
             }
         }
         
-        println!("✅ WebSocket manager initialized");
+        info!(
+            ws_url = %ws_url,
+            "✅ WebSocket manager initialized"
+        );
         
         Ok(WebSocketManager {
             ws_url: ws_url.to_string(),
@@ -75,7 +89,13 @@ impl WebSocketManager {
         // Generate unique subscription ID
         let subscription_id = Uuid::new_v4().to_string();
         
-        println!("🔔 Creating signature subscription for: {}", signature);
+        info!(
+            signature = %signature,
+            commitment_level = ?commitment_level,
+            include_logs = include_logs,
+            timeout_seconds = ?timeout_seconds,
+            "🔔 Creating signature subscription"
+        );
         
         // Clone necessary data for the async task
         let sig_clone = signature.clone();
@@ -105,7 +125,11 @@ impl WebSocketManager {
         
         self.active_subscriptions.insert(signature.clone(), subscription_handle);
         
-        println!("✅ Signature subscription created: {}", subscription_id);
+        info!(
+            signature = %signature,
+            subscription_id = %subscription_id,
+            "✅ Signature subscription created"
+        );
         
         Ok(rx)
     }
@@ -120,13 +144,20 @@ impl WebSocketManager {
         sender: mpsc::UnboundedSender<MonitorTransactionResponse>,
         ws_url: String,
     ) {
-        println!("🎧 Starting signature monitoring for: {}", signature_str);
+        debug!(
+            signature = %signature_str,
+            "🎧 Starting signature monitoring"
+        );
         
         // Create PubsubClient for this subscription
         let pubsub_client = match PubsubClient::new(&ws_url).await {
             Ok(client) => client,
             Err(e) => {
-                println!("❌ Failed to create PubsubClient: {}", e);
+                warn!(
+                    signature = %signature_str,
+                    error = %e,
+                    "❌ Failed to create PubsubClient, falling back to simulation"
+                );
                 // Fall back to simulation if WebSocket is not available
                 Self::simulate_signature_monitoring(
                     signature_str, commitment, include_logs, timeout, sender
@@ -145,7 +176,11 @@ impl WebSocketManager {
         let (mut stream, _unsubscribe) = match pubsub_client.signature_subscribe(&signature, Some(config)).await {
             Ok(subscription) => subscription,
             Err(e) => {
-                println!("❌ Failed to create signature subscription: {}", e);
+                warn!(
+                    signature = %signature_str,
+                    error = %e,
+                    "❌ Failed to create signature subscription, falling back to simulation"
+                );
                 // Fall back to simulation
                 Self::simulate_signature_monitoring(
                     signature_str, commitment, include_logs, timeout, sender
@@ -154,7 +189,10 @@ impl WebSocketManager {
             }
         };
         
-        println!("✅ Signature subscription established for: {}", signature_str);
+        info!(
+            signature = %signature_str,
+            "✅ Signature subscription established"
+        );
         
         // Set up timeout
         let timeout_task = tokio::time::sleep(timeout);
@@ -170,8 +208,9 @@ impl WebSocketManager {
                                 response, &signature_str, include_logs
                             ) {
                                 Ok(response) => {
+                                    let response_status = response.status();
                                     let is_terminal = matches!(
-                                        response.status(),
+                                        response_status,
                                         TransactionStatus::Confirmed |
                                         TransactionStatus::Finalized |
                                         TransactionStatus::Failed |
@@ -179,17 +218,28 @@ impl WebSocketManager {
                                     );
                                     
                                     if sender.send(response).is_err() {
-                                        println!("🔌 Client disconnected for: {}", signature_str);
+                                        info!(
+                                            signature = %signature_str,
+                                            "🔌 Client disconnected"
+                                        );
                                         break;
                                     }
                                     
                                     if is_terminal {
-                                        println!("✅ Terminal status reached for: {}", signature_str);
+                                        info!(
+                                            signature = %signature_str,
+                                            status = ?response_status,
+                                            "✅ Terminal status reached"
+                                        );
                                         break;
                                     }
                                 }
                                 Err(e) => {
-                                    println!("⚠️ Error processing notification: {}", e);
+                                    error!(
+                                        signature = %signature_str,
+                                        error = %e,
+                                        "⚠️ Error processing notification"
+                                    );
                                     let _ = sender.send(MonitorTransactionResponse {
                                         signature: signature_str.clone(),
                                         status: TransactionStatus::Failed.into(),
@@ -204,13 +254,19 @@ impl WebSocketManager {
                             }
                         }
                         None => {
-                            println!("🔚 Stream ended for: {}", signature_str);
+                            debug!(
+                                signature = %signature_str,
+                                "🔚 Stream ended"
+                            );
                             break;
                         }
                     }
                 }
                 _ = &mut timeout_task => {
-                    println!("⏰ Timeout reached for: {}", signature_str);
+                    warn!(
+                        signature = %signature_str,
+                        "⏰ Timeout reached"
+                    );
                     let _ = sender.send(MonitorTransactionResponse {
                         signature: signature_str.clone(),
                         status: TransactionStatus::Timeout.into(),
@@ -225,7 +281,10 @@ impl WebSocketManager {
             }
         }
         
-        println!("🏁 Signature subscription completed: {}", signature_str);
+        debug!(
+            signature = %signature_str,
+            "🏁 Signature subscription completed"
+        );
     }
     
     /// Processes a signature notification and converts it to MonitorTransactionResponse
@@ -304,7 +363,10 @@ impl WebSocketManager {
         timeout: Duration,
         sender: mpsc::UnboundedSender<MonitorTransactionResponse>,
     ) {
-        println!("🎧 Using simulation mode for signature: {}", signature_str);
+        info!(
+            signature = %signature_str,
+            "🎧 Using simulation mode"
+        );
         
         // Simulate realistic transaction progression
         let states = vec![
@@ -358,18 +420,29 @@ impl WebSocketManager {
             };
             
             if sender.send(response).is_err() {
-                println!("🔌 Client disconnected for: {}", signature_str);
+                info!(
+                    signature = %signature_str,
+                    "🔌 Client disconnected"
+                );
                 break;
             }
             
             // Check if we reached target commitment
             if current_commitment as i32 >= target_commitment as i32 {
-                println!("✅ Target commitment reached for: {}", signature_str);
+                info!(
+                    signature = %signature_str,
+                    target_commitment = ?target_commitment,
+                    current_commitment = ?current_commitment,
+                    "✅ Target commitment reached"
+                );
                 break;
             }
         }
         
-        println!("🏁 Simulation completed for: {}", signature_str);
+        debug!(
+            signature = %signature_str,
+            "🏁 Simulation completed"
+        );
     }
     
     /// Converts proto CommitmentLevel to Solana CommitmentConfig
@@ -401,19 +474,25 @@ impl WebSocketManager {
         for signature in to_remove {
             if let Some((_key, handle)) = self.active_subscriptions.remove(&signature) {
                 handle.abort_handle.abort();
-                println!("🧹 Cleaned up subscription for: {}", signature);
+                debug!(
+                    signature = %signature,
+                    "🧹 Cleaned up subscription"
+                );
             }
         }
         
         let active_count = self.active_subscriptions.len();
         if active_count > 0 {
-            println!("📊 Active subscriptions: {}", active_count);
+            debug!(
+                active_count = active_count,
+                "📊 Active subscriptions"
+            );
         }
     }
     
     /// Gracefully shuts down all subscriptions
     pub async fn shutdown(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        println!("🛑 Shutting down WebSocket manager...");
+        info!("🛑 Shutting down WebSocket manager");
         
         let subscription_count = self.active_subscriptions.len();
         
@@ -425,7 +504,10 @@ impl WebSocketManager {
         // Clear all subscriptions
         self.active_subscriptions.clear();
         
-        println!("✅ WebSocket manager shutdown complete. Cleaned up {} subscriptions", subscription_count);
+        info!(
+            subscription_count = subscription_count,
+            "✅ WebSocket manager shutdown complete"
+        );
         
         Ok(())
     }
@@ -475,6 +557,6 @@ mod tests {
         let manager = WebSocketManager::new(ws_url).await;
         assert!(manager.is_ok());
         
-        println!("WebSocket manager test completed successfully");
+        info!("WebSocket manager test completed successfully");
     }
 }
