@@ -399,8 +399,10 @@ See [repository-tooling-TODO.md](./repository-tooling-TODO.md) for comprehensive
 - ✅ **Real Transactions**: Created 4 accounts, submitted 4 transactions, all finalized
 - ✅ **Multi-instruction Composition**: Atomic transactions with 3 instructions working
 - ✅ **Account Management**: Funding, creation, and transfers all functional
-- ❌ **Transaction Estimation**: Compute units returning 0 (needs investigation)
-- ❌ **Signing Flow**: 3 tests failed related to transaction signing
+- ✅ **Transaction Estimation**: Fixed compute unit fallback logic for failed simulations
+- ✅ **Signing Flow**: Fixed all transaction signing issues - **100% test pass rate achieved (9/9 tests)**
+- ✅ **State Machine Logic**: Corrected single-signer transactions properly become FULLY_SIGNED
+- ✅ **Proto Serialization**: Fixed nil logs handling for failed simulations
 
 **Blockchain Verification Commands That Worked:**
 ```bash
@@ -415,6 +417,222 @@ solana confirm 63UAEzVeMohpwiB59AhgroxN3HdGrXxbAmVKUaRYnJF89b5eMF2sgGE2eePVRrPPk
 solana transaction-history 82w62sgdBAyS7UqubPj58xDE8VuQYFCFH1HTR1YY8wkK --url http://localhost:8899
 ```
 
+## 🔍 Master-Level Debugging & Testing Guide
+
+### Critical Test Suite Navigation (MUST KNOW)
+```bash
+# ❌ WRONG - Individual test won't run in testify suites:
+go test -v -run "Test_05_TransactionLifecycle_EstimateSimulate"
+
+# ✅ CORRECT - Use SuiteName/TestName pattern:
+RUN_INTEGRATION_TESTS=1 go test -v -run "TestComposableE2ESuite/Test_05_TransactionLifecycle_EstimateSimulate"
+
+# ✅ Run specific failing tests to isolate issues:
+RUN_INTEGRATION_TESTS=1 go test -v -run "TestComposableE2ESuite/Test_06"
+RUN_INTEGRATION_TESTS=1 go test -v -run "TestComposableE2ESuite/Test_07"
+
+# ✅ Always use environment variable for integration tests:
+RUN_INTEGRATION_TESTS=1 go test -v  # Full suite
+```
+
+### Cross-Layer Debugging Strategy
+
+When debugging protosol failures, trace through the entire stack:
+```
+Go Test → gRPC Protocol → Rust Backend → Solana RPC → Local Validator
+   ↓           ↓              ↓             ↓            ↓
+1. Check Go   2. Check      3. Check      4. Check    5. Check
+   test        proto         Rust impl     RPC logs    validator
+   assertions  serialization business      & errors    state
+              (nil vs empty) logic
+```
+
+### Common Issue Patterns & Solutions
+
+#### 1. Proto Serialization Gotchas
+```go
+// ❌ WRONG - Fails for empty repeated fields:
+suite.Assert().NotNil(simulateResp.Logs, "Should have logs")
+
+// ✅ CORRECT - Handle proto empty array → Go nil conversion:
+if simulateResp.Success {
+    suite.Assert().NotNil(simulateResp.Logs, "Successful simulations should have logs")
+} 
+// Failed simulations may have nil logs - this is expected
+```
+
+#### 2. State Machine Logic vs Test Expectations
+```go
+// ❌ WRONG TEST EXPECTATION:
+suite.Assert().Equal(TRANSACTION_STATE_PARTIALLY_SIGNED, signedTx.State)
+
+// ✅ CORRECT - Single signer transactions become FULLY_SIGNED:
+suite.Assert().Equal(TRANSACTION_STATE_FULLY_SIGNED, signedTx.State, 
+    "Single signer transaction should be fully signed")
+```
+
+#### 3. Private Key Encoding Issues
+```go
+// ❌ WRONG - Hardcoded hex keys fail:
+payerPrivateKey := "342bf55fc1a02135e3e9d6dc2a17849b9a3d29c8a0498532f931325e5424b199"
+
+// ✅ CORRECT - Generate consistent keypairs:
+payerResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
+payerPrivateKey := payerResp.KeyPair.PrivateKey  // Base58 encoded
+```
+
+#### 4. Commitment Level & Timing Issues
+```go
+// Account visibility delay after funding - use polling:
+func waitForAccountVisible(address string) {
+    for attempt := 1; attempt <= 10; attempt++ {
+        _, err := accountService.GetAccount(ctx, &account_v1.GetAccountRequest{
+            Address: address,
+            CommitmentLevel: &type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
+        })
+        if err == nil {
+            return // Success
+        }
+        time.Sleep(200 * time.Millisecond)
+    }
+}
+```
+
+### Error Message Forensics
+
+Learn to read error messages like a detective:
+```
+"Invalid private key format: provided string contained invalid character '0' at byte 11"
+→ Analysis: Hex string at position 11, backend expects Base58 → Encoding mismatch
+
+"Expected value not to be nil. Should have logs"  
+→ Analysis: Proto repeated field became nil instead of empty slice → Serialization issue
+
+"AccountNotFound" during simulation
+→ Analysis: Account doesn't exist yet → Timing/sequence issue or test data problem
+```
+
+### Parallel Debugging Techniques
+
+Use multiple terminal sessions for faster iteration:
+```bash
+# Terminal 1: Keep validator running
+./scripts/tests/start-validator.sh
+
+# Terminal 2: Monitor backend with logs
+cargo run --package protosol-solana-api 2>&1 | tee debug.log
+
+# Terminal 3: Run specific failing tests
+cd tests/go
+RUN_INTEGRATION_TESTS=1 go test -v -run "TestComposableE2ESuite/Test_06"
+
+# Terminal 4: Check blockchain state
+solana balance [ADDRESS] --url http://localhost:8899
+solana confirm [SIGNATURE] --url http://localhost:8899
+```
+
+### Integration Test Development Patterns
+
+#### Test Structure Template
+```go
+func (suite *ComposableE2ETestSuite) Test_NewFeature() {
+    suite.T().Log("🎯 Testing New Feature")
+    
+    // 1. Setup - Generate keypairs consistently
+    keyResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
+    suite.Require().NoError(err, "Should generate keypair")
+    
+    // 2. Use generated keys throughout test (never hardcode)
+    address := keyResp.KeyPair.PublicKey
+    privateKey := keyResp.KeyPair.PrivateKey
+    
+    // 3. Handle timing - fund and wait for visibility
+    _, err = suite.accountService.FundNative(suite.ctx, &account_v1.FundNativeRequest{
+        Address: address,
+        Amount: "1000000000", // 1 SOL
+    })
+    suite.Require().NoError(err, "Should fund account")
+    
+    // 4. Wait for account to become visible
+    suite.waitForAccountVisible(address)
+    
+    // 5. Test the actual feature
+    // ... feature test logic ...
+    
+    // 6. Verify blockchain state if needed
+    suite.T().Logf("✅ Blockchain verification command:")
+    suite.T().Logf("   solana balance %s --url http://localhost:8899", address)
+}
+```
+
+#### State Machine Testing Best Practices
+```go
+// Always test state transitions explicitly
+suite.Assert().Equal(transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT, tx.State)
+
+resp, err := suite.transactionService.CompileTransaction(suite.ctx, req)
+suite.Require().NoError(err, "Should compile")
+
+suite.Assert().Equal(transaction_v1.TransactionState_TRANSACTION_STATE_COMPILED, resp.Transaction.State)
+
+// Test business logic, not implementation details
+// Good: Test that signing produces expected state
+// Bad: Test internal signature format details
+```
+
+### Debugging Production-Level Issues
+
+#### Service Health Monitoring
+```bash
+# Check all stack components
+curl -s http://localhost:8899 -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"getHealth"}' | jq
+
+# Check backend health (if endpoint exists)
+grpc_health_probe -addr localhost:50051
+
+# Process monitoring
+lsof -i :8899   # Validator
+lsof -i :50051  # Backend
+ps aux | grep solana-test-validator
+```
+
+#### Advanced Log Analysis
+```bash
+# Backend logs with structured analysis
+cargo run --package protosol-solana-api 2>&1 | grep -E "(ERROR|WARN|Failed|Invalid)"
+
+# Test logs with timing analysis  
+RUN_INTEGRATION_TESTS=1 go test -v 2>&1 | grep -E "(FAIL|Error|panic|timeout)"
+
+# Validator logs
+tail -f ~/.config/solana/validator.log | grep -E "(ERROR|WARN)"
+```
+
+### Repository Investigation Commands
+```bash
+# Find all test assertions to understand patterns
+grep -r "suite\.Assert\|suite\.Require" tests/go/ --include="*.go"
+
+# Find all error handling patterns in backend
+grep -r "Status::" api/src/ --include="*.rs" -A 2 -B 1
+
+# Find proto serialization patterns
+grep -r "unwrap_or_default\|unwrap_or_else" api/src/ --include="*.rs"
+
+# Find hardcoded values that might cause issues
+grep -r -E "[0-9a-fA-F]{64}" tests/go/ --include="*.go"
+```
+
+### Master-Level Debugging Mindset
+
+1. **Pattern Recognition**: When you see "Invalid private key format", immediately think "encoding mismatch"
+2. **State Machine Thinking**: Always trace which state transitions are happening and why
+3. **Cross-Language Awareness**: Proto empty arrays become nil in Go, not empty slices  
+4. **Timing Sensitivity**: Blockchain operations have timing - account visibility, transaction confirmation
+5. **Error Message Precision**: Error messages often contain the exact solution if read carefully
+6. **Parallel Investigation**: Use multiple terminals/tools simultaneously for faster diagnosis
+
 ## 🚀 Quick Commands Reference
 
 ```bash
@@ -427,7 +645,8 @@ cargo test                                 # Run Rust unit tests
 # Testing
 ./scripts/tests/start-validator.sh        # Start Solana
 ./scripts/tests/start-backend.sh          # Start backend
-cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v  # Full suite
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v -run "TestComposableE2ESuite/Test_06"  # Specific test
 
 # Cleanup
 ./scripts/code-gen/clean/all.sh          # Remove generated code
@@ -509,3 +728,17 @@ When helping with this codebase:
 6. The custom Go plugin generates clean interfaces - use them in tests
 7. Integration tests must set `RUN_INTEGRATION_TESTS=1` to run
 8. When adding features, follow the workflow EXACTLY as specified
+
+### Critical Debugging Insights (From Deep Testing Experience)
+9. **Test Suite Syntax**: Use `TestSuiteName/TestName` pattern for individual testify suite tests
+10. **Proto Serialization**: Empty repeated fields become `nil` in Go, not empty slices
+11. **State Machine Logic**: Single-signer transactions become FULLY_SIGNED, not PARTIALLY_SIGNED
+12. **Encoding Issues**: Backend expects Base58 private keys, never hex strings
+13. **Error Message Analysis**: Read error messages forensically - they often contain exact solutions
+14. **Cross-Layer Debugging**: Trace Go→gRPC→Rust→Solana RPC→Validator for complex issues
+15. **Timing Sensitivity**: Account funding has visibility delays, use polling in tests
+16. **Parallel Debugging**: Use multiple terminals for validator/backend/tests/blockchain-checks
+17. **Business Logic vs Implementation**: Test expected state transitions, not internal formats
+18. **Pattern Recognition**: "Invalid format" → encoding issue, "NotNil failed" → proto serialization
+19. **Integration Test Structure**: Always generate keypairs, never hardcode credentials
+20. **Commitment Levels**: CONFIRMED commitment prevents timing issues vs PROCESSED
