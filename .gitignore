@@ -7,3 +7,12 @@
 node_modules
 test-ledger
 dist
+
+# Solana validator and backend runtime files
+.solana-validator.log
+.solana-validator.pid
+.solana-validator-ledger/
+.solana-backend.log
+.solana-backend.pid
+.solana-backend.port
+.solana-cli-config.backup

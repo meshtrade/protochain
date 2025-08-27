@@ -66,14 +66,17 @@ func findAPITestRoot() (string, error) {
 	}
 
 	for {
-		// Check if current directory is api-test or contains api-test
-		if filepath.Base(wd) == "api-test" {
+		// Check if current directory is tests/go
+		if filepath.Base(wd) == "go" && filepath.Base(filepath.Dir(wd)) == "tests" {
 			return wd, nil
 		}
 
-		// Also check if we're in a subdirectory of api-test
-		if apiTestPath := filepath.Join(wd, "api-test"); isDir(apiTestPath) {
-			return apiTestPath, nil
+		// Also check if we're in a protosol project root
+		if hasProtosolMarkers(wd) {
+			testsGoPath := filepath.Join(wd, "tests", "go")
+			if isDir(testsGoPath) {
+				return testsGoPath, nil
+			}
 		}
 
 		// Move up one directory
@@ -84,7 +87,7 @@ func findAPITestRoot() (string, error) {
 		wd = parent
 	}
 
-	return "", fmt.Errorf("api-test directory not found in directory tree")
+	return "", fmt.Errorf("tests/go directory not found in directory tree")
 }
 
 func isDir(path string) bool {
@@ -123,9 +126,11 @@ func GetTestKeypairPath() (string, error) {
 func hasProtosolMarkers(dir string) bool {
 	// Check for known project files/directories that indicate protosol root
 	markers := []string{
-		"CLAUDE.md",
-		"project/solana",
-		"dev/tool.sh",
+		"claude.md",
+		"buf.yaml",
+		"lib/proto",
+		"api/Cargo.toml",
+		"go.work",
 	}
 
 	for _, marker := range markers {

@@ -381,6 +381,40 @@ solana-test-validator --reset
 ./scripts/tests/start-backend.sh
 ```
 
+## 🛠️ Repository Tooling & Known Issues
+
+### Development Experience Improvements
+See [repository-tooling-TODO.md](./repository-tooling-TODO.md) for comprehensive list of tooling improvements and their priority rankings.
+
+### First Integration Run Learnings (2025-08-27)
+**Success**: 6/9 integration tests passed on first attempt with real blockchain integration!
+
+**Key Fixes Applied During Setup:**
+1. **Script Path Bug**: `scripts/tests/start-backend.sh` had incorrect `PROJECT_ROOT` calculation
+2. **Config Structure Bug**: `tests/go/config/config.go` looked for non-existent `api-test` directory  
+3. **Legacy References**: Updated workspace member checks and project markers
+
+**Architecture Validation Results:**
+- ✅ **Full Stack Working**: Validator → Backend → gRPC → Go SDK → Blockchain
+- ✅ **Real Transactions**: Created 4 accounts, submitted 4 transactions, all finalized
+- ✅ **Multi-instruction Composition**: Atomic transactions with 3 instructions working
+- ✅ **Account Management**: Funding, creation, and transfers all functional
+- ❌ **Transaction Estimation**: Compute units returning 0 (needs investigation)
+- ❌ **Signing Flow**: 3 tests failed related to transaction signing
+
+**Blockchain Verification Commands That Worked:**
+```bash
+# Account balance verification (all successful)
+solana balance 82w62sgdBAyS7UqubPj58xDE8VuQYFCFH1HTR1YY8wkK --url http://localhost:8899
+solana balance D6GbPRKPbcRckGamaEy9HTmhtba62DoBtaJGGecmjy7Z --url http://localhost:8899
+
+# Transaction confirmation (all finalized)
+solana confirm 63UAEzVeMohpwiB59AhgroxN3HdGrXxbAmVKUaRYnJF89b5eMF2sgGE2eePVRrPPkCEPQhgyx8scfvxR9aZYnhvt --url http://localhost:8899
+
+# Transaction history (complete activity log)
+solana transaction-history 82w62sgdBAyS7UqubPj58xDE8VuQYFCFH1HTR1YY8wkK --url http://localhost:8899
+```
+
 ## 🚀 Quick Commands Reference
 
 ```bash

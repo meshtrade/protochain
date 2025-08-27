@@ -6,7 +6,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 PID_FILE="$PROJECT_ROOT/.solana-backend.pid"
 PORT_FILE="$PROJECT_ROOT/.solana-backend.port"
 LOG_FILE="$PROJECT_ROOT/.solana-backend.log"
@@ -30,9 +30,15 @@ if [[ -f "$PID_FILE" ]]; then
 fi
 
 # Ensure Rust workspace is configured
-if [[ ! -f "Cargo.toml" ]] || ! grep -q "project/solana/cmd/api" Cargo.toml; then
-    echo "❌ Error: Rust workspace not properly configured"
+if [[ ! -f "Cargo.toml" ]]; then
+    echo "❌ Error: Cargo.toml not found"
     echo "   Make sure you're running from the project root directory"
+    exit 1
+fi
+
+if ! grep -q "api" Cargo.toml; then
+    echo "❌ Error: 'api' workspace member not found in Cargo.toml"
+    echo "   Make sure the Rust workspace is properly configured"
     exit 1
 fi
 
