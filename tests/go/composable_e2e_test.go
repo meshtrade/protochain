@@ -3,6 +3,8 @@ package apitest
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -17,15 +19,51 @@ import (
 	"github.com/BRBussy/protosol/tests/go/config"
 )
 
+// areDependenciesAvailable checks if the required services are running
+func areDependenciesAvailable() bool {
+	// Check if Solana validator is running (port 8899)
+	conn, err := net.DialTimeout("tcp", "localhost:8899", 2*time.Second)
+	if err != nil {
+		return false
+	}
+	conn.Close()
+
+	// Check if Solana RPC is actually responding
+	client := &http.Client{Timeout: 2 * time.Second}
+	resp, err := client.Get("http://localhost:8899")
+	if err != nil {
+		return false
+	}
+	resp.Body.Close()
+
+	// Check if backend gRPC server is running (port 50051)
+	conn, err = net.DialTimeout("tcp", "localhost:50051", 2*time.Second)
+	if err != nil {
+		return false
+	}
+	conn.Close()
+
+	return true
+}
+
 // TestComposableE2ESuite runs the complete end-to-end test suite using the new composable architecture
 func TestComposableE2ESuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping composable E2E integration tests in short mode")
 	}
 
-	// Skip integration tests if not explicitly requested
-	if os.Getenv("RUN_INTEGRATION_TESTS") != "1" {
-		t.Skip("Integration tests skipped - set RUN_INTEGRATION_TESTS=1 to enable")
+	// Skip integration tests if explicitly disabled
+	if os.Getenv("RUN_INTEGRATION_TESTS") == "0" {
+		t.Skip("Integration tests explicitly disabled with RUN_INTEGRATION_TESTS=0")
+	}
+
+	// Auto-detect if dependencies are running (unless forced)
+	forceRun := os.Getenv("RUN_INTEGRATION_TESTS") == "1"
+	if !forceRun && !areDependenciesAvailable() {
+		t.Skip("Integration tests skipped - Solana validator or backend not running. Start them with:\n" +
+			"  Terminal 1: ./scripts/tests/start-validator.sh\n" +
+			"  Terminal 2: ./scripts/tests/start-backend.sh\n" +
+			"  Or set RUN_INTEGRATION_TESTS=1 to force run (tests will fail)")
 	}
 
 	suite.Run(t, new(ComposableE2ETestSuite))

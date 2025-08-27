@@ -184,9 +184,11 @@ cargo run --package protosol-solana-api
 # OR
 ./scripts/tests/start-backend.sh
 
-# Terminal 3: Run integration tests
+# Terminal 3: Run integration tests (auto-detects running services)
 cd tests/go
-RUN_INTEGRATION_TESTS=1 go test -v
+go test -v                                    # Auto-runs if services are up
+RUN_INTEGRATION_TESTS=1 go test -v          # Force run (will fail if services down)
+RUN_INTEGRATION_TESTS=0 go test -v          # Explicitly skip integration tests
 ```
 
 ### 🚨 WORKFLOW RULES (Never Break These)
@@ -338,6 +340,58 @@ SOLANA_RETRY_ATTEMPTS=3
 4. If state change: Update `api/src/api/transaction/v1/validation.rs`
 5. Test state machine: `tests/go/composable_e2e_test.go`
 
+## ⚡ Integration Test Auto-Detection System
+
+### How It Works
+The integration test suite automatically detects if required services are running and adjusts behavior accordingly:
+
+```go
+// Auto-detection logic in tests/go/composable_e2e_test.go
+func areDependenciesAvailable() bool {
+    // Checks Solana validator (port 8899) + HTTP health
+    // Checks backend gRPC server (port 50051)
+    return validatorRunning && backendRunning
+}
+```
+
+### Usage Patterns
+```bash
+# 🎯 RECOMMENDED - Auto-detection workflow:
+./scripts/tests/start-validator.sh    # Terminal 1: Start validator
+./scripts/tests/start-backend.sh      # Terminal 2: Start backend  
+go test -v                            # Terminal 3: Auto-runs tests
+
+# 🔧 Override options:
+RUN_INTEGRATION_TESTS=1 go test -v   # Force run (fails if services down)
+RUN_INTEGRATION_TESTS=0 go test -v   # Explicitly skip integration tests
+```
+
+### Behavior Matrix
+| Services Running | Environment Variable | Result |
+|-----------------|---------------------|---------|
+| ✅ Both Up | None | ✅ **Tests run automatically** |
+| ✅ Both Up | `RUN_INTEGRATION_TESTS=0` | ⏭️ Tests skipped (explicit disable) |
+| ❌ Down/Partial | None | ⏭️ Tests skipped with helpful instructions |
+| ❌ Down/Partial | `RUN_INTEGRATION_TESTS=1` | ❌ Tests run but fail (force override) |
+
+### Error Messages You'll See
+```bash
+# When services aren't running (helpful guidance):
+Integration tests skipped - Solana validator or backend not running. Start them with:
+  Terminal 1: ./scripts/tests/start-validator.sh  
+  Terminal 2: ./scripts/tests/start-backend.sh
+  Or set RUN_INTEGRATION_TESTS=1 to force run (tests will fail)
+
+# When explicitly disabled:
+Integration tests explicitly disabled with RUN_INTEGRATION_TESTS=0
+```
+
+### Benefits for Development
+- **Zero friction**: `go test -v` just works when services are up
+- **Clear guidance**: Helpful instructions when services are down  
+- **Override safety**: Can still force-run or explicitly disable
+- **Fast feedback**: 2-second timeout for dependency checks
+
 ## 🐛 Troubleshooting
 
 ### Proto Issues
@@ -431,8 +485,9 @@ RUN_INTEGRATION_TESTS=1 go test -v -run "TestComposableE2ESuite/Test_05_Transact
 RUN_INTEGRATION_TESTS=1 go test -v -run "TestComposableE2ESuite/Test_06"
 RUN_INTEGRATION_TESTS=1 go test -v -run "TestComposableE2ESuite/Test_07"
 
-# ✅ Always use environment variable for integration tests:
-RUN_INTEGRATION_TESTS=1 go test -v  # Full suite
+# ✅ Integration tests auto-detect running services:
+go test -v                           # Auto-runs if services are up
+RUN_INTEGRATION_TESTS=1 go test -v  # Force run (will fail if services down)
 ```
 
 ### Cross-Layer Debugging Strategy
@@ -645,7 +700,7 @@ cargo test                                 # Run Rust unit tests
 # Testing
 ./scripts/tests/start-validator.sh        # Start Solana
 ./scripts/tests/start-backend.sh          # Start backend
-cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v  # Full suite
+cd tests/go && go test -v                         # Auto-runs if services up
 cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v -run "TestComposableE2ESuite/Test_06"  # Specific test
 
 # Cleanup
@@ -726,7 +781,7 @@ When helping with this codebase:
 4. Default commitment level is CONFIRMED unless specified
 5. All services return `tonic::Status` errors with detailed messages
 6. The custom Go plugin generates clean interfaces - use them in tests
-7. Integration tests must set `RUN_INTEGRATION_TESTS=1` to run
+7. Integration tests auto-detect services or use `RUN_INTEGRATION_TESTS=1` to force
 8. When adding features, follow the workflow EXACTLY as specified
 
 ### Critical Debugging Insights (From Deep Testing Experience)
