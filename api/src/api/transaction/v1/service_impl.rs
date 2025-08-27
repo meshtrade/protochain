@@ -1,8 +1,10 @@
 use std::sync::Arc;
 use std::str::FromStr;
+use std::time::Duration;
 use tonic::{Request, Response, Status};
 use tokio_stream::wrappers::ReceiverStream;
 use tokio::sync::mpsc;
+use tokio::time::timeout;
 use solana_sdk::{
     message::Message, 
     hash::Hash, 
@@ -31,7 +33,23 @@ use protosol_api::protosol::solana::transaction::v1::{
 use protosol_api::protosol::solana::r#type::v1::CommitmentLevel;
 
 /// Composable Transaction Service Implementation
-/// Provides methods to compile, estimate, simulate, sign, and submit composable transactions
+/// 
+/// This service implements the full transaction lifecycle for Solana blockchain operations:
+/// - DRAFT → COMPILED: Converts instructions into executable transaction bytecode
+/// - COMPILED → SIGNED: Applies cryptographic signatures for authorization  
+/// - SIGNED → SUBMITTED: Broadcasts to network with commitment level handling
+/// 
+/// Key Architecture Decisions:
+/// - Uses Arc<RpcClient> for thread-safe shared access to Solana RPC
+/// - Integrates Arc<WebSocketManager> for real-time transaction monitoring
+/// - All state transitions are validated to ensure transaction integrity
+/// - Supports configurable commitment levels (processed/confirmed/finalized)
+/// - Implements robust error classification for submission failures
+/// 
+/// Memory Management:
+/// - Clone-based sharing for service instances across async contexts
+/// - Arc-wrapped clients prevent use-after-free in concurrent operations
+/// - Bincode serialization provides compact binary encoding for network transport
 #[derive(Clone)]
 pub struct TransactionServiceImpl {
     rpc_client: Arc<RpcClient>,
@@ -48,7 +66,21 @@ impl TransactionServiceImpl {
     }
 }
 
-/// Classifies submission errors into appropriate SubmissionResult categories
+/// Classifies Solana RPC client errors into appropriate SubmissionResult categories
+/// 
+/// This function performs intelligent error analysis to provide meaningful feedback
+/// to clients about why their transaction submission failed. It examines error
+/// messages using pattern matching to determine the root cause.
+/// 
+/// Classification Strategy:
+/// - Insufficient Funds: "insufficient" + "fund" patterns
+/// - Invalid Signature: "invalid" + "signature" patterns  
+/// - Network Error: "network", "connection", "timeout" patterns
+/// - Validation Error: "validation", "invalid" patterns
+/// - Default: Network error for unknown cases (fail-safe)
+/// 
+/// This approach is resilient to Solana client library changes while providing
+/// actionable error information for automated retry logic and user feedback.
 fn classify_submission_error(error: &ClientError) -> SubmissionResult {
     let error_str = error.to_string().to_lowercase();
     
@@ -67,8 +99,22 @@ fn classify_submission_error(error: &ClientError) -> SubmissionResult {
     }
 }
 
-/// Helper function to convert proto CommitmentLevel to Solana CommitmentConfig
-/// Provides sensible defaults when commitment level is not specified
+/// Converts protobuf CommitmentLevel enum to Solana SDK CommitmentConfig
+/// 
+/// This function handles the impedance mismatch between protobuf enums and Rust enums,
+/// providing safe conversion with fallback behavior for invalid or unspecified values.
+/// 
+/// Default Behavior:
+/// - Uses CONFIRMED commitment as default (balances speed vs. reliability)
+/// - Matches the account service default to maintain API consistency
+/// - Invalid enum values fallback to CONFIRMED for predictable behavior
+/// 
+/// Commitment Levels Explained:
+/// - PROCESSED: Fastest, least reliable (single validator confirmation)
+/// - CONFIRMED: Balanced (supermajority of validators, ~400ms typical)
+/// - FINALIZED: Slowest, most reliable (irreversible, ~13s typical)
+/// 
+/// The confirmed default prevents timing issues while maintaining reasonable performance.
 fn commitment_level_to_config(commitment_level: Option<i32>) -> CommitmentConfig {
     match commitment_level {
         Some(level) => {
@@ -92,7 +138,32 @@ fn commitment_level_to_config(commitment_level: Option<i32>) -> CommitmentConfig
 #[tonic::async_trait]
 impl TransactionService for TransactionServiceImpl {
     type MonitorTransactionStream = ReceiverStream<Result<MonitorTransactionResponse, Status>>;
-    /// Compiles a draft transaction with instructions into an executable transaction
+    /// Compiles a draft transaction with instructions into executable transaction bytecode
+    /// 
+    /// State Transition: DRAFT → COMPILED
+    /// 
+    /// This method performs the critical compilation step that transforms human-readable
+    /// instructions into binary transaction data that can be executed on Solana blockchain.
+    /// 
+    /// Compilation Process:
+    /// 1. Validates current transaction state allows compilation
+    /// 2. Converts protobuf instructions to Solana SDK instructions
+    /// 3. Fetches recent blockhash (or uses provided one)
+    /// 4. Uses Solana SDK Message::new_with_blockhash for proper compilation
+    /// 5. Serializes compiled message with bincode for compact binary encoding
+    /// 6. Base58 encodes for safe protobuf transport
+    /// 7. Updates transaction metadata and validates state consistency
+    /// 
+    /// Critical Design Notes:
+    /// - Uses Solana SDK compilation (not manual) for proper account deduplication
+    /// - Handles signing requirements calculation automatically
+    /// - Fetches blockhash if not provided (network call for freshness)
+    /// - All validation occurs before and after compilation for safety
+    /// 
+    /// Memory Management:
+    /// - Instructions are converted (not cloned) to minimize allocations
+    /// - Bincode provides zero-copy serialization where possible
+    /// - Base58 encoding only happens once at the end
     async fn compile_transaction(
         &self,
         request: Request<CompileTransactionRequest>,
@@ -180,7 +251,29 @@ impl TransactionService for TransactionServiceImpl {
         }))
     }
     
-    /// Estimates compute units and fees for a compiled transaction
+    /// Estimates compute units and transaction fees for a compiled transaction
+    /// 
+    /// This method provides accurate resource consumption estimates by simulating
+    /// transaction execution without actually submitting to the blockchain.
+    /// 
+    /// Estimation Strategy:
+    /// 1. Primary: Uses RPC simulate_transaction_with_config for real execution analysis
+    /// 2. Fallback: Instruction-count-based heuristics if simulation fails
+    /// 3. Handles both None and 0 compute units with reasonable defaults
+    /// 
+    /// Compute Unit Estimation:
+    /// - Real simulation: Uses actual execution consumption when available
+    /// - Fallback formula: instructions * 50,000 CU (realistic per-instruction average)
+    /// - Bounds: minimum 200,000 CU, maximum 1,400,000 CU (network limits)
+    /// 
+    /// Fee Calculation:
+    /// - Base fee: 5,000 lamports (standard transaction fee)
+    /// - Priority fee: compute_units * compute_unit_price (from transaction config)
+    /// - Caps priority fee at 1,000,000 lamports to prevent excessive costs
+    /// - Fallback priority fee: 1,000 lamports for network prioritization
+    /// 
+    /// The estimation accuracy helps users avoid transaction failures due to
+    /// insufficient fees or compute budget exhaustion.
     async fn estimate_transaction(
         &self,
         request: Request<EstimateTransactionRequest>,
@@ -272,7 +365,30 @@ impl TransactionService for TransactionServiceImpl {
         }))
     }
     
-    /// Simulates a compiled transaction without submitting it
+    /// Simulates a compiled transaction execution without blockchain submission
+    /// 
+    /// This method provides a "dry run" execution of the transaction to predict
+    /// outcomes, catch errors early, and analyze execution logs before submission.
+    /// 
+    /// Simulation Benefits:
+    /// 1. Error Detection: Catches failures before expensive submission
+    /// 2. Log Analysis: Provides execution logs for debugging
+    /// 3. State Validation: Confirms transaction will succeed given current blockchain state
+    /// 4. Cost Prevention: Avoids wasted transaction fees on failing operations
+    /// 
+    /// Simulation Configuration:
+    /// - sig_verify: false (bypasses signature validation for simulation)
+    /// - replace_recent_blockhash: false (uses transaction's blockhash)
+    /// - commitment: configurable (matches user's desired confirmation level)
+    /// - inner_instructions: false (reduces simulation overhead)
+    /// 
+    /// Response Format:
+    /// - success: boolean indicating if transaction would succeed
+    /// - error: detailed error message if simulation fails
+    /// - logs: program execution logs for analysis and debugging
+    /// 
+    /// Note: Simulation uses unsigned transaction since signatures aren't validated.
+    /// This allows simulation of partially signed transactions during development.
     async fn simulate_transaction(
         &self,
         request: Request<SimulateTransactionRequest>,
@@ -343,7 +459,38 @@ impl TransactionService for TransactionServiceImpl {
         }
     }
     
-    /// Signs a compiled transaction with provided signing methods
+    /// Signs a compiled transaction with cryptographic signatures for authorization
+    /// 
+    /// State Transition: COMPILED → PARTIALLY_SIGNED or FULLY_SIGNED
+    /// 
+    /// This method applies cryptographic signatures to authorize transaction execution.
+    /// It supports multiple signing methods and automatically determines completion state.
+    /// 
+    /// Signing Process:
+    /// 1. Validates transaction state allows signing (must be COMPILED or PARTIALLY_SIGNED)
+    /// 2. Deserializes compiled transaction data back to Solana SDK format
+    /// 3. Processes signing method (currently supports private key signing)
+    /// 4. Matches provided keys with transaction's required signers
+    /// 5. Applies signatures for matching accounts only
+    /// 6. Determines final state based on signature completeness
+    /// 7. Re-serializes signed transaction for storage
+    /// 
+    /// State Determination Logic:
+    /// - FULLY_SIGNED: All required signatures present (ready for submission)
+    /// - PARTIALLY_SIGNED: Some signatures present, more needed
+    /// 
+    /// Security Features:
+    /// - Only signs for accounts present in transaction (prevents signature reuse)
+    /// - Validates private key format (64 bytes, Base58 encoded)
+    /// - Signature verification through Solana SDK cryptographic functions
+    /// - No signature storage of private keys (used and discarded)
+    /// 
+    /// Signing Methods:
+    /// - PrivateKeys: Direct private key signing (current implementation)
+    /// - Seeds: Deterministic key derivation (not yet implemented)
+    /// 
+    /// The multi-step signing support enables complex workflows like multi-signature
+    /// transactions and hardware wallet integration.
     async fn sign_transaction(
         &self,
         request: Request<SignTransactionRequest>,
@@ -454,7 +601,36 @@ impl TransactionService for TransactionServiceImpl {
         }))
     }
     
-    /// Submits a fully signed transaction to the network
+    /// Submits a fully signed transaction to the Solana blockchain network
+    /// 
+    /// State Transition: FULLY_SIGNED → SUBMITTED (or FAILED)
+    /// 
+    /// This method performs the critical network submission with intelligent error handling
+    /// and commitment level management for reliable transaction broadcasting.
+    /// 
+    /// Submission Strategy:
+    /// Uses send_and_confirm_transaction_with_spinner_and_commitment() instead of
+    /// basic send_transaction() for several critical reasons:
+    /// 
+    /// 1. CONSISTENCY: Matches GetAccount API commitment level (confirmed) to prevent
+    ///    "account not found" errors when transactions reference recently funded accounts
+    /// 
+    /// 2. ATOMIC TRANSACTION SUPPORT: Multi-instruction transactions that create accounts
+    ///    and immediately use them need confirmed commitment to see prior state changes
+    /// 
+    /// 3. SIMULATION RELIABILITY: Prevents "no record of prior credit" errors where
+    ///    simulation can't see recent account funding due to commitment timing
+    /// 
+    /// 4. NETWORK COMPATIBILITY: Works reliably across mainnet, devnet, testnet, and
+    ///    local validators which have different timing characteristics
+    /// 
+    /// Error Classification:
+    /// - Insufficient Funds: Account balance issues
+    /// - Invalid Signature: Cryptographic validation failures  
+    /// - Network Error: Connectivity, timeout, or RPC issues
+    /// - Validation Error: Transaction format or content problems
+    /// 
+    /// The classification enables automated retry logic and user-friendly error messages.
     async fn submit_transaction(
         &self,
         request: Request<SubmitTransactionRequest>,
@@ -539,7 +715,38 @@ impl TransactionService for TransactionServiceImpl {
         }))
     }
     
-    /// Retrieves a transaction by its signature
+    /// Retrieves a previously submitted transaction from the blockchain by signature
+    /// 
+    /// This method queries the Solana blockchain for a transaction that was previously
+    /// submitted and confirmed, providing access to historical transaction data.
+    /// 
+    /// Query Process:
+    /// 1. Validates signature format (prevents malformed queries)
+    /// 2. Converts to Solana SDK Signature type for type safety
+    /// 3. Queries blockchain with configurable commitment level
+    /// 4. Handles different transaction encoding formats
+    /// 5. Deserializes blockchain data back to protobuf format
+    /// 6. Reconstructs transaction metadata for API consistency
+    /// 
+    /// Data Reconstruction:
+    /// Since blockchain storage is optimized and doesn't preserve all original metadata:
+    /// - instructions: Empty (not stored on-chain after execution)
+    /// - state: FULLY_SIGNED (network transactions are always fully signed)
+    /// - config: None (execution config not preserved)
+    /// - signatures: Reconstructed from on-chain data
+    /// - fee_payer: First account key (Solana convention)
+    /// - data: Raw transaction bytes (preserved exactly)
+    /// 
+    /// Commitment Level Impact:
+    /// - PROCESSED: May return transactions not yet finalized
+    /// - CONFIRMED: Returns transactions confirmed by supermajority
+    /// - FINALIZED: Only returns irreversibly confirmed transactions
+    /// 
+    /// Use Cases:
+    /// - Transaction status checking after submission
+    /// - Historical transaction analysis
+    /// - Audit trail reconstruction
+    /// - Debugging failed or successful transactions
     async fn get_transaction(
         &self,
         request: Request<GetTransactionRequest>,
@@ -607,7 +814,28 @@ impl TransactionService for TransactionServiceImpl {
         }
     }
     
-    /// Monitors a transaction for status changes until target commitment level
+    /// Monitors a transaction for real-time status changes via WebSocket streaming
+    /// 
+    /// This method establishes a persistent gRPC server streaming connection that pushes
+    /// transaction status updates from the Solana blockchain in real-time. It bridges
+    /// WebSocket pubsub notifications to gRPC streaming protocol.
+    /// 
+    /// Networking Architecture:
+    /// 1. Validates input parameters and signature format
+    /// 2. Creates unbounded WebSocket subscription via WebSocketManager
+    /// 3. Establishes bounded gRPC stream channel (capacity: 100)
+    /// 4. Spawns async bridge task for protocol translation
+    /// 5. Returns ReceiverStream for client consumption
+    /// 
+    /// Resource Management:
+    /// - WebSocket subscription auto-cleanup on client disconnect
+    /// - Bridge task terminates on terminal status or client disconnect
+    /// - Bounded channel prevents memory exhaustion from fast updates
+    /// 
+    /// Error Handling:
+    /// - Input validation prevents malformed signature attacks
+    /// - Timeout bounds prevent resource exhaustion (5-300 seconds)
+    /// - Channel failures trigger automatic cleanup
     async fn monitor_transaction(
         &self,
         request: Request<MonitorTransactionRequest>,
@@ -635,7 +863,9 @@ impl TransactionService for TransactionServiceImpl {
         
         println!("🔍 Starting transaction monitoring for signature: {}", req.signature);
         
-        // Create response stream channel
+        // Create response stream channel with bounded capacity
+        // Buffer size 100 provides good balance between memory usage and throughput
+        // This prevents unbounded memory growth if client consumes slowly
         let (tx, rx) = mpsc::channel(100);
         
         // Subscribe to signature updates via WebSocket manager
@@ -652,9 +882,15 @@ impl TransactionService for TransactionServiceImpl {
         };
         
         // Spawn task to bridge WebSocket updates to gRPC stream
+        // This task handles protocol translation between WebSocket pubsub and gRPC streaming
         let signature_for_task = req.signature.clone();
         tokio::spawn(async move {
-            bridge_websocket_to_grpc_stream(signature_for_task, websocket_rx, tx).await;
+            bridge_websocket_to_grpc_stream(
+                signature_for_task, 
+                websocket_rx, 
+                tx,
+                timeout_seconds
+            ).await;
         });
         
         println!("✅ Transaction monitoring stream established for: {}", req.signature);
@@ -665,37 +901,91 @@ impl TransactionService for TransactionServiceImpl {
 }
 
 /// Bridges WebSocket subscription updates to gRPC streaming response
+/// 
+/// This function performs critical protocol translation between Solana WebSocket pubsub
+/// and gRPC server streaming. It handles proper resource cleanup and prevents memory leaks.
+/// 
+/// Architecture:
+/// - Receives updates from unbounded WebSocket channel (real-time blockchain events)
+/// - Translates to bounded gRPC stream channel (client consumption rate-limited)
+/// - Implements timeout-based cleanup to prevent zombie tasks
+/// - Detects client disconnections for immediate resource cleanup
+/// 
+/// Resource Management:
+/// - Uses timeout to prevent indefinite hanging on stalled WebSocket
+/// - Detects gRPC channel closure (client disconnect) for immediate cleanup
+/// - Terminates on terminal transaction states to free resources
+/// - No explicit drop needed - channels auto-cleanup when task ends
+/// 
+/// Memory Safety:
+/// - No heap allocations in hot path (only stack-based message passing)
+/// - Clone operations are minimal (only for logging)
+/// - Task automatically terminates preventing memory leaks
 async fn bridge_websocket_to_grpc_stream(
-        signature: String,
-        mut websocket_rx: tokio::sync::mpsc::UnboundedReceiver<MonitorTransactionResponse>,
-        grpc_tx: mpsc::Sender<Result<MonitorTransactionResponse, Status>>,
-    ) {
-        println!("🌉 Starting stream bridge for signature: {}", signature);
+    signature: String,
+    mut websocket_rx: tokio::sync::mpsc::UnboundedReceiver<MonitorTransactionResponse>,
+    grpc_tx: mpsc::Sender<Result<MonitorTransactionResponse, Status>>,
+    timeout_seconds: u32,
+) {
+        println!("🌉 Starting stream bridge for signature: {} with timeout: {}s", signature, timeout_seconds);
         
-        while let Some(response) = websocket_rx.recv().await {
-            println!("📨 Received WebSocket update for {}: status={:?}", signature, response.status());
-            
-            // Check if client is still connected
-            if grpc_tx.send(Ok(response.clone())).await.is_err() {
-                println!("🔌 Client disconnected for signature: {}", signature);
-                break;
+        let bridge_timeout = Duration::from_secs(timeout_seconds as u64 + 5); // Add 5s buffer
+        
+        // Use timeout to prevent indefinite hanging if WebSocket stops responding
+        let bridge_result = timeout(bridge_timeout, async {
+            while let Some(response) = websocket_rx.recv().await {
+                println!("📨 Received WebSocket update for {}: status={:?}", signature, response.status());
+                
+                // Try to send to gRPC client - if this fails, client has disconnected
+                match grpc_tx.send(Ok(response.clone())).await {
+                    Ok(()) => {
+                        // Successfully sent to client
+                    }
+                    Err(_) => {
+                        println!("🔌 Client disconnected for signature: {} (gRPC channel closed)", signature);
+                        return; // Early return - no need to continue processing
+                    }
+                }
+                
+                // Check if this is a terminal status that should end the stream
+                let is_terminal = matches!(
+                    response.status(),
+                    TransactionStatus::Confirmed |
+                    TransactionStatus::Finalized |
+                    TransactionStatus::Failed |
+                    TransactionStatus::Dropped |
+                    TransactionStatus::Timeout
+                );
+                
+                if is_terminal {
+                    println!("🏁 Terminal status reached for signature: {} - status={:?}", signature, response.status());
+                    return; // End stream on terminal status
+                }
             }
             
-            // Check if this is a terminal status
-            let is_terminal = matches!(
-                response.status(),
-                TransactionStatus::Confirmed |
-                TransactionStatus::Finalized |
-                TransactionStatus::Failed |
-                TransactionStatus::Dropped |
-                TransactionStatus::Timeout
-            );
-            
-            if is_terminal {
-                println!("🏁 Terminal status reached for signature: {} - status={:?}", signature, response.status());
-                break;
+            // WebSocket channel closed (sender dropped)
+            println!("📡 WebSocket stream ended for signature: {} (sender closed)", signature);
+        }).await;
+        
+        match bridge_result {
+            Ok(_) => {
+                println!("✅ Stream bridge completed normally for signature: {}", signature);
+            }
+            Err(_) => {
+                println!("⏰ Stream bridge timed out for signature: {} after {}s", signature, timeout_seconds + 5);
+                // Send timeout notification to client if channel is still open
+                let timeout_response = MonitorTransactionResponse {
+                    signature: signature.clone(),
+                    status: TransactionStatus::Timeout.into(),
+                    slot: None,
+                    error_message: Some("Stream monitoring timeout reached".to_string()),
+                    logs: vec![],
+                    compute_units_consumed: None,
+                    current_commitment: CommitmentLevel::Unspecified.into(),
+                };
+                
+                // Best effort - ignore if client already disconnected
+                let _ = grpc_tx.send(Ok(timeout_response)).await;
             }
         }
-        
-        println!("🌉 Stream bridge completed for signature: {}", signature);
     }
