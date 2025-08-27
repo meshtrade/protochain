@@ -342,39 +342,19 @@ SOLANA_RETRY_ATTEMPTS=3
 
 ## ⚡ Integration Test Auto-Detection System
 
-### How It Works
-The integration test suite automatically detects if required services are running and adjusts behavior accordingly:
-
-```go
-// Auto-detection logic in tests/go/composable_e2e_test.go
-func areDependenciesAvailable() bool {
-    // Checks Solana validator (port 8899) + HTTP health
-    // Checks backend gRPC server (port 50051)
-    return validatorRunning && backendRunning
-}
-```
-
-### Usage Patterns
+### Usage
 ```bash
-# 🎯 RECOMMENDED - Auto-detection workflow:
-./scripts/tests/start-validator.sh    # Terminal 1: Start validator
-./scripts/tests/start-backend.sh      # Terminal 2: Start backend  
-go test -v                            # Terminal 3: Auto-runs tests
+# Normal workflow - auto-detects services:
+./scripts/tests/start-validator.sh    # Terminal 1
+./scripts/tests/start-backend.sh      # Terminal 2
+go test -v                            # Terminal 3: auto-runs if services up
 
-# 🔧 Override options:
+# Override options:
 RUN_INTEGRATION_TESTS=1 go test -v   # Force run (fails if services down)
-RUN_INTEGRATION_TESTS=0 go test -v   # Explicitly skip integration tests
+RUN_INTEGRATION_TESTS=0 go test -v   # Explicitly skip
 ```
 
-### Behavior Matrix
-| Services Running | Environment Variable | Result |
-|-----------------|---------------------|---------|
-| ✅ Both Up | None | ✅ **Tests run automatically** |
-| ✅ Both Up | `RUN_INTEGRATION_TESTS=0` | ⏭️ Tests skipped (explicit disable) |
-| ❌ Down/Partial | None | ⏭️ Tests skipped with helpful instructions |
-| ❌ Down/Partial | `RUN_INTEGRATION_TESTS=1` | ❌ Tests run but fail (force override) |
-
-### Error Messages You'll See
+### Error Messages
 ```bash
 # When services aren't running (helpful guidance):
 Integration tests skipped - Solana validator or backend not running. Start them with:
@@ -385,12 +365,6 @@ Integration tests skipped - Solana validator or backend not running. Start them 
 # When explicitly disabled:
 Integration tests explicitly disabled with RUN_INTEGRATION_TESTS=0
 ```
-
-### Benefits for Development
-- **Zero friction**: `go test -v` just works when services are up
-- **Clear guidance**: Helpful instructions when services are down  
-- **Override safety**: Can still force-run or explicitly disable
-- **Fast feedback**: 2-second timeout for dependency checks
 
 ## 🐛 Troubleshooting
 
@@ -714,21 +688,6 @@ cd lib/ts && yarn build                  # TypeScript SDK
 cd lib/go && go build ./...              # Go SDK verification
 ```
 
-## 🏛️ Architecture Decision Records
-
-### Why This Architecture?
-1. **Protocol Buffers**: Language-agnostic, strongly typed, versioned
-2. **Rust Backend**: Best Solana SDK, memory safe, high performance
-3. **Go Tests**: Clean test syntax, good gRPC support, fast iteration
-4. **Custom Proto Plugin**: Hides gRPC complexity, provides clean Go interfaces
-
-### Key Design Decisions
-- **State Machine for Transactions**: Prevents invalid states, ensures consistency
-- **Composable Instructions**: Atomic multi-instruction transactions
-- **Client-Side Fee Management**: Pure SDK wrapper, no hidden logic
-- **Commitment Level Defaults**: CONFIRMED for reliability/speed balance
-- **Arc-based DI**: Thread-safe service sharing in Rust
-
 ## 🎯 Critical Success Patterns
 
 ### When Implementing New Features
@@ -751,16 +710,6 @@ cd lib/go && go build ./...              # Go SDK verification
 - Integration tests: Go, using generated SDK
 - E2E tests: Full transaction lifecycle
 - Always test state transitions explicitly
-
-## 🔮 Future Roadmap
-- [ ] Token Program support (SPL tokens)
-- [ ] WebSocket subscriptions for real-time updates
-- [ ] Next.js UI in `ui/` directory
-- [ ] Python SDK generation
-- [ ] REST gateway via grpc-gateway
-- [ ] Transaction indexing service
-- [ ] Multi-sig transaction support
-- [ ] Hardware wallet integration
 
 ## 📚 Key Files for Context
 
