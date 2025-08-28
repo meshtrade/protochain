@@ -984,7 +984,7 @@ func (suite *StreamingE2ETestSuite) monitorTransactionToCompletion(signature str
 			resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_FINALIZED {
 			confirmed = true
 			suite.T().Logf("✅ Transaction %s successfully confirmed/finalized", signature)
-			return
+			break // Exit loop to complete validation
 		}
 
 		// FAIL THE TEST if transaction fails or times out

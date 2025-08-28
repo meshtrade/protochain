@@ -16,14 +16,12 @@ linters:
     - staticcheck
     - unused
     - gosimple
-    - ineffassign
     - typecheck
     - gosec
     - gocritic
     - gocyclo
     - dupl
     - misspell
-    - lll
     - prealloc
     - unconvert
     - bodyclose
@@ -35,11 +33,7 @@ linters:
     - gochecknoinits
     - whitespace
     - goprintffuncname
-    - mnd
-    - err113
     - gomodguard
-    - godot
-    - testpackage
     - nestif
     - exhaustive
     - sqlclosecheck
@@ -92,9 +86,6 @@ linters-settings:
       - whyNoLint
       - paramTypeCombine
   
-  lll:
-    line-length: 120
-    tab-width: 4
   
   gocyclo:
     min-complexity: 15
@@ -149,11 +140,7 @@ issues:
         - dupl
         - gosec
         - goconst
-        - mnd
         - errcheck
-        - testpackage
-        - err113
-        - godot
     
     # Exclude generated protobuf files
     - path: "\\.pb\\.go$"

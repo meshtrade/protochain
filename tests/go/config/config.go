@@ -1,3 +1,4 @@
+// Package config provides configuration management for integration tests.
 package config
 
 import (

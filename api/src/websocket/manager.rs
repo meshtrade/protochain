@@ -11,7 +11,6 @@ use tokio::sync::mpsc;
 use tokio_stream::StreamExt;
 use tonic::Status;
 use tracing::{debug, error, info, warn};
-use uuid::Uuid;
 
 use protosol_api::protosol::solana::r#type::v1::CommitmentLevel;
 use protosol_api::protosol::solana::transaction::v1::{
@@ -21,7 +20,6 @@ use protosol_api::protosol::solana::transaction::v1::{
 /// Handle for managing a signature subscription
 #[derive(Debug)]
 struct SubscriptionHandle {
-    subscription_id: String,
     sender: mpsc::UnboundedSender<MonitorTransactionResponse>,
     abort_handle: tokio::task::AbortHandle,
 }
@@ -88,9 +86,6 @@ impl WebSocketManager {
         // Create channels for communication
         let (tx, rx) = mpsc::unbounded_channel();
 
-        // Generate unique subscription ID
-        let subscription_id = Uuid::new_v4().to_string();
-
         info!(
             signature = %signature,
             commitment_level = ?commitment_level,
@@ -121,7 +116,6 @@ impl WebSocketManager {
 
         // Store subscription handle
         let subscription_handle = SubscriptionHandle {
-            subscription_id: subscription_id.clone(),
             sender: tx,
             abort_handle: handle.abort_handle(),
         };
@@ -131,7 +125,6 @@ impl WebSocketManager {
 
         info!(
             signature = %signature,
-            subscription_id = %subscription_id,
             "✅ Signature subscription created"
         );
 
@@ -517,11 +510,6 @@ impl WebSocketManager {
         );
 
         Ok(())
-    }
-
-    /// Returns the number of active subscriptions
-    pub fn active_subscription_count(&self) -> usize {
-        self.active_subscriptions.len()
     }
 }
 

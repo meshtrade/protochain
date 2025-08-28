@@ -40,6 +40,17 @@ pub fn proto_instruction_to_sdk(instruction: SolanaInstruction) -> Result<Instru
     })
 }
 
+/// Converts a protobuf `SolanaAccountMeta` to a Solana SDK `AccountMeta`.
+///
+/// This function transforms account metadata from the protobuf representation
+/// used in gRPC APIs to the native Solana SDK format used for transactions.
+///
+/// # Arguments
+/// * `account_meta` - The protobuf account metadata to convert
+///
+/// # Returns
+/// * `Ok(AccountMeta)` - Successfully converted account metadata
+/// * `Err(String)` - Error message if the pubkey string is invalid
 pub fn proto_account_meta_to_sdk(account_meta: SolanaAccountMeta) -> Result<AccountMeta, String> {
     let pubkey = solana_sdk::pubkey::Pubkey::from_str(&account_meta.pubkey)
         .map_err(|e| format!("Invalid pubkey: {}", e))?;
@@ -61,7 +72,7 @@ mod tests {
         let original = system_instruction::create_account(
             &Pubkey::new_unique(),
             &Pubkey::new_unique(),
-            1000000,
+            1_000_000,
             0,
             &system_program::id(),
         );

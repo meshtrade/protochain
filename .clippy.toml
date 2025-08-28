@@ -1,4 +1,12 @@
 # Clippy linting configuration
+# 
+# Clippy is Rust's built-in linter that catches common mistakes, suggests improvements,
+# and enforces best practices. It analyzes code for bugs, performance issues, 
+# style violations, and other code quality concerns.
+#
+# This file configures clippy's behavior - what to check for and how strict to be.
+# Unlike rustfmt.toml (which only handles code formatting), this controls actual
+# code analysis and suggestions for better Rust code.
 
 # Set MSRV (Minimum Supported Rust Version)
 msrv = "1.70.0"

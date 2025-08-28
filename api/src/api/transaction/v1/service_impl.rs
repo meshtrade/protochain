@@ -206,9 +206,6 @@ fn classify_transaction_error(transaction_error: &TransactionError) -> Submissio
         TransactionError::InstructionError(instruction_index, instruction_error) => {
             classify_instruction_error(*instruction_index, instruction_error)
         }
-
-        // Default to validation error for any new transaction error variants
-        _ => SubmissionResult::FailedValidation,
     }
 }
 

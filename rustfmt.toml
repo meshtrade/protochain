@@ -1,4 +1,14 @@
 # Rust formatting configuration (stable features only)
+#
+# Rustfmt is Rust's code formatter that automatically formats code according to style guidelines.
+# It handles indentation, spacing, line breaks, and other visual/syntactic formatting concerns.
+# 
+# This file configures rustfmt's formatting rules. Unlike .clippy.toml (which analyzes code for 
+# bugs and improvements), this only controls how the code looks visually.
+#
+# "Stable features only" means we only use rustfmt configuration options that are available
+# in stable Rust releases, avoiding nightly-only experimental formatting options that might
+# change or break. This ensures our formatting works reliably across different Rust versions.
 
 edition = "2021"
 max_width = 100
