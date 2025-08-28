@@ -33,7 +33,7 @@ impl ServiceProviders {
 
         // The WebSocket manager provides realistic transaction monitoring simulation
         let websocket_manager = Arc::new(
-            WebSocketManager::new(&ws_url)
+            WebSocketManager::new(&ws_url, &config.solana.rpc_url)
                 .await
                 .map_err(|e| anyhow::anyhow!("Failed to create WebSocket manager: {}", e))?,
         );

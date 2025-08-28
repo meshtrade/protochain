@@ -1,4 +1,5 @@
 use dashmap::DashMap;
+use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_client::rpc_config::RpcSignatureSubscribeConfig;
 use solana_client::rpc_response::{
     ProcessedSignatureResult, ReceivedSignatureResult, Response, RpcSignatureResult,
@@ -28,27 +29,37 @@ struct SubscriptionHandle {
 #[derive(Clone)]
 pub struct WebSocketManager {
     ws_url: String,
+    rpc_client: Arc<RpcClient>,
     active_subscriptions: Arc<DashMap<String, SubscriptionHandle>>,
 }
 
 impl WebSocketManager {
     /// Creates a new WebSocket manager with connection to Solana WebSocket endpoint
-    pub async fn new(ws_url: &str) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn new(
+        ws_url: &str,
+        rpc_url: &str,
+    ) -> Result<Self, Box<dyn std::error::Error + Send + Sync>> {
         info!(
             ws_url = %ws_url,
+            rpc_url = %rpc_url,
             "🔌 Creating WebSocket manager"
         );
+
+        // Create RPC client for transaction status checks
+        let rpc_client = Arc::new(RpcClient::new(rpc_url.to_string()));
 
         // Test WebSocket connectivity by creating a temporary PubsubClient
         Self::validate_websocket_connection(ws_url).await;
 
         info!(
             ws_url = %ws_url,
+            rpc_url = %rpc_url,
             "✅ WebSocket manager initialized"
         );
 
         Ok(Self {
             ws_url: ws_url.to_string(),
+            rpc_client,
             active_subscriptions: Arc::new(DashMap::new()),
         })
     }
@@ -172,6 +183,7 @@ impl WebSocketManager {
 
         // Spawn the subscription task
         let ws_url_clone = self.ws_url.clone();
+        let rpc_client_clone = Arc::clone(&self.rpc_client);
         let handle = tokio::spawn(async move {
             Self::handle_signature_subscription(
                 parsed_signature,
@@ -181,6 +193,7 @@ impl WebSocketManager {
                 timeout_duration,
                 tx_clone,
                 ws_url_clone,
+                rpc_client_clone,
             )
             .await;
         });
@@ -211,11 +224,74 @@ impl WebSocketManager {
         timeout: Duration,
         sender: mpsc::UnboundedSender<MonitorTransactionResponse>,
         ws_url: String,
+        rpc_client: Arc<RpcClient>,
     ) {
         debug!(
             signature = %signature_str,
             "🎧 Starting signature monitoring"
         );
+
+        // CRITICAL FIX: Check current transaction status first
+        // This prevents the race condition where transactions confirm before WebSocket subscription
+        match rpc_client.get_signature_statuses(&[signature]).await {
+            Ok(status_response) => {
+                if let Some(Some(status)) = status_response.value.first() {
+                    // Transaction already has a final status - send it immediately
+                    let (transaction_status, error_message) = match &status.err {
+                        Some(err) => (
+                            TransactionStatus::Failed,
+                            Some(format!("Transaction failed: {err:?}")),
+                        ),
+                        None => {
+                            // Transaction succeeded, determine the commitment level
+                            match status.confirmations {
+                                Some(0) => (TransactionStatus::Finalized, None),
+                                Some(_) => (TransactionStatus::Confirmed, None),
+                                None => (TransactionStatus::Finalized, None), // No confirmations means finalized
+                            }
+                        }
+                    };
+
+                    // Send the current status immediately
+                    let response = MonitorTransactionResponse {
+                        signature: signature_str.clone(),
+                        status: transaction_status.into(),
+                        slot: Some(status.slot),
+                        error_message,
+                        logs: if include_logs { vec![] } else { vec![] }, // Could fetch tx details for logs
+                        compute_units_consumed: None,
+                        current_commitment: match transaction_status {
+                            TransactionStatus::Finalized => CommitmentLevel::Finalized,
+                            TransactionStatus::Confirmed => CommitmentLevel::Confirmed,
+                            _ => CommitmentLevel::Processed,
+                        }
+                        .into(),
+                    };
+
+                    info!(
+                        signature = %signature_str,
+                        status = ?transaction_status,
+                        "✅ Transaction already finalized, sending immediate status"
+                    );
+
+                    let _ = sender.send(response);
+                    return; // Exit early - no need for WebSocket subscription
+                }
+                // Transaction not found yet, continue with WebSocket subscription
+                info!(
+                    signature = %signature_str,
+                    "🔄 Transaction not found or still processing, starting WebSocket subscription"
+                );
+            }
+            Err(e) => {
+                warn!(
+                    signature = %signature_str,
+                    error = %e,
+                    "⚠️  Failed to check transaction status, proceeding with WebSocket subscription"
+                );
+                // Continue with WebSocket subscription even if status check failed
+            }
+        }
 
         // Create PubsubClient for this subscription
         let pubsub_client = match PubsubClient::new(&ws_url).await {
@@ -276,26 +352,82 @@ impl WebSocketManager {
         let timeout_task = tokio::time::sleep(timeout);
         tokio::pin!(timeout_task);
 
-        // Listen for signature updates
+        // HYBRID APPROACH: Listen for WebSocket updates with RPC polling fallback
+        let mut poll_interval = tokio::time::interval(Duration::from_millis(200));
+        poll_interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+
         loop {
             tokio::select! {
                 notification = stream.next() => {
                     if let Some(response) = notification {
+                        info!(
+                            signature = %signature_str,
+                            "📡 Received WebSocket notification"
+                        );
                         if Self::handle_notification_response(response, &signature_str, include_logs, &sender) {
                             break;
                         }
                     } else {
                         debug!(
                             signature = %signature_str,
-                            "🔚 Stream ended"
+                            "🔚 WebSocket stream ended"
                         );
                         break;
+                    }
+                }
+                _ = poll_interval.tick() => {
+                    // Fallback: Poll RPC for status updates (for unreliable WebSocket environments)
+                    if let Ok(status_response) = rpc_client.get_signature_statuses(&[signature]).await {
+                        if let Some(Some(status)) = status_response.value.first() {
+                            // Transaction status found via RPC polling
+                            let (transaction_status, error_message) = match &status.err {
+                                Some(err) => (TransactionStatus::Failed, Some(format!("Transaction failed: {err:?}"))),
+                                None => {
+                                    match status.confirmations {
+                                        Some(0) => (TransactionStatus::Finalized, None),
+                                        Some(_) => (TransactionStatus::Confirmed, None),
+                                        None => (TransactionStatus::Finalized, None),
+                                    }
+                                }
+                            };
+
+                            let response = MonitorTransactionResponse {
+                                signature: signature_str.clone(),
+                                status: transaction_status.into(),
+                                slot: Some(status.slot),
+                                error_message,
+                                logs: vec![], // RPC polling doesn't include logs by default
+                                compute_units_consumed: None,
+                                current_commitment: match transaction_status {
+                                    TransactionStatus::Finalized => CommitmentLevel::Finalized,
+                                    TransactionStatus::Confirmed => CommitmentLevel::Confirmed,
+                                    _ => CommitmentLevel::Processed,
+                                }.into(),
+                            };
+
+                            info!(
+                                signature = %signature_str,
+                                status = ?transaction_status,
+                                "✅ Transaction status found via RPC polling (WebSocket fallback)"
+                            );
+
+                            if sender.send(response).is_err() {
+                                break; // Client disconnected
+                            }
+
+                            // Check if this is a terminal status
+                            if Self::is_terminal_status(transaction_status) {
+                                break;
+                            }
+                        }
+                    } else {
+                        // RPC polling failed, continue waiting
                     }
                 }
                 () = &mut timeout_task => {
                     warn!(
                         signature = %signature_str,
-                        "⏰ Timeout reached"
+                        "⏰ Timeout reached (both WebSocket and RPC polling failed)"
                     );
                     let _ = sender.send(Self::create_realtime_timeout_response(&signature_str));
                     break;
@@ -484,9 +616,10 @@ mod tests {
     async fn test_websocket_manager_creation() {
         // Test WebSocket manager creation
         let ws_url = "ws://localhost:8900";
+        let rpc_url = "http://localhost:8899";
 
         // This should succeed even if WebSocket server is not running
-        let manager = WebSocketManager::new(ws_url).await;
+        let manager = WebSocketManager::new(ws_url, rpc_url).await;
         assert!(manager.is_ok());
 
         info!("WebSocket manager test completed successfully");
