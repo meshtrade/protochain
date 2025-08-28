@@ -119,7 +119,7 @@ if command -v cargo &> /dev/null; then
     
     # Run clippy
     echo -e "${YELLOW}Running clippy...${NC}"
-    if cargo clippy --workspace --all-targets --all-features -- -D missing-docs -W clippy::all 2>&1; then
+    if cargo clippy --workspace --all-targets --all-features -- -D warnings 2>&1; then
         echo -e "${GREEN}✓ Clippy check passed${NC}"
     else
         echo -e "${RED}✗ Clippy check failed${NC}"
