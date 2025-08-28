@@ -1,40 +1,32 @@
 # ProtoSol - Protocol Buffer Wrapper for Solana SDKs
 
-## 🚨 **CRITICAL: MANDATORY LINTING AFTER ANY CODE CHANGES** 🚨
+## 🚨 **CRITICAL: MANDATORY LINTING AFTER CODE CHANGES** 🚨
 
-**⚡ UNAVOIDABLE RULE: ALWAYS RUN LINTING AFTER CODE CHANGES ⚡**
+**RULE: ALWAYS RUN LINTING AFTER CODE CHANGES**
 
-After making ANY code changes (however small), you MUST IMMEDIATELY run:
+After making code changes, run the appropriate linting:
+
 ```bash
-# From repository root - NEVER skip this step!
+# All languages (comprehensive check)
 ./scripts/lint/all.sh
+
+# Language-specific (when you only modified that language):
+./scripts/lint/rs.sh    # Only Rust changes
+./scripts/lint/go.sh    # Only Go changes  
+./scripts/lint/ts.sh    # Only TypeScript changes
 ```
 
-**🔥 WHY THIS IS CRITICAL:**
-- We've achieved 83%+ clippy warning reduction (296+ → 49 warnings)
-- Code quality standards are PRODUCTION-READY
-- Any regression breaks the clean codebase
-- Linting catches issues before they become problems
-
-**📋 MANDATORY WORKFLOW AFTER CODE CHANGES:**
+**WORKFLOW AFTER CODE CHANGES:**
 1. Make your code changes
-2. **IMMEDIATELY** run `./scripts/lint/all.sh`
+2. Run appropriate linting script
 3. Fix any linting issues that arise
 4. Re-run linting until clean
-5. ONLY THEN commit/push changes
+5. Commit/push changes
 
-**🚫 NEVER:**
-- Commit without running linting
-- Skip linting "for small changes"
-- Ignore linting warnings
-- Assume changes don't affect lint status
-
-**✅ ALWAYS:**
-- Run linting immediately after any code modification
-- Fix all linting issues before proceeding
-- Maintain the high code quality standards achieved
-
-**⚠️ REMEMBER: The linting scripts use auto-fix where possible, so running them improves code quality automatically!**
+**REQUIREMENTS:**
+- Fix all linting issues before committing
+- Use language-specific scripts when you only change one language
+- Use `./scripts/lint/all.sh` when changing multiple languages or unsure
 
 ---
 
@@ -201,17 +193,15 @@ vim api/src/api/transaction/v1/service_impl.rs
 #       but this pattern is not universal across all services
 ```
 
-#### 4.5️⃣ 🚨 **MANDATORY LINTING AFTER CODE CHANGES** 🚨
+#### 4.5️⃣ **MANDATORY LINTING AFTER CODE CHANGES**
 ```bash
-# CRITICAL: After ANY code modifications, IMMEDIATELY run:
+# After Rust code modifications:
+./scripts/lint/rs.sh
+
+# Or for comprehensive check:
 ./scripts/lint/all.sh
 
-# This will:
-# - Auto-fix issues where possible
-# - Report any remaining issues to fix manually
-# - Maintain production-ready code quality standards
-# 
-# NEVER proceed without running linting after code changes!
+# Fix any reported issues before proceeding
 ```
 
 #### 5️⃣ Update Integration Tests
@@ -247,11 +237,10 @@ RUN_INTEGRATION_TESTS=0 go test -v          # Explicitly skip integration tests
 1. **NEVER** edit generated code (it will be overwritten)
 2. **NEVER** run `buf generate` directly (use scripts)
 3. **NEVER** skip `buf lint` before generation
-4. **NEVER** skip linting after ANY code changes (`./scripts/lint/all.sh`)
+4. **NEVER** skip linting after code changes (use appropriate `./scripts/lint/*.sh`)
 5. **ALWAYS** run generation script from repo root
 6. **ALWAYS** implement both proto change AND Rust implementation
 7. **ALWAYS** update tests when adding new functionality
-8. **ALWAYS** run `./scripts/lint/all.sh` after ANY code modification
 
 ## 🔑 Key Services Explained
 
@@ -776,9 +765,8 @@ When working on features, always check these files first:
 
 ## 🤖 Notes for Claude (Me)
 
-**🚨 RULE #0 - MANDATORY LINTING (NEVER SKIP THIS!):**
-**AFTER ANY CODE CHANGES, IMMEDIATELY RUN: `./scripts/lint/all.sh`**
-**This is NON-NEGOTIABLE! We have production-ready code quality (296+ → 49 warnings) that must be maintained!**
+**RULE #0 - MANDATORY LINTING:**
+After ANY code changes, run appropriate linting script (`./scripts/lint/*.sh`)
 
 When helping with this codebase:
 1. ALWAYS check proto files first - they're the source of truth
@@ -789,7 +777,7 @@ When helping with this codebase:
 6. The custom Go plugin generates clean interfaces - use them in tests
 7. Integration tests auto-detect services or use `RUN_INTEGRATION_TESTS=1` to force
 8. When adding features, follow the workflow EXACTLY as specified
-9. **CRITICAL**: After ANY code modification, run `./scripts/lint/all.sh` BEFORE proceeding
+9. After code modifications, run appropriate linting before proceeding
 
 ### Critical Debugging Insights (From Deep Testing Experience)
 9. **Test Suite Syntax**: Use `TestSuiteName/TestName` pattern for individual testify suite tests
