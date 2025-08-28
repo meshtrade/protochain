@@ -1,0 +1,31 @@
+# Clippy linting configuration
+
+# Set MSRV (Minimum Supported Rust Version)
+msrv = "1.70.0"
+
+# Maximum cognitive complexity allowed
+cognitive-complexity-threshold = 30
+
+# Maximum number of lines a function can have
+too-many-lines-threshold = 100
+
+# Maximum number of arguments a function can have
+too-many-arguments-threshold = 7
+
+# Maximum nesting level for blocks
+excessive-nesting-threshold = 10
+
+# Enforce documentation for public items
+missing-docs-in-crate-items = false
+
+# List of disallowed names
+disallowed-names = ["foo", "bar", "baz", "tmp", "temp", "test"]
+
+# Allow certain macros
+allow-dbg-in-tests = true
+
+# Maximum size for enum variants
+enum-variant-size-threshold = 200
+
+# Maximum length for single expressions
+single-char-binding-names-threshold = 4

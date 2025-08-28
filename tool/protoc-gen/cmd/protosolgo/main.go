@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/BRBussy/protosol/tool/protoc-gen/cmd/protosolgo/pkg/generate"
 	"google.golang.org/protobuf/compiler/protogen"
+
+	"github.com/BRBussy/protosol/tool/protoc-gen/cmd/protosolgo/pkg/generate"
 )
 
 func main() {

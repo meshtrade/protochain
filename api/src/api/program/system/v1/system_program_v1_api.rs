@@ -10,7 +10,7 @@ pub struct SystemProgramV1API {
 impl SystemProgramV1API {
     pub fn new(_service_providers: Arc<ServiceProviders>) -> Self {
         // No RPC client needed for instruction-based system program service
-        
+
         SystemProgramV1API {
             system_program_service: Arc::new(SystemProgramServiceImpl::new()),
         }

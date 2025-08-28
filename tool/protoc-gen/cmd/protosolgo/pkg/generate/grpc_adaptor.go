@@ -17,7 +17,7 @@ func GRPCAdaptor(p *protogen.Plugin, f *protogen.File, svc *protogen.Service) er
 
 	// get grpc adaptor service name
 	grpcAdaptorName := svc.GoName + "GRPCAdaptor"
-	
+
 	// get the gRPC service interface identifier
 	grpcServiceInterfaceIdent := f.GoImportPath.Ident(svc.GoName + "Server")
 
@@ -63,7 +63,7 @@ func GRPCAdaptor(p *protogen.Plugin, f *protogen.File, svc *protogen.Service) er
 
 	// add tracer and service provider
 	g.P("\ttracer ", TracingPkg.Ident("Tracer"))
-	
+
 	// create field name for the service interface (lowercase first letter)
 	serviceFieldName := strings.ToLower(string(svc.GoName[0])) + svc.GoName[1:]
 	g.P("\t", serviceFieldName, " ", svc.GoName, "Interface")
@@ -94,7 +94,7 @@ func GRPCAdaptor(p *protogen.Plugin, f *protogen.File, svc *protogen.Service) er
 
 		// start receiver method that adapts a particular service
 		g.P("// ", method.GoName, " exposes the ", method.GoName, " method of the ", svc.GoName, " interface over gRPC")
-		
+
 		// Check if this is a server streaming method
 		if method.Desc.IsStreamingServer() {
 			// Generate server streaming method signature (gRPC uses value type, not pointer)

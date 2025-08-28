@@ -1,21 +1,22 @@
+use dashmap::DashMap;
+use solana_client::rpc_config::RpcSignatureSubscribeConfig;
+use solana_client::rpc_response::{
+    ProcessedSignatureResult, ReceivedSignatureResult, Response, RpcSignatureResult,
+};
+use solana_pubsub_client::nonblocking::pubsub_client::PubsubClient;
+use solana_sdk::{commitment_config::CommitmentConfig, signature::Signature};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc;
 use tokio_stream::StreamExt;
-use dashmap::DashMap;
-use uuid::Uuid;
-use solana_pubsub_client::nonblocking::pubsub_client::PubsubClient;
-use solana_client::rpc_config::RpcSignatureSubscribeConfig;
-use solana_client::rpc_response::{Response, RpcSignatureResult, ProcessedSignatureResult, ReceivedSignatureResult};
-use solana_sdk::{signature::Signature, commitment_config::CommitmentConfig};
 use tonic::Status;
-use tracing::{info, warn, error, debug};
+use tracing::{debug, error, info, warn};
+use uuid::Uuid;
 
-use protosol_api::protosol::solana::transaction::v1::{
-    MonitorTransactionResponse,
-    TransactionStatus,
-};
 use protosol_api::protosol::solana::r#type::v1::CommitmentLevel;
+use protosol_api::protosol::solana::transaction::v1::{
+    MonitorTransactionResponse, TransactionStatus,
+};
 
 /// Handle for managing a signature subscription
 #[derive(Debug)]
@@ -39,7 +40,7 @@ impl WebSocketManager {
             ws_url = %ws_url,
             "🔌 Creating WebSocket manager"
         );
-        
+
         // Test WebSocket connectivity by creating a temporary PubsubClient
         match PubsubClient::new(ws_url).await {
             Ok(_test_client) => {
@@ -56,12 +57,12 @@ impl WebSocketManager {
                 );
             }
         }
-        
+
         info!(
             ws_url = %ws_url,
             "✅ WebSocket manager initialized"
         );
-        
+
         Ok(WebSocketManager {
             ws_url: ws_url.to_string(),
             active_subscriptions: Arc::new(DashMap::new()),
@@ -77,18 +78,19 @@ impl WebSocketManager {
         timeout_seconds: Option<u32>,
     ) -> Result<mpsc::UnboundedReceiver<MonitorTransactionResponse>, Status> {
         // Validate signature format
-        let parsed_signature = signature.parse::<Signature>()
+        let parsed_signature = signature
+            .parse::<Signature>()
             .map_err(|_| Status::invalid_argument("Invalid signature format"))?;
 
         // Convert commitment level
         let commitment = self.commitment_level_to_config(commitment_level);
-        
+
         // Create channels for communication
         let (tx, rx) = mpsc::unbounded_channel();
-        
+
         // Generate unique subscription ID
         let subscription_id = Uuid::new_v4().to_string();
-        
+
         info!(
             signature = %signature,
             commitment_level = ?commitment_level,
@@ -96,12 +98,12 @@ impl WebSocketManager {
             timeout_seconds = ?timeout_seconds,
             "🔔 Creating signature subscription"
         );
-        
+
         // Clone necessary data for the async task
         let sig_clone = signature.clone();
         let tx_clone = tx.clone();
         let timeout_duration = Duration::from_secs(timeout_seconds.unwrap_or(60) as u64);
-        
+
         // Spawn the subscription task
         let ws_url_clone = self.ws_url.clone();
         let handle = tokio::spawn(async move {
@@ -113,24 +115,26 @@ impl WebSocketManager {
                 timeout_duration,
                 tx_clone,
                 ws_url_clone,
-            ).await;
+            )
+            .await;
         });
-        
+
         // Store subscription handle
         let subscription_handle = SubscriptionHandle {
             subscription_id: subscription_id.clone(),
             sender: tx,
             abort_handle: handle.abort_handle(),
         };
-        
-        self.active_subscriptions.insert(signature.clone(), subscription_handle);
-        
+
+        self.active_subscriptions
+            .insert(signature.clone(), subscription_handle);
+
         info!(
             signature = %signature,
             subscription_id = %subscription_id,
             "✅ Signature subscription created"
         );
-        
+
         Ok(rx)
     }
 
@@ -148,7 +152,7 @@ impl WebSocketManager {
             signature = %signature_str,
             "🎧 Starting signature monitoring"
         );
-        
+
         // Create PubsubClient for this subscription
         let pubsub_client = match PubsubClient::new(&ws_url).await {
             Ok(client) => client,
@@ -160,20 +164,28 @@ impl WebSocketManager {
                 );
                 // Fall back to simulation if WebSocket is not available
                 Self::simulate_signature_monitoring(
-                    signature_str, commitment, include_logs, timeout, sender
-                ).await;
+                    signature_str,
+                    commitment,
+                    include_logs,
+                    timeout,
+                    sender,
+                )
+                .await;
                 return;
             }
         };
-        
+
         // Configure signature subscription
         let config = RpcSignatureSubscribeConfig {
             commitment: Some(commitment),
             enable_received_notification: Some(true),
         };
-        
+
         // Create signature subscription
-        let (mut stream, _unsubscribe) = match pubsub_client.signature_subscribe(&signature, Some(config)).await {
+        let (mut stream, _unsubscribe) = match pubsub_client
+            .signature_subscribe(&signature, Some(config))
+            .await
+        {
             Ok(subscription) => subscription,
             Err(e) => {
                 warn!(
@@ -183,21 +195,26 @@ impl WebSocketManager {
                 );
                 // Fall back to simulation
                 Self::simulate_signature_monitoring(
-                    signature_str, commitment, include_logs, timeout, sender
-                ).await;
+                    signature_str,
+                    commitment,
+                    include_logs,
+                    timeout,
+                    sender,
+                )
+                .await;
                 return;
             }
         };
-        
+
         info!(
             signature = %signature_str,
             "✅ Signature subscription established"
         );
-        
+
         // Set up timeout
         let timeout_task = tokio::time::sleep(timeout);
         tokio::pin!(timeout_task);
-        
+
         // Listen for signature updates
         loop {
             tokio::select! {
@@ -216,7 +233,7 @@ impl WebSocketManager {
                                         TransactionStatus::Failed |
                                         TransactionStatus::Dropped
                                     );
-                                    
+
                                     if sender.send(response).is_err() {
                                         info!(
                                             signature = %signature_str,
@@ -224,7 +241,7 @@ impl WebSocketManager {
                                         );
                                         break;
                                     }
-                                    
+
                                     if is_terminal {
                                         info!(
                                             signature = %signature_str,
@@ -280,26 +297,27 @@ impl WebSocketManager {
                 }
             }
         }
-        
+
         debug!(
             signature = %signature_str,
             "🏁 Signature subscription completed"
         );
     }
-    
+
     /// Processes a signature notification and converts it to MonitorTransactionResponse
     fn process_signature_notification(
         notification: Response<RpcSignatureResult>,
         signature: &str,
         include_logs: bool,
     ) -> Result<MonitorTransactionResponse, String> {
-        
-        let (status, commitment_level, error_message, logs, compute_units) = match notification.value {
+        let (status, commitment_level, error_message, logs, compute_units) = match notification
+            .value
+        {
             RpcSignatureResult::ProcessedSignature(ProcessedSignatureResult { err }) => {
                 // For compute units, we don't have it directly in this response
                 // In a real implementation, you might need to fetch transaction details separately
                 let compute_units = None;
-                
+
                 if let Some(tx_err) = err {
                     (
                         TransactionStatus::Failed,
@@ -319,7 +337,7 @@ impl WebSocketManager {
                     } else {
                         vec![]
                     };
-                    
+
                     (
                         TransactionStatus::Processed,
                         CommitmentLevel::Processed,
@@ -329,21 +347,13 @@ impl WebSocketManager {
                     )
                 }
             }
-            RpcSignatureResult::ReceivedSignature(received) => {
-                match received {
-                    ReceivedSignatureResult::ReceivedSignature => {
-                        (
-                            TransactionStatus::Received,
-                            CommitmentLevel::Processed,
-                            None,
-                            vec![],
-                            None,
-                        )
-                    }
+            RpcSignatureResult::ReceivedSignature(received) => match received {
+                ReceivedSignatureResult::ReceivedSignature => {
+                    (TransactionStatus::Received, CommitmentLevel::Processed, None, vec![], None)
                 }
-            }
+            },
         };
-        
+
         Ok(MonitorTransactionResponse {
             signature: signature.to_string(),
             status: status.into(),
@@ -354,7 +364,7 @@ impl WebSocketManager {
             current_commitment: commitment_level.into(),
         })
     }
-    
+
     /// Fallback simulation for when WebSocket is not available
     async fn simulate_signature_monitoring(
         signature_str: String,
@@ -367,22 +377,22 @@ impl WebSocketManager {
             signature = %signature_str,
             "🎧 Using simulation mode"
         );
-        
+
         // Simulate realistic transaction progression
         let states = vec![
             (TransactionStatus::Received, CommitmentLevel::Processed, 200),
             (TransactionStatus::Processed, CommitmentLevel::Processed, 800),
             (TransactionStatus::Confirmed, CommitmentLevel::Confirmed, 1200),
         ];
-        
+
         let target_commitment = match commitment {
             c if c == CommitmentConfig::finalized() => CommitmentLevel::Finalized,
             c if c == CommitmentConfig::confirmed() => CommitmentLevel::Confirmed,
             _ => CommitmentLevel::Processed,
         };
-        
+
         let start_time = std::time::Instant::now();
-        
+
         for (status, current_commitment, delay_ms) in states {
             // Check for timeout
             if start_time.elapsed() >= timeout {
@@ -397,9 +407,9 @@ impl WebSocketManager {
                 });
                 break;
             }
-            
+
             tokio::time::sleep(Duration::from_millis(delay_ms)).await;
-            
+
             let logs = if include_logs {
                 vec![
                     "Program 11111111111111111111111111111111 invoke [1]".to_string(),
@@ -408,7 +418,7 @@ impl WebSocketManager {
             } else {
                 vec![]
             };
-            
+
             let response = MonitorTransactionResponse {
                 signature: signature_str.clone(),
                 status: status.into(),
@@ -418,7 +428,7 @@ impl WebSocketManager {
                 compute_units_consumed: Some(5000),
                 current_commitment: current_commitment.into(),
             };
-            
+
             if sender.send(response).is_err() {
                 info!(
                     signature = %signature_str,
@@ -426,7 +436,7 @@ impl WebSocketManager {
                 );
                 break;
             }
-            
+
             // Check if we reached target commitment
             if current_commitment as i32 >= target_commitment as i32 {
                 info!(
@@ -438,38 +448,38 @@ impl WebSocketManager {
                 break;
             }
         }
-        
+
         debug!(
             signature = %signature_str,
             "🏁 Simulation completed"
         );
     }
-    
+
     /// Converts proto CommitmentLevel to Solana CommitmentConfig
     fn commitment_level_to_config(&self, level: CommitmentLevel) -> CommitmentConfig {
         match level {
             CommitmentLevel::Processed => CommitmentConfig::processed(),
-            CommitmentLevel::Confirmed => CommitmentConfig::confirmed(), 
+            CommitmentLevel::Confirmed => CommitmentConfig::confirmed(),
             CommitmentLevel::Finalized => CommitmentConfig::finalized(),
             CommitmentLevel::Unspecified => CommitmentConfig::confirmed(),
         }
     }
-    
+
     /// Cleans up expired or completed subscriptions
     pub async fn cleanup_expired_subscriptions(&self) {
         let mut to_remove = Vec::new();
-        
+
         // Find subscriptions that are no longer active
         for entry in self.active_subscriptions.iter() {
             let signature = entry.key();
             let handle = entry.value();
-            
+
             // Check if the sender is closed (client disconnected)
             if handle.sender.is_closed() {
                 to_remove.push(signature.clone());
             }
         }
-        
+
         // Remove inactive subscriptions
         for signature in to_remove {
             if let Some((_key, handle)) = self.active_subscriptions.remove(&signature) {
@@ -480,38 +490,35 @@ impl WebSocketManager {
                 );
             }
         }
-        
+
         let active_count = self.active_subscriptions.len();
         if active_count > 0 {
-            debug!(
-                active_count = active_count,
-                "📊 Active subscriptions"
-            );
+            debug!(active_count = active_count, "📊 Active subscriptions");
         }
     }
-    
+
     /// Gracefully shuts down all subscriptions
     pub async fn shutdown(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         info!("🛑 Shutting down WebSocket manager");
-        
+
         let subscription_count = self.active_subscriptions.len();
-        
+
         // Abort all active subscription tasks
         for entry in self.active_subscriptions.iter() {
             entry.value().abort_handle.abort();
         }
-        
+
         // Clear all subscriptions
         self.active_subscriptions.clear();
-        
+
         info!(
             subscription_count = subscription_count,
             "✅ WebSocket manager shutdown complete"
         );
-        
+
         Ok(())
     }
-    
+
     /// Returns the number of active subscriptions
     pub fn active_subscription_count(&self) -> usize {
         self.active_subscriptions.len()
@@ -539,12 +546,12 @@ mod tests {
             derive_websocket_url_from_rpc("http://localhost:8899"),
             Ok("ws://localhost:8899".to_string())
         );
-        
+
         assert_eq!(
             derive_websocket_url_from_rpc("https://api.mainnet-beta.solana.com"),
             Ok("wss://api.mainnet-beta.solana.com".to_string())
         );
-        
+
         assert!(derive_websocket_url_from_rpc("invalid://url").is_err());
     }
 
@@ -552,11 +559,11 @@ mod tests {
     async fn test_websocket_manager_creation() {
         // Test WebSocket manager creation
         let ws_url = "ws://localhost:8900";
-        
+
         // This should succeed even if WebSocket server is not running
         let manager = WebSocketManager::new(ws_url).await;
         assert!(manager.is_ok());
-        
+
         info!("WebSocket manager test completed successfully");
     }
 }

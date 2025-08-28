@@ -1,5 +1,5 @@
 //! Protosol API Rust SDK
-//! 
+//!
 //! This crate provides Rust bindings for the Protosol API protocol buffers.
 //! All code is auto-generated from protobuf definitions.
 

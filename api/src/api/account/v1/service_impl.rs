@@ -1,17 +1,19 @@
-use std::sync::Arc;
 use std::str::FromStr;
+use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
 use protosol_api::protosol::solana::account::v1::{
-    service_server::Service as AccountService,
-    GetAccountRequest, Account,
-    GenerateNewKeyPairRequest, GenerateNewKeyPairResponse,
-    FundNativeRequest, FundNativeResponse,
+    service_server::Service as AccountService, Account, FundNativeRequest, FundNativeResponse,
+    GenerateNewKeyPairRequest, GenerateNewKeyPairResponse, GetAccountRequest,
 };
-use protosol_api::protosol::solana::r#type::v1::{KeyPair, CommitmentLevel};
+use protosol_api::protosol::solana::r#type::v1::{CommitmentLevel, KeyPair};
 
-use solana_sdk::{pubkey::Pubkey, signature::{Keypair, Signer, SeedDerivable}, commitment_config::CommitmentConfig};
 use solana_client::rpc_client::RpcClient;
+use solana_sdk::{
+    commitment_config::CommitmentConfig,
+    pubkey::Pubkey,
+    signature::{Keypair, SeedDerivable, Signer},
+};
 
 #[derive(Clone)]
 pub struct AccountServiceImpl {
@@ -20,9 +22,7 @@ pub struct AccountServiceImpl {
 
 impl AccountServiceImpl {
     pub fn new(rpc_client: Arc<RpcClient>) -> Self {
-        AccountServiceImpl {
-            rpc_client,
-        }
+        AccountServiceImpl { rpc_client }
     }
 }
 
@@ -42,7 +42,7 @@ fn commitment_level_to_config(commitment_level: Option<i32>) -> CommitmentConfig
             }
         }
         None => {
-            // Default to confirmed when not specified - maintains backward compatibility 
+            // Default to confirmed when not specified - maintains backward compatibility
             // with our previous commitment level fix
             CommitmentConfig::confirmed()
         }
@@ -56,29 +56,29 @@ impl AccountService for AccountServiceImpl {
         request: Request<GetAccountRequest>,
     ) -> Result<Response<Account>, Status> {
         println!("Received get account request: {:?}", request);
-        
+
         let req = request.into_inner();
-        
+
         // Validate the address format
         if req.address.is_empty() {
             return Err(Status::invalid_argument("Account address is required"));
         }
-        
+
         // Parse the address
         let pubkey = Pubkey::from_str(&req.address)
             .map_err(|e| Status::invalid_argument(format!("Invalid address format: {}", e)))?;
-        
+
         // Log account fetch attempt for debugging
         println!("🔍 Attempting to fetch account: {} via RPC client", pubkey);
-        
+
         // CRITICAL: Use get_account_with_commitment instead of get_account for timing reliability
         //
         // Reasoning for this design choice:
-        // 1. TIMING ISSUES: After FundNative creates an account via request_airdrop(), there's a 
+        // 1. TIMING ISSUES: After FundNative creates an account via request_airdrop(), there's a
         //    timing window where the account exists on-chain but isn't visible via get_account()
         //    due to different commitment levels between airdrop confirmation and account queries.
         //
-        // 2. COMMITMENT CONSISTENCY: request_airdrop() + confirm_transaction() uses 'confirmed' 
+        // 2. COMMITMENT CONSISTENCY: request_airdrop() + confirm_transaction() uses 'confirmed'
         //    commitment internally, so we need get_account_with_commitment(confirmed) to see
         //    the same blockchain state.
         //
@@ -91,12 +91,15 @@ impl AccountService for AccountServiceImpl {
         //
         // Alternative approaches considered:
         // - get_account(): Fast but unreliable due to commitment timing mismatches
-        // - get_account_with_commitment(processed): Faster but still timing issues  
+        // - get_account_with_commitment(processed): Faster but still timing issues
         // - get_account_with_commitment(configurable): Now configurable via request parameter
         let commitment = commitment_level_to_config(req.commitment_level);
-        
+
         // Fetch account from Solana network using our dependency-injected RPC client
-        match self.rpc_client.get_account_with_commitment(&pubkey, commitment) {
+        match self
+            .rpc_client
+            .get_account_with_commitment(&pubkey, commitment)
+        {
             Ok(response) => {
                 if let Some(account) = response.value {
                     println!("✅ RPC get_account_with_commitment succeeded for: {}", pubkey);
@@ -111,7 +114,7 @@ impl AccountService for AccountServiceImpl {
                             .unwrap_or_else(|_| "Failed to serialize account data".to_string()),
                         rent_epoch: account.rent_epoch,
                     };
-                    
+
                     println!("Successfully fetched account: {}", req.address);
                     Ok(Response::new(account_response))
                 } else {
@@ -122,7 +125,8 @@ impl AccountService for AccountServiceImpl {
             Err(e) => {
                 eprintln!("Error fetching account {}: {}", req.address, e);
                 // Check if it's a not found error
-                if e.to_string().contains("not found") || e.to_string().contains("AccountNotFound") {
+                if e.to_string().contains("not found") || e.to_string().contains("AccountNotFound")
+                {
                     Err(Status::not_found(format!("Account not found: {}", req.address)))
                 } else {
                     Err(Status::internal(format!("Failed to fetch account: {}", e)))
@@ -136,41 +140,42 @@ impl AccountService for AccountServiceImpl {
         request: Request<GenerateNewKeyPairRequest>,
     ) -> Result<Response<GenerateNewKeyPairResponse>, Status> {
         println!("Received generate keypair request: {:?}", request);
-        
+
         let req = request.into_inner();
-        
+
         // Generate keypair (random or from seed)
         let keypair = match req.seed {
             Some(seed) => {
                 // Deterministic generation from seed
                 let seed_bytes = hex::decode(&seed)
                     .map_err(|e| Status::invalid_argument(format!("Invalid hex seed: {}", e)))?;
-                    
+
                 if seed_bytes.len() != 32 {
                     return Err(Status::invalid_argument("Seed must be exactly 32 bytes"));
                 }
-                
+
                 let mut seed_array = [0u8; 32];
                 seed_array.copy_from_slice(&seed_bytes);
-                Keypair::from_seed(&seed_array)
-                    .map_err(|e| Status::internal(format!("Failed to generate keypair from seed: {}", e)))?
-            },
+                Keypair::from_seed(&seed_array).map_err(|e| {
+                    Status::internal(format!("Failed to generate keypair from seed: {}", e))
+                })?
+            }
             None => {
                 // Random generation
                 Keypair::new()
             }
         };
-        
+
         // Create protobuf KeyPair with proper field names
         let key_pair = KeyPair {
-            public_key: keypair.pubkey().to_string(),                    // Base58 encoded
+            public_key: keypair.pubkey().to_string(), // Base58 encoded
             private_key: bs58::encode(keypair.to_bytes()).into_string(), // Base58 encoded full keypair
         };
-        
+
         println!("Generated keypair with public key: {}", key_pair.public_key);
-        
-        Ok(Response::new(GenerateNewKeyPairResponse { 
-            key_pair: Some(key_pair) 
+
+        Ok(Response::new(GenerateNewKeyPairResponse {
+            key_pair: Some(key_pair),
         }))
     }
 
@@ -179,43 +184,51 @@ impl AccountService for AccountServiceImpl {
         request: Request<FundNativeRequest>,
     ) -> Result<Response<FundNativeResponse>, Status> {
         println!("Received fund native request: {:?}", request);
-        
+
         let req = request.into_inner();
-        
+
         // Basic input validation
         if req.address.is_empty() {
             return Err(Status::invalid_argument("Address is required"));
         }
-        
+
         if req.amount.is_empty() {
             return Err(Status::invalid_argument("Amount is required"));
         }
-        
+
         // Parse and validate address
         let address = Pubkey::from_str(&req.address)
             .map_err(|e| Status::invalid_argument(format!("Invalid address: {}", e)))?;
-            
+
         // Parse and validate amount
-        let amount = req.amount.parse::<u64>()
+        let amount = req
+            .amount
+            .parse::<u64>()
             .map_err(|e| Status::invalid_argument(format!("Invalid amount: {}", e)))?;
-            
+
         if amount == 0 {
             return Err(Status::invalid_argument("Amount must be greater than 0"));
         }
-        
-        // Request airdrop 
+
+        // Request airdrop
         println!("Requesting airdrop of {} lamports to {}", amount, address);
         // RPC client ready for airdrop request
-        let signature = self.rpc_client.request_airdrop(&address, amount)
+        let signature = self
+            .rpc_client
+            .request_airdrop(&address, amount)
             .map_err(|e| Status::internal(format!("Airdrop request failed: {}", e)))?;
-            
+
         // Wait for confirmation - commitment level is handled by GetAccount with configurable commitment
-        println!("Waiting for airdrop confirmation: {} (commitment level will be used in GetAccount)", signature);
-        self.rpc_client.confirm_transaction(&signature)
+        println!(
+            "Waiting for airdrop confirmation: {} (commitment level will be used in GetAccount)",
+            signature
+        );
+        self.rpc_client
+            .confirm_transaction(&signature)
             .map_err(|e| Status::internal(format!("Failed to confirm airdrop: {}", e)))?;
-            
+
         println!("Airdrop confirmed successfully: {}", signature);
-        
+
         Ok(Response::new(FundNativeResponse {
             signature: signature.to_string(),
         }))

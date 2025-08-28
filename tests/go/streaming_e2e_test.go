@@ -6,27 +6,28 @@ import (
 	"testing"
 	"time"
 
-	account_v1 "github.com/BRBussy/protosol/lib/go/protosol/solana/account/v1"
-	system_v1 "github.com/BRBussy/protosol/lib/go/protosol/solana/program/system/v1"
-	transaction_v1 "github.com/BRBussy/protosol/lib/go/protosol/solana/transaction/v1"
-	type_v1 "github.com/BRBussy/protosol/lib/go/protosol/solana/type/v1"
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
+
+	account_v1 "github.com/BRBussy/protosol/lib/go/protosol/solana/account/v1"
+	system_v1 "github.com/BRBussy/protosol/lib/go/protosol/solana/program/system/v1"
+	transaction_v1 "github.com/BRBussy/protosol/lib/go/protosol/solana/transaction/v1"
+	type_v1 "github.com/BRBussy/protosol/lib/go/protosol/solana/type/v1"
 )
 
 // StreamingE2ETestSuite tests the transaction monitoring streaming functionality
 type StreamingE2ETestSuite struct {
 	suite.Suite
-	ctx                      context.Context
-	cancel                   context.CancelFunc
-	grpcConn                 *grpc.ClientConn
-	accountService           account_v1.ServiceClient
-	systemProgramService     system_v1.ServiceClient
-	transactionService       transaction_v1.ServiceClient
-	testAccounts             map[string]string // Maps account names to addresses
+	ctx                  context.Context
+	cancel               context.CancelFunc
+	grpcConn             *grpc.ClientConn
+	accountService       account_v1.ServiceClient
+	systemProgramService system_v1.ServiceClient
+	transactionService   transaction_v1.ServiceClient
+	testAccounts         map[string]string // Maps account names to addresses
 }
 
 func (suite *StreamingE2ETestSuite) SetupSuite() {
@@ -35,7 +36,7 @@ func (suite *StreamingE2ETestSuite) SetupSuite() {
 
 	// Setup configuration
 	grpcEndpoint := "localhost:50051"
-	
+
 	// Connect to gRPC server
 	var err error
 	suite.grpcConn, err = grpc.NewClient(
@@ -48,7 +49,7 @@ func (suite *StreamingE2ETestSuite) SetupSuite() {
 	suite.accountService = account_v1.NewServiceClient(suite.grpcConn)
 	suite.systemProgramService = system_v1.NewServiceClient(suite.grpcConn)
 	suite.transactionService = transaction_v1.NewServiceClient(suite.grpcConn)
-	
+
 	suite.testAccounts = make(map[string]string)
 	suite.T().Logf("✅ Streaming test suite setup complete")
 }
@@ -87,8 +88,8 @@ func (suite *StreamingE2ETestSuite) Test_01_EnhancedSubmitTransactionResponse() 
 
 	// Create transfer instruction
 	transferResp, err := suite.systemProgramService.Transfer(suite.ctx, &system_v1.TransferRequest{
-		From:   keyResp.KeyPair.PublicKey,
-		To:     destKeyResp.KeyPair.PublicKey,
+		From:     keyResp.KeyPair.PublicKey,
+		To:       destKeyResp.KeyPair.PublicKey,
 		Lamports: 1000000, // 0.001 SOL
 	})
 	suite.Require().NoError(err, "Should create transfer instruction")
@@ -142,7 +143,7 @@ func (suite *StreamingE2ETestSuite) Test_02_MonitorTransactionInvalidSignature()
 		Signature:       "",
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 	})
-	
+
 	if err != nil {
 		// Stream creation failed immediately (strict validation)
 		suite.Assert().Error(err, "Should fail with empty signature")
@@ -166,7 +167,7 @@ func (suite *StreamingE2ETestSuite) Test_02_MonitorTransactionInvalidSignature()
 		Signature:       "invalid-signature-format",
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 	})
-	
+
 	if err != nil {
 		// Stream creation failed immediately (strict validation)
 		st, ok := status.FromError(err)
@@ -194,7 +195,7 @@ func (suite *StreamingE2ETestSuite) Test_03_MonitorTransactionTimeout() {
 	// Generate a valid but non-existent signature
 	keyResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
 	suite.Require().NoError(err, "Should generate keypair")
-	
+
 	// Use public key as a valid Base58 signature format (though not a real transaction)
 	fakeSignature := keyResp.KeyPair.PublicKey
 
@@ -205,7 +206,7 @@ func (suite *StreamingE2ETestSuite) Test_03_MonitorTransactionTimeout() {
 		IncludeLogs:     false,
 		TimeoutSeconds:  uint32Ptr(5), // 5 second timeout
 	})
-	
+
 	// Stream must be created successfully with real backend
 	suite.Require().NoError(err, "Should create monitoring stream")
 
@@ -213,7 +214,7 @@ func (suite *StreamingE2ETestSuite) Test_03_MonitorTransactionTimeout() {
 	startTime := time.Now()
 	var lastResponse *transaction_v1.MonitorTransactionResponse
 	streamErrorReceived := false
-	
+
 	for {
 		resp, err := stream.Recv()
 		if err == io.EOF {
@@ -223,7 +224,7 @@ func (suite *StreamingE2ETestSuite) Test_03_MonitorTransactionTimeout() {
 			// Stream error is expected for invalid signatures
 			suite.T().Logf("Stream ended with error: %v", err)
 			streamErrorReceived = true
-			
+
 			// Verify this is proper validation error
 			st, ok := status.FromError(err)
 			if ok && st.Code() == codes.InvalidArgument {
@@ -231,16 +232,16 @@ func (suite *StreamingE2ETestSuite) Test_03_MonitorTransactionTimeout() {
 			}
 			break
 		}
-		
+
 		lastResponse = resp
 		suite.Assert().Equal(fakeSignature, resp.Signature, "Response should contain correct signature")
-		
+
 		// Check if we received a timeout status
 		if resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_TIMEOUT {
 			suite.T().Log("✅ Received timeout status")
 			break
 		}
-		
+
 		// Safety check - don't wait forever
 		if time.Since(startTime) > 10*time.Second {
 			suite.T().Log("Test timeout reached")
@@ -251,14 +252,14 @@ func (suite *StreamingE2ETestSuite) Test_03_MonitorTransactionTimeout() {
 	// Verify timeout/validation behavior worked correctly
 	// For a fake signature, we should get either:
 	// 1. Stream error with InvalidArgument (server-side validation) - PREFERRED
-	// 2. Timeout status in response 
+	// 2. Timeout status in response
 	// 3. No response but proper timeout duration
-	
-	validTimeoutBehavior := streamErrorReceived || 
+
+	validTimeoutBehavior := streamErrorReceived ||
 		(lastResponse != nil && lastResponse.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_TIMEOUT) ||
 		time.Since(startTime) >= 5*time.Second
-	
-	suite.Assert().True(validTimeoutBehavior, 
+
+	suite.Assert().True(validTimeoutBehavior,
 		"Must demonstrate proper timeout/validation behavior: stream error, timeout status, or timeout duration")
 
 	suite.T().Log("✅ Timeout behavior tested")
@@ -284,9 +285,9 @@ func (suite *StreamingE2ETestSuite) Test_04_SubmitAndMonitorWorkflow() {
 
 	// Create a simple transfer to self (guaranteed to succeed)
 	transferResp, err := suite.systemProgramService.Transfer(suite.ctx, &system_v1.TransferRequest{
-		From:   payerResp.KeyPair.PublicKey,
-		To:     payerResp.KeyPair.PublicKey, // Transfer to self
-		Lamports: 1000000, // 0.001 SOL
+		From:     payerResp.KeyPair.PublicKey,
+		To:       payerResp.KeyPair.PublicKey, // Transfer to self
+		Lamports: 1000000,                     // 0.001 SOL
 	})
 	suite.Require().NoError(err, "Should create transfer instruction")
 
@@ -330,7 +331,7 @@ func (suite *StreamingE2ETestSuite) Test_04_SubmitAndMonitorWorkflow() {
 		IncludeLogs:     true,
 		TimeoutSeconds:  uint32Ptr(30),
 	})
-	
+
 	// Stream must be created successfully with real backend
 	suite.Require().NoError(err, "Should create monitoring stream")
 
@@ -345,24 +346,24 @@ func (suite *StreamingE2ETestSuite) Test_04_SubmitAndMonitorWorkflow() {
 		suite.Require().NoError(err, "Stream must not error during monitoring")
 
 		suite.T().Logf("Received update: status=%v, slot=%v", resp.Status, resp.Slot)
-		
+
 		if resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_CONFIRMED ||
-		   resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_FINALIZED {
+			resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_FINALIZED {
 			confirmed = true
 			suite.T().Logf("✅ Transaction confirmed/finalized at slot %d", resp.GetSlot())
 			break
 		}
-		
+
 		if resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_FAILED {
 			suite.Require().Fail("Transaction FAILED", "Transaction failed with error: %s", resp.GetErrorMessage())
 			break
 		}
-		
+
 		if resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_TIMEOUT {
 			suite.Require().Fail("Transaction TIMED OUT", "Transaction monitoring timed out")
 			break
 		}
-		
+
 		if resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_DROPPED {
 			suite.Require().Fail("Transaction DROPPED", "Transaction was dropped by network")
 			break
@@ -386,7 +387,7 @@ func (suite *StreamingE2ETestSuite) Test_05_SystemProgram_CreateInstruction() {
 	// Generate test accounts
 	payerResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
 	suite.Require().NoError(err, "Should generate payer keypair")
-	
+
 	newAccountResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
 	suite.Require().NoError(err, "Should generate new account keypair")
 
@@ -453,7 +454,7 @@ func (suite *StreamingE2ETestSuite) Test_06_SystemProgram_TransferInstruction() 
 	// Generate test accounts
 	fromResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
 	suite.Require().NoError(err, "Should generate from account")
-	
+
 	toResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
 	suite.Require().NoError(err, "Should generate to account")
 
@@ -501,7 +502,7 @@ func (suite *StreamingE2ETestSuite) Test_07_TransactionLifecycle_EstimateSimulat
 	// Generate test accounts
 	fromResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
 	suite.Require().NoError(err, "Should generate from account")
-	
+
 	toResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
 	suite.Require().NoError(err, "Should generate to account")
 
@@ -563,7 +564,7 @@ func (suite *StreamingE2ETestSuite) Test_07_TransactionLifecycle_EstimateSimulat
 	suite.T().Logf("   Logs: %d entries", len(simulateResp.Logs))
 }
 
-// Test_08_TransactionLifecycle_SigningFlow tests the signing workflow  
+// Test_08_TransactionLifecycle_SigningFlow tests the signing workflow
 func (suite *StreamingE2ETestSuite) Test_08_TransactionLifecycle_SigningFlow() {
 	suite.T().Log("🎯 Testing Transaction Lifecycle: Signing Flow")
 
@@ -794,7 +795,7 @@ func (suite *StreamingE2ETestSuite) Test_09_ComprehensiveStreamingIntegration() 
 	// Step 10: Monitor transaction completion via streaming
 	suite.T().Log("📤 Step 10: 🔍 MONITORING TRANSACTION VIA STREAMING 🔍")
 	suite.monitorTransactionToCompletion(submitResp.Signature)
-	
+
 	suite.T().Log("   🎉 Transaction confirmed via streaming monitoring!")
 	suite.T().Log("   🎯 This proves real-time streaming transaction monitoring works!")
 
@@ -963,9 +964,9 @@ func (suite *StreamingE2ETestSuite) monitorTransactionToCompletion(signature str
 		IncludeLogs:     false,
 		TimeoutSeconds:  uint32Ptr(30),
 	})
-	
+
 	suite.Require().NoError(err, "Must create monitoring stream for signature: %s", signature)
-	
+
 	// Monitor until completion - MUST reach success state
 	confirmed := false
 	for {
@@ -975,34 +976,34 @@ func (suite *StreamingE2ETestSuite) monitorTransactionToCompletion(signature str
 			break
 		}
 		suite.Require().NoError(err, "Stream must not error for signature: %s", signature)
-		
+
 		suite.T().Logf("Transaction %s status: %v", signature, resp.Status)
-		
+
 		// Check for successful terminal status
 		if resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_CONFIRMED ||
-		   resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_FINALIZED {
+			resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_FINALIZED {
 			confirmed = true
 			suite.T().Logf("✅ Transaction %s successfully confirmed/finalized", signature)
 			return
 		}
-		
+
 		// FAIL THE TEST if transaction fails or times out
 		if resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_FAILED {
 			suite.Require().Fail("Transaction FAILED", "Transaction %s failed with error: %s", signature, resp.GetErrorMessage())
 			return
 		}
-		
+
 		if resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_TIMEOUT {
 			suite.Require().Fail("Transaction TIMED OUT", "Transaction %s monitoring timed out", signature)
 			return
 		}
-		
+
 		if resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_DROPPED {
 			suite.Require().Fail("Transaction DROPPED", "Transaction %s was dropped by network", signature)
 			return
 		}
 	}
-	
+
 	// Final check - must have been confirmed
 	suite.Require().True(confirmed, "Transaction %s must reach CONFIRMED or FINALIZED status", signature)
 }

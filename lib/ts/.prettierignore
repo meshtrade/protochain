@@ -1,0 +1,9 @@
+dist/
+node_modules/
+src/protosol/
+*.min.js
+*.min.css
+coverage/
+.next/
+.cache/
+build/

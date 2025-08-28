@@ -1,9 +1,37 @@
 [workspace]
 resolver = "2"
 members = [
-    "lib/rust",
     "api"
 ]
+
+# Exclude generated code from workspace
+exclude = [
+    "lib/rust"
+]
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+# Disable some overly pedantic lints
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+redundant_pub_crate = "allow"
+similar_names = "allow"
+too_many_lines = "allow"
+# Explicitly deny dangerous patterns
+unwrap_used = "warn"
+expect_used = "warn"
+panic = "warn"
+unimplemented = "warn"
+todo = "warn"
 
 [workspace.dependencies]
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread", "full"] }
