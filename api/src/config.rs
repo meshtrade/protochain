@@ -83,14 +83,14 @@ pub fn load_config() -> Result<Config, String> {
     // 3. Load from config file if it exists
     if config_file_path.exists() {
         let config_content = std::fs::read_to_string(&config_file_path)
-            .map_err(|e| format!("Failed to read config file {:?}: {}", config_file_path, e))?;
+            .map_err(|e| format!("Failed to read config file {config_file_path:?}: {e}"))?;
 
         config = serde_json::from_str(&config_content)
-            .map_err(|e| format!("Failed to parse config file {:?}: {}", config_file_path, e))?;
+            .map_err(|e| format!("Failed to parse config file {config_file_path:?}: {e}"))?;
 
-        println!("✅ Loaded configuration from: {:?}", config_file_path);
+        println!("✅ Loaded configuration from: {config_file_path:?}");
     } else {
-        println!("ℹ️  No config file found at {:?}, using defaults", config_file_path);
+        println!("ℹ️  No config file found at {config_file_path:?}, using defaults");
     }
 
     // 4. Override with environment variables if present
@@ -102,21 +102,21 @@ pub fn load_config() -> Result<Config, String> {
     if let Ok(port) = std::env::var("SERVER_PORT") {
         config.server.port = port
             .parse()
-            .map_err(|e| format!("Invalid SERVER_PORT environment variable: {}", e))?;
+            .map_err(|e| format!("Invalid SERVER_PORT environment variable: {e}"))?;
         println!("ℹ️  Override: SERVER_PORT = {}", config.server.port);
     }
 
     if let Ok(timeout) = std::env::var("SOLANA_TIMEOUT_SECONDS") {
         config.solana.timeout_seconds = timeout
             .parse()
-            .map_err(|e| format!("Invalid SOLANA_TIMEOUT_SECONDS environment variable: {}", e))?;
+            .map_err(|e| format!("Invalid SOLANA_TIMEOUT_SECONDS environment variable: {e}"))?;
         println!("ℹ️  Override: SOLANA_TIMEOUT_SECONDS = {}", config.solana.timeout_seconds);
     }
 
     if let Ok(retry) = std::env::var("SOLANA_RETRY_ATTEMPTS") {
         config.solana.retry_attempts = retry
             .parse()
-            .map_err(|e| format!("Invalid SOLANA_RETRY_ATTEMPTS environment variable: {}", e))?;
+            .map_err(|e| format!("Invalid SOLANA_RETRY_ATTEMPTS environment variable: {e}"))?;
         println!("ℹ️  Override: SOLANA_RETRY_ATTEMPTS = {}", config.solana.retry_attempts);
     }
 
@@ -133,7 +133,7 @@ pub fn load_config() -> Result<Config, String> {
 
 /// Validates the Solana RPC connection by performing a health check
 pub async fn validate_solana_connection(rpc_url: &str) -> Result<(), String> {
-    println!("🔍 Health check: Testing connection to Solana RPC at {}", rpc_url);
+    println!("🔍 Health check: Testing connection to Solana RPC at {rpc_url}");
 
     let client = RpcClient::new(rpc_url.to_string());
 
@@ -141,11 +141,11 @@ pub async fn validate_solana_connection(rpc_url: &str) -> Result<(), String> {
     match client.get_version() {
         Ok(version) => {
             println!("✅ Solana RPC connection successful!");
-            println!("   - RPC URL: {}", rpc_url);
+            println!("   - RPC URL: {rpc_url}");
             println!("   - Solana version: {}", version.solana_core);
             Ok(())
         }
-        Err(e) => Err(format!("❌ Solana RPC health check failed at {}: {}", rpc_url, e)),
+        Err(e) => Err(format!("❌ Solana RPC health check failed at {rpc_url}: {e}")),
     }
 }
 
@@ -154,16 +154,17 @@ pub fn create_sample_config() -> Result<(), String> {
     let sample_config = Config::default();
 
     let config_json = serde_json::to_string_pretty(&sample_config)
-        .map_err(|e| format!("Failed to serialize sample config: {}", e))?;
+        .map_err(|e| format!("Failed to serialize sample config: {e}"))?;
 
     std::fs::write("config.sample.json", config_json)
-        .map_err(|e| format!("Failed to write sample config: {}", e))?;
+        .map_err(|e| format!("Failed to write sample config: {e}"))?;
 
     println!("✅ Created config.sample.json");
     Ok(())
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)] // unwrap is acceptable in tests for cleaner assertions  
 mod tests {
     use super::*;
     use std::env;

@@ -17,7 +17,7 @@ impl ServiceProviders {
         let rpc_url = std::env::var("SOLANA_RPC_URL")
             .unwrap_or_else(|_| "https://api.devnet.solana.com".to_string());
 
-        println!("🌐 Initializing Solana service providers with RPC URL: {}", rpc_url);
+        println!("🌐 Initializing Solana service providers with RPC URL: {rpc_url}");
 
         let solana_clients = Arc::new(SolanaClientsServiceProviders::new(&rpc_url)?);
 
@@ -39,7 +39,7 @@ impl ServiceProviders {
         let mut default_config = Config::default();
         default_config.solana.rpc_url = rpc_url;
 
-        Ok(ServiceProviders {
+        Ok(Self {
             solana_clients,
             websocket_manager,
             config: default_config,
@@ -69,7 +69,7 @@ impl ServiceProviders {
                 .map_err(|e| anyhow::anyhow!("Failed to create WebSocket manager: {}", e))?,
         );
 
-        Ok(ServiceProviders {
+        Ok(Self {
             solana_clients,
             websocket_manager,
             config,

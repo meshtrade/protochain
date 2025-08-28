@@ -32,7 +32,7 @@ use crate::api::transaction::v1::validation::{
 };
 use protosol_api::protosol::solana::r#type::v1::CommitmentLevel;
 use protosol_api::protosol::solana::transaction::v1::{
-    service_server::Service as TransactionService, *,
+    service_server::Service as TransactionService, SubmissionResult, MonitorTransactionResponse, CompileTransactionRequest, CompileTransactionResponse, TransactionState, EstimateTransactionRequest, EstimateTransactionResponse, SimulateTransactionRequest, SimulateTransactionResponse, SignTransactionRequest, SignTransactionResponse, sign_transaction_request, SubmitTransactionRequest, SubmitTransactionResponse, GetTransactionRequest, GetTransactionResponse, Transaction, MonitorTransactionRequest, TransactionStatus,
 };
 
 /// Composable Transaction Service Implementation
@@ -60,8 +60,8 @@ pub struct TransactionServiceImpl {
 }
 
 impl TransactionServiceImpl {
-    /// Creates a new TransactionServiceImpl with the provided RPC client and WebSocket manager
-    pub fn new(rpc_client: Arc<RpcClient>, websocket_manager: Arc<WebSocketManager>) -> Self {
+    /// Creates a new `TransactionServiceImpl` with the provided RPC client and WebSocket manager
+    pub const fn new(rpc_client: Arc<RpcClient>, websocket_manager: Arc<WebSocketManager>) -> Self {
         Self {
             rpc_client,
             websocket_manager,
@@ -69,24 +69,24 @@ impl TransactionServiceImpl {
     }
 }
 
-/// Classifies Solana RPC client errors into appropriate SubmissionResult categories
+/// Classifies Solana RPC client errors into appropriate `SubmissionResult` categories
 ///
 /// This function performs type-safe error analysis using Solana's structured error types
 /// instead of fragile string pattern matching. It provides reliable classification based
 /// on the actual error enums from the Solana codebase.
 ///
 /// Type-Safe Classification Strategy:
-/// 1. Direct TransactionError variants (most reliable)
-/// 2. RPC preflight failure errors with embedded TransactionError
+/// 1. Direct `TransactionError` variants (most reliable)
+/// 2. RPC preflight failure errors with embedded `TransactionError`
 /// 3. Network/transport errors (Io, Reqwest)
 /// 4. Signing errors from cryptographic operations
 /// 5. Node health issues
 /// 6. Fallback to string analysis for unstructured errors
 ///
 /// Reference: Solana Agave codebase at /Users/bernardbussy/Projects/github.com/anza-xyz/agave
-/// - rpc-client-api/src/client_error.rs: Main ClientError structure
+/// - rpc-client-api/src/client_error.rs: Main `ClientError` structure
 /// - rpc-client-types/src/request.rs: RPC error types and response data
-/// - transaction-status/src/lib.rs: TransactionError enum variants
+/// - transaction-status/src/lib.rs: `TransactionError` enum variants
 ///
 /// This approach provides reliable error classification that won't break with message
 /// format changes and enables precise automated retry logic.
@@ -138,20 +138,20 @@ fn classify_submission_error(error: &ClientError) -> SubmissionResult {
     }
 }
 
-/// Classifies TransactionError variants into SubmissionResult categories
+/// Classifies `TransactionError` variants into `SubmissionResult` categories
 ///
 /// This function maps specific Solana transaction errors to actionable response categories
 /// based on the transaction error variants defined in the Solana SDK.
 ///
 /// Error Categories:
-/// - InsufficientFunds: Account balance or fee issues requiring funding
-/// - InvalidSignature: Cryptographic signature problems requiring re-signing  
-/// - NetworkError: Network capacity, maintenance, or timeout issues (retryable)
+/// - `InsufficientFunds`: Account balance or fee issues requiring funding
+/// - `InvalidSignature`: Cryptographic signature problems requiring re-signing  
+/// - `NetworkError`: Network capacity, maintenance, or timeout issues (retryable)
 /// - Validation: Transaction format, account, or instruction issues (not retryable)
 /// - Submitted: Transaction already processed (actually successful)
 ///
 /// Reference: Solana transaction error definitions in transaction-status crate
-fn classify_transaction_error(transaction_error: &TransactionError) -> SubmissionResult {
+const fn classify_transaction_error(transaction_error: &TransactionError) -> SubmissionResult {
     match transaction_error {
         // Account balance and fee-related errors
         TransactionError::InsufficientFundsForFee
@@ -215,7 +215,7 @@ fn classify_transaction_error(transaction_error: &TransactionError) -> Submissio
 /// transaction instructions, enabling precise error handling for program-specific issues.
 ///
 /// Reference: solana-sdk instruction error definitions
-fn classify_instruction_error(
+const fn classify_instruction_error(
     _instruction_index: u8,
     instruction_error: &InstructionError,
 ) -> SubmissionResult {
@@ -296,7 +296,7 @@ fn classify_by_message(error_message: &str) -> SubmissionResult {
     }
 }
 
-/// Converts protobuf CommitmentLevel enum to Solana SDK CommitmentConfig
+/// Converts protobuf `CommitmentLevel` enum to Solana SDK `CommitmentConfig`
 ///
 /// This function handles the impedance mismatch between protobuf enums and Rust enums,
 /// providing safe conversion with fallback behavior for invalid or unspecified values.
@@ -346,7 +346,7 @@ impl TransactionService for TransactionServiceImpl {
     /// 1. Validates current transaction state allows compilation
     /// 2. Converts protobuf instructions to Solana SDK instructions
     /// 3. Fetches recent blockhash (or uses provided one)
-    /// 4. Uses Solana SDK Message::new_with_blockhash for proper compilation
+    /// 4. Uses Solana SDK `Message::new_with_blockhash` for proper compilation
     /// 5. Serializes compiled message with bincode for compact binary encoding
     /// 6. Base58 encodes for safe protobuf transport
     /// 7. Updates transaction metadata and validates state consistency
@@ -377,7 +377,7 @@ impl TransactionService for TransactionServiceImpl {
 
         // Validate transaction consistency in current state
         validate_transaction_state_consistency(&transaction)
-            .map_err(|e| Status::invalid_argument(format!("Invalid transaction state: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid transaction state: {e}")))?;
 
         // Ensure we have instructions
         if transaction.instructions.is_empty() {
@@ -397,22 +397,22 @@ impl TransactionService for TransactionServiceImpl {
             .collect();
 
         let sdk_instructions = sdk_instructions
-            .map_err(|e| Status::invalid_argument(format!("Invalid instruction: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid instruction: {e}")))?;
 
         // Parse fee payer pubkey
         let fee_payer = Pubkey::from_str(&req.fee_payer)
-            .map_err(|e| Status::invalid_argument(format!("Invalid fee_payer: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid fee_payer: {e}")))?;
 
         // Get recent blockhash (from request or fetch from network)
         let recent_blockhash = if req.recent_blockhash.is_empty() {
             // Fetch latest blockhash from network
             self.rpc_client
                 .get_latest_blockhash()
-                .map_err(|e| Status::internal(format!("Failed to get latest blockhash: {}", e)))?
+                .map_err(|e| Status::internal(format!("Failed to get latest blockhash: {e}")))?
         } else {
             // Use provided blockhash
             Hash::from_str(&req.recent_blockhash)
-                .map_err(|e| Status::invalid_argument(format!("Invalid blockhash format: {}", e)))?
+                .map_err(|e| Status::invalid_argument(format!("Invalid blockhash format: {e}")))?
         };
 
         // CRITICAL: Use Solana SDK to compile the transaction
@@ -422,14 +422,14 @@ impl TransactionService for TransactionServiceImpl {
 
         // Serialize the compiled message for transport
         let transaction_bytes = bincode::serialize(&message)
-            .map_err(|e| Status::internal(format!("Transaction serialization failed: {}", e)))?;
+            .map_err(|e| Status::internal(format!("Transaction serialization failed: {e}")))?;
 
         // Encode as base58 for proto transport
         let transaction_data = bs58::encode(&transaction_bytes).into_string();
 
         // Validate state transition DRAFT -> COMPILED
         validate_state_transition(current_state, TransactionState::Compiled)
-            .map_err(|e| Status::internal(format!("State transition validation failed: {}", e)))?;
+            .map_err(|e| Status::internal(format!("State transition validation failed: {e}")))?;
 
         // Update transaction with compiled data and metadata
         transaction.data = transaction_data;
@@ -439,7 +439,7 @@ impl TransactionService for TransactionServiceImpl {
 
         // Validate the updated transaction consistency
         validate_transaction_state_consistency(&transaction).map_err(|e| {
-            Status::internal(format!("Compiled transaction validation failed: {}", e))
+            Status::internal(format!("Compiled transaction validation failed: {e}"))
         })?;
 
         Ok(Response::new(CompileTransactionResponse {
@@ -453,7 +453,7 @@ impl TransactionService for TransactionServiceImpl {
     /// transaction execution without actually submitting to the blockchain.
     ///
     /// Estimation Strategy:
-    /// 1. Primary: Uses RPC simulate_transaction_with_config for real execution analysis
+    /// 1. Primary: Uses RPC `simulate_transaction_with_config` for real execution analysis
     /// 2. Fallback: Instruction-count-based heuristics if simulation fails
     /// 3. Handles both None and 0 compute units with reasonable defaults
     ///
@@ -464,7 +464,7 @@ impl TransactionService for TransactionServiceImpl {
     ///
     /// Fee Calculation:
     /// - Base fee: 5,000 lamports (standard transaction fee)
-    /// - Priority fee: compute_units * compute_unit_price (from transaction config)
+    /// - Priority fee: `compute_units` * `compute_unit_price` (from transaction config)
     /// - Caps priority fee at 1,000,000 lamports to prevent excessive costs
     /// - Fallback priority fee: 1,000 lamports for network prioritization
     ///
@@ -486,7 +486,7 @@ impl TransactionService for TransactionServiceImpl {
 
         // Validate transaction state consistency
         validate_transaction_state_consistency(&transaction).map_err(|e| {
-            Status::invalid_argument(format!("Transaction validation failed: {}", e))
+            Status::invalid_argument(format!("Transaction validation failed: {e}"))
         })?;
 
         // Ensure transaction has compiled data
@@ -496,11 +496,11 @@ impl TransactionService for TransactionServiceImpl {
 
         // Deserialize the compiled transaction data
         let transaction_data = bs58::decode(&transaction.data).into_vec().map_err(|e| {
-            Status::invalid_argument(format!("Failed to decode transaction data: {}", e))
+            Status::invalid_argument(format!("Failed to decode transaction data: {e}"))
         })?;
 
         let message: Message = bincode::deserialize(&transaction_data).map_err(|e| {
-            Status::invalid_argument(format!("Failed to deserialize transaction: {}", e))
+            Status::invalid_argument(format!("Failed to deserialize transaction: {e}"))
         })?;
 
         // Create an unsigned transaction for simulation
@@ -510,7 +510,7 @@ impl TransactionService for TransactionServiceImpl {
         let commitment = commitment_level_to_config(req.commitment_level);
 
         // Use simulation to get accurate compute unit estimation with configurable commitment level
-        let (compute_units, _logs) = match self.rpc_client.simulate_transaction_with_config(
+        let (compute_units, _logs) = if let Ok(simulation_result) = self.rpc_client.simulate_transaction_with_config(
             &solana_transaction,
             solana_client::rpc_config::RpcSimulateTransactionConfig {
                 sig_verify: false,
@@ -522,26 +522,23 @@ impl TransactionService for TransactionServiceImpl {
                 inner_instructions: false,
             },
         ) {
-            Ok(simulation_result) => {
-                // Handle both None and 0 cases by providing reasonable fallback
-                let compute_units = match simulation_result.value.units_consumed {
-                    Some(units) if units > 0 => units,
-                    _ => {
-                        // Fallback estimation based on instruction count
-                        let instruction_count = transaction.instructions.len() as u64;
-                        (instruction_count * 50_000).max(200_000).min(1_400_000)
-                    }
-                };
-                let logs = simulation_result.value.logs.unwrap_or_default();
-                (compute_units, logs)
-            }
-            Err(_) => {
-                // Fallback to basic estimation if simulation fails
-                let instruction_count = transaction.instructions.len() as u64;
-                let estimated_compute_units =
-                    (instruction_count * 50_000).max(200_000).min(1_400_000);
-                (estimated_compute_units, vec![])
-            }
+            // Handle both None and 0 cases by providing reasonable fallback
+            let compute_units = match simulation_result.value.units_consumed {
+                Some(units) if units > 0 => units,
+                _ => {
+                    // Fallback estimation based on instruction count
+                    let instruction_count = transaction.instructions.len() as u64;
+                    (instruction_count * 50_000).max(200_000).min(1_400_000)
+                }
+            };
+            let logs = simulation_result.value.logs.unwrap_or_default();
+            (compute_units, logs)
+        } else {
+            // Fallback to basic estimation if simulation fails
+            let instruction_count = transaction.instructions.len() as u64;
+            let estimated_compute_units =
+                (instruction_count * 50_000).max(200_000).min(1_400_000);
+            (estimated_compute_units, vec![])
         };
 
         // Calculate fee estimation
@@ -549,8 +546,7 @@ impl TransactionService for TransactionServiceImpl {
         let compute_unit_price = transaction
             .config
             .as_ref()
-            .map(|config| config.compute_unit_price)
-            .unwrap_or(0);
+            .map_or(0, |config| config.compute_unit_price);
 
         // Priority fee calculation based on compute units and price
         let priority_fee = if compute_unit_price > 0 {
@@ -581,10 +577,10 @@ impl TransactionService for TransactionServiceImpl {
     /// 4. Cost Prevention: Avoids wasted transaction fees on failing operations
     ///
     /// Simulation Configuration:
-    /// - sig_verify: false (bypasses signature validation for simulation)
-    /// - replace_recent_blockhash: false (uses transaction's blockhash)
+    /// - `sig_verify`: false (bypasses signature validation for simulation)
+    /// - `replace_recent_blockhash`: false (uses transaction's blockhash)
     /// - commitment: configurable (matches user's desired confirmation level)
-    /// - inner_instructions: false (reduces simulation overhead)
+    /// - `inner_instructions`: false (reduces simulation overhead)
     ///
     /// Response Format:
     /// - success: boolean indicating if transaction would succeed
@@ -609,7 +605,7 @@ impl TransactionService for TransactionServiceImpl {
 
         // Validate transaction state consistency
         validate_transaction_state_consistency(&transaction).map_err(|e| {
-            Status::invalid_argument(format!("Transaction validation failed: {}", e))
+            Status::invalid_argument(format!("Transaction validation failed: {e}"))
         })?;
 
         // Ensure transaction has compiled data
@@ -619,11 +615,11 @@ impl TransactionService for TransactionServiceImpl {
 
         // Deserialize the compiled transaction data
         let transaction_data = bs58::decode(&transaction.data).into_vec().map_err(|e| {
-            Status::invalid_argument(format!("Failed to decode transaction data: {}", e))
+            Status::invalid_argument(format!("Failed to decode transaction data: {e}"))
         })?;
 
         let message: Message = bincode::deserialize(&transaction_data).map_err(|e| {
-            Status::invalid_argument(format!("Failed to deserialize transaction: {}", e))
+            Status::invalid_argument(format!("Failed to deserialize transaction: {e}"))
         })?;
 
         // Create an unsigned transaction for simulation
@@ -650,7 +646,7 @@ impl TransactionService for TransactionServiceImpl {
                 let error = simulation_result
                     .value
                     .err
-                    .map(|err| format!("{:?}", err))
+                    .map(|err| format!("{err:?}"))
                     .unwrap_or_default();
                 let logs = simulation_result.value.logs.unwrap_or_default();
 
@@ -664,7 +660,7 @@ impl TransactionService for TransactionServiceImpl {
                 // Simulation failed - this could be due to network issues or invalid transaction
                 Ok(Response::new(SimulateTransactionResponse {
                     success: false,
-                    error: format!("Simulation failed: {}", e),
+                    error: format!("Simulation failed: {e}"),
                     logs: vec![],
                 }))
             }
@@ -673,13 +669,13 @@ impl TransactionService for TransactionServiceImpl {
 
     /// Signs a compiled transaction with cryptographic signatures for authorization
     ///
-    /// State Transition: COMPILED → PARTIALLY_SIGNED or FULLY_SIGNED
+    /// State Transition: COMPILED → `PARTIALLY_SIGNED` or `FULLY_SIGNED`
     ///
     /// This method applies cryptographic signatures to authorize transaction execution.
     /// It supports multiple signing methods and automatically determines completion state.
     ///
     /// Signing Process:
-    /// 1. Validates transaction state allows signing (must be COMPILED or PARTIALLY_SIGNED)
+    /// 1. Validates transaction state allows signing (must be COMPILED or `PARTIALLY_SIGNED`)
     /// 2. Deserializes compiled transaction data back to Solana SDK format
     /// 3. Processes signing method (currently supports private key signing)
     /// 4. Matches provided keys with transaction's required signers
@@ -688,8 +684,8 @@ impl TransactionService for TransactionServiceImpl {
     /// 7. Re-serializes signed transaction for storage
     ///
     /// State Determination Logic:
-    /// - FULLY_SIGNED: All required signatures present (ready for submission)
-    /// - PARTIALLY_SIGNED: Some signatures present, more needed
+    /// - `FULLY_SIGNED`: All required signatures present (ready for submission)
+    /// - `PARTIALLY_SIGNED`: Some signatures present, more needed
     ///
     /// Security Features:
     /// - Only signs for accounts present in transaction (prevents signature reuse)
@@ -698,7 +694,7 @@ impl TransactionService for TransactionServiceImpl {
     /// - No signature storage of private keys (used and discarded)
     ///
     /// Signing Methods:
-    /// - PrivateKeys: Direct private key signing (current implementation)
+    /// - `PrivateKeys`: Direct private key signing (current implementation)
     /// - Seeds: Deterministic key derivation (not yet implemented)
     ///
     /// The multi-step signing support enables complex workflows like multi-signature
@@ -719,7 +715,7 @@ impl TransactionService for TransactionServiceImpl {
 
         // Validate transaction state consistency
         validate_transaction_state_consistency(&transaction).map_err(|e| {
-            Status::invalid_argument(format!("Transaction validation failed: {}", e))
+            Status::invalid_argument(format!("Transaction validation failed: {e}"))
         })?;
 
         // Ensure transaction has compiled data
@@ -729,11 +725,11 @@ impl TransactionService for TransactionServiceImpl {
 
         // Deserialize the compiled transaction data
         let transaction_data = bs58::decode(&transaction.data).into_vec().map_err(|e| {
-            Status::invalid_argument(format!("Failed to decode transaction data: {}", e))
+            Status::invalid_argument(format!("Failed to decode transaction data: {e}"))
         })?;
 
         let message: Message = bincode::deserialize(&transaction_data).map_err(|e| {
-            Status::invalid_argument(format!("Failed to deserialize transaction: {}", e))
+            Status::invalid_argument(format!("Failed to deserialize transaction: {e}"))
         })?;
 
         // Process signing method and apply signatures
@@ -746,8 +742,7 @@ impl TransactionService for TransactionServiceImpl {
                         let private_key_bytes =
                             bs58::decode(private_key_str).into_vec().map_err(|e| {
                                 Status::invalid_argument(format!(
-                                    "Invalid private key format: {}",
-                                    e
+                                    "Invalid private key format: {e}"
                                 ))
                             })?;
 
@@ -756,7 +751,7 @@ impl TransactionService for TransactionServiceImpl {
                         }
 
                         let keypair = Keypair::from_bytes(&private_key_bytes).map_err(|e| {
-                            Status::invalid_argument(format!("Invalid private key: {}", e))
+                            Status::invalid_argument(format!("Invalid private key: {e}"))
                         })?;
                         keypairs.push(keypair);
                     }
@@ -798,7 +793,7 @@ impl TransactionService for TransactionServiceImpl {
             .signatures
             .iter()
             .filter(|sig| **sig != Signature::default())
-            .map(|sig| sig.to_string())
+            .map(std::string::ToString::to_string)
             .collect();
 
         // Determine new state based on signature completeness
@@ -814,13 +809,13 @@ impl TransactionService for TransactionServiceImpl {
 
         // Validate state transition
         validate_state_transition(current_state, new_state)
-            .map_err(|e| Status::internal(format!("State transition validation failed: {}", e)))?;
+            .map_err(|e| Status::internal(format!("State transition validation failed: {e}")))?;
 
         transaction.state = new_state.into();
 
         // Update the transaction data with signed transaction
         let signed_transaction_bytes = bincode::serialize(&solana_transaction).map_err(|e| {
-            Status::internal(format!("Failed to serialize signed transaction: {}", e))
+            Status::internal(format!("Failed to serialize signed transaction: {e}"))
         })?;
         transaction.data = bs58::encode(&signed_transaction_bytes).into_string();
 
@@ -831,20 +826,20 @@ impl TransactionService for TransactionServiceImpl {
 
     /// Asynchronously submits a fully signed transaction to the Solana blockchain network
     ///
-    /// State Transition: FULLY_SIGNED → SUBMITTED (or FAILED)
+    /// State Transition: `FULLY_SIGNED` → SUBMITTED (or FAILED)
     ///
     /// This method performs network submission and returns immediately after sending the
-    /// transaction without waiting for confirmation. Clients should use MonitorTransaction
+    /// transaction without waiting for confirmation. Clients should use `MonitorTransaction`
     /// to poll for confirmation status if they need to verify transaction execution.
     ///
     /// Submission Strategy:
-    /// Uses send_transaction_with_config() with appropriate configuration but does NOT
+    /// Uses `send_transaction_with_config()` with appropriate configuration but does NOT
     /// wait for confirmation. This provides a pure asynchronous submission interface.
     ///
     /// Benefits of Asynchronous Submission:
     /// 1. NON-BLOCKING: Returns immediately after sending, allowing parallel operations
     ///
-    /// 2. CLIENT CONTROL: Clients decide whether to poll for confirmation using MonitorTransaction
+    /// 2. CLIENT CONTROL: Clients decide whether to poll for confirmation using `MonitorTransaction`
     ///
     /// 3. PURE SDK WRAPPER: Maintains the protocol buffer wrapper philosophy without adding
     ///    business logic like automatic confirmation waiting
@@ -858,7 +853,7 @@ impl TransactionService for TransactionServiceImpl {
     /// - Validation Error: Transaction format or content problems
     ///
     /// NOTE: Successful submission only means the transaction was sent to the network,
-    /// not that it was confirmed or executed. Use MonitorTransaction for confirmation.
+    /// not that it was confirmed or executed. Use `MonitorTransaction` for confirmation.
     async fn submit_transaction(
         &self,
         request: Request<SubmitTransactionRequest>,
@@ -875,7 +870,7 @@ impl TransactionService for TransactionServiceImpl {
 
         // Validate transaction state consistency
         validate_transaction_state_consistency(&transaction).map_err(|e| {
-            Status::invalid_argument(format!("Transaction validation failed: {}", e))
+            Status::invalid_argument(format!("Transaction validation failed: {e}"))
         })?;
 
         // Ensure transaction is fully signed
@@ -887,12 +882,12 @@ impl TransactionService for TransactionServiceImpl {
 
         // Deserialize the signed transaction data
         let transaction_data = bs58::decode(&transaction.data).into_vec().map_err(|e| {
-            Status::invalid_argument(format!("Failed to decode transaction data: {}", e))
+            Status::invalid_argument(format!("Failed to decode transaction data: {e}"))
         })?;
 
         let solana_transaction: SolanaTransaction = bincode::deserialize(&transaction_data)
             .map_err(|e| {
-                Status::invalid_argument(format!("Failed to deserialize transaction: {}", e))
+                Status::invalid_argument(format!("Failed to deserialize transaction: {e}"))
             })?;
 
         // Verify transaction is properly signed
@@ -958,7 +953,7 @@ impl TransactionService for TransactionServiceImpl {
                 }
                 Err(e) => {
                     let classification = classify_submission_error(&e);
-                    let error_msg = format!("Transaction submission failed: {}", e);
+                    let error_msg = format!("Transaction submission failed: {e}");
                     error!(
                         error = %e,
                         fee_payer = %transaction.fee_payer,
@@ -993,10 +988,10 @@ impl TransactionService for TransactionServiceImpl {
     /// Data Reconstruction:
     /// Since blockchain storage is optimized and doesn't preserve all original metadata:
     /// - instructions: Empty (not stored on-chain after execution)
-    /// - state: FULLY_SIGNED (network transactions are always fully signed)
+    /// - state: `FULLY_SIGNED` (network transactions are always fully signed)
     /// - config: None (execution config not preserved)
     /// - signatures: Reconstructed from on-chain data
-    /// - fee_payer: First account key (Solana convention)
+    /// - `fee_payer`: First account key (Solana convention)
     /// - data: Raw transaction bytes (preserved exactly)
     ///
     /// Commitment Level Impact:
@@ -1022,7 +1017,7 @@ impl TransactionService for TransactionServiceImpl {
 
         // Parse the signature
         let signature = Signature::from_str(&req.signature)
-            .map_err(|e| Status::invalid_argument(format!("Invalid signature format: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid signature format: {e}")))?;
 
         // Get commitment level for transaction retrieval
         let commitment = commitment_level_to_config(req.commitment_level);
@@ -1041,7 +1036,7 @@ impl TransactionService for TransactionServiceImpl {
                 let transaction_data = match confirmed_transaction.transaction.transaction {
                     EncodedTransaction::Binary(data, _) => {
                         bs58::decode(&data).into_vec().map_err(|e| {
-                            Status::internal(format!("Failed to decode transaction data: {}", e))
+                            Status::internal(format!("Failed to decode transaction data: {e}"))
                         })?
                     }
                     _ => {
@@ -1052,7 +1047,7 @@ impl TransactionService for TransactionServiceImpl {
                 // Deserialize the transaction
                 let solana_transaction: SolanaTransaction = bincode::deserialize(&transaction_data)
                     .map_err(|e| {
-                        Status::internal(format!("Failed to deserialize transaction: {}", e))
+                        Status::internal(format!("Failed to deserialize transaction: {e}"))
                     })?;
 
                 // Convert to our proto format
@@ -1065,13 +1060,13 @@ impl TransactionService for TransactionServiceImpl {
                         .message
                         .account_keys
                         .first()
-                        .map(|key| key.to_string())
+                        .map(std::string::ToString::to_string)
                         .unwrap_or_default(),
                     recent_blockhash: solana_transaction.message.recent_blockhash.to_string(),
                     signatures: solana_transaction
                         .signatures
                         .iter()
-                        .map(|sig| sig.to_string())
+                        .map(std::string::ToString::to_string)
                         .collect(),
                     hash: signature.to_string(), // Use signature as hash for compatibility
                     signature: req.signature,
@@ -1083,7 +1078,7 @@ impl TransactionService for TransactionServiceImpl {
             }
             Err(e) => {
                 // Transaction not found or other error
-                Err(Status::not_found(format!("Transaction not found: {}", e)))
+                Err(Status::not_found(format!("Transaction not found: {e}")))
             }
         }
     }
@@ -1096,10 +1091,10 @@ impl TransactionService for TransactionServiceImpl {
     ///
     /// Networking Architecture:
     /// 1. Validates input parameters and signature format
-    /// 2. Creates unbounded WebSocket subscription via WebSocketManager
+    /// 2. Creates unbounded WebSocket subscription via `WebSocketManager`
     /// 3. Establishes bounded gRPC stream channel (capacity: 100)
     /// 4. Spawns async bridge task for protocol translation
-    /// 5. Returns ReceiverStream for client consumption
+    /// 5. Returns `ReceiverStream` for client consumption
     ///
     /// Resource Management:
     /// - WebSocket subscription auto-cleanup on client disconnect
@@ -1235,7 +1230,7 @@ async fn bridge_websocket_to_grpc_stream(
         "🌉 Starting stream bridge"
     );
 
-    let bridge_timeout = Duration::from_secs(timeout_seconds as u64 + 5); // Add 5s buffer
+    let bridge_timeout = Duration::from_secs(u64::from(timeout_seconds) + 5); // Add 5s buffer
 
     // Use timeout to prevent indefinite hanging if WebSocket stops responding
     let bridge_result = timeout(bridge_timeout, async {
@@ -1248,17 +1243,14 @@ async fn bridge_websocket_to_grpc_stream(
             );
 
             // Try to send to gRPC client - if this fails, client has disconnected
-            match grpc_tx.send(Ok(response.clone())).await {
-                Ok(()) => {
-                    // Successfully sent to client
-                }
-                Err(_) => {
-                    info!(
-                        signature = %signature,
-                        "🔌 Client disconnected (gRPC channel closed)"
-                    );
-                    return; // Early return - no need to continue processing
-                }
+            if matches!(grpc_tx.send(Ok(response.clone())).await, Ok(())) {
+                // Successfully sent to client
+            } else {
+                info!(
+                    signature = %signature,
+                    "🔌 Client disconnected (gRPC channel closed)"
+                );
+                return; // Early return - no need to continue processing
             }
 
             // Check if this is a terminal status that should end the stream
@@ -1290,37 +1282,34 @@ async fn bridge_websocket_to_grpc_stream(
     })
     .await;
 
-    match bridge_result {
-        Ok(_) => {
+    if bridge_result == Ok(()) {
+        debug!(
+            signature = %signature,
+            "✅ Stream bridge completed normally"
+        );
+    } else {
+        warn!(
+            signature = %signature,
+            timeout_seconds = timeout_seconds + 5,
+            "⏰ Stream bridge timed out"
+        );
+        // Send timeout notification to client if channel is still open
+        let timeout_response = MonitorTransactionResponse {
+            signature: signature.clone(),
+            status: TransactionStatus::Timeout.into(),
+            slot: None,
+            error_message: Some("Stream monitoring timeout reached".to_string()),
+            logs: vec![],
+            compute_units_consumed: None,
+            current_commitment: CommitmentLevel::Unspecified.into(),
+        };
+
+        // Best effort - ignore if client already disconnected
+        if grpc_tx.send(Ok(timeout_response)).await.is_err() {
             debug!(
                 signature = %signature,
-                "✅ Stream bridge completed normally"
+                "Client disconnected before timeout notification could be sent"
             );
-        }
-        Err(_) => {
-            warn!(
-                signature = %signature,
-                timeout_seconds = timeout_seconds + 5,
-                "⏰ Stream bridge timed out"
-            );
-            // Send timeout notification to client if channel is still open
-            let timeout_response = MonitorTransactionResponse {
-                signature: signature.clone(),
-                status: TransactionStatus::Timeout.into(),
-                slot: None,
-                error_message: Some("Stream monitoring timeout reached".to_string()),
-                logs: vec![],
-                compute_units_consumed: None,
-                current_commitment: CommitmentLevel::Unspecified.into(),
-            };
-
-            // Best effort - ignore if client already disconnected
-            if grpc_tx.send(Ok(timeout_response)).await.is_err() {
-                debug!(
-                    signature = %signature,
-                    "Client disconnected before timeout notification could be sent"
-                );
-            }
         }
     }
 }

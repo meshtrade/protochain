@@ -42,7 +42,7 @@ pub fn validate_state_transition(
         }
 
         // All other combinations are invalid
-        _ => Err(format!("Invalid state transition from {:?} to {:?}", from, to)),
+        _ => Err(format!("Invalid state transition from {from:?} to {to:?}")),
     }
 }
 
@@ -156,13 +156,13 @@ pub fn validate_operation_allowed_for_state(
 
         // Invalid operation for current state
         _ => Err(format!(
-            "Operation '{}' not allowed for transaction state {:?}",
-            operation, state
+            "Operation '{operation}' not allowed for transaction state {state:?}"
         )),
     }
 }
 
 #[cfg(test)]
+#[allow(clippy::unwrap_used)] // unwrap is acceptable in tests for cleaner assertions
 mod tests {
     use super::*;
     use protosol_api::protosol::solana::transaction::v1::*;

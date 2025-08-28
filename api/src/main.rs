@@ -23,20 +23,20 @@ use service_providers::ServiceProviders;
 /// Initialize structured logging with appropriate formatting and filtering
 ///
 /// Logging Configuration:
-/// - Uses environment variable RUST_LOG for level filtering (default: "info")
-/// - JSON format for production environments (when PROTOSOL_JSON_LOGS=true)
+/// - Uses environment variable `RUST_LOG` for level filtering (default: "info")
+/// - JSON format for production environments (when `PROTOSOL_JSON_LOGS=true`)
 /// - Human-readable format for development (default)
 /// - Supports log levels: trace, debug, info, warn, error
 /// - Includes source code locations for debug builds
 ///
 /// Environment Variables:
-/// - RUST_LOG: Controls log level filtering (e.g., "debug", "protosol_solana_api=trace")
-/// - PROTOSOL_JSON_LOGS: Set to "true" for JSON structured output
+/// - `RUST_LOG`: Controls log level filtering (e.g., "debug", "`protosol_solana_api=trace`")
+/// - `PROTOSOL_JSON_LOGS`: Set to "true" for JSON structured output
 ///
 /// Examples:
-/// - Development: RUST_LOG=debug cargo run
-/// - Production: RUST_LOG=info PROTOSOL_JSON_LOGS=true ./protosol-solana-api
-/// - Service-specific: RUST_LOG=protosol_solana_api=trace,websocket=debug cargo run
+/// - Development: `RUST_LOG=debug` cargo run
+/// - Production: `RUST_LOG=info` `PROTOSOL_JSON_LOGS=true` ./protosol-solana-api
+/// - Service-specific: `RUST_LOG=protosol_solana_api=trace,websocket=debug` cargo run
 fn init_logging() -> Result<(), Box<dyn std::error::Error>> {
     let env_filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new("info,protosol_solana_api=info"));

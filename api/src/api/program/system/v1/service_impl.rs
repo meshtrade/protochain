@@ -13,7 +13,8 @@ use protosol_api::protosol::solana::transaction::v1::SolanaInstruction;
 use crate::api::program::system::v1::conversion::sdk_instruction_to_proto;
 
 /// Pure instruction-based System Program service implementation.
-/// All methods return composable SolanaInstruction objects for transaction building.
+///
+/// All methods return composable `SolanaInstruction` objects for transaction building.
 /// This is a pure SDK wrapper - no RPC client or transaction compilation here.
 #[derive(Clone)]
 pub struct SystemProgramServiceImpl {
@@ -22,8 +23,8 @@ pub struct SystemProgramServiceImpl {
 
 impl SystemProgramServiceImpl {
     /// Creates a new instance of the System Program service.
-    pub fn new() -> Self {
-        SystemProgramServiceImpl {}
+    pub const fn new() -> Self {
+        Self {}
     }
 }
 
@@ -45,10 +46,10 @@ impl SystemProgramService for SystemProgramServiceImpl {
         }
 
         let payer = Pubkey::from_str(&req.payer)
-            .map_err(|e| Status::invalid_argument(format!("Invalid payer address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid payer address: {e}")))?;
 
         let new_account = Pubkey::from_str(&req.new_account)
-            .map_err(|e| Status::invalid_argument(format!("Invalid new account address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid new account address: {e}")))?;
 
         // Build instruction using SDK
         let instruction = system_instruction::create_account(
@@ -86,10 +87,10 @@ impl SystemProgramService for SystemProgramServiceImpl {
         }
 
         let from = Pubkey::from_str(&req.from)
-            .map_err(|e| Status::invalid_argument(format!("Invalid from address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid from address: {e}")))?;
 
         let to = Pubkey::from_str(&req.to)
-            .map_err(|e| Status::invalid_argument(format!("Invalid to address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid to address: {e}")))?;
 
         let instruction = system_instruction::transfer(&from, &to, req.lamports);
 
@@ -113,7 +114,7 @@ impl SystemProgramService for SystemProgramServiceImpl {
         }
 
         let account = Pubkey::from_str(&req.account)
-            .map_err(|e| Status::invalid_argument(format!("Invalid account address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid account address: {e}")))?;
 
         let instruction = system_instruction::allocate(&account, req.space);
         Ok(Response::new(sdk_instruction_to_proto(instruction)))
@@ -134,10 +135,10 @@ impl SystemProgramService for SystemProgramServiceImpl {
         }
 
         let account = Pubkey::from_str(&req.account)
-            .map_err(|e| Status::invalid_argument(format!("Invalid account address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid account address: {e}")))?;
 
         let owner_program = Pubkey::from_str(&req.owner_program)
-            .map_err(|e| Status::invalid_argument(format!("Invalid owner program: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid owner program: {e}")))?;
 
         let instruction = system_instruction::assign(&account, &owner_program);
         Ok(Response::new(sdk_instruction_to_proto(instruction)))
@@ -164,13 +165,13 @@ impl SystemProgramService for SystemProgramServiceImpl {
         }
 
         let payer = Pubkey::from_str(&req.payer)
-            .map_err(|e| Status::invalid_argument(format!("Invalid payer address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid payer address: {e}")))?;
 
         let new_account = Pubkey::from_str(&req.new_account)
-            .map_err(|e| Status::invalid_argument(format!("Invalid new account address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid new account address: {e}")))?;
 
         let base = Pubkey::from_str(&req.base)
-            .map_err(|e| Status::invalid_argument(format!("Invalid base address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid base address: {e}")))?;
 
         let instruction = system_instruction::create_account_with_seed(
             &payer,
@@ -203,10 +204,10 @@ impl SystemProgramService for SystemProgramServiceImpl {
         }
 
         let account = Pubkey::from_str(&req.account)
-            .map_err(|e| Status::invalid_argument(format!("Invalid account address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid account address: {e}")))?;
 
         let base = Pubkey::from_str(&req.base)
-            .map_err(|e| Status::invalid_argument(format!("Invalid base address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid base address: {e}")))?;
 
         let instruction = system_instruction::allocate_with_seed(
             &account,
@@ -240,13 +241,13 @@ impl SystemProgramService for SystemProgramServiceImpl {
         }
 
         let account = Pubkey::from_str(&req.account)
-            .map_err(|e| Status::invalid_argument(format!("Invalid account address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid account address: {e}")))?;
 
         let base = Pubkey::from_str(&req.base)
-            .map_err(|e| Status::invalid_argument(format!("Invalid base address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid base address: {e}")))?;
 
         let owner_program = Pubkey::from_str(&req.owner_program)
-            .map_err(|e| Status::invalid_argument(format!("Invalid owner program: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid owner program: {e}")))?;
 
         let instruction =
             system_instruction::assign_with_seed(&account, &base, &req.seed, &owner_program);
@@ -275,13 +276,13 @@ impl SystemProgramService for SystemProgramServiceImpl {
         }
 
         let from = Pubkey::from_str(&req.from)
-            .map_err(|e| Status::invalid_argument(format!("Invalid from address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid from address: {e}")))?;
 
         let from_base = Pubkey::from_str(&req.from_base)
-            .map_err(|e| Status::invalid_argument(format!("Invalid from base address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid from base address: {e}")))?;
 
         let to = Pubkey::from_str(&req.to)
-            .map_err(|e| Status::invalid_argument(format!("Invalid to address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid to address: {e}")))?;
 
         let instruction = system_instruction::transfer_with_seed(
             &from,
@@ -310,11 +311,11 @@ impl SystemProgramService for SystemProgramServiceImpl {
         }
 
         let nonce_account = Pubkey::from_str(&req.nonce_account).map_err(|e| {
-            Status::invalid_argument(format!("Invalid nonce account address: {}", e))
+            Status::invalid_argument(format!("Invalid nonce account address: {e}"))
         })?;
 
         let authority = Pubkey::from_str(&req.authority)
-            .map_err(|e| Status::invalid_argument(format!("Invalid authority address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid authority address: {e}")))?;
 
         // Note: initialize_nonce_account might not be available in this solana-sdk version
         // Using create_nonce_account which returns Vec<Instruction>, take the second one (initialize)
@@ -351,15 +352,15 @@ impl SystemProgramService for SystemProgramServiceImpl {
         }
 
         let nonce_account = Pubkey::from_str(&req.nonce_account).map_err(|e| {
-            Status::invalid_argument(format!("Invalid nonce account address: {}", e))
+            Status::invalid_argument(format!("Invalid nonce account address: {e}"))
         })?;
 
         let current_authority = Pubkey::from_str(&req.current_authority).map_err(|e| {
-            Status::invalid_argument(format!("Invalid current authority address: {}", e))
+            Status::invalid_argument(format!("Invalid current authority address: {e}"))
         })?;
 
         let new_authority = Pubkey::from_str(&req.new_authority).map_err(|e| {
-            Status::invalid_argument(format!("Invalid new authority address: {}", e))
+            Status::invalid_argument(format!("Invalid new authority address: {e}"))
         })?;
 
         let instruction = system_instruction::authorize_nonce_account(
@@ -389,14 +390,14 @@ impl SystemProgramService for SystemProgramServiceImpl {
         }
 
         let nonce_account = Pubkey::from_str(&req.nonce_account).map_err(|e| {
-            Status::invalid_argument(format!("Invalid nonce account address: {}", e))
+            Status::invalid_argument(format!("Invalid nonce account address: {e}"))
         })?;
 
         let authority = Pubkey::from_str(&req.authority)
-            .map_err(|e| Status::invalid_argument(format!("Invalid authority address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid authority address: {e}")))?;
 
         let to = Pubkey::from_str(&req.to)
-            .map_err(|e| Status::invalid_argument(format!("Invalid to address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid to address: {e}")))?;
 
         let instruction = system_instruction::withdraw_nonce_account(
             &nonce_account,
@@ -423,11 +424,11 @@ impl SystemProgramService for SystemProgramServiceImpl {
         }
 
         let nonce_account = Pubkey::from_str(&req.nonce_account).map_err(|e| {
-            Status::invalid_argument(format!("Invalid nonce account address: {}", e))
+            Status::invalid_argument(format!("Invalid nonce account address: {e}"))
         })?;
 
         let authority = Pubkey::from_str(&req.authority)
-            .map_err(|e| Status::invalid_argument(format!("Invalid authority address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid authority address: {e}")))?;
 
         let instruction = system_instruction::advance_nonce_account(&nonce_account, &authority);
 
@@ -446,7 +447,7 @@ impl SystemProgramService for SystemProgramServiceImpl {
         }
 
         let nonce_account = Pubkey::from_str(&req.nonce_account).map_err(|e| {
-            Status::invalid_argument(format!("Invalid nonce account address: {}", e))
+            Status::invalid_argument(format!("Invalid nonce account address: {e}"))
         })?;
 
         let instruction = system_instruction::upgrade_nonce_account(nonce_account);

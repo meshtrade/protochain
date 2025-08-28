@@ -8,11 +8,11 @@ pub struct SolanaClientsServiceProviders {
 
 impl SolanaClientsServiceProviders {
     pub fn new(rpc_url: &str) -> Result<Self> {
-        println!("🔗 Initializing Solana RPC client with URL: {}", rpc_url);
+        println!("🔗 Initializing Solana RPC client with URL: {rpc_url}");
 
         let rpc_client = Arc::new(RpcClient::new(rpc_url.to_string()));
 
-        Ok(SolanaClientsServiceProviders { rpc_client })
+        Ok(Self { rpc_client })
     }
 
     pub fn get_rpc_client(&self) -> Arc<RpcClient> {

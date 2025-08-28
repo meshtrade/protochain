@@ -21,12 +21,12 @@ pub struct AccountServiceImpl {
 }
 
 impl AccountServiceImpl {
-    pub fn new(rpc_client: Arc<RpcClient>) -> Self {
-        AccountServiceImpl { rpc_client }
+    pub const fn new(rpc_client: Arc<RpcClient>) -> Self {
+        Self { rpc_client }
     }
 }
 
-/// Helper function to convert proto CommitmentLevel to Solana CommitmentConfig
+/// Helper function to convert proto `CommitmentLevel` to Solana `CommitmentConfig`
 /// Provides sensible defaults when commitment level is not specified
 fn commitment_level_to_config(commitment_level: Option<i32>) -> CommitmentConfig {
     match commitment_level {
@@ -55,7 +55,7 @@ impl AccountService for AccountServiceImpl {
         &self,
         request: Request<GetAccountRequest>,
     ) -> Result<Response<Account>, Status> {
-        println!("Received get account request: {:?}", request);
+        println!("Received get account request: {request:?}");
 
         let req = request.into_inner();
 
@@ -66,10 +66,10 @@ impl AccountService for AccountServiceImpl {
 
         // Parse the address
         let pubkey = Pubkey::from_str(&req.address)
-            .map_err(|e| Status::invalid_argument(format!("Invalid address format: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid address format: {e}")))?;
 
         // Log account fetch attempt for debugging
-        println!("🔍 Attempting to fetch account: {} via RPC client", pubkey);
+        println!("🔍 Attempting to fetch account: {pubkey} via RPC client");
 
         // CRITICAL: Use get_account_with_commitment instead of get_account for timing reliability
         //
@@ -102,7 +102,7 @@ impl AccountService for AccountServiceImpl {
         {
             Ok(response) => {
                 if let Some(account) = response.value {
-                    println!("✅ RPC get_account_with_commitment succeeded for: {}", pubkey);
+                    println!("✅ RPC get_account_with_commitment succeeded for: {pubkey}");
                     println!("💰 Account balance: {} lamports", account.lamports);
                     // Convert Solana account to our Account type
                     let account_response = Account {
@@ -118,7 +118,7 @@ impl AccountService for AccountServiceImpl {
                     println!("Successfully fetched account: {}", req.address);
                     Ok(Response::new(account_response))
                 } else {
-                    println!("⚠️ get_account_with_commitment returned None for: {}", pubkey);
+                    println!("⚠️ get_account_with_commitment returned None for: {pubkey}");
                     Err(Status::not_found(format!("Account not found: {}", req.address)))
                 }
             }
@@ -129,7 +129,7 @@ impl AccountService for AccountServiceImpl {
                 {
                     Err(Status::not_found(format!("Account not found: {}", req.address)))
                 } else {
-                    Err(Status::internal(format!("Failed to fetch account: {}", e)))
+                    Err(Status::internal(format!("Failed to fetch account: {e}")))
                 }
             }
         }
@@ -139,7 +139,7 @@ impl AccountService for AccountServiceImpl {
         &self,
         request: Request<GenerateNewKeyPairRequest>,
     ) -> Result<Response<GenerateNewKeyPairResponse>, Status> {
-        println!("Received generate keypair request: {:?}", request);
+        println!("Received generate keypair request: {request:?}");
 
         let req = request.into_inner();
 
@@ -148,7 +148,7 @@ impl AccountService for AccountServiceImpl {
             Some(seed) => {
                 // Deterministic generation from seed
                 let seed_bytes = hex::decode(&seed)
-                    .map_err(|e| Status::invalid_argument(format!("Invalid hex seed: {}", e)))?;
+                    .map_err(|e| Status::invalid_argument(format!("Invalid hex seed: {e}")))?;
 
                 if seed_bytes.len() != 32 {
                     return Err(Status::invalid_argument("Seed must be exactly 32 bytes"));
@@ -157,7 +157,7 @@ impl AccountService for AccountServiceImpl {
                 let mut seed_array = [0u8; 32];
                 seed_array.copy_from_slice(&seed_bytes);
                 Keypair::from_seed(&seed_array).map_err(|e| {
-                    Status::internal(format!("Failed to generate keypair from seed: {}", e))
+                    Status::internal(format!("Failed to generate keypair from seed: {e}"))
                 })?
             }
             None => {
@@ -183,7 +183,7 @@ impl AccountService for AccountServiceImpl {
         &self,
         request: Request<FundNativeRequest>,
     ) -> Result<Response<FundNativeResponse>, Status> {
-        println!("Received fund native request: {:?}", request);
+        println!("Received fund native request: {request:?}");
 
         let req = request.into_inner();
 
@@ -198,36 +198,35 @@ impl AccountService for AccountServiceImpl {
 
         // Parse and validate address
         let address = Pubkey::from_str(&req.address)
-            .map_err(|e| Status::invalid_argument(format!("Invalid address: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid address: {e}")))?;
 
         // Parse and validate amount
         let amount = req
             .amount
             .parse::<u64>()
-            .map_err(|e| Status::invalid_argument(format!("Invalid amount: {}", e)))?;
+            .map_err(|e| Status::invalid_argument(format!("Invalid amount: {e}")))?;
 
         if amount == 0 {
             return Err(Status::invalid_argument("Amount must be greater than 0"));
         }
 
         // Request airdrop
-        println!("Requesting airdrop of {} lamports to {}", amount, address);
+        println!("Requesting airdrop of {amount} lamports to {address}");
         // RPC client ready for airdrop request
         let signature = self
             .rpc_client
             .request_airdrop(&address, amount)
-            .map_err(|e| Status::internal(format!("Airdrop request failed: {}", e)))?;
+            .map_err(|e| Status::internal(format!("Airdrop request failed: {e}")))?;
 
         // Wait for confirmation - commitment level is handled by GetAccount with configurable commitment
         println!(
-            "Waiting for airdrop confirmation: {} (commitment level will be used in GetAccount)",
-            signature
+            "Waiting for airdrop confirmation: {signature} (commitment level will be used in GetAccount)"
         );
         self.rpc_client
             .confirm_transaction(&signature)
-            .map_err(|e| Status::internal(format!("Failed to confirm airdrop: {}", e)))?;
+            .map_err(|e| Status::internal(format!("Failed to confirm airdrop: {e}")))?;
 
-        println!("Airdrop confirmed successfully: {}", signature);
+        println!("Airdrop confirmed successfully: {signature}");
 
         Ok(Response::new(FundNativeResponse {
             signature: signature.to_string(),

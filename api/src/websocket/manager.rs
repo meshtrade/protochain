@@ -61,7 +61,7 @@ impl WebSocketManager {
             "✅ WebSocket manager initialized"
         );
 
-        Ok(WebSocketManager {
+        Ok(Self {
             ws_url: ws_url.to_string(),
             active_subscriptions: Arc::new(DashMap::new()),
         })
@@ -97,7 +97,7 @@ impl WebSocketManager {
         // Clone necessary data for the async task
         let sig_clone = signature.clone();
         let tx_clone = tx.clone();
-        let timeout_duration = Duration::from_secs(timeout_seconds.unwrap_or(60) as u64);
+        let timeout_duration = Duration::from_secs(u64::from(timeout_seconds.unwrap_or(60)));
 
         // Spawn the subscription task
         let ws_url_clone = self.ws_url.clone();
@@ -212,67 +212,64 @@ impl WebSocketManager {
         loop {
             tokio::select! {
                 notification = stream.next() => {
-                    match notification {
-                        Some(response) => {
-                            match Self::process_signature_notification(
-                                response, &signature_str, include_logs
-                            ) {
-                                Ok(response) => {
-                                    let response_status = response.status();
-                                    let is_terminal = matches!(
-                                        response_status,
-                                        TransactionStatus::Confirmed |
-                                        TransactionStatus::Finalized |
-                                        TransactionStatus::Failed |
-                                        TransactionStatus::Dropped
-                                    );
+                    if let Some(response) = notification {
+                        match Self::process_signature_notification(
+                            response, &signature_str, include_logs
+                        ) {
+                            Ok(response) => {
+                                let response_status = response.status();
+                                let is_terminal = matches!(
+                                    response_status,
+                                    TransactionStatus::Confirmed |
+                                    TransactionStatus::Finalized |
+                                    TransactionStatus::Failed |
+                                    TransactionStatus::Dropped
+                                );
 
-                                    if sender.send(response).is_err() {
-                                        info!(
-                                            signature = %signature_str,
-                                            "🔌 Client disconnected"
-                                        );
-                                        break;
-                                    }
-
-                                    if is_terminal {
-                                        info!(
-                                            signature = %signature_str,
-                                            status = ?response_status,
-                                            "✅ Terminal status reached"
-                                        );
-                                        break;
-                                    }
-                                }
-                                Err(e) => {
-                                    error!(
+                                if sender.send(response).is_err() {
+                                    info!(
                                         signature = %signature_str,
-                                        error = %e,
-                                        "⚠️ Error processing notification"
+                                        "🔌 Client disconnected"
                                     );
-                                    let _ = sender.send(MonitorTransactionResponse {
-                                        signature: signature_str.clone(),
-                                        status: TransactionStatus::Failed.into(),
-                                        slot: None,
-                                        error_message: Some(e),
-                                        logs: vec![],
-                                        compute_units_consumed: None,
-                                        current_commitment: CommitmentLevel::Unspecified.into(),
-                                    });
+                                    break;
+                                }
+
+                                if is_terminal {
+                                    info!(
+                                        signature = %signature_str,
+                                        status = ?response_status,
+                                        "✅ Terminal status reached"
+                                    );
                                     break;
                                 }
                             }
+                            Err(e) => {
+                                error!(
+                                    signature = %signature_str,
+                                    error = %e,
+                                    "⚠️ Error processing notification"
+                                );
+                                let _ = sender.send(MonitorTransactionResponse {
+                                    signature: signature_str.clone(),
+                                    status: TransactionStatus::Failed.into(),
+                                    slot: None,
+                                    error_message: Some(e),
+                                    logs: vec![],
+                                    compute_units_consumed: None,
+                                    current_commitment: CommitmentLevel::Unspecified.into(),
+                                });
+                                break;
+                            }
                         }
-                        None => {
-                            debug!(
-                                signature = %signature_str,
-                                "🔚 Stream ended"
-                            );
-                            break;
-                        }
+                    } else {
+                        debug!(
+                            signature = %signature_str,
+                            "🔚 Stream ended"
+                        );
+                        break;
                     }
                 }
-                _ = &mut timeout_task => {
+                () = &mut timeout_task => {
                     warn!(
                         signature = %signature_str,
                         "⏰ Timeout reached"
@@ -297,7 +294,7 @@ impl WebSocketManager {
         );
     }
 
-    /// Processes a signature notification and converts it to MonitorTransactionResponse
+    /// Processes a signature notification and converts it to `MonitorTransactionResponse`
     fn process_signature_notification(
         notification: Response<RpcSignatureResult>,
         signature: &str,
@@ -315,7 +312,7 @@ impl WebSocketManager {
                     (
                         TransactionStatus::Failed,
                         CommitmentLevel::Processed,
-                        Some(format!("Transaction failed: {:?}", tx_err)),
+                        Some(format!("Transaction failed: {tx_err:?}")),
                         vec![],
                         compute_units,
                     )
@@ -448,8 +445,8 @@ impl WebSocketManager {
         );
     }
 
-    /// Converts proto CommitmentLevel to Solana CommitmentConfig
-    fn commitment_level_to_config(&self, level: CommitmentLevel) -> CommitmentConfig {
+    /// Converts proto `CommitmentLevel` to Solana `CommitmentConfig`
+    const fn commitment_level_to_config(&self, level: CommitmentLevel) -> CommitmentConfig {
         match level {
             CommitmentLevel::Processed => CommitmentConfig::processed(),
             CommitmentLevel::Confirmed => CommitmentConfig::confirmed(),
@@ -520,7 +517,7 @@ pub fn derive_websocket_url_from_rpc(rpc_url: &str) -> Result<String, String> {
     } else if rpc_url.starts_with("https://") {
         Ok(rpc_url.replace("https://", "wss://"))
     } else {
-        Err(format!("Invalid RPC URL format: {}", rpc_url))
+        Err(format!("Invalid RPC URL format: {rpc_url}"))
     }
 }
 

@@ -13,9 +13,9 @@ pub struct API {
 
 impl API {
     pub fn new(service_providers: Arc<ServiceProviders>) -> Self {
-        API {
-            account_v1: Arc::new(AccountV1API::new(Arc::clone(&service_providers))),
-            transaction_v1: Arc::new(TransactionV1API::new(Arc::clone(&service_providers))),
+        Self {
+            account_v1: Arc::new(AccountV1API::new(&service_providers)),
+            transaction_v1: Arc::new(TransactionV1API::new(&service_providers)),
             program: Arc::new(Program::new(service_providers)),
         }
     }

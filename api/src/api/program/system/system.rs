@@ -9,7 +9,7 @@ pub struct System {
 
 impl System {
     pub fn new(service_providers: Arc<ServiceProviders>) -> Self {
-        System {
+        Self {
             v1: Arc::new(SystemProgramV1API::new(service_providers)),
         }
     }
