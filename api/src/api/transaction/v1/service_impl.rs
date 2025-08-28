@@ -1132,14 +1132,14 @@ impl TransactionService for TransactionServiceImpl {
 
         // Subscribe to signature updates via WebSocket manager
         let websocket_rx = match self.websocket_manager.subscribe_to_signature(
-            req.signature.clone(),
+            &req.signature,
             commitment_level,
             req.include_logs,
             Some(timeout_seconds),
         ) {
             Ok(rx) => rx,
             Err(e) => {
-                return Err(e);
+                return Err(*e);
             }
         };
 
@@ -1178,6 +1178,42 @@ impl TransactionService for TransactionServiceImpl {
 /// - Terminates on terminal transaction states to free resources
 /// - No explicit drop needed - channels auto-cleanup when task ends
 ///
+/// Helper function to check if a transaction status is terminal
+const fn is_terminal_status(status: TransactionStatus) -> bool {
+    matches!(
+        status,
+        TransactionStatus::Confirmed
+            | TransactionStatus::Finalized
+            | TransactionStatus::Failed
+            | TransactionStatus::Dropped
+            | TransactionStatus::Timeout
+    )
+}
+
+/// Helper function to send timeout notification to grPC client
+async fn send_timeout_notification(
+    grpc_tx: &mpsc::Sender<Result<MonitorTransactionResponse, Status>>,
+    signature: &str,
+) {
+    let timeout_response = MonitorTransactionResponse {
+        signature: signature.to_string(),
+        status: TransactionStatus::Timeout.into(),
+        slot: None,
+        error_message: Some("Stream monitoring timeout reached".to_string()),
+        logs: vec![],
+        compute_units_consumed: None,
+        current_commitment: CommitmentLevel::Unspecified.into(),
+    };
+
+    // Best effort - ignore if client already disconnected
+    if grpc_tx.send(Ok(timeout_response)).await.is_err() {
+        debug!(
+            signature = %signature,
+            "Client disconnected before timeout notification could be sent"
+        );
+    }
+}
+
 /// Memory Safety:
 /// - No heap allocations in hot path (only stack-based message passing)
 /// - Clone operations are minimal (only for logging)
@@ -1218,16 +1254,7 @@ async fn bridge_websocket_to_grpc_stream(
             }
 
             // Check if this is a terminal status that should end the stream
-            let is_terminal = matches!(
-                response.status(),
-                TransactionStatus::Confirmed
-                    | TransactionStatus::Finalized
-                    | TransactionStatus::Failed
-                    | TransactionStatus::Dropped
-                    | TransactionStatus::Timeout
-            );
-
-            if is_terminal {
+            if is_terminal_status(response.status()) {
                 info!(
                     signature = %signature,
                     status = ?response.status(),
@@ -1258,22 +1285,6 @@ async fn bridge_websocket_to_grpc_stream(
             "⏰ Stream bridge timed out"
         );
         // Send timeout notification to client if channel is still open
-        let timeout_response = MonitorTransactionResponse {
-            signature: signature.clone(),
-            status: TransactionStatus::Timeout.into(),
-            slot: None,
-            error_message: Some("Stream monitoring timeout reached".to_string()),
-            logs: vec![],
-            compute_units_consumed: None,
-            current_commitment: CommitmentLevel::Unspecified.into(),
-        };
-
-        // Best effort - ignore if client already disconnected
-        if grpc_tx.send(Ok(timeout_response)).await.is_err() {
-            debug!(
-                signature = %signature,
-                "Client disconnected before timeout notification could be sent"
-            );
-        }
+        send_timeout_notification(&grpc_tx, &signature).await;
     }
 }

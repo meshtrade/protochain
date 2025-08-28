@@ -40,6 +40,105 @@ impl WebSocketManager {
         );
 
         // Test WebSocket connectivity by creating a temporary PubsubClient
+        Self::validate_websocket_connection(ws_url).await;
+
+        info!(
+            ws_url = %ws_url,
+            "✅ WebSocket manager initialized"
+        );
+
+        Ok(Self {
+            ws_url: ws_url.to_string(),
+            active_subscriptions: Arc::new(DashMap::new()),
+        })
+    }
+
+    /// Fallback to simulation when WebSocket operations fail
+    async fn fallback_to_simulation(
+        signature_str: String,
+        commitment: CommitmentConfig,
+        include_logs: bool,
+        timeout: Duration,
+        sender: mpsc::UnboundedSender<MonitorTransactionResponse>,
+    ) {
+        Self::simulate_signature_monitoring(
+            signature_str,
+            commitment,
+            include_logs,
+            timeout,
+            sender,
+        )
+        .await;
+    }
+
+    /// Creates subscription configuration for signature monitoring
+    const fn create_subscription_config(
+        commitment: CommitmentConfig,
+    ) -> RpcSignatureSubscribeConfig {
+        RpcSignatureSubscribeConfig {
+            commitment: Some(commitment),
+            enable_received_notification: Some(true),
+        }
+    }
+
+    /// Checks if a transaction status is terminal (monitoring should stop)
+    const fn is_terminal_status(status: TransactionStatus) -> bool {
+        matches!(
+            status,
+            TransactionStatus::Confirmed
+                | TransactionStatus::Finalized
+                | TransactionStatus::Failed
+                | TransactionStatus::Dropped
+        )
+    }
+
+    /// Creates a timeout response for real-time monitoring
+    fn create_realtime_timeout_response(signature_str: &str) -> MonitorTransactionResponse {
+        MonitorTransactionResponse {
+            signature: signature_str.to_string(),
+            status: TransactionStatus::Timeout.into(),
+            slot: None,
+            error_message: Some("Monitoring timeout reached".to_string()),
+            logs: vec![],
+            compute_units_consumed: None,
+            current_commitment: CommitmentLevel::Unspecified.into(),
+        }
+    }
+
+    /// Handles a notification response and returns true if monitoring should stop
+    fn handle_notification_response(
+        notification: Response<RpcSignatureResult>,
+        signature_str: &str,
+        include_logs: bool,
+        sender: &mpsc::UnboundedSender<MonitorTransactionResponse>,
+    ) -> bool {
+        let response =
+            Self::process_signature_notification(notification, signature_str, include_logs);
+        let response_status = response.status();
+        let is_terminal = Self::is_terminal_status(response_status);
+
+        if sender.send(response).is_err() {
+            info!(
+                signature = %signature_str,
+                "🔌 Client disconnected"
+            );
+            return true;
+        }
+
+        if is_terminal {
+            info!(
+                signature = %signature_str,
+                status = ?response_status,
+                "✅ Terminal status reached"
+            );
+            return true;
+        }
+
+        false
+    }
+
+    /// Validates WebSocket connectivity for the given URL
+    async fn validate_websocket_connection(ws_url: &str) {
         match PubsubClient::new(ws_url).await {
             Ok(_test_client) => {
                 info!(
@@ -55,30 +154,20 @@ impl WebSocketManager {
                 );
             }
         }
-
-        info!(
-            ws_url = %ws_url,
-            "✅ WebSocket manager initialized"
-        );
-
-        Ok(Self {
-            ws_url: ws_url.to_string(),
-            active_subscriptions: Arc::new(DashMap::new()),
-        })
     }
 
     /// Subscribes to signature status updates for a specific transaction
     pub fn subscribe_to_signature(
         &self,
-        signature: String,
+        signature: &str,
         commitment_level: CommitmentLevel,
         include_logs: bool,
         timeout_seconds: Option<u32>,
-    ) -> Result<mpsc::UnboundedReceiver<MonitorTransactionResponse>, Status> {
+    ) -> Result<mpsc::UnboundedReceiver<MonitorTransactionResponse>, Box<Status>> {
         // Validate signature format
         let parsed_signature = signature
             .parse::<Signature>()
-            .map_err(|_| Status::invalid_argument("Invalid signature format"))?;
+            .map_err(|_| Box::new(Status::invalid_argument("Invalid signature format")))?;
 
         // Convert commitment level
         let commitment = Self::commitment_level_to_config(commitment_level);
@@ -95,7 +184,7 @@ impl WebSocketManager {
         );
 
         // Clone necessary data for the async task
-        let sig_clone = signature.clone();
+        let sig_clone = signature.to_string();
         let tx_clone = tx.clone();
         let timeout_duration = Duration::from_secs(u64::from(timeout_seconds.unwrap_or(60)));
 
@@ -121,7 +210,7 @@ impl WebSocketManager {
         };
 
         self.active_subscriptions
-            .insert(signature.clone(), subscription_handle);
+            .insert(signature.to_string(), subscription_handle);
 
         info!(
             signature = %signature,
@@ -155,8 +244,7 @@ impl WebSocketManager {
                     error = %e,
                     "❌ Failed to create PubsubClient, falling back to simulation"
                 );
-                // Fall back to simulation if WebSocket is not available
-                Self::simulate_signature_monitoring(
+                Self::fallback_to_simulation(
                     signature_str,
                     commitment,
                     include_logs,
@@ -169,10 +257,7 @@ impl WebSocketManager {
         };
 
         // Configure signature subscription
-        let config = RpcSignatureSubscribeConfig {
-            commitment: Some(commitment),
-            enable_received_notification: Some(true),
-        };
+        let config = Self::create_subscription_config(commitment);
 
         // Create signature subscription
         let (mut stream, _unsubscribe) = match pubsub_client
@@ -186,8 +271,7 @@ impl WebSocketManager {
                     error = %e,
                     "❌ Failed to create signature subscription, falling back to simulation"
                 );
-                // Fall back to simulation
-                Self::simulate_signature_monitoring(
+                Self::fallback_to_simulation(
                     signature_str,
                     commitment,
                     include_logs,
@@ -213,32 +297,7 @@ impl WebSocketManager {
             tokio::select! {
                 notification = stream.next() => {
                     if let Some(response) = notification {
-                        let response = Self::process_signature_notification(
-                            response, &signature_str, include_logs
-                        );
-                        let response_status = response.status();
-                        let is_terminal = matches!(
-                            response_status,
-                            TransactionStatus::Confirmed |
-                            TransactionStatus::Finalized |
-                            TransactionStatus::Failed |
-                            TransactionStatus::Dropped
-                        );
-
-                        if sender.send(response).is_err() {
-                            info!(
-                                signature = %signature_str,
-                                "🔌 Client disconnected"
-                            );
-                            break;
-                        }
-
-                        if is_terminal {
-                            info!(
-                                signature = %signature_str,
-                                status = ?response_status,
-                                "✅ Terminal status reached"
-                            );
+                        if Self::handle_notification_response(response, &signature_str, include_logs, &sender) {
                             break;
                         }
                     } else {
@@ -254,15 +313,7 @@ impl WebSocketManager {
                         signature = %signature_str,
                         "⏰ Timeout reached"
                     );
-                    let _ = sender.send(MonitorTransactionResponse {
-                        signature: signature_str.clone(),
-                        status: TransactionStatus::Timeout.into(),
-                        slot: None,
-                        error_message: Some("Monitoring timeout reached".to_string()),
-                        logs: vec![],
-                        compute_units_consumed: None,
-                        current_commitment: CommitmentLevel::Unspecified.into(),
-                    });
+                    let _ = sender.send(Self::create_realtime_timeout_response(&signature_str));
                     break;
                 }
             }
@@ -358,49 +409,27 @@ impl WebSocketManager {
             (TransactionStatus::Confirmed, CommitmentLevel::Confirmed, 1200),
         ];
 
-        let target_commitment = match commitment {
-            c if c == CommitmentConfig::finalized() => CommitmentLevel::Finalized,
-            c if c == CommitmentConfig::confirmed() => CommitmentLevel::Confirmed,
-            _ => CommitmentLevel::Processed,
-        };
+        let target_commitment = Self::determine_target_commitment(commitment);
 
         let start_time = std::time::Instant::now();
 
         for (status, current_commitment, delay_ms) in states {
             // Check for timeout
             if start_time.elapsed() >= timeout {
-                let _ = sender.send(MonitorTransactionResponse {
-                    signature: signature_str.clone(),
-                    status: TransactionStatus::Timeout.into(),
-                    slot: None,
-                    error_message: Some("Monitoring timeout reached".to_string()),
-                    logs: vec![],
-                    compute_units_consumed: None,
-                    current_commitment: current_commitment.into(),
-                });
+                let _ =
+                    sender.send(Self::create_timeout_response(&signature_str, current_commitment));
                 break;
             }
 
             tokio::time::sleep(Duration::from_millis(delay_ms)).await;
 
-            let logs = if include_logs {
-                vec![
-                    "Program 11111111111111111111111111111111 invoke [1]".to_string(),
-                    "Program 11111111111111111111111111111111 success".to_string(),
-                ]
-            } else {
-                vec![]
-            };
-
-            let response = MonitorTransactionResponse {
-                signature: signature_str.clone(),
-                status: status.into(),
-                slot: Some(12345 + (delay_ms / 100)),
-                error_message: None,
-                logs,
-                compute_units_consumed: Some(5000),
-                current_commitment: current_commitment.into(),
-            };
+            let response = Self::create_simulation_response(
+                &signature_str,
+                status,
+                delay_ms,
+                current_commitment,
+                include_logs,
+            );
 
             if sender.send(response).is_err() {
                 info!(
@@ -411,13 +440,11 @@ impl WebSocketManager {
             }
 
             // Check if we reached target commitment
-            if current_commitment as i32 >= target_commitment as i32 {
-                info!(
-                    signature = %signature_str,
-                    target_commitment = ?target_commitment,
-                    current_commitment = ?current_commitment,
-                    "✅ Target commitment reached"
-                );
+            if Self::has_reached_target_commitment(
+                current_commitment,
+                target_commitment,
+                &signature_str,
+            ) {
                 break;
             }
         }
@@ -426,6 +453,78 @@ impl WebSocketManager {
             signature = %signature_str,
             "🏁 Simulation completed"
         );
+    }
+
+    /// Determines target commitment level from Solana `CommitmentConfig`
+    fn determine_target_commitment(commitment: CommitmentConfig) -> CommitmentLevel {
+        match commitment {
+            c if c == CommitmentConfig::finalized() => CommitmentLevel::Finalized,
+            c if c == CommitmentConfig::confirmed() => CommitmentLevel::Confirmed,
+            _ => CommitmentLevel::Processed,
+        }
+    }
+
+    /// Creates a timeout response for simulation
+    fn create_timeout_response(
+        signature_str: &str,
+        current_commitment: CommitmentLevel,
+    ) -> MonitorTransactionResponse {
+        MonitorTransactionResponse {
+            signature: signature_str.to_string(),
+            status: TransactionStatus::Timeout.into(),
+            slot: None,
+            error_message: Some("Monitoring timeout reached".to_string()),
+            logs: vec![],
+            compute_units_consumed: None,
+            current_commitment: current_commitment.into(),
+        }
+    }
+
+    /// Creates a simulation response with appropriate logs and data
+    fn create_simulation_response(
+        signature_str: &str,
+        status: TransactionStatus,
+        delay_ms: u64,
+        current_commitment: CommitmentLevel,
+        include_logs: bool,
+    ) -> MonitorTransactionResponse {
+        let logs = if include_logs {
+            vec![
+                "Program 11111111111111111111111111111111 invoke [1]".to_string(),
+                "Program 11111111111111111111111111111111 success".to_string(),
+            ]
+        } else {
+            vec![]
+        };
+
+        MonitorTransactionResponse {
+            signature: signature_str.to_string(),
+            status: status.into(),
+            slot: Some(12345 + (delay_ms / 100)),
+            error_message: None,
+            logs,
+            compute_units_consumed: Some(5000),
+            current_commitment: current_commitment.into(),
+        }
+    }
+
+    /// Checks if we have reached the target commitment level
+    fn has_reached_target_commitment(
+        current_commitment: CommitmentLevel,
+        target_commitment: CommitmentLevel,
+        signature_str: &str,
+    ) -> bool {
+        if current_commitment as i32 >= target_commitment as i32 {
+            info!(
+                signature = %signature_str,
+                target_commitment = ?target_commitment,
+                current_commitment = ?current_commitment,
+                "✅ Target commitment reached"
+            );
+            true
+        } else {
+            false
+        }
     }
 
     /// Converts proto `CommitmentLevel` to Solana `CommitmentConfig`
@@ -472,7 +571,7 @@ impl WebSocketManager {
     }
 
     /// Gracefully shuts down all subscriptions
-    pub fn shutdown(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub fn shutdown(&self) {
         info!("🛑 Shutting down WebSocket manager");
 
         let subscription_count = self.active_subscriptions.len();
@@ -489,8 +588,6 @@ impl WebSocketManager {
             subscription_count = subscription_count,
             "✅ WebSocket manager shutdown complete"
         );
-
-        Ok(())
     }
 }
 

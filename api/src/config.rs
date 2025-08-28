@@ -150,20 +150,6 @@ pub fn validate_solana_connection(rpc_url: &str) -> Result<(), String> {
     }
 }
 
-/// Creates a sample configuration file for reference
-pub fn create_sample_config() -> Result<(), String> {
-    let sample_config = Config::default();
-
-    let config_json = serde_json::to_string_pretty(&sample_config)
-        .map_err(|e| format!("Failed to serialize sample config: {e}"))?;
-
-    std::fs::write("config.sample.json", config_json)
-        .map_err(|e| format!("Failed to write sample config: {e}"))?;
-
-    println!("✅ Created config.sample.json");
-    Ok(())
-}
-
 #[cfg(test)]
 #[allow(clippy::unwrap_used)] // unwrap is acceptable in tests for cleaner assertions
 mod tests {

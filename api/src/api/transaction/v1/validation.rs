@@ -126,26 +126,15 @@ pub fn validate_operation_allowed_for_state(
     state: TransactionState,
     operation: &str,
 ) -> Result<(), String> {
+    // Note: Operations "estimate" and "simulate" are valid in most states
+    // for analysis purposes, so they are grouped together for simplicity
     match (state, operation) {
-        // DRAFT state operations
-        (TransactionState::Draft, "compile") => Ok(()),
-        (TransactionState::Draft, "add_instruction") => Ok(()), // Hypothetical future operation
-        (TransactionState::Draft, "remove_instruction") => Ok(()), // Hypothetical future operation
-
-        // COMPILED state operations
-        (TransactionState::Compiled, "sign") => Ok(()),
-        (TransactionState::Compiled, "estimate") => Ok(()),
-        (TransactionState::Compiled, "simulate") => Ok(()),
-
-        // PARTIALLY_SIGNED state operations
-        (TransactionState::PartiallySigned, "sign") => Ok(()), // Add more signatures
-        (TransactionState::PartiallySigned, "estimate") => Ok(()),
-        (TransactionState::PartiallySigned, "simulate") => Ok(()),
-
+        // DRAFT state operations  
+        (TransactionState::Draft, "compile" | "add_instruction" | "remove_instruction") |
+        // COMPILED/PARTIALLY_SIGNED state operations
+        (TransactionState::Compiled | TransactionState::PartiallySigned, "sign" | "estimate" | "simulate") |
         // FULLY_SIGNED state operations
-        (TransactionState::FullySigned, "submit") => Ok(()),
-        (TransactionState::FullySigned, "estimate") => Ok(()), // Still valid for fee estimation
-        (TransactionState::FullySigned, "simulate") => Ok(()), // Still valid for testing
+        (TransactionState::FullySigned, "submit" | "estimate" | "simulate") => Ok(()),
 
         // No operations allowed for UNSPECIFIED
         (TransactionState::Unspecified, _) => {

@@ -2,6 +2,7 @@ use protosol_api::protosol::solana::transaction::v1::{SolanaAccountMeta, SolanaI
 use solana_sdk::{instruction::AccountMeta, instruction::Instruction};
 use std::str::FromStr;
 
+/// Converts a Solana SDK Instruction to protobuf `SolanaInstruction`
 pub fn sdk_instruction_to_proto(instruction: Instruction) -> SolanaInstruction {
     SolanaInstruction {
         program_id: instruction.program_id.to_string(),
@@ -15,6 +16,7 @@ pub fn sdk_instruction_to_proto(instruction: Instruction) -> SolanaInstruction {
     }
 }
 
+/// Converts a Solana SDK `AccountMeta` to protobuf `SolanaAccountMeta`
 pub fn sdk_account_meta_to_proto(account_meta: &AccountMeta) -> SolanaAccountMeta {
     SolanaAccountMeta {
         pubkey: account_meta.pubkey.to_string(),
@@ -23,6 +25,7 @@ pub fn sdk_account_meta_to_proto(account_meta: &AccountMeta) -> SolanaAccountMet
     }
 }
 
+/// Converts a protobuf `SolanaInstruction` to Solana SDK Instruction
 pub fn proto_instruction_to_sdk(instruction: SolanaInstruction) -> Result<Instruction, String> {
     let program_id = solana_sdk::pubkey::Pubkey::from_str(&instruction.program_id)
         .map_err(|e| format!("Invalid program_id: {e}"))?;

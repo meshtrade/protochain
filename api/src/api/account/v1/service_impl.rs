@@ -16,11 +16,14 @@ use solana_sdk::{
 };
 
 #[derive(Clone)]
+/// Core business logic implementation for account management operations
 pub struct AccountServiceImpl {
+    /// Solana RPC client for blockchain interactions
     rpc_client: Arc<RpcClient>,
 }
 
 impl AccountServiceImpl {
+    /// Creates a new `AccountServiceImpl` instance with the provided RPC client
     pub const fn new(rpc_client: Arc<RpcClient>) -> Self {
         Self { rpc_client }
     }

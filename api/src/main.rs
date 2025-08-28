@@ -1,3 +1,14 @@
+//! # `ProtoSol` Solana API Backend
+//!
+//! This is the main gRPC server for the `ProtoSol` Solana API.
+//! It provides a Protocol Buffer-based API over Solana blockchain operations.
+//!
+//! The server provides services for:
+//! - Account management (creation, funding, querying)
+//! - Transaction lifecycle management (compilation, signing, submission)
+//! - System program operations (transfers, account creation)
+//! - Real-time transaction monitoring via WebSocket
+
 use anyhow::Result;
 use std::sync::Arc;
 use std::time::Duration;
@@ -16,7 +27,7 @@ mod config;
 mod service_providers;
 mod websocket;
 
-use api::API;
+use api::Api;
 use config::{load_config, validate_solana_connection};
 use service_providers::ServiceProviders;
 
@@ -37,7 +48,7 @@ use service_providers::ServiceProviders;
 /// - Development: `RUST_LOG=debug` cargo run
 /// - Production: `RUST_LOG=info` `PROTOSOL_JSON_LOGS=true` ./protosol-solana-api
 /// - Service-specific: `RUST_LOG=protosol_solana_api=trace,websocket=debug` cargo run
-fn init_logging() -> Result<(), Box<dyn std::error::Error>> {
+fn init_logging() {
     let env_filter = EnvFilter::try_from_default_env()
         .unwrap_or_else(|_| EnvFilter::new("info,protosol_solana_api=info"));
 
@@ -72,14 +83,12 @@ fn init_logging() -> Result<(), Box<dyn std::error::Error>> {
             .with(env_filter)
             .init();
     }
-
-    Ok(())
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize structured logging
-    init_logging().expect("Failed to initialize logging");
+    init_logging();
 
     info!("🚀 Starting Solana gRPC Application Server");
 
@@ -124,7 +133,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     // Initialize application API layer
-    let api = Arc::new(API::new(Arc::clone(&service_providers)));
+    let api = Arc::new(Api::new(Arc::clone(&service_providers)));
 
     // Configure server address from config
     let addr = format!("{}:{}", config.server.host, config.server.port).parse()?;
@@ -178,9 +187,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             debug!("WebSocket cleanup task aborted");
 
             // Shutdown WebSocket manager
-            if let Err(e) = service_providers_shutdown.websocket_manager.shutdown() {
-                error!(error = %e, "WebSocket shutdown error");
-            }
+            service_providers_shutdown.websocket_manager.shutdown();
 
             info!("✅ Graceful shutdown complete");
         }

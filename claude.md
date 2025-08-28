@@ -27,11 +27,23 @@ After making ANY code changes, you MUST run appropriate linting:
 - Commit without running linting
 - Skip linting "for small changes"
 - Ignore linting warnings
+- **NEVER USE IGNORE DIRECTIVES** like `#[allow(dead_code)]`, `#[allow(clippy::cognitive_complexity)]`, etc. unless explicitly requested
+
+**🚨 CRITICAL: NO IGNORE DIRECTIVES 🚨**
+
+**ALWAYS FIX, NEVER IGNORE:**
+- Dead code → DELETE the unused code
+- Cognitive complexity → BREAK DOWN into smaller functions
+- Missing docs → ADD proper documentation
+- Clippy warnings → REFACTOR code to address the underlying issue
+
+**Only use ignore directives (`#[allow(...)]`) when explicitly requested by the user. Default behavior is to FIX the root cause.**
 
 **✅ ALWAYS:**
 - Run appropriate linting script after ANY code modification
 - Fix all linting issues before committing
 - Use `./scripts/lint/all.sh` when changing multiple languages or unsure
+- Address root causes, not symptoms
 
 ---
 

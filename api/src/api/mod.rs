@@ -7,4 +7,4 @@ pub mod program;
 /// Transaction lifecycle services
 pub mod transaction;
 
-pub use aggregator::API;
+pub use aggregator::Api;

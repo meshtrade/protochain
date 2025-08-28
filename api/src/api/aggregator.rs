@@ -6,7 +6,7 @@ use super::transaction::v1::TransactionV1API;
 use crate::service_providers::ServiceProviders;
 
 /// Main API aggregator that combines all service implementations
-pub struct API {
+pub struct Api {
     /// Account management API v1
     pub account_v1: Arc<AccountV1API>,
     /// Transaction lifecycle API v1
@@ -15,7 +15,7 @@ pub struct API {
     pub program: Arc<Program>,
 }
 
-impl API {
+impl Api {
     /// Creates a new API instance with the provided service providers
     pub fn new(service_providers: Arc<ServiceProviders>) -> Self {
         Self {
