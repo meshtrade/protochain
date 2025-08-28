@@ -1,4 +1,4 @@
-pub mod system;
+pub mod manager;
 pub mod v1;
 
-pub use system::System;
+pub use manager::System;

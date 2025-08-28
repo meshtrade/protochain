@@ -10,7 +10,7 @@ use std::time::Duration;
 use tokio::sync::mpsc;
 use tokio_stream::StreamExt;
 use tonic::Status;
-use tracing::{debug, error, info, warn};
+use tracing::{debug, info, warn};
 
 use protosol_api::protosol::solana::r#type::v1::CommitmentLevel;
 use protosol_api::protosol::solana::transaction::v1::{
@@ -68,7 +68,7 @@ impl WebSocketManager {
     }
 
     /// Subscribes to signature status updates for a specific transaction
-    pub async fn subscribe_to_signature(
+    pub fn subscribe_to_signature(
         &self,
         signature: String,
         commitment_level: CommitmentLevel,
@@ -81,7 +81,7 @@ impl WebSocketManager {
             .map_err(|_| Status::invalid_argument("Invalid signature format"))?;
 
         // Convert commitment level
-        let commitment = self.commitment_level_to_config(commitment_level);
+        let commitment = Self::commitment_level_to_config(commitment_level);
 
         // Create channels for communication
         let (tx, rx) = mpsc::unbounded_channel();
@@ -213,53 +213,33 @@ impl WebSocketManager {
             tokio::select! {
                 notification = stream.next() => {
                     if let Some(response) = notification {
-                        match Self::process_signature_notification(
+                        let response = Self::process_signature_notification(
                             response, &signature_str, include_logs
-                        ) {
-                            Ok(response) => {
-                                let response_status = response.status();
-                                let is_terminal = matches!(
-                                    response_status,
-                                    TransactionStatus::Confirmed |
-                                    TransactionStatus::Finalized |
-                                    TransactionStatus::Failed |
-                                    TransactionStatus::Dropped
-                                );
+                        );
+                        let response_status = response.status();
+                        let is_terminal = matches!(
+                            response_status,
+                            TransactionStatus::Confirmed |
+                            TransactionStatus::Finalized |
+                            TransactionStatus::Failed |
+                            TransactionStatus::Dropped
+                        );
 
-                                if sender.send(response).is_err() {
-                                    info!(
-                                        signature = %signature_str,
-                                        "🔌 Client disconnected"
-                                    );
-                                    break;
-                                }
+                        if sender.send(response).is_err() {
+                            info!(
+                                signature = %signature_str,
+                                "🔌 Client disconnected"
+                            );
+                            break;
+                        }
 
-                                if is_terminal {
-                                    info!(
-                                        signature = %signature_str,
-                                        status = ?response_status,
-                                        "✅ Terminal status reached"
-                                    );
-                                    break;
-                                }
-                            }
-                            Err(e) => {
-                                error!(
-                                    signature = %signature_str,
-                                    error = %e,
-                                    "⚠️ Error processing notification"
-                                );
-                                let _ = sender.send(MonitorTransactionResponse {
-                                    signature: signature_str.clone(),
-                                    status: TransactionStatus::Failed.into(),
-                                    slot: None,
-                                    error_message: Some(e),
-                                    logs: vec![],
-                                    compute_units_consumed: None,
-                                    current_commitment: CommitmentLevel::Unspecified.into(),
-                                });
-                                break;
-                            }
+                        if is_terminal {
+                            info!(
+                                signature = %signature_str,
+                                status = ?response_status,
+                                "✅ Terminal status reached"
+                            );
+                            break;
                         }
                     } else {
                         debug!(
@@ -299,7 +279,7 @@ impl WebSocketManager {
         notification: Response<RpcSignatureResult>,
         signature: &str,
         include_logs: bool,
-    ) -> Result<MonitorTransactionResponse, String> {
+    ) -> MonitorTransactionResponse {
         let (status, commitment_level, error_message, logs, compute_units) = match notification
             .value
         {
@@ -308,34 +288,37 @@ impl WebSocketManager {
                 // In a real implementation, you might need to fetch transaction details separately
                 let compute_units = None;
 
-                if let Some(tx_err) = err {
-                    (
-                        TransactionStatus::Failed,
-                        CommitmentLevel::Processed,
-                        Some(format!("Transaction failed: {tx_err:?}")),
-                        vec![],
-                        compute_units,
-                    )
-                } else {
-                    let logs = if include_logs {
-                        // In a real implementation, we would get logs from the transaction details
-                        // For now, provide a realistic example
-                        vec![
-                            "Program 11111111111111111111111111111111 invoke [1]".to_string(),
-                            "Program 11111111111111111111111111111111 success".to_string(),
-                        ]
-                    } else {
-                        vec![]
-                    };
+                err.map_or_else(
+                    || {
+                        let logs = if include_logs {
+                            // In a real implementation, we would get logs from the transaction details
+                            // For now, provide a realistic example
+                            vec![
+                                "Program 11111111111111111111111111111111 invoke [1]".to_string(),
+                                "Program 11111111111111111111111111111111 success".to_string(),
+                            ]
+                        } else {
+                            vec![]
+                        };
 
-                    (
-                        TransactionStatus::Processed,
-                        CommitmentLevel::Processed,
-                        None,
-                        logs,
-                        compute_units,
-                    )
-                }
+                        (
+                            TransactionStatus::Processed,
+                            CommitmentLevel::Processed,
+                            None,
+                            logs,
+                            compute_units,
+                        )
+                    },
+                    |tx_err| {
+                        (
+                            TransactionStatus::Failed,
+                            CommitmentLevel::Processed,
+                            Some(format!("Transaction failed: {tx_err:?}")),
+                            vec![],
+                            compute_units,
+                        )
+                    },
+                )
             }
             RpcSignatureResult::ReceivedSignature(received) => match received {
                 ReceivedSignatureResult::ReceivedSignature => {
@@ -344,7 +327,7 @@ impl WebSocketManager {
             },
         };
 
-        Ok(MonitorTransactionResponse {
+        MonitorTransactionResponse {
             signature: signature.to_string(),
             status: status.into(),
             slot: Some(notification.context.slot),
@@ -352,7 +335,7 @@ impl WebSocketManager {
             logs,
             compute_units_consumed: compute_units,
             current_commitment: commitment_level.into(),
-        })
+        }
     }
 
     /// Fallback simulation for when WebSocket is not available
@@ -412,7 +395,7 @@ impl WebSocketManager {
             let response = MonitorTransactionResponse {
                 signature: signature_str.clone(),
                 status: status.into(),
-                slot: Some(12345 + (delay_ms / 100) as u64),
+                slot: Some(12345 + (delay_ms / 100)),
                 error_message: None,
                 logs,
                 compute_units_consumed: Some(5000),
@@ -446,17 +429,18 @@ impl WebSocketManager {
     }
 
     /// Converts proto `CommitmentLevel` to Solana `CommitmentConfig`
-    const fn commitment_level_to_config(&self, level: CommitmentLevel) -> CommitmentConfig {
+    const fn commitment_level_to_config(level: CommitmentLevel) -> CommitmentConfig {
         match level {
             CommitmentLevel::Processed => CommitmentConfig::processed(),
-            CommitmentLevel::Confirmed => CommitmentConfig::confirmed(),
+            CommitmentLevel::Confirmed | CommitmentLevel::Unspecified => {
+                CommitmentConfig::confirmed()
+            }
             CommitmentLevel::Finalized => CommitmentConfig::finalized(),
-            CommitmentLevel::Unspecified => CommitmentConfig::confirmed(),
         }
     }
 
     /// Cleans up expired or completed subscriptions
-    pub async fn cleanup_expired_subscriptions(&self) {
+    pub fn cleanup_expired_subscriptions(&self) {
         let mut to_remove = Vec::new();
 
         // Find subscriptions that are no longer active
@@ -488,7 +472,7 @@ impl WebSocketManager {
     }
 
     /// Gracefully shuts down all subscriptions
-    pub async fn shutdown(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub fn shutdown(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         info!("🛑 Shutting down WebSocket manager");
 
         let subscription_count = self.active_subscriptions.len();

@@ -1,4 +1,4 @@
-pub mod program;
+pub mod manager;
 pub mod system;
 
-pub use program::Program;
+pub use manager::Program;

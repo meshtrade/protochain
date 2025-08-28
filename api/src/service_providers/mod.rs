@@ -1,6 +1,6 @@
 /// Main service provider container
-pub mod service_providers;
+pub mod container;
 /// Solana RPC client providers
 pub mod solana_clients;
 
-pub use service_providers::ServiceProviders;
+pub use container::ServiceProviders;

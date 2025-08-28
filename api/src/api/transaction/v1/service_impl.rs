@@ -108,14 +108,10 @@ fn classify_submission_error(error: &ClientError) -> SubmissionResult {
         ClientErrorKind::RpcError(RpcError::RpcResponseError {
             data: RpcResponseErrorData::SendTransactionPreflightFailure(simulation_result),
             ..
-        }) => {
-            if let Some(ref transaction_error) = simulation_result.err {
-                classify_transaction_error(transaction_error)
-            } else {
-                // Preflight failed but no specific transaction error - likely validation issue
-                SubmissionResult::FailedValidation
-            }
-        }
+        }) => simulation_result
+            .err
+            .as_ref()
+            .map_or(SubmissionResult::FailedValidation, classify_transaction_error),
 
         // Node health issues - network problems at the validator level
         ClientErrorKind::RpcError(RpcError::RpcResponseError {
@@ -235,29 +231,7 @@ const fn classify_instruction_error(
         // Compute budget exhausted during execution
         InstructionError::ComputationalBudgetExceeded => SubmissionResult::FailedNetworkError,
 
-        // Invalid instruction arguments or data format
-        InstructionError::InvalidArgument
-        | InstructionError::InvalidInstructionData
-        | InstructionError::InvalidAccountData
-        | InstructionError::AccountDataTooSmall
-        | InstructionError::IncorrectProgramId
-        | InstructionError::AccountAlreadyInitialized
-        | InstructionError::UninitializedAccount
-        | InstructionError::NotEnoughAccountKeys
-        | InstructionError::AccountDataSizeChanged
-        | InstructionError::AccountNotExecutable
-        | InstructionError::AccountBorrowFailed
-        | InstructionError::AccountBorrowOutstanding
-        | InstructionError::DuplicateAccountIndex
-        | InstructionError::ExecutableModified
-        | InstructionError::RentEpochModified
-        | InstructionError::ReadonlyLamportChange
-        | InstructionError::ReadonlyDataModified
-        | InstructionError::ExternalAccountLamportSpend
-        | InstructionError::ExternalAccountDataModified
-        | InstructionError::ExecutableDataModified
-        | InstructionError::ExecutableLamportChange
-        | InstructionError::UnsupportedProgramId => SubmissionResult::FailedValidation,
+        // Most instruction errors are validation issues - handled by wildcard below
 
         // Program-specific custom error codes
         InstructionError::Custom(_error_code) => {
@@ -319,23 +293,17 @@ fn classify_by_message(error_message: &str) -> SubmissionResult {
 ///
 /// The confirmed default prevents timing issues while maintaining reasonable performance.
 fn commitment_level_to_config(commitment_level: Option<i32>) -> CommitmentConfig {
-    match commitment_level {
-        Some(level) => {
-            match CommitmentLevel::try_from(level) {
-                Ok(CommitmentLevel::Processed) => CommitmentConfig::processed(),
-                Ok(CommitmentLevel::Confirmed) => CommitmentConfig::confirmed(),
-                Ok(CommitmentLevel::Finalized) => CommitmentConfig::finalized(),
-                Ok(CommitmentLevel::Unspecified) | Err(_) => {
-                    // Default to confirmed for reliability - matches account service default
-                    CommitmentConfig::confirmed()
-                }
+    commitment_level.map_or_else(CommitmentConfig::confirmed, |level| {
+        match CommitmentLevel::try_from(level) {
+            Ok(CommitmentLevel::Processed) => CommitmentConfig::processed(),
+            Ok(CommitmentLevel::Confirmed) => CommitmentConfig::confirmed(),
+            Ok(CommitmentLevel::Finalized) => CommitmentConfig::finalized(),
+            Ok(CommitmentLevel::Unspecified) | Err(_) => {
+                // Default to confirmed for reliability - matches account service default
+                CommitmentConfig::confirmed()
             }
         }
-        None => {
-            // Default to confirmed when not specified - maintains consistency with account service
-            CommitmentConfig::confirmed()
-        }
-    }
+    })
 }
 
 #[tonic::async_trait]
@@ -1140,7 +1108,7 @@ impl TransactionService for TransactionServiceImpl {
 
         // Validate timeout (if provided)
         let timeout_seconds = req.timeout_seconds.unwrap_or(60);
-        if timeout_seconds < 5 || timeout_seconds > 300 {
+        if !(5..=300).contains(&timeout_seconds) {
             error!(
                 timeout_seconds = timeout_seconds,
                 signature = %req.signature,
@@ -1163,16 +1131,12 @@ impl TransactionService for TransactionServiceImpl {
         let (tx, rx) = mpsc::channel(100);
 
         // Subscribe to signature updates via WebSocket manager
-        let websocket_rx = match self
-            .websocket_manager
-            .subscribe_to_signature(
-                req.signature.clone(),
-                commitment_level,
-                req.include_logs,
-                Some(timeout_seconds),
-            )
-            .await
-        {
+        let websocket_rx = match self.websocket_manager.subscribe_to_signature(
+            req.signature.clone(),
+            commitment_level,
+            req.include_logs,
+            Some(timeout_seconds),
+        ) {
             Ok(rx) => rx,
             Err(e) => {
                 return Err(e);

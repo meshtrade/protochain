@@ -15,7 +15,7 @@ pub struct ServiceProviders {
 }
 
 impl ServiceProviders {
-    /// Creates a new ServiceProviders instance with default configuration
+    /// Creates a new `ServiceProviders` instance with default configuration
     pub async fn new() -> Result<Self> {
         // Fallback constructor using environment variable
         let rpc_url = std::env::var("SOLANA_RPC_URL")

@@ -8,15 +8,13 @@ pub fn validate_state_transition(
     to: TransactionState,
 ) -> Result<(), String> {
     match (from, to) {
-        // Valid transitions from DRAFT
-        (TransactionState::Draft, TransactionState::Compiled) => Ok(()),
-
-        // Valid transitions from COMPILED
-        (TransactionState::Compiled, TransactionState::PartiallySigned) => Ok(()),
-        (TransactionState::Compiled, TransactionState::FullySigned) => Ok(()), // Direct to fully signed if all signers provided
-
-        // Valid transitions from PARTIALLY_SIGNED
-        (TransactionState::PartiallySigned, TransactionState::FullySigned) => Ok(()),
+        // Valid forward transitions in the transaction lifecycle
+        (TransactionState::Draft, TransactionState::Compiled)
+        | (
+            TransactionState::Compiled,
+            TransactionState::PartiallySigned | TransactionState::FullySigned,
+        )
+        | (TransactionState::PartiallySigned, TransactionState::FullySigned) => Ok(()),
 
         // No transitions allowed from FULLY_SIGNED (terminal state)
         (TransactionState::FullySigned, _) => {

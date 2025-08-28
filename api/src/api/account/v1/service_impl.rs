@@ -29,24 +29,17 @@ impl AccountServiceImpl {
 /// Helper function to convert proto `CommitmentLevel` to Solana `CommitmentConfig`
 /// Provides sensible defaults when commitment level is not specified
 fn commitment_level_to_config(commitment_level: Option<i32>) -> CommitmentConfig {
-    match commitment_level {
-        Some(level) => {
-            match CommitmentLevel::try_from(level) {
-                Ok(CommitmentLevel::Processed) => CommitmentConfig::processed(),
-                Ok(CommitmentLevel::Confirmed) => CommitmentConfig::confirmed(),
-                Ok(CommitmentLevel::Finalized) => CommitmentConfig::finalized(),
-                Ok(CommitmentLevel::Unspecified) | Err(_) => {
-                    // Default to confirmed for reliability - matches our previous fix
-                    CommitmentConfig::confirmed()
-                }
+    commitment_level.map_or_else(CommitmentConfig::confirmed, |level| {
+        match CommitmentLevel::try_from(level) {
+            Ok(CommitmentLevel::Processed) => CommitmentConfig::processed(),
+            Ok(CommitmentLevel::Confirmed) => CommitmentConfig::confirmed(),
+            Ok(CommitmentLevel::Finalized) => CommitmentConfig::finalized(),
+            Ok(CommitmentLevel::Unspecified) | Err(_) => {
+                // Default to confirmed for reliability - matches our previous fix
+                CommitmentConfig::confirmed()
             }
         }
-        None => {
-            // Default to confirmed when not specified - maintains backward compatibility
-            // with our previous commitment level fix
-            CommitmentConfig::confirmed()
-        }
-    }
+    })
 }
 
 #[tonic::async_trait]

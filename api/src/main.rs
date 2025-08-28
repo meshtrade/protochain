@@ -101,7 +101,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Perform Solana RPC health check if enabled
     if config.solana.health_check_on_startup {
         debug!(rpc_url = %config.solana.rpc_url, "Performing Solana RPC health check");
-        if let Err(e) = validate_solana_connection(&config.solana.rpc_url).await {
+        if let Err(e) = validate_solana_connection(&config.solana.rpc_url) {
             error!(
                 error = %e,
                 rpc_url = %config.solana.rpc_url,
@@ -142,9 +142,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         debug!("Started WebSocket subscription cleanup task with 60s interval");
         loop {
             interval.tick().await;
-            websocket_manager_cleanup
-                .cleanup_expired_subscriptions()
-                .await;
+            websocket_manager_cleanup.cleanup_expired_subscriptions();
         }
     });
 
@@ -180,7 +178,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             debug!("WebSocket cleanup task aborted");
 
             // Shutdown WebSocket manager
-            if let Err(e) = service_providers_shutdown.websocket_manager.shutdown().await {
+            if let Err(e) = service_providers_shutdown.websocket_manager.shutdown() {
                 error!(error = %e, "WebSocket shutdown error");
             }
 

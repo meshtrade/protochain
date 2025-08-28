@@ -3,7 +3,7 @@ use solana_client::rpc_client::RpcClient;
 use std::path::PathBuf;
 
 /// Main application configuration structure
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Config {
     /// Solana blockchain RPC configuration
     pub solana: SolanaConfig,
@@ -31,15 +31,6 @@ pub struct ServerConfig {
     pub host: String,
     /// Server port number
     pub port: u16,
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            solana: SolanaConfig::default(),
-            server: ServerConfig::default(),
-        }
-    }
 }
 
 impl Default for SolanaConfig {
@@ -142,7 +133,7 @@ pub fn load_config() -> Result<Config, String> {
 }
 
 /// Validates the Solana RPC connection by performing a health check
-pub async fn validate_solana_connection(rpc_url: &str) -> Result<(), String> {
+pub fn validate_solana_connection(rpc_url: &str) -> Result<(), String> {
     println!("🔍 Health check: Testing connection to Solana RPC at {rpc_url}");
 
     let client = RpcClient::new(rpc_url.to_string());

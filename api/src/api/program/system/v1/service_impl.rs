@@ -21,6 +21,12 @@ pub struct SystemProgramServiceImpl {
     // No RPC client needed - we only build instructions
 }
 
+impl Default for SystemProgramServiceImpl {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SystemProgramServiceImpl {
     /// Creates a new instance of the System Program service.
     pub const fn new() -> Self {
