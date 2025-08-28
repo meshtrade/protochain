@@ -438,8 +438,21 @@ impl WebSocketManager {
 }
 
 /// Utility function to derive WebSocket URL from RPC URL
+/// For local development, WebSocket runs on RPC port + 1
+/// For remote endpoints, WebSocket uses same URL with ws/wss protocol
 pub fn derive_websocket_url_from_rpc(rpc_url: &str) -> Result<String, String> {
-    if rpc_url.starts_with("http://") {
+    if rpc_url.starts_with("http://localhost:") {
+        // Extract port number and add 1 for WebSocket
+        if let Some(port_start) = rpc_url.find(":8") {
+            if let Some(port_str) = rpc_url.get(port_start + 1..) {
+                if let Ok(port) = port_str.parse::<u16>() {
+                    return Ok(format!("ws://localhost:{}", port + 1));
+                }
+            }
+        }
+        // Fallback for localhost without port
+        Ok(rpc_url.replace("http://", "ws://"))
+    } else if rpc_url.starts_with("http://") {
         Ok(rpc_url.replace("http://", "ws://"))
     } else if rpc_url.starts_with("https://") {
         Ok(rpc_url.replace("https://", "wss://"))
@@ -456,7 +469,7 @@ mod tests {
     fn test_derive_websocket_url_from_rpc() {
         assert_eq!(
             derive_websocket_url_from_rpc("http://localhost:8899"),
-            Ok("ws://localhost:8899".to_string())
+            Ok("ws://localhost:8900".to_string())
         );
 
         assert_eq!(

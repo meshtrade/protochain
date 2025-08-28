@@ -1,0 +1,12 @@
+[package]
+name = "test-websocket"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+
+[dependencies]
+solana-client = "1.18"
+solana-pubsub-client = "1.18"
+tokio = { version = "1.0", features = ["full"] }
+tokio-stream = "0.1"
