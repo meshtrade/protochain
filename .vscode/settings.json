@@ -1,0 +1,14 @@
+{
+    "go.testTimeout": "300s",
+    "go.testFlags": ["-v"],
+    "go.coverOnTestPackage": false,
+    "go.testEnvVars": {
+        "RUN_INTEGRATION_TESTS": "1"
+    },
+    "go.lintOnSave": "off",
+    "go.vetOnSave": "off",
+    "go.useLanguageServer": true,
+    "go.alternateTools": {
+        "go": "go"
+    }
+}

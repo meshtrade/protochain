@@ -2,83 +2,78 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "type": "cargo",
-            "command": "build",
-            "args": [
-                "--package=protosol-solana-api"
-            ],
-            "group": "build",
-            "label": "cargo-build-backend",
-            "detail": "Build the Protosol backend service",
-            "presentation": {
-                "echo": true,
-                "reveal": "silent",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": false
-            },
-            "problemMatcher": [
-                "$rustc"
-            ]
-        },
-        {
-            "type": "cargo", 
-            "command": "run",
-            "args": [
-                "--package=protosol-solana-api"
-            ],
-            "group": "build",
-            "label": "cargo-run-backend",
-            "detail": "Run the Protosol backend service",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": false
-            },
-            "problemMatcher": [
-                "$rustc"
-            ]
-        },
-        {
-            "type": "shell",
-            "command": "cargo",
-            "args": [
-                "test",
-                "--package=protosol-solana-api"
-            ],
-            "group": "test",
-            "label": "test-backend",
-            "detail": "Run backend unit tests",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "shared"
-            }
-        },
-        {
+            "label": "Run Go Integration Tests (Verbose)",
             "type": "shell",
             "command": "go",
-            "args": [
-                "test",
-                "-v"
-            ],
+            "args": ["test", "-v", "-timeout", "300s"],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/tests/go",
+                "env": {
+                    "RUN_INTEGRATION_TESTS": "1"
+                }
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$go"
+        },
+        {
+            "label": "Run Specific Go Test (Verbose)",
+            "type": "shell",
+            "command": "go",
+            "args": ["test", "-v", "-timeout", "300s", "-run", "${input:testName}"],
+            "group": "test",
+            "options": {
+                "cwd": "${workspaceFolder}/tests/go",
+                "env": {
+                    "RUN_INTEGRATION_TESTS": "1"
+                }
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$go"
+        },
+        {
+            "label": "Run Go Tests (Auto-detect services)",
+            "type": "shell",
+            "command": "go",
+            "args": ["test", "-v", "-timeout", "300s"],
+            "group": "test",
             "options": {
                 "cwd": "${workspaceFolder}/tests/go"
             },
-            "group": "test",
-            "label": "integration-tests",
-            "detail": "Run Go integration tests",
             "presentation": {
                 "echo": true,
                 "reveal": "always",
-                "focus": true,
-                "panel": "shared"
-            }
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": "$go"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "testName",
+            "description": "Test name pattern (e.g., TestComposableE2ESuite/Test_06)",
+            "default": "TestComposableE2ESuite",
+            "type": "promptString"
         }
     ]
 }

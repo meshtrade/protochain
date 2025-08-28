@@ -2,81 +2,57 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "lldb",
+            "name": "Debug Go Integration Tests",
+            "type": "go",
             "request": "launch",
-            "name": "Debug Protosol Backend",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--package=protosol-solana-api",
-                    "--bin=protosol-solana-api"
-                ],
-                "filter": {
-                    "name": "protosol-solana-api",
-                    "kind": "bin"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}",
+            "mode": "test",
+            "program": "${workspaceFolder}/tests/go",
+            "args": ["-v", "-timeout", "300s"],
             "env": {
-                "SOLANA_RPC_URL": "http://localhost:8899",
-                "SERVER_HOST": "127.0.0.1",
-                "SERVER_PORT": "50051",
-                "RUST_LOG": "debug,protosol_solana_api=debug"
+                "RUN_INTEGRATION_TESTS": "1"
             },
-            "preLaunchTask": "cargo-build-backend",
-            "console": "integratedTerminal",
-            "stopOnEntry": false,
-            "sourceLanguages": ["rust"]
+            "buildFlags": "",
+            "showLog": true,
+            "trace": "verbose",
+            "logOutput": "rpc",
+            "dlvFlags": ["--listen=127.0.0.1:2345", "--headless=true", "--api-version=2", "--accept-multiclient"]
         },
         {
-            "type": "lldb",
+            "name": "Debug Specific Go Test",
+            "type": "go",
             "request": "launch",
-            "name": "Run Protosol Backend (Release)",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--release",
-                    "--package=protosol-solana-api",
-                    "--bin=protosol-solana-api"
-                ],
-                "filter": {
-                    "name": "protosol-solana-api",
-                    "kind": "bin"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}",
+            "mode": "test",
+            "program": "${workspaceFolder}/tests/go",
+            "args": ["-v", "-timeout", "300s", "-run", "^${input:testPattern}$"],
             "env": {
-                "SOLANA_RPC_URL": "http://localhost:8899",
-                "SERVER_HOST": "0.0.0.0",
-                "SERVER_PORT": "50051",
-                "RUST_LOG": "info,protosol_solana_api=info"
+                "RUN_INTEGRATION_TESTS": "1"
             },
-            "console": "integratedTerminal",
-            "stopOnEntry": false,
-            "sourceLanguages": ["rust"]
+            "buildFlags": "",
+            "showLog": true,
+            "trace": "verbose",
+            "logOutput": "rpc"
         },
         {
+            "name": "Debug Backend (Rust)",
             "type": "lldb",
-            "request": "launch", 
-            "name": "Run Backend with Custom Config",
+            "request": "launch",
             "program": "${workspaceFolder}/target/debug/protosol-solana-api",
-            "args": [],
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "SOLANA_RPC_URL": "https://api.devnet.solana.com",
-                "SERVER_HOST": "0.0.0.0", 
-                "SERVER_PORT": "50051",
-                "SOLANA_HEALTH_CHECK_ON_STARTUP": "true",
-                "SOLANA_TIMEOUT_SECONDS": "30",
-                "SOLANA_RETRY_ATTEMPTS": "3",
-                "RUST_LOG": "debug,protosol_solana_api=debug"
-            },
-            "preLaunchTask": "cargo-build-backend",
-            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}/api",
             "stopOnEntry": false,
-            "sourceLanguages": ["rust"]
+            "args": [],
+            "env": {
+                "RUST_LOG": "debug",
+                "SOLANA_RPC_URL": "http://localhost:8899"
+            },
+            "preLaunchTask": "cargo: build --bin protosol-solana-api"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "testPattern",
+            "description": "Test pattern to run (e.g., TestComposableE2ESuite/Test_06)",
+            "default": "TestComposableE2ESuite",
+            "type": "promptString"
         }
     ]
 }
