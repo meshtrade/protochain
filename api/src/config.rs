@@ -5,23 +5,31 @@ use std::path::PathBuf;
 /// Main application configuration structure
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
+    /// Solana blockchain RPC configuration
     pub solana: SolanaConfig,
+    /// gRPC server configuration
     pub server: ServerConfig,
 }
 
 /// Solana RPC client configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SolanaConfig {
+    /// Solana RPC endpoint URL
     pub rpc_url: String,
+    /// Request timeout in seconds
     pub timeout_seconds: u64,
+    /// Number of retry attempts for failed requests
     pub retry_attempts: u32,
+    /// Whether to perform health check on startup
     pub health_check_on_startup: bool,
 }
 
 /// gRPC server configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerConfig {
+    /// Server host address
     pub host: String,
+    /// Server port number
     pub port: u16,
 }
 
@@ -82,11 +90,13 @@ pub fn load_config() -> Result<Config, String> {
 
     // 3. Load from config file if it exists
     if config_file_path.exists() {
-        let config_content = std::fs::read_to_string(&config_file_path)
-            .map_err(|e| format!("Failed to read config file {}: {e}", config_file_path.display()))?;
+        let config_content = std::fs::read_to_string(&config_file_path).map_err(|e| {
+            format!("Failed to read config file {}: {e}", config_file_path.display())
+        })?;
 
-        config = serde_json::from_str(&config_content)
-            .map_err(|e| format!("Failed to parse config file {}: {e}", config_file_path.display()))?;
+        config = serde_json::from_str(&config_content).map_err(|e| {
+            format!("Failed to parse config file {}: {e}", config_file_path.display())
+        })?;
 
         println!("✅ Loaded configuration from: {}", config_file_path.display());
     } else {
@@ -164,7 +174,7 @@ pub fn create_sample_config() -> Result<(), String> {
 }
 
 #[cfg(test)]
-#[allow(clippy::unwrap_used)] // unwrap is acceptable in tests for cleaner assertions  
+#[allow(clippy::unwrap_used)] // unwrap is acceptable in tests for cleaner assertions
 mod tests {
     use super::*;
     use std::env;

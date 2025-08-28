@@ -32,7 +32,13 @@ use crate::api::transaction::v1::validation::{
 };
 use protosol_api::protosol::solana::r#type::v1::CommitmentLevel;
 use protosol_api::protosol::solana::transaction::v1::{
-    service_server::Service as TransactionService, SubmissionResult, MonitorTransactionResponse, CompileTransactionRequest, CompileTransactionResponse, TransactionState, EstimateTransactionRequest, EstimateTransactionResponse, SimulateTransactionRequest, SimulateTransactionResponse, SignTransactionRequest, SignTransactionResponse, sign_transaction_request, SubmitTransactionRequest, SubmitTransactionResponse, GetTransactionRequest, GetTransactionResponse, Transaction, MonitorTransactionRequest, TransactionStatus,
+    service_server::Service as TransactionService, sign_transaction_request,
+    CompileTransactionRequest, CompileTransactionResponse, EstimateTransactionRequest,
+    EstimateTransactionResponse, GetTransactionRequest, GetTransactionResponse,
+    MonitorTransactionRequest, MonitorTransactionResponse, SignTransactionRequest,
+    SignTransactionResponse, SimulateTransactionRequest, SimulateTransactionResponse,
+    SubmissionResult, SubmitTransactionRequest, SubmitTransactionResponse, Transaction,
+    TransactionState, TransactionStatus,
 };
 
 /// Composable Transaction Service Implementation
@@ -485,9 +491,8 @@ impl TransactionService for TransactionServiceImpl {
             .map_err(Status::failed_precondition)?;
 
         // Validate transaction state consistency
-        validate_transaction_state_consistency(&transaction).map_err(|e| {
-            Status::invalid_argument(format!("Transaction validation failed: {e}"))
-        })?;
+        validate_transaction_state_consistency(&transaction)
+            .map_err(|e| Status::invalid_argument(format!("Transaction validation failed: {e}")))?;
 
         // Ensure transaction has compiled data
         if transaction.data.is_empty() {
@@ -510,25 +515,26 @@ impl TransactionService for TransactionServiceImpl {
         let commitment = commitment_level_to_config(req.commitment_level);
 
         // Use simulation to get accurate compute unit estimation with configurable commitment level
-        let (compute_units, _logs) = if let Ok(simulation_result) = self.rpc_client.simulate_transaction_with_config(
-            &solana_transaction,
-            solana_client::rpc_config::RpcSimulateTransactionConfig {
-                sig_verify: false,
-                replace_recent_blockhash: false,
-                commitment: Some(commitment),
-                encoding: None,
-                accounts: None,
-                min_context_slot: None,
-                inner_instructions: false,
-            },
-        ) {
+        let (compute_units, _logs) = if let Ok(simulation_result) =
+            self.rpc_client.simulate_transaction_with_config(
+                &solana_transaction,
+                solana_client::rpc_config::RpcSimulateTransactionConfig {
+                    sig_verify: false,
+                    replace_recent_blockhash: false,
+                    commitment: Some(commitment),
+                    encoding: None,
+                    accounts: None,
+                    min_context_slot: None,
+                    inner_instructions: false,
+                },
+            ) {
             // Handle both None and 0 cases by providing reasonable fallback
             let compute_units = match simulation_result.value.units_consumed {
                 Some(units) if units > 0 => units,
                 _ => {
                     // Fallback estimation based on instruction count
                     let instruction_count = transaction.instructions.len() as u64;
-                    (instruction_count * 50_000).max(200_000).min(1_400_000)
+                    (instruction_count * 50_000).clamp(200_000, 1_400_000)
                 }
             };
             let logs = simulation_result.value.logs.unwrap_or_default();
@@ -536,8 +542,7 @@ impl TransactionService for TransactionServiceImpl {
         } else {
             // Fallback to basic estimation if simulation fails
             let instruction_count = transaction.instructions.len() as u64;
-            let estimated_compute_units =
-                (instruction_count * 50_000).max(200_000).min(1_400_000);
+            let estimated_compute_units = (instruction_count * 50_000).clamp(200_000, 1_400_000);
             (estimated_compute_units, vec![])
         };
 
@@ -604,9 +609,8 @@ impl TransactionService for TransactionServiceImpl {
             .map_err(Status::failed_precondition)?;
 
         // Validate transaction state consistency
-        validate_transaction_state_consistency(&transaction).map_err(|e| {
-            Status::invalid_argument(format!("Transaction validation failed: {e}"))
-        })?;
+        validate_transaction_state_consistency(&transaction)
+            .map_err(|e| Status::invalid_argument(format!("Transaction validation failed: {e}")))?;
 
         // Ensure transaction has compiled data
         if transaction.data.is_empty() {
@@ -714,9 +718,8 @@ impl TransactionService for TransactionServiceImpl {
             .map_err(Status::failed_precondition)?;
 
         // Validate transaction state consistency
-        validate_transaction_state_consistency(&transaction).map_err(|e| {
-            Status::invalid_argument(format!("Transaction validation failed: {e}"))
-        })?;
+        validate_transaction_state_consistency(&transaction)
+            .map_err(|e| Status::invalid_argument(format!("Transaction validation failed: {e}")))?;
 
         // Ensure transaction has compiled data
         if transaction.data.is_empty() {
@@ -741,9 +744,7 @@ impl TransactionService for TransactionServiceImpl {
                     for private_key_str in &private_keys_method.private_keys {
                         let private_key_bytes =
                             bs58::decode(private_key_str).into_vec().map_err(|e| {
-                                Status::invalid_argument(format!(
-                                    "Invalid private key format: {e}"
-                                ))
+                                Status::invalid_argument(format!("Invalid private key format: {e}"))
                             })?;
 
                         if private_key_bytes.len() != 64 {
@@ -869,9 +870,8 @@ impl TransactionService for TransactionServiceImpl {
             .map_err(Status::failed_precondition)?;
 
         // Validate transaction state consistency
-        validate_transaction_state_consistency(&transaction).map_err(|e| {
-            Status::invalid_argument(format!("Transaction validation failed: {e}"))
-        })?;
+        validate_transaction_state_consistency(&transaction)
+            .map_err(|e| Status::invalid_argument(format!("Transaction validation failed: {e}")))?;
 
         // Ensure transaction is fully signed
         if current_state != TransactionState::FullySigned {

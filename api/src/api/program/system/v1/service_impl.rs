@@ -310,9 +310,8 @@ impl SystemProgramService for SystemProgramServiceImpl {
             return Err(Status::invalid_argument("Authority address is required"));
         }
 
-        let nonce_account = Pubkey::from_str(&req.nonce_account).map_err(|e| {
-            Status::invalid_argument(format!("Invalid nonce account address: {e}"))
-        })?;
+        let nonce_account = Pubkey::from_str(&req.nonce_account)
+            .map_err(|e| Status::invalid_argument(format!("Invalid nonce account address: {e}")))?;
 
         let authority = Pubkey::from_str(&req.authority)
             .map_err(|e| Status::invalid_argument(format!("Invalid authority address: {e}")))?;
@@ -351,17 +350,15 @@ impl SystemProgramService for SystemProgramServiceImpl {
             return Err(Status::invalid_argument("New authority address is required"));
         }
 
-        let nonce_account = Pubkey::from_str(&req.nonce_account).map_err(|e| {
-            Status::invalid_argument(format!("Invalid nonce account address: {e}"))
-        })?;
+        let nonce_account = Pubkey::from_str(&req.nonce_account)
+            .map_err(|e| Status::invalid_argument(format!("Invalid nonce account address: {e}")))?;
 
         let current_authority = Pubkey::from_str(&req.current_authority).map_err(|e| {
             Status::invalid_argument(format!("Invalid current authority address: {e}"))
         })?;
 
-        let new_authority = Pubkey::from_str(&req.new_authority).map_err(|e| {
-            Status::invalid_argument(format!("Invalid new authority address: {e}"))
-        })?;
+        let new_authority = Pubkey::from_str(&req.new_authority)
+            .map_err(|e| Status::invalid_argument(format!("Invalid new authority address: {e}")))?;
 
         let instruction = system_instruction::authorize_nonce_account(
             &nonce_account,
@@ -389,9 +386,8 @@ impl SystemProgramService for SystemProgramServiceImpl {
             return Err(Status::invalid_argument("To address is required"));
         }
 
-        let nonce_account = Pubkey::from_str(&req.nonce_account).map_err(|e| {
-            Status::invalid_argument(format!("Invalid nonce account address: {e}"))
-        })?;
+        let nonce_account = Pubkey::from_str(&req.nonce_account)
+            .map_err(|e| Status::invalid_argument(format!("Invalid nonce account address: {e}")))?;
 
         let authority = Pubkey::from_str(&req.authority)
             .map_err(|e| Status::invalid_argument(format!("Invalid authority address: {e}")))?;
@@ -423,9 +419,8 @@ impl SystemProgramService for SystemProgramServiceImpl {
             return Err(Status::invalid_argument("Authority address is required"));
         }
 
-        let nonce_account = Pubkey::from_str(&req.nonce_account).map_err(|e| {
-            Status::invalid_argument(format!("Invalid nonce account address: {e}"))
-        })?;
+        let nonce_account = Pubkey::from_str(&req.nonce_account)
+            .map_err(|e| Status::invalid_argument(format!("Invalid nonce account address: {e}")))?;
 
         let authority = Pubkey::from_str(&req.authority)
             .map_err(|e| Status::invalid_argument(format!("Invalid authority address: {e}")))?;
@@ -446,9 +441,8 @@ impl SystemProgramService for SystemProgramServiceImpl {
             return Err(Status::invalid_argument("Nonce account address is required"));
         }
 
-        let nonce_account = Pubkey::from_str(&req.nonce_account).map_err(|e| {
-            Status::invalid_argument(format!("Invalid nonce account address: {e}"))
-        })?;
+        let nonce_account = Pubkey::from_str(&req.nonce_account)
+            .map_err(|e| Status::invalid_argument(format!("Invalid nonce account address: {e}")))?;
 
         let instruction = system_instruction::upgrade_nonce_account(nonce_account);
 

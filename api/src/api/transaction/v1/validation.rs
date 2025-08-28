@@ -155,9 +155,7 @@ pub fn validate_operation_allowed_for_state(
         }
 
         // Invalid operation for current state
-        _ => Err(format!(
-            "Operation '{operation}' not allowed for transaction state {state:?}"
-        )),
+        _ => Err(format!("Operation '{operation}' not allowed for transaction state {state:?}")),
     }
 }
 

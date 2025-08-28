@@ -5,13 +5,17 @@ use super::solana_clients::SolanaClientsServiceProviders;
 use crate::config::Config;
 use crate::websocket::{derive_websocket_url_from_rpc, WebSocketManager};
 
+/// Main service provider container that manages all service dependencies
 pub struct ServiceProviders {
+    /// Solana RPC client providers
     pub solana_clients: Arc<SolanaClientsServiceProviders>,
+    /// WebSocket manager for real-time monitoring
     pub websocket_manager: Arc<WebSocketManager>,
     config: Config, // Store config for network info and other services
 }
 
 impl ServiceProviders {
+    /// Creates a new ServiceProviders instance with default configuration
     pub async fn new() -> Result<Self> {
         // Fallback constructor using environment variable
         let rpc_url = std::env::var("SOLANA_RPC_URL")
@@ -76,6 +80,7 @@ impl ServiceProviders {
         })
     }
 
+    /// Returns network information string for logging/debugging
     pub fn get_network_info(&self) -> String {
         self.config.solana.rpc_url.clone()
     }
