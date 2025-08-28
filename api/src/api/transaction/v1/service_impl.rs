@@ -373,7 +373,7 @@ impl TransactionService for TransactionServiceImpl {
         // Validate current state allows compilation
         let current_state = transaction.state();
         validate_operation_allowed_for_state(current_state, "compile")
-            .map_err(|e| Status::failed_precondition(e))?;
+            .map_err(Status::failed_precondition)?;
 
         // Validate transaction consistency in current state
         validate_transaction_state_consistency(&transaction)
@@ -482,7 +482,7 @@ impl TransactionService for TransactionServiceImpl {
         // Validate current state allows estimation
         let current_state = transaction.state();
         validate_operation_allowed_for_state(current_state, "estimate")
-            .map_err(|e| Status::failed_precondition(e))?;
+            .map_err(Status::failed_precondition)?;
 
         // Validate transaction state consistency
         validate_transaction_state_consistency(&transaction).map_err(|e| {
@@ -601,7 +601,7 @@ impl TransactionService for TransactionServiceImpl {
         // Validate current state allows simulation
         let current_state = transaction.state();
         validate_operation_allowed_for_state(current_state, "simulate")
-            .map_err(|e| Status::failed_precondition(e))?;
+            .map_err(Status::failed_precondition)?;
 
         // Validate transaction state consistency
         validate_transaction_state_consistency(&transaction).map_err(|e| {
@@ -711,7 +711,7 @@ impl TransactionService for TransactionServiceImpl {
         // Validate current state allows signing
         let current_state = transaction.state();
         validate_operation_allowed_for_state(current_state, "sign")
-            .map_err(|e| Status::failed_precondition(e))?;
+            .map_err(Status::failed_precondition)?;
 
         // Validate transaction state consistency
         validate_transaction_state_consistency(&transaction).map_err(|e| {
@@ -866,7 +866,7 @@ impl TransactionService for TransactionServiceImpl {
         // Validate current state allows submission
         let current_state = transaction.state();
         validate_operation_allowed_for_state(current_state, "submit")
-            .map_err(|e| Status::failed_precondition(e))?;
+            .map_err(Status::failed_precondition)?;
 
         // Validate transaction state consistency
         validate_transaction_state_consistency(&transaction).map_err(|e| {

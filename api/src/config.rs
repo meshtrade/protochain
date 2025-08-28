@@ -83,14 +83,14 @@ pub fn load_config() -> Result<Config, String> {
     // 3. Load from config file if it exists
     if config_file_path.exists() {
         let config_content = std::fs::read_to_string(&config_file_path)
-            .map_err(|e| format!("Failed to read config file {config_file_path:?}: {e}"))?;
+            .map_err(|e| format!("Failed to read config file {}: {e}", config_file_path.display()))?;
 
         config = serde_json::from_str(&config_content)
-            .map_err(|e| format!("Failed to parse config file {config_file_path:?}: {e}"))?;
+            .map_err(|e| format!("Failed to parse config file {}: {e}", config_file_path.display()))?;
 
-        println!("✅ Loaded configuration from: {config_file_path:?}");
+        println!("✅ Loaded configuration from: {}", config_file_path.display());
     } else {
-        println!("ℹ️  No config file found at {config_file_path:?}, using defaults");
+        println!("ℹ️  No config file found at {}, using defaults", config_file_path.display());
     }
 
     // 4. Override with environment variables if present
