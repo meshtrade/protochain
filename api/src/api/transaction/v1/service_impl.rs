@@ -70,65 +70,6 @@ impl TransactionServiceImpl {
         }
     }
 
-    /// Waits for transaction confirmation with polling (replicates spinner method behavior)
-    /// 
-    /// This method implements the polling logic that the spinner methods use internally,
-    /// providing proper confirmation waiting without UI dependencies.
-    /// 
-    /// The method polls the RPC every 500ms checking for transaction confirmation at the
-    /// specified commitment level, with a configurable timeout.
-    async fn wait_for_confirmation_with_polling(
-        &self,
-        signature: &Signature,
-        commitment: CommitmentConfig,
-        timeout_seconds: u64,
-    ) -> Result<bool, ClientError> {
-        use tokio::time::{sleep, timeout, Duration};
-        
-        let timeout_duration = Duration::from_secs(timeout_seconds);
-        let poll_interval = Duration::from_millis(500); // Poll every 500ms
-        
-        let confirmation_future = async {
-            loop {
-                match self.rpc_client.confirm_transaction_with_commitment(signature, commitment) {
-                    Ok(response) => {
-                        if response.value {
-                            debug!(
-                                signature = %signature,
-                                commitment_level = ?commitment,
-                                "🎯 Transaction confirmed via polling"
-                            );
-                            return Ok(true);
-                        }
-                        // Transaction not yet confirmed at this commitment level, continue polling
-                    }
-                    Err(e) => {
-                        // Only return error for non-recoverable issues
-                        // "Transaction not found" errors are expected during polling
-                        if !e.to_string().contains("not found") {
-                            return Err(e);
-                        }
-                    }
-                }
-                
-                // Wait before next poll
-                sleep(poll_interval).await;
-            }
-        };
-        
-        match timeout(timeout_duration, confirmation_future).await {
-            Ok(result) => result,
-            Err(_) => {
-                debug!(
-                    signature = %signature,
-                    timeout_seconds = timeout_seconds,
-                    commitment_level = ?commitment,
-                    "⏰ Transaction confirmation polling timed out"
-                );
-                Ok(false) // Timeout, but not an error - return false for "not confirmed"
-            }
-        }
-    }
 }
 
 /// Classifies Solana RPC client errors into appropriate SubmissionResult categories
@@ -854,28 +795,27 @@ impl TransactionService for TransactionServiceImpl {
         }))
     }
     
-    /// Submits a fully signed transaction to the Solana blockchain network
+    /// Asynchronously submits a fully signed transaction to the Solana blockchain network
     /// 
     /// State Transition: FULLY_SIGNED → SUBMITTED (or FAILED)
     /// 
-    /// This method performs the critical network submission with intelligent error handling
-    /// and commitment level management for reliable transaction broadcasting.
+    /// This method performs network submission and returns immediately after sending the
+    /// transaction without waiting for confirmation. Clients should use MonitorTransaction
+    /// to poll for confirmation status if they need to verify transaction execution.
     /// 
     /// Submission Strategy:
-    /// Uses send_transaction_with_config() + confirm_transaction_with_commitment() instead of
-    /// basic send_transaction() or UI-oriented spinner methods for several critical reasons:
+    /// Uses send_transaction_with_config() with appropriate configuration but does NOT
+    /// wait for confirmation. This provides a pure asynchronous submission interface.
     /// 
-    /// 1. CONSISTENCY: Matches GetAccount API commitment level (confirmed) to prevent
-    ///    "account not found" errors when transactions reference recently funded accounts
+    /// Benefits of Asynchronous Submission:
+    /// 1. NON-BLOCKING: Returns immediately after sending, allowing parallel operations
     /// 
-    /// 2. ATOMIC TRANSACTION SUPPORT: Multi-instruction transactions that create accounts
-    ///    and immediately use them need confirmed commitment to see prior state changes
+    /// 2. CLIENT CONTROL: Clients decide whether to poll for confirmation using MonitorTransaction
     /// 
-    /// 3. SIMULATION RELIABILITY: Prevents "no record of prior credit" errors where
-    ///    simulation can't see recent account funding due to commitment timing
+    /// 3. PURE SDK WRAPPER: Maintains the protocol buffer wrapper philosophy without adding
+    ///    business logic like automatic confirmation waiting
     /// 
-    /// 4. NETWORK COMPATIBILITY: Works reliably across mainnet, devnet, testnet, and
-    ///    local validators which have different timing characteristics
+    /// 4. FLEXIBLE WORKFLOWS: Enables fire-and-forget patterns or custom confirmation strategies
     /// 
     /// Error Classification:
     /// - Insufficient Funds: Account balance issues
@@ -883,7 +823,8 @@ impl TransactionService for TransactionServiceImpl {
     /// - Network Error: Connectivity, timeout, or RPC issues
     /// - Validation Error: Transaction format or content problems
     /// 
-    /// The classification enables automated retry logic and user-friendly error messages.
+    /// NOTE: Successful submission only means the transaction was sent to the network,
+    /// not that it was confirmed or executed. Use MonitorTransaction for confirmation.
     async fn submit_transaction(
         &self,
         request: Request<SubmitTransactionRequest>,
@@ -926,26 +867,20 @@ impl TransactionService for TransactionServiceImpl {
             "🚀 Submitting transaction to Solana network"
         );
         
-        // CRITICAL: Use send_transaction_with_config + confirm_transaction_with_commitment 
-        // instead of UI-oriented spinner methods
+        // Asynchronously submit transaction without waiting for confirmation
         // 
-        // Reasoning for this design choice:
-        // 1. BACKEND APPROPRIATE: The spinner methods are behind #[cfg(feature = "spinner")]
-        //    and are designed for CLI/terminal UI with progress bars, not backend services.
+        // Design philosophy:
+        // 1. PURE WRAPPER: Maintains the protocol buffer wrapper philosophy - just send
+        //    the transaction without adding business logic like confirmation waiting
         //
-        // 2. CONSISTENCY: Maintains the same commitment level handling as GetAccount API
-        //    to prevent timing issues where newly funded accounts aren't immediately visible.
+        // 2. CLIENT CONTROL: Clients decide whether to wait for confirmation using
+        //    the separate MonitorTransaction streaming RPC
         //
-        // 3. SIMULATION RELIABILITY: Using explicit commitment config prevents
-        //    "Attempt to debit an account but found no record of a prior credit" errors
-        //    when transactions can't see recently funded accounts.
+        // 3. NON-BLOCKING: Returns immediately after network submission, enabling
+        //    parallel operations and custom confirmation strategies
         //
-        // 4. ATOMIC TRANSACTION SUPPORT: Multi-instruction transactions that create 
-        //    accounts and immediately transfer need confirmed commitment to ensure
-        //    the validator sees all prior transactions that funded the fee payer.
-        //
-        // 5. PROPER SEPARATION: Uses backend-appropriate RPC methods without UI dependencies
-        //    (send_transaction_with_config + confirm_transaction_with_commitment)
+        // 4. BACKEND APPROPRIATE: Uses send_transaction_with_config for proper
+        //    configuration without any UI dependencies or confirmation polling
         let commitment = commitment_level_to_config(req.commitment_level);
         debug!(
             commitment_level = ?commitment,
@@ -965,53 +900,16 @@ impl TransactionService for TransactionServiceImpl {
             }
         ) {
             Ok(signature) => {
-                debug!(
+                info!(
                     signature = %signature,
                     fee_payer = %transaction.fee_payer,
-                    "📡 Transaction submitted, waiting for confirmation"
+                    commitment_level = ?commitment,
+                    "✅ Transaction submitted successfully (asynchronously)"
                 );
                 
-                // Wait for transaction confirmation with polling (similar to what spinner does internally)
-                let confirmation_result = self.wait_for_confirmation_with_polling(
-                    &signature, 
-                    commitment,
-                    30 // 30 second timeout
-                ).await;
-                
-                match confirmation_result {
-                    Ok(confirmed) => {
-                        if confirmed {
-                            info!(
-                                signature = %signature,
-                                fee_payer = %transaction.fee_payer,
-                                commitment_level = ?commitment,
-                                "✅ Transaction confirmed successfully"
-                            );
-                            (signature.to_string(), SubmissionResult::Submitted, None)
-                        } else {
-                            warn!(
-                                signature = %signature,
-                                fee_payer = %transaction.fee_payer,
-                                commitment_level = ?commitment,
-                                "⚠️ Transaction not confirmed within timeout"
-                            );
-                            (signature.to_string(), SubmissionResult::FailedNetworkError, Some("Transaction not confirmed within timeout".to_string()))
-                        }
-                    }
-                    Err(e) => {
-                        let classification = classify_submission_error(&e);
-                        let error_msg = format!("Transaction confirmation failed: {}", e);
-                        error!(
-                            error = %e,
-                            signature = %signature,
-                            fee_payer = %transaction.fee_payer,
-                            commitment_level = ?commitment,
-                            classification = ?classification,
-                            "Transaction confirmation failed"
-                        );
-                        (signature.to_string(), classification, Some(error_msg))
-                    }
-                }
+                // Return immediately after submission without waiting for confirmation
+                // Clients can use MonitorTransaction to poll for confirmation if desired
+                (signature.to_string(), SubmissionResult::Submitted, None)
             }
             Err(e) => {
                 let classification = classify_submission_error(&e);

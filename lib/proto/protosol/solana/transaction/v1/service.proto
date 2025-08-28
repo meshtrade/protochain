@@ -13,6 +13,10 @@ service Service {
   rpc EstimateTransaction(EstimateTransactionRequest) returns (EstimateTransactionResponse);
   rpc SimulateTransaction(SimulateTransactionRequest) returns (SimulateTransactionResponse);
   rpc SignTransaction(SignTransactionRequest) returns (SignTransactionResponse);
+  
+  // Asynchronously submits a signed transaction to the network
+  // Returns immediately after submission without waiting for confirmation
+  // Use MonitorTransaction to poll for confirmation status if needed
   rpc SubmitTransaction(SubmitTransactionRequest) returns (SubmitTransactionResponse);
   
   // Transaction retrieval and monitoring
@@ -85,14 +89,20 @@ message KeySeed {
   optional string passphrase = 2;
 }
 
+// Request to asynchronously submit a transaction to the Solana network
+// The method returns immediately after submission without waiting for confirmation
 message SubmitTransactionRequest {
   Transaction transaction = 1;  // Must be fully signed
   optional protosol.solana.type.v1.CommitmentLevel commitment_level = 2;  // Commitment level for transaction submission
 }
 
+// Response containing the submission result
+// NOTE: This is an asynchronous submission - successful result means the transaction
+// was successfully sent to the network, NOT that it was confirmed or executed
+// Use MonitorTransaction to poll for confirmation and execution status
 message SubmitTransactionResponse {
   string signature = 1;  // Transaction signature
-  SubmissionResult submission_result = 2;  // Submission outcome
+  SubmissionResult submission_result = 2;  // Submission outcome (sent vs failed to send)
   optional string error_message = 3;  // Error details if submission failed
 }
 
