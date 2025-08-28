@@ -2,9 +2,9 @@
 
 ## 🚨 **CRITICAL: MANDATORY LINTING AFTER CODE CHANGES** 🚨
 
-**RULE: ALWAYS RUN LINTING AFTER CODE CHANGES**
+**⚡ NEVER SKIP LINTING AFTER CODE CHANGES ⚡**
 
-After making code changes, run the appropriate linting:
+After making ANY code changes, you MUST run appropriate linting:
 
 ```bash
 # All languages (comprehensive check)
@@ -16,16 +16,21 @@ After making code changes, run the appropriate linting:
 ./scripts/lint/ts.sh    # Only TypeScript changes
 ```
 
-**WORKFLOW AFTER CODE CHANGES:**
+**MANDATORY WORKFLOW:**
 1. Make your code changes
-2. Run appropriate linting script
+2. **IMMEDIATELY** run appropriate linting script
 3. Fix any linting issues that arise
 4. Re-run linting until clean
-5. Commit/push changes
+5. ONLY THEN commit/push changes
 
-**REQUIREMENTS:**
+**🚫 NEVER:**
+- Commit without running linting
+- Skip linting "for small changes"
+- Ignore linting warnings
+
+**✅ ALWAYS:**
+- Run appropriate linting script after ANY code modification
 - Fix all linting issues before committing
-- Use language-specific scripts when you only change one language
 - Use `./scripts/lint/all.sh` when changing multiple languages or unsure
 
 ---
@@ -193,7 +198,7 @@ vim api/src/api/transaction/v1/service_impl.rs
 #       but this pattern is not universal across all services
 ```
 
-#### 4.5️⃣ **MANDATORY LINTING AFTER CODE CHANGES**
+#### 4.5️⃣ 🚨 **MANDATORY LINTING - NEVER SKIP** 🚨
 ```bash
 # After Rust code modifications:
 ./scripts/lint/rs.sh
@@ -201,7 +206,7 @@ vim api/src/api/transaction/v1/service_impl.rs
 # Or for comprehensive check:
 ./scripts/lint/all.sh
 
-# Fix any reported issues before proceeding
+# CRITICAL: Fix any reported issues before proceeding
 ```
 
 #### 5️⃣ Update Integration Tests
@@ -232,12 +237,12 @@ RUN_INTEGRATION_TESTS=1 go test -v          # Force run (will fail if services d
 RUN_INTEGRATION_TESTS=0 go test -v          # Explicitly skip integration tests
 ```
 
-### 🚨 WORKFLOW RULES (Never Break These)
+### 🚨 WORKFLOW RULES (NEVER Break These)
 
 1. **NEVER** edit generated code (it will be overwritten)
 2. **NEVER** run `buf generate` directly (use scripts)
 3. **NEVER** skip `buf lint` before generation
-4. **NEVER** skip linting after code changes (use appropriate `./scripts/lint/*.sh`)
+4. **NEVER** skip linting after ANY code changes (use appropriate `./scripts/lint/*.sh`)
 5. **ALWAYS** run generation script from repo root
 6. **ALWAYS** implement both proto change AND Rust implementation
 7. **ALWAYS** update tests when adding new functionality
@@ -765,8 +770,8 @@ When working on features, always check these files first:
 
 ## 🤖 Notes for Claude (Me)
 
-**RULE #0 - MANDATORY LINTING:**
-After ANY code changes, run appropriate linting script (`./scripts/lint/*.sh`)
+**🚨 RULE #0 - MANDATORY LINTING - NEVER SKIP 🚨:**
+After ANY code changes, IMMEDIATELY run appropriate linting script (`./scripts/lint/*.sh`)
 
 When helping with this codebase:
 1. ALWAYS check proto files first - they're the source of truth
