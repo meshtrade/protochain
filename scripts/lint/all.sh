@@ -53,8 +53,14 @@ if [ -d "${PROJECT_ROOT}/lib/ts" ]; then
         fi
     fi
     
-    # Run ESLint
-    run_lint "ESLint" "npm run lint 2>&1"
+    # Check if there are non-generated TypeScript files to lint
+    TS_FILES=$(find src -name '*.ts' -o -name '*.tsx' | grep -v 'src/protosol' | head -1)
+    if [ -n "$TS_FILES" ]; then
+        # Run ESLint
+        run_lint "ESLint" "npm run lint 2>&1"
+    else
+        echo -e "${YELLOW}No non-generated TypeScript files found, skipping ESLint${NC}"
+    fi
     
     # Run Prettier check
     run_lint "Prettier" "npm run format:check 2>&1"

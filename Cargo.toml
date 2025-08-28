@@ -26,6 +26,8 @@ missing_panics_doc = "allow"
 redundant_pub_crate = "allow"
 similar_names = "allow"
 too_many_lines = "allow"
+# Allow multiple crate versions (common in Solana ecosystem)
+multiple_crate_versions = "allow"
 # Explicitly deny dangerous patterns
 unwrap_used = "warn"
 expect_used = "warn"
