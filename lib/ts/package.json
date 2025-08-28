@@ -17,16 +17,16 @@
     "typecheck": "tsc --noEmit",
     "dev": "tsc --watch",
     "prepublishOnly": "yarn build",
-    "lint": "eslint . --ext .ts,.tsx --max-warnings=0",
-    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint src --ext .ts,.tsx --max-warnings=0",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,json,md}\" --ignore-path .prettierignore",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,json,md}\" --ignore-path .prettierignore"
   },
   "dependencies": {
-    "@bufbuild/protobuf": "^1.10.0",
-    "@connectrpc/connect": "^1.6.0",
-    "@connectrpc/connect-node": "^1.6.0",
-    "@connectrpc/connect-web": "^1.6.0"
+    "@bufbuild/protobuf": "^2.7.0",
+    "@connectrpc/connect": "^2.0.0",
+    "@connectrpc/connect-node": "^2.0.0",
+    "@connectrpc/connect-web": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
