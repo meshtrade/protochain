@@ -455,3 +455,6 @@ impl SystemProgramService for SystemProgramServiceImpl {
         Ok(Response::new(sdk_instruction_to_proto(instruction)))
     }
 }
+
+#[cfg(test)]
+mod tests;

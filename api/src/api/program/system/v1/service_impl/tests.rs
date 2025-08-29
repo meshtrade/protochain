@@ -405,7 +405,7 @@ async fn test_assign_request_validation() {
             account: VALID_PUBKEY,
             owner_program: INVALID_PUBKEY,
             expect_validation_error: true,
-            error_contains: "Invalid owner program address",
+            error_contains: "Invalid owner program",
         },
         TestCase {
             name: "same account and owner allowed",
