@@ -10,7 +10,7 @@ use protosol_api::protosol::solana::program::system::v1::{
 };
 use protosol_api::protosol::solana::transaction::v1::SolanaInstruction;
 
-use crate::api::program::system::v1::conversion::sdk_instruction_to_proto;
+use crate::api::common::solana_conversions::sdk_instruction_to_proto;
 
 /// Pure instruction-based System Program service implementation.
 ///

@@ -8,14 +8,11 @@ use protosol_api::protosol::solana::program::system::v1::{
     CreateWithSeedRequest,
 };
 use tonic::{Request, Status};
-use std::sync::Arc;
-use solana_client::rpc_client::RpcClient;
 
-/// Creates a test service instance with RPC client
+/// Creates a test service instance
 /// Note: Tests focus on validation logic - RPC calls will fail in test environment
 fn create_test_service() -> SystemProgramServiceImpl {
-    let rpc_client = Arc::new(RpcClient::new("http://localhost:8899".to_string()));
-    SystemProgramServiceImpl::new(rpc_client)
+    SystemProgramServiceImpl::new()
 }
 
 /// Helper to check if error is a validation error (vs RPC error)

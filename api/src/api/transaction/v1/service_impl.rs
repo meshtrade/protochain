@@ -25,7 +25,7 @@ use tokio_stream::wrappers::ReceiverStream;
 use tonic::{Request, Response, Status};
 use tracing::{debug, error, info, warn};
 
-use crate::api::program::system::v1::conversion::proto_instruction_to_sdk;
+use crate::api::common::solana_conversions::proto_instruction_to_sdk;
 use crate::api::transaction::v1::validation::{
     validate_operation_allowed_for_state, validate_state_transition,
     validate_transaction_state_consistency,
