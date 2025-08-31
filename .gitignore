@@ -8,6 +8,19 @@ node_modules
 test-ledger
 dist
 
+# Next.js build artifacts
+.next/
+out/
+.next
+
+# Production builds
+build/
+*.tsbuildinfo
+
+# Node.js runtime artifacts in UI
+yarn-error.log
+.next/
+
 # Solana validator and backend runtime files
 .solana-validator.log
 .solana-validator.pid
