@@ -19,6 +19,7 @@ use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 // Import the generated protobuf services
 use protosol_api::protosol::solana::account::v1::service_server::ServiceServer as AccountServiceServer;
 use protosol_api::protosol::solana::program::system::v1::service_server::ServiceServer as SystemProgramServiceServer;
+use protosol_api::protosol::solana::rpc_client::v1::service_server::ServiceServer as RpcClientServiceServer;
 use protosol_api::protosol::solana::transaction::v1::service_server::ServiceServer as TransactionServiceServer;
 
 // Import our application modules
@@ -160,6 +161,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let transaction_service = (*api.transaction_v1.transaction_service).clone();
     let account_service = (*api.account_v1.account_service).clone();
     let system_program_service = (*api.program.system.v1.system_program_service).clone();
+    let rpc_client_service = (*api.rpc_client_v1.rpc_client_service).clone();
 
     // Clone service providers for graceful shutdown
     let service_providers_shutdown = Arc::clone(&service_providers);
@@ -169,6 +171,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .add_service(TransactionServiceServer::new(transaction_service))
         .add_service(AccountServiceServer::new(account_service))
         .add_service(SystemProgramServiceServer::new(system_program_service))
+        .add_service(RpcClientServiceServer::new(rpc_client_service))
         .serve(addr);
 
     // Wait for server or shutdown signal

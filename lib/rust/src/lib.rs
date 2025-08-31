@@ -27,6 +27,11 @@ pub mod protosol {
                 include!("protosol.solana.type.v1.rs");
             }
         }
+        pub mod rpc_client {
+            pub mod v1 {
+                include!("protosol.solana.rpc_client.v1.rs");
+            }
+        }
     }
 }
 

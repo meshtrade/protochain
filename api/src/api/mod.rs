@@ -6,6 +6,8 @@ pub mod aggregator;
 pub mod common;
 /// Solana program services
 pub mod program;
+/// RPC Client services for direct Solana RPC access
+pub mod rpc_client;
 /// Transaction lifecycle services
 pub mod transaction;
 
