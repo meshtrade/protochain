@@ -1,0 +1,89 @@
+# Claude Task Configuration
+# Task: Implement Token Program Wrapper
+
+## Task Metadata
+name: implement-token-program-wrapper
+type: implementation
+priority: high
+estimated_effort: 4-8 hours
+can_be_resumed: true
+requires_context_management: true
+
+## Task Description
+Implement a gRPC service wrapper for Solana Token 2022 program operations, starting with InitialiseMint instruction. Includes prerequisite system program owner parameter fix and comprehensive integration testing.
+
+## Entry Points
+primary_document: implementation-plan.md
+requirements_doc: prompt.md
+command_file: n/a
+
+## Quick Start
+When directed here via `/execute-project projects/add-token-program`:
+1. Read implementation-plan.md
+2. Check Progress Log section in this .claude-task file
+3. Execute from current step (start with Step 0 - system program prerequisite)
+4. Update Progress Log section frequently
+
+## Immediate Response
+```
+I'll implement the Token Program wrapper for Token 2022 InitialiseMint instruction.
+
+This requires a prerequisite fix to the system program to accept owner parameter, then implementing the token program service with mint creation, rent calculation, and account parsing.
+
+Starting by checking the implementation plan and current progress...
+```
+
+## Context Management
+max_steps_per_session: 2
+auto_save_progress: true
+clear_context_after_steps: 2
+
+## Required Tools
+- Read (for checking existing files)
+- Write (for creating new files)  
+- Edit (for modifying existing files)
+- Bash (for running commands)
+- TodoWrite (for tracking subtasks)
+
+## Validation Commands
+- buf lint (validate proto)
+- ./scripts/code-gen/generate/all.sh (generate code)
+- cargo build (validate Rust compilation)
+- go test -v -run TestTokenProgramE2ESuite (validate implementation)
+- ./scripts/lint/all.sh (validate code quality)
+
+## Error Recovery
+on_error: 
+  - Update Progress Log section with error details
+  - Attempt to diagnose the issue
+  - If blocked, document the blockage and request human assistance
+
+## Completion Criteria
+- All 5 steps in implementation-plan.md completed (Step 0 + Steps 1-4)
+- System program owner parameter fix working
+- Token program service implemented with all 3 methods
+- All integration tests passing (existing + new token tests)
+- Linting clean
+- Progress Log shows all steps complete
+
+## Notes for Claude
+- This is a REAL implementation task, not a simulation
+- Follow the implementation plan EXACTLY
+- Use pre-review requirements as guardrails
+- Update Progress Log section frequently
+- Quality over speed - take breaks if needed
+- Never fake or simulate implementation
+- Step 0 (system program fix) is a prerequisite for token program tests
+
+## Special Instructions
+CRITICAL DEPENDENCIES:
+1. Step 0 must be completed first (system program owner parameter)
+2. System program tests must pass before proceeding to token implementation
+3. Token program uses Token 2022 program ID for all operations
+4. Integration test must create real blockchain transactions and verify results
+
+## Progress Log
+### [TIMESTAMP PLACEHOLDER]
+- Status: Ready to Begin
+- Next: Step 0 - System Program Owner Parameter Fix (PREREQUISITE)
+- Notes: Must complete system program changes before token program implementation
