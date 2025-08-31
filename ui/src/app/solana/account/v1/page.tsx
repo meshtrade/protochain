@@ -27,7 +27,7 @@ export default function AccountV1Page() {
         return await getAccountAction(formData)
       
       case 'generateNewKeyPair':
-        return await generateNewKeyPairAction(formData)
+        return await generateNewKeyPairAction()
       
       case 'fundNative':
         return await fundNativeAction(formData)

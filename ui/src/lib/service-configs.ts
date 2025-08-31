@@ -255,6 +255,328 @@ export const systemProgramServiceConfig = {
           placeholder: '1000000000'
         }
       ]
+    },
+    {
+      name: 'allocate',
+      displayName: 'Allocate Space',
+      description: 'Allocate space for an account',
+      params: [
+        {
+          name: 'account',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of account to allocate space for (must be signer)',
+          placeholder: 'Account public key'
+        },
+        {
+          name: 'space',
+          type: 'bigint' as const,
+          required: true,
+          description: 'Number of bytes of memory to allocate',
+          placeholder: '0'
+        }
+      ]
+    },
+    {
+      name: 'assign',
+      displayName: 'Assign Owner',
+      description: 'Change the owner of an account',
+      params: [
+        {
+          name: 'account',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of account to assign new owner (must be signer)',
+          placeholder: 'Account public key'
+        },
+        {
+          name: 'ownerProgram',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of the new owner program',
+          placeholder: 'New owner program public key'
+        }
+      ]
+    },
+    {
+      name: 'createWithSeed',
+      displayName: 'Create Account With Seed',
+      description: 'Create a new account with a seed',
+      params: [
+        {
+          name: 'payer',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of the account paying for creation (must be signer)',
+          placeholder: 'Payer public key'
+        },
+        {
+          name: 'newAccount',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of the new account to be created',
+          placeholder: 'New account public key'
+        },
+        {
+          name: 'base',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded base public key used to derive the new account address',
+          placeholder: 'Base public key'
+        },
+        {
+          name: 'seed',
+          type: 'string' as const,
+          required: true,
+          description: 'Seed string used to derive the new account address',
+          placeholder: 'Account seed'
+        },
+        {
+          name: 'lamports',
+          type: 'bigint' as const,
+          required: true,
+          description: 'Amount of lamports to transfer to the new account',
+          placeholder: '1000000000'
+        },
+        {
+          name: 'space',
+          type: 'bigint' as const,
+          required: true,
+          description: 'Number of bytes of memory to allocate for the account',
+          placeholder: '0'
+        }
+      ]
+    },
+    {
+      name: 'allocateWithSeed',
+      displayName: 'Allocate Space With Seed',
+      description: 'Allocate space for an account using seed derivation',
+      params: [
+        {
+          name: 'account',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of account to allocate space for',
+          placeholder: 'Account public key'
+        },
+        {
+          name: 'base',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded base public key used for derivation',
+          placeholder: 'Base public key'
+        },
+        {
+          name: 'seed',
+          type: 'string' as const,
+          required: true,
+          description: 'Seed string used for account derivation',
+          placeholder: 'Account seed'
+        },
+        {
+          name: 'space',
+          type: 'bigint' as const,
+          required: true,
+          description: 'Number of bytes of memory to allocate',
+          placeholder: '0'
+        }
+      ]
+    },
+    {
+      name: 'assignWithSeed',
+      displayName: 'Assign Owner With Seed',
+      description: 'Change account owner using seed derivation',
+      params: [
+        {
+          name: 'account',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of account to assign new owner',
+          placeholder: 'Account public key'
+        },
+        {
+          name: 'base',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded base public key used for derivation',
+          placeholder: 'Base public key'
+        },
+        {
+          name: 'seed',
+          type: 'string' as const,
+          required: true,
+          description: 'Seed string used for account derivation',
+          placeholder: 'Account seed'
+        },
+        {
+          name: 'ownerProgram',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of the new owner program',
+          placeholder: 'New owner program public key'
+        }
+      ]
+    },
+    {
+      name: 'transferWithSeed',
+      displayName: 'Transfer SOL With Seed',
+      description: 'Transfer SOL from seed-derived account',
+      params: [
+        {
+          name: 'from',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of the source account',
+          placeholder: 'Source account public key'
+        },
+        {
+          name: 'fromBase',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded base public key for source account derivation',
+          placeholder: 'Source base public key'
+        },
+        {
+          name: 'fromSeed',
+          type: 'string' as const,
+          required: true,
+          description: 'Seed string for source account derivation',
+          placeholder: 'Source account seed'
+        },
+        {
+          name: 'to',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of the destination account',
+          placeholder: 'Destination account public key'
+        },
+        {
+          name: 'lamports',
+          type: 'bigint' as const,
+          required: true,
+          description: 'Amount of lamports to transfer',
+          placeholder: '1000000000'
+        }
+      ]
+    },
+    {
+      name: 'initializeNonceAccount',
+      displayName: 'Initialize Nonce Account',
+      description: 'Initialize a nonce account for durable transactions',
+      params: [
+        {
+          name: 'nonceAccount',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of nonce account to initialize',
+          placeholder: 'Nonce account public key'
+        },
+        {
+          name: 'authority',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of nonce authority',
+          placeholder: 'Authority public key'
+        }
+      ]
+    },
+    {
+      name: 'authorizeNonceAccount',
+      displayName: 'Authorize Nonce Account',
+      description: 'Change the authority of a nonce account',
+      params: [
+        {
+          name: 'nonceAccount',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of nonce account',
+          placeholder: 'Nonce account public key'
+        },
+        {
+          name: 'currentAuthority',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of current authority (must be signer)',
+          placeholder: 'Current authority public key'
+        },
+        {
+          name: 'newAuthority',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of new authority',
+          placeholder: 'New authority public key'
+        }
+      ]
+    },
+    {
+      name: 'withdrawNonceAccount',
+      displayName: 'Withdraw from Nonce Account',
+      description: 'Withdraw lamports from a nonce account',
+      params: [
+        {
+          name: 'nonceAccount',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of nonce account',
+          placeholder: 'Nonce account public key'
+        },
+        {
+          name: 'authority',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of nonce authority (must be signer)',
+          placeholder: 'Authority public key'
+        },
+        {
+          name: 'to',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of destination account',
+          placeholder: 'Destination account public key'
+        },
+        {
+          name: 'lamports',
+          type: 'bigint' as const,
+          required: true,
+          description: 'Amount of lamports to withdraw',
+          placeholder: '1000000000'
+        }
+      ]
+    },
+    {
+      name: 'advanceNonceAccount',
+      displayName: 'Advance Nonce Account',
+      description: 'Advance the nonce value in a nonce account',
+      params: [
+        {
+          name: 'nonceAccount',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of nonce account',
+          placeholder: 'Nonce account public key'
+        },
+        {
+          name: 'authority',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of nonce authority (must be signer)',
+          placeholder: 'Authority public key'
+        }
+      ]
+    },
+    {
+      name: 'upgradeNonceAccount',
+      displayName: 'Upgrade Nonce Account',
+      description: 'Upgrade a nonce account to a newer version',
+      params: [
+        {
+          name: 'nonceAccount',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded public key of nonce account to upgrade',
+          placeholder: 'Nonce account public key'
+        }
+      ]
     }
   ] as ServiceMethod[]
 }
@@ -298,7 +620,27 @@ export const tokenProgramServiceConfig = {
           placeholder: '9'
         }
       ]
-    }
+    },
+    {
+      name: 'getCurrentMinRentForTokenAccount',
+      displayName: 'Get Min Rent for Token Account',
+      description: 'Calculate minimum rent required for a token account (mint size)',
+      params: []
+    },
+    {
+      name: 'parseMint',
+      displayName: 'Parse Mint Account',
+      description: 'Parse mint account data into structured format',
+      params: [
+        {
+          name: 'accountAddress',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded address of mint account to parse',
+          placeholder: 'Mint account address'
+        }
+      ]
+    },
   ] as ServiceMethod[]
 }
 

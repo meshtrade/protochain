@@ -60,7 +60,7 @@ export async function getAccountAction(formData: FormData) {
 }
 
 // Server action for generating new keypairs
-export async function generateNewKeyPairAction(_formData: FormData) {
+export async function generateNewKeyPairAction() {
   try {
     // Build gRPC request (no parameters needed for basic generation)
     const grpcRequest: any = {}

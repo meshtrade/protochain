@@ -52,8 +52,7 @@ export function ProtoSolDashboard() {
 
       // Call server action
       console.log('🟡 Calling server action: generateNewKeyPairAction')
-      const formData = new FormData()
-      const result = await generateNewKeyPairAction(formData)
+      const result = await generateNewKeyPairAction()
       
       if (!result.success || !result.keyPair) {
         throw new Error(result.error || 'Failed to generate keypair')

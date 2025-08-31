@@ -11,6 +11,26 @@ import {
   submitTransactionAction,
   getTransactionAction
 } from '../../../../lib/actions/transaction-actions'
+import {
+  createAccountAction,
+  transferAction,
+  allocateAction,
+  assignAction,
+  createWithSeedAction,
+  allocateWithSeedAction,
+  assignWithSeedAction,
+  transferWithSeedAction,
+  initializeNonceAccountAction,
+  authorizeNonceAccountAction,
+  withdrawNonceAccountAction,
+  advanceNonceAccountAction,
+  upgradeNonceAccountAction
+} from '../../../../lib/actions/system-program-actions'
+import {
+  initialiseMintAction,
+  getCurrentMinRentForTokenAccountAction,
+  parseMintAction
+} from '../../../../lib/actions/token-program-actions'
 
 // Transaction states based on ProtoSol state machine
 enum TransactionState {
@@ -72,6 +92,9 @@ export default function TransactionServicePage() {
   const [showAddInstruction, setShowAddInstruction] = useState(false)
   const [selectedProgram, setSelectedProgram] = useState<ProgramType | null>(null)
   const [selectedMethod, setSelectedMethod] = useState<ServiceMethod | null>(null)
+  const [methodFormData, setMethodFormData] = useState<Record<string, string | number | boolean>>({})
+  const [addInstructionLoading, setAddInstructionLoading] = useState(false)
+  const [addInstructionError, setAddInstructionError] = useState<string | null>(null)
   
   // Transaction compilation state
   const [showCompileForm, setShowCompileForm] = useState(false)
@@ -155,8 +178,137 @@ export default function TransactionServicePage() {
   // Handle method selection
   const handleMethodSelect = (method: ServiceMethod) => {
     setSelectedMethod(method)
+    setMethodFormData({}) // Clear form data when method changes
+    setAddInstructionError(null)
   }
-  
+
+  // Handle parameter form submission to add instruction
+  const handleParameterSubmit = async (formData: FormData) => {
+    if (!selectedProgram || !selectedMethod || !currentTransaction) {
+      return
+    }
+
+    setAddInstructionLoading(true)
+    setAddInstructionError(null)
+
+    try {
+      let result: any
+
+      // Call appropriate server action based on selected program and method
+      if (selectedProgram === 'system') {
+        switch (selectedMethod.name) {
+          case 'create':
+            result = await createAccountAction(formData)
+            break
+          case 'transfer':
+            result = await transferAction(formData)
+            break
+          case 'allocate':
+            result = await allocateAction(formData)
+            break
+          case 'assign':
+            result = await assignAction(formData)
+            break
+          case 'createWithSeed':
+            result = await createWithSeedAction(formData)
+            break
+          case 'allocateWithSeed':
+            result = await allocateWithSeedAction(formData)
+            break
+          case 'assignWithSeed':
+            result = await assignWithSeedAction(formData)
+            break
+          case 'transferWithSeed':
+            result = await transferWithSeedAction(formData)
+            break
+          case 'initializeNonceAccount':
+            result = await initializeNonceAccountAction(formData)
+            break
+          case 'authorizeNonceAccount':
+            result = await authorizeNonceAccountAction(formData)
+            break
+          case 'withdrawNonceAccount':
+            result = await withdrawNonceAccountAction(formData)
+            break
+          case 'advanceNonceAccount':
+            result = await advanceNonceAccountAction(formData)
+            break
+          case 'upgradeNonceAccount':
+            result = await upgradeNonceAccountAction(formData)
+            break
+          default:
+            throw new Error(`Unknown system program method: ${selectedMethod.name}`)
+        }
+      } else if (selectedProgram === 'token') {
+        switch (selectedMethod.name) {
+          case 'initialiseMint':
+            result = await initialiseMintAction(formData)
+            break
+          case 'getCurrentMinRentForTokenAccount':
+            result = await getCurrentMinRentForTokenAccountAction()
+            break
+          case 'parseMint':
+            result = await parseMintAction(formData)
+            break
+          default:
+            throw new Error(`Unknown token program method: ${selectedMethod.name}`)
+        }
+      } else {
+        throw new Error(`Unknown program: ${selectedProgram}`)
+      }
+
+      if (result.error) {
+        setAddInstructionError(result.error)
+        return
+      }
+
+      // Handle single instruction or multiple instructions
+      if (result.instruction) {
+        // Single instruction
+        const newInstruction: SolanaInstruction = {
+          programId: result.instruction.programId || 'Unknown',
+          accounts: result.instruction.accountKeys || [],
+          data: result.instruction.data || '',
+          description: `${selectedMethod.displayName} instruction`
+        }
+
+        setCurrentTransaction(prev => {
+          if (!prev) return null
+          return {
+            ...prev,
+            instructions: [...prev.instructions, newInstruction]
+          }
+        })
+      } else if (result.instructions) {
+        // Multiple instructions (for composite operations)
+        const newInstructions: SolanaInstruction[] = result.instructions.map((inst: any, index: number) => ({
+          programId: inst.programId || 'Unknown',
+          accounts: inst.accountKeys || [],
+          data: inst.data || '',
+          description: `${selectedMethod.displayName} instruction ${index + 1}`
+        }))
+
+        setCurrentTransaction(prev => {
+          if (!prev) return null
+          return {
+            ...prev,
+            instructions: [...prev.instructions, ...newInstructions]
+          }
+        })
+      }
+
+      // Clear form and reset selections
+      setMethodFormData({})
+      setSelectedMethod(null)
+      setSelectedProgram(null)
+
+    } catch (error: any) {
+      console.error('Add instruction error:', error)
+      setAddInstructionError(error.message || 'Failed to add instruction')
+    } finally {
+      setAddInstructionLoading(false)
+    }
+  }
 
   // Compile transaction using server action
   const compileTransaction = async () => {
@@ -729,10 +881,10 @@ export default function TransactionServicePage() {
               <h5 className="text-xs font-medium text-slate-700 mb-2">Quick Actions</h5>
               <div className="text-xs text-slate-600">
                 {currentTransaction.state === TransactionState.DRAFT && currentTransaction.instructions.length === 0 && (
-                  <p>📝 Add instructions to your transaction using the "Add Instruction" section below</p>
+                  <p>📝 Add instructions to your transaction using the &quot;Add Instruction&quot; section below</p>
                 )}
                 {currentTransaction.state === TransactionState.DRAFT && currentTransaction.instructions.length > 0 && (
-                  <p>✅ Ready for compilation - use the "Compile Transaction" section below</p>
+                  <p>✅ Ready for compilation - use the &quot;Compile Transaction&quot; section below</p>
                 )}
                 {currentTransaction.state === TransactionState.COMPILED && (
                   <p>🔐 Transaction compiled - ready for analysis and signing</p>
@@ -827,20 +979,110 @@ export default function TransactionServicePage() {
                 </div>
               )}
 
-              {/* Method Parameters Form - Simplified placeholder */}
+              {/* Method Parameters Form - Dynamic implementation */}
               {selectedMethod && (
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-3">
                     {selectedMethod.displayName} Parameters
                   </label>
-                  <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-                    <p className="text-sm text-blue-800">
-                      <span className="font-medium">Parameter forms available:</span> The full parameter form implementation for {selectedMethod.displayName} is ready.
-                    </p>
-                    <p className="text-xs text-blue-700 mt-1">
-                      This section would contain the dynamic parameter forms for the selected program method.
-                    </p>
-                  </div>
+                  
+                  {addInstructionError && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                      <p className="text-sm text-red-800">{addInstructionError}</p>
+                    </div>
+                  )}
+
+                  <form 
+                    onSubmit={async (e) => {
+                      e.preventDefault()
+                      const formData = new FormData(e.currentTarget)
+                      await handleParameterSubmit(formData)
+                    }}
+                    className="space-y-4"
+                  >
+                    {selectedMethod.params.map((param) => (
+                      <div key={param.name}>
+                        <label htmlFor={param.name} className="block text-sm font-medium text-slate-700">
+                          {param.name}
+                          {param.required && <span className="text-red-500 ml-1">*</span>}
+                        </label>
+                        {param.description && (
+                          <p className="text-xs text-slate-600 mt-1">{param.description}</p>
+                        )}
+                        
+                        {/* Render appropriate input based on parameter type */}
+                        {param.type === 'boolean' ? (
+                          <input
+                            type="checkbox"
+                            id={param.name}
+                            name={param.name}
+                            checked={Boolean(methodFormData[param.name])}
+                            onChange={(e) => setMethodFormData(prev => ({ ...prev, [param.name]: e.target.checked }))}
+                            className="mt-1 rounded border-slate-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        ) : param.type === 'enum' ? (
+                          <select
+                            id={param.name}
+                            name={param.name}
+                            value={String(methodFormData[param.name] || '')}
+                            onChange={(e) => setMethodFormData(prev => ({ ...prev, [param.name]: e.target.value }))}
+                            className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            required={param.required}
+                          >
+                            <option value="">Select {param.name}</option>
+                            {param.enumOptions?.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        ) : param.type === 'number' || param.type === 'bigint' ? (
+                          <input
+                            type="number"
+                            id={param.name}
+                            name={param.name}
+                            value={String(methodFormData[param.name] || '')}
+                            onChange={(e) => setMethodFormData(prev => ({ ...prev, [param.name]: e.target.value }))}
+                            placeholder={param.placeholder}
+                            className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            required={param.required}
+                          />
+                        ) : (
+                          <input
+                            type="text"
+                            id={param.name}
+                            name={param.name}
+                            value={String(methodFormData[param.name] || '')}
+                            onChange={(e) => setMethodFormData(prev => ({ ...prev, [param.name]: e.target.value }))}
+                            placeholder={param.placeholder}
+                            className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            required={param.required}
+                          />
+                        )}
+                      </div>
+                    ))}
+
+                    <div className="flex gap-3">
+                      <button
+                        type="submit"
+                        disabled={addInstructionLoading}
+                        className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {addInstructionLoading ? 'Adding Instruction...' : 'Add Instruction to Transaction'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMethodFormData({})
+                          setSelectedMethod(null)
+                          setAddInstructionError(null)
+                        }}
+                        className="px-4 py-2 text-sm font-medium text-slate-600 border border-slate-300 rounded-md hover:bg-slate-50"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
                 </div>
               )}
             </div>
