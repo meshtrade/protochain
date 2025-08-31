@@ -22,6 +22,12 @@ service Service {
   
   // Gets current minimum rent for a token holding account
   rpc GetCurrentMinRentForHoldingAccount(GetCurrentMinRentForHoldingAccountRequest) returns (GetCurrentMinRentForHoldingAccountResponse);
+  
+  // Creates both system account creation and mint initialization instructions
+  rpc CreateMint(CreateMintRequest) returns (CreateMintResponse);
+
+  // Creates both system account creation and holding account initialization instructions  
+  rpc CreateHoldingAccount(CreateHoldingAccountRequest) returns (CreateHoldingAccountResponse);
 }
 
 // Request to create InitialiseMint instruction
@@ -86,4 +92,39 @@ message GetCurrentMinRentForHoldingAccountRequest {
 // Response with current rent amount for holding account
 message GetCurrentMinRentForHoldingAccountResponse {
   uint64 lamports = 1;
+}
+
+// Request to create and initialize a mint account in one call
+message CreateMintRequest {
+  // System program create fields
+  string payer = 1;           // Account paying for creation (signer)
+  string new_account = 2;     // Mint account to create (signer)
+  
+  // Token program initialize mint fields  
+  string mint_pub_key = 3;              // Same as new_account for validation
+  string mint_authority_pub_key = 4;    // Mint authority 
+  string freeze_authority_pub_key = 5;  // Freeze authority (optional)
+  uint32 decimals = 6;                  // Mint decimals
+}
+
+// Response containing both create and initialize instructions
+message CreateMintResponse {
+  repeated protosol.solana.transaction.v1.SolanaInstruction instructions = 1;
+}
+
+// Request to create and initialize a holding account in one call  
+message CreateHoldingAccountRequest {
+  // System program create fields
+  string payer = 1;           // Account paying for creation (signer)
+  string new_account = 2;     // Holding account to create (signer)
+  
+  // Token program initialize holding account fields
+  string holding_account_pub_key = 3;   // Same as new_account for validation
+  string mint_pub_key = 4;              // Mint this account will hold
+  string owner_pub_key = 5;             // Owner of the holding account
+}
+
+// Response containing both create and initialize instructions
+message CreateHoldingAccountResponse {
+  repeated protosol.solana.transaction.v1.SolanaInstruction instructions = 1;
 }

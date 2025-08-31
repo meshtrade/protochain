@@ -2,11 +2,12 @@ use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
 use protosol_api::protosol::solana::program::token::v1::{
-    service_server::Service as TokenProgramService, GetCurrentMinRentForHoldingAccountRequest,
-    GetCurrentMinRentForHoldingAccountResponse, GetCurrentMinRentForTokenAccountRequest,
-    GetCurrentMinRentForTokenAccountResponse, InitialiseHoldingAccountRequest,
-    InitialiseHoldingAccountResponse, InitialiseMintRequest, InitialiseMintResponse, MintInfo,
-    ParseMintRequest, ParseMintResponse,
+    service_server::Service as TokenProgramService, CreateHoldingAccountRequest,
+    CreateHoldingAccountResponse, CreateMintRequest, CreateMintResponse,
+    GetCurrentMinRentForHoldingAccountRequest, GetCurrentMinRentForHoldingAccountResponse,
+    GetCurrentMinRentForTokenAccountRequest, GetCurrentMinRentForTokenAccountResponse,
+    InitialiseHoldingAccountRequest, InitialiseHoldingAccountResponse, InitialiseMintRequest,
+    InitialiseMintResponse, MintInfo, ParseMintRequest, ParseMintResponse,
 };
 
 use solana_client::rpc_client::RpcClient;
@@ -19,6 +20,10 @@ use spl_token_2022::{
 use std::str::FromStr;
 
 use crate::api::common::solana_conversions::sdk_instruction_to_proto;
+use crate::api::program::system::v1::service_impl::SystemProgramServiceImpl;
+use protosol_api::protosol::solana::program::system::v1::{
+    service_server::Service as SystemProgramService, CreateRequest as SystemCreateRequest,
+};
 
 /// Token Program service implementation for Token 2022 operations
 #[derive(Clone)]
@@ -200,5 +205,124 @@ impl TokenProgramService for TokenProgramServiceImpl {
                 "Failed to get minimum balance for holding account: {e}"
             ))),
         }
+    }
+
+    /// Creates both system account creation and mint initialization instructions
+    async fn create_mint(
+        &self,
+        request: Request<CreateMintRequest>,
+    ) -> Result<Response<CreateMintResponse>, Status> {
+        let req = request.into_inner();
+
+        // Validation
+        if req.payer.is_empty() {
+            return Err(Status::invalid_argument("Payer address is required"));
+        }
+        if req.new_account.is_empty() {
+            return Err(Status::invalid_argument("New account address is required"));
+        }
+        if req.mint_pub_key != req.new_account {
+            return Err(Status::invalid_argument("mint_pub_key must match new_account"));
+        }
+
+        // Step 1: Get current rent for mint account
+        let rent_response = self
+            .get_current_min_rent_for_token_account(Request::new(
+                GetCurrentMinRentForTokenAccountRequest {},
+            ))
+            .await?
+            .into_inner();
+
+        // Step 2: Create system account creation instruction
+        let system_service = SystemProgramServiceImpl::new();
+        let create_instruction = system_service
+            .create(Request::new(SystemCreateRequest {
+                payer: req.payer.clone(),
+                new_account: req.new_account.clone(),
+                owner: TOKEN_2022_PROGRAM_ID.to_string(),
+                lamports: rent_response.lamports,
+                space: Mint::LEN as u64,
+            }))
+            .await?
+            .into_inner();
+
+        // Step 3: Create mint initialization instruction
+        let init_response = self
+            .initialise_mint(Request::new(InitialiseMintRequest {
+                mint_pub_key: req.mint_pub_key,
+                mint_authority_pub_key: req.mint_authority_pub_key,
+                freeze_authority_pub_key: req.freeze_authority_pub_key,
+                decimals: req.decimals,
+            }))
+            .await?
+            .into_inner();
+
+        // Step 4: Compose response with both instructions
+        let mut instructions = Vec::new();
+        instructions.push(create_instruction);
+        if let Some(init_instruction) = init_response.instruction {
+            instructions.push(init_instruction);
+        }
+
+        Ok(Response::new(CreateMintResponse { instructions }))
+    }
+
+    /// Creates both system account creation and holding account initialization instructions
+    async fn create_holding_account(
+        &self,
+        request: Request<CreateHoldingAccountRequest>,
+    ) -> Result<Response<CreateHoldingAccountResponse>, Status> {
+        let req = request.into_inner();
+
+        // Validation
+        if req.payer.is_empty() {
+            return Err(Status::invalid_argument("Payer address is required"));
+        }
+        if req.new_account.is_empty() {
+            return Err(Status::invalid_argument("New account address is required"));
+        }
+        if req.holding_account_pub_key != req.new_account {
+            return Err(Status::invalid_argument("holding_account_pub_key must match new_account"));
+        }
+
+        // Step 1: Get current rent for holding account
+        let rent_response = self
+            .get_current_min_rent_for_holding_account(Request::new(
+                GetCurrentMinRentForHoldingAccountRequest {},
+            ))
+            .await?
+            .into_inner();
+
+        // Step 2: Create system account creation instruction
+        let system_service = SystemProgramServiceImpl::new();
+        let create_instruction = system_service
+            .create(Request::new(SystemCreateRequest {
+                payer: req.payer.clone(),
+                new_account: req.new_account.clone(),
+                owner: TOKEN_2022_PROGRAM_ID.to_string(),
+                lamports: rent_response.lamports,
+                space: Account::LEN as u64,
+            }))
+            .await?
+            .into_inner();
+
+        // Step 3: Create holding account initialization instruction
+        let init_response = self
+            .initialise_holding_account(Request::new(InitialiseHoldingAccountRequest {
+                account_pub_key: req.holding_account_pub_key,
+                mint_pub_key: req.mint_pub_key,
+                owner_pub_key: req.owner_pub_key,
+            }))
+            .await?
+            .into_inner();
+
+        // Step 4: Compose response with both instructions
+        let mut instructions = Vec::new();
+        instructions.push(create_instruction);
+        if let Some(init_instruction) = init_response.instruction {
+            instructions.push(init_instruction);
+        }
+
+        Ok(Response::new(CreateHoldingAccountResponse { instructions }))
     }
 }
