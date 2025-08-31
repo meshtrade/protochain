@@ -397,6 +397,7 @@ func (suite *StreamingE2ETestSuite) Test_05_SystemProgram_CreateInstruction() {
 	request := &system_v1.CreateRequest{
 		Payer:      payerAddr,
 		NewAccount: newAccountAddr,
+		Owner:      "", // Default to system program
 		Lamports:   1000000000, // 1 SOL
 		Space:      0,
 	}
@@ -681,6 +682,7 @@ func (suite *StreamingE2ETestSuite) Test_09_ComprehensiveStreamingIntegration() 
 	createSecondInstr, err := suite.systemProgramService.Create(suite.ctx, &system_v1.CreateRequest{
 		Payer:      primaryAddr,
 		NewAccount: secondAddr,
+		Owner:      "", // Default to system program
 		Lamports:   2000000000, // 2 SOL
 		Space:      0,
 	})
@@ -690,6 +692,7 @@ func (suite *StreamingE2ETestSuite) Test_09_ComprehensiveStreamingIntegration() 
 	createThirdInstr, err := suite.systemProgramService.Create(suite.ctx, &system_v1.CreateRequest{
 		Payer:      primaryAddr,
 		NewAccount: thirdAddr,
+		Owner:      "", // Default to system program
 		Lamports:   1000000000, // 1 SOL
 		Space:      0,
 	})
@@ -813,6 +816,7 @@ func (suite *StreamingE2ETestSuite) Test_09_ComprehensiveStreamingIntegration() 
 	createFourthInstr, err := suite.systemProgramService.Create(suite.ctx, &system_v1.CreateRequest{
 		Payer:      primaryAddr,
 		NewAccount: fourthAddr,
+		Owner:      "", // Default to system program
 		Lamports:   300000000, // 0.3 SOL
 		Space:      0,
 	})

@@ -34,11 +34,14 @@ message CreateRequest {
   // The public key of the new account to be created (must be a signer)
   string new_account = 2;
   
+  // The program that will own the new account (defaults to system program)
+  string owner = 3;
+  
   // Amount of lamports to transfer to the new account
-  uint64 lamports = 3;
+  uint64 lamports = 4;
   
   // Number of bytes of memory to allocate for the account
-  uint64 space = 4;
+  uint64 space = 5;
 }
 
 // TransferRequest transfers SOL between accounts

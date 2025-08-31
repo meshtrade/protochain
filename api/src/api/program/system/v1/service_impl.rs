@@ -57,22 +57,36 @@ impl SystemProgramService for SystemProgramServiceImpl {
         let new_account = Pubkey::from_str(&req.new_account)
             .map_err(|e| Status::invalid_argument(format!("Invalid new account address: {e}")))?;
 
+        // Parse owner program (default to system program if empty)
+        let owner = if req.owner.is_empty() {
+            system_program::id()
+        } else {
+            Pubkey::from_str(&req.owner).map_err(|e| {
+                Status::invalid_argument(format!("Invalid owner program address: {e}"))
+            })?
+        };
+
         // Build instruction using SDK
         let instruction = system_instruction::create_account(
             &payer,
             &new_account,
             req.lamports,
             req.space,
-            &system_program::id(),
+            &owner,
         );
 
         // Convert to proto format
         let mut proto_instruction = sdk_instruction_to_proto(instruction);
 
         // Add descriptive information for composable transactions
+        let owner_display = if req.owner.is_empty() {
+            "system program (default)".to_string()
+        } else {
+            req.owner.clone()
+        };
         proto_instruction.description = format!(
-            "Create account: {} (payer: {}, lamports: {}, space: {})",
-            req.new_account, req.payer, req.lamports, req.space
+            "Create account: {} (payer: {}, owner: {}, lamports: {}, space: {})",
+            req.new_account, req.payer, owner_display, req.lamports, req.space
         );
 
         Ok(Response::new(proto_instruction))

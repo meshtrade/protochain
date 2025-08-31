@@ -21,6 +21,11 @@ pub mod protosol {
                     include!("protosol.solana.program.system.v1.rs");
                 }
             }
+            pub mod token {
+                pub mod v1 {
+                    include!("protosol.solana.program.token.v1.rs");
+                }
+            }
         }
         pub mod r#type {
             pub mod v1 {

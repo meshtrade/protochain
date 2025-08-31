@@ -1,0 +1,15 @@
+{
+  "name": "protosol-monorepo",
+  "private": true,
+  "workspaces": [
+    "lib/ts",
+    "ui"
+  ],
+  "packageManager": "yarn@1.22.22",
+  "scripts": {
+    "start:ui": "yarn workspace protosol-ui dev",
+    "build:ui": "yarn workspace protosol-ui build",
+    "lint:ui": "yarn workspace protosol-ui lint",
+    "typecheck:ui": "yarn workspace protosol-ui typecheck"
+  }
+}

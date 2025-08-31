@@ -105,6 +105,7 @@ async fn test_create_request_validation() {
         let request = Request::new(CreateRequest {
             payer: test_case.payer.to_string(),
             new_account: test_case.new_account.to_string(),
+            owner: String::new(), // Test default behavior (system program)
             lamports: test_case.lamports,
             space: test_case.space,
         });

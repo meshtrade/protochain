@@ -7,5 +7,7 @@
 pub mod manager;
 /// System program specific services and operations
 pub mod system;
+/// Token program specific services and operations
+pub mod token;
 
 pub use manager::Program;
