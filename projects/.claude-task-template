@@ -1,0 +1,67 @@
+# Claude Task Configuration Template
+# Copy this to your project folder as .claude-task and customize
+
+## Task Metadata
+name: [project-name]
+type: [implementation|refactoring|testing|documentation|investigation]
+priority: [low|medium|high|critical]
+estimated_effort: [time estimate]
+can_be_resumed: [true|false]
+requires_context_management: [true|false]
+
+## Task Description
+[Brief description of what needs to be done]
+
+## Entry Points
+primary_document: [main plan document, e.g., implementation-plan.md]
+requirements_doc: [original requirements, e.g., prompt.md]
+command_file: [specific slash command if exists]
+
+## Quick Start
+When directed here via `/execute-project projects/[project-name]`:
+1. [First action]
+2. [Second action]
+3. [Continue...]
+
+## Pre-Execution Checks
+- [ ] Verify prerequisites are met
+- [ ] Check for existing work
+- [ ] Understand success criteria
+- [ ] Review any special requirements
+
+## Execution Steps
+1. [High-level step 1]
+2. [High-level step 2]
+3. [High-level step 3]
+
+## Validation Commands
+```bash
+# Commands to validate work
+[validation command 1]
+[validation command 2]
+```
+
+## Success Criteria
+- [ ] [Criterion 1]
+- [ ] [Criterion 2]
+- [ ] [Criterion 3]
+
+## Context Management
+max_steps_per_session: [number]
+auto_save_progress: [true|false]
+clear_context_after_steps: [number]
+
+## Error Recovery
+on_error: 
+  - [Action 1]
+  - [Action 2]
+  - [Action 3]
+
+## Notes
+[Any special notes or warnings for the executing agent]
+
+## Progress Log
+### [YYYY-MM-DD HH:MM:SS when work begins]
+- Starting project - will be updated with actual progress
+- Status: Pending
+- Next: Begin Step 1 from implementation plan
