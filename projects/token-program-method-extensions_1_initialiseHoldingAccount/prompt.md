@@ -12,6 +12,13 @@ You are an expert in:
 
 ## THE ALMIGHTILY CRITICAL "GOAL" (aka. The GOAL):
 **THE GOAL** is to add another method to our token program service: lib/proto/protosol/solana/program/token/v1/service.proto: The InitializeAccount method!
+
+## DELIVERABLE OF THIS PROMPT:
+**CRITICAL**: This prompt is to ask you to generate a deliverable called: projects/token-program-method-extensions_1_initialiseHoldingAccount
+/implementation-plan.md an implementation plan. The plan must be such that when fully executed THE GOAL is met.
+
+## **CRITICAL**: More information on the GOAL:
+**THE GOAL** is to add another method to our token program service: lib/proto/protosol/solana/program/token/v1/service.proto: The InitializeAccount method!
 (Note all the available methods on the token can be found in: /Users/bernardbussy/Projects/github.com/solana-program/token-2022/interface/src/instruction.rs).
 Adding it means:
 - proto file updates
@@ -168,10 +175,9 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 }
 ```
 
+## **CRITICAL**: Deliverable:
 **CRITICAL**: This prompt is to ask you to generate a deliverable called: projects/token-program-method-extensions_1_initialiseHoldingAccount
 /implementation-plan.md an implementation plan. The plan must be such that when fully executed THE GOAL is met.
-
-### Deliverable: 
 **Location**: `projects/token-program-method-extensions_1_initialiseHoldingAccount/implementation-plan.md`  
 **Decription**: a step-by-step, purely technical, super comprehensive implementation plan for an agent to follow to achieve THE GOAL.
 **Content**: Small, incremental technical steps
