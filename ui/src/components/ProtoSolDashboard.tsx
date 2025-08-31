@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAPIContext } from '@protosol/api'
 
 interface DashboardState {
   sdkVersion: string
@@ -11,8 +10,6 @@ interface DashboardState {
 }
 
 export function ProtoSolDashboard() {
-  const api = useAPIContext() // Access ProtoSol API
-
   const [state, setState] = useState<DashboardState>({
     sdkVersion: 'Loading...',
     sdkName: 'Loading...',
@@ -28,8 +25,8 @@ export function ProtoSolDashboard() {
     const timerId = setTimeout(() => {
       setState(prev => ({
         ...prev,
-        sdkVersion: api.constructor.name, // Show that we have access to the API
-        sdkName: 'ProtoSol SDK (Active)',
+        sdkVersion: 'Server-side API Routes',
+        sdkName: 'ProtoSol SDK (Server-side)',
         connectionStatus: 'connected'
       }))
     }, 500) // Add a small delay to simulate loading
@@ -46,17 +43,31 @@ export function ProtoSolDashboard() {
       clearTimeout(timerId)
       clearInterval(timeInterval)
     }
-  }, [api])
+  }, [])
 
   const generateKeypair = async () => {
     try {
       setLoading(true)
-      // Use ProtoSol API pattern: api.account.v1.Service.GenerateNewKeyPair(...)
-      const keyPairResponse = await api.account.v1.Service.GenerateNewKeyPair()
+
+      // Call Next.js API route on server-side
+      console.log('🟡 Calling server-side API: /api/account/generateNewKeyPair')
+      const response = await fetch('/api/account/generateNewKeyPair', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const keyPairResponse = await response.json()
+      console.log('✅ Server response:', keyPairResponse)
       setKeypair(keyPairResponse.keyPair)
     } catch (error) {
       console.error('Error generating keypair:', error)
-      // Fallback to mock if API fails
+      // Fallback to mock if server call fails
       setKeypair({
         publicKey: '11111111111111111111111111111112',
         privateKey: 'mock_private_key_fallback'

@@ -48,11 +48,11 @@ export default function HomePage() {
 function LoadingSkeleton() {
   return (
     <div className="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-6 animate-pulse">
-      <div className="h-4 bg-slate-200 rounded w-3/4 mb-4 mx-auto"></div>
+      <div className="h-4 bg-slate-200 rounded w-3/4 mb-4 mx-auto" />
       <div className="space-y-3">
-        <div className="h-3 bg-slate-200 rounded"></div>
-        <div className="h-3 bg-slate-200 rounded w-5/6"></div>
-        <div className="h-3 bg-slate-200 rounded w-4/6"></div>
+        <div className="h-3 bg-slate-200 rounded" />
+        <div className="h-3 bg-slate-200 rounded w-5/6" />
+        <div className="h-3 bg-slate-200 rounded w-4/6" />
       </div>
     </div>
   )

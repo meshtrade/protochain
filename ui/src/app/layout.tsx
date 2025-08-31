@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { ProtoSolAPIProvider } from '@protosol/api'
 
 export const metadata: Metadata = {
   title: 'ProtoSol - Solana Protocol Frontend',
@@ -36,9 +35,7 @@ export default function RootLayout({
           </div>
         </nav>
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <ProtoSolAPIProvider>
-            {children}
-          </ProtoSolAPIProvider>
+          {children}
         </main>
       </body>
     </html>
