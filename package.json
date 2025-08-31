@@ -3,7 +3,8 @@
   "private": true,
   "workspaces": [
     "lib/ts",
-    "ui"
+    "ui",
+    "tests/ts"
   ],
   "packageManager": "yarn@1.22.22",
   "scripts": {

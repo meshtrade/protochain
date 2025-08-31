@@ -1,5 +1,5 @@
-// Server-side API route for account get
-// Uses ProtoSol gRPC backend to fetch real account data
+// Server-side API route for account funding (airdrop)
+// Uses ProtoSol gRPC backend to fund accounts with SOL
 
 import { NextRequest, NextResponse } from 'next/server'
 import { accountClient } from '../../../../lib/grpc-clients'
@@ -7,12 +7,14 @@ import type { CommitmentLevel } from '@protosol/api'
 
 interface RequestBody {
   address: string
+  amount: string
   commitmentLevel?: string
 }
 
 // Define the gRPC request interface matching the protobuf structure
-interface GetAccountGrpcRequest {
+interface FundNativeGrpcRequest {
   address: string
+  amount: string
   commitmentLevel?: CommitmentLevel
 }
 
@@ -21,9 +23,9 @@ export async function POST(request: NextRequest) {
   
   try {
     requestBody = await request.json()
-    console.log('🔧 Server: GetAccount request:', requestBody)
+    console.log('🔧 Server: FundNative request:', requestBody)
 
-    // Validate required address parameter
+    // Validate required parameters
     if (!requestBody?.address || typeof requestBody.address !== 'string') {
       return NextResponse.json(
         { error: 'Address is required and must be a string' },
@@ -31,9 +33,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (!requestBody?.amount || typeof requestBody.amount !== 'string') {
+      return NextResponse.json(
+        { error: 'Amount is required and must be a string' },
+        { status: 400 }
+      )
+    }
+
+    // Validate amount is a valid number
+    const amountNum = BigInt(requestBody.amount)
+    if (amountNum <= 0) {
+      return NextResponse.json(
+        { error: 'Amount must be a positive number' },
+        { status: 400 }
+      )
+    }
+
     // Build gRPC request
-    const grpcRequest: GetAccountGrpcRequest = {
+    const grpcRequest: FundNativeGrpcRequest = {
       address: requestBody.address,
+      amount: requestBody.amount,
     }
 
     // Add commitment level if provided
@@ -52,40 +71,47 @@ export async function POST(request: NextRequest) {
 
     // Call ProtoSol backend through gRPC
     const client = accountClient()
-    const response = await client.getAccount(grpcRequest)
+    const response = await client.fundNative(grpcRequest)
 
-    // Return the account data
+    // Return the transaction signature
     return NextResponse.json({
-      address: response.address,
-      lamports: response.lamports,
-      owner: response.owner,
-      executable: response.executable,
-      rentEpoch: response.rentEpoch,
-      data: response.data, // Uint8Array will be JSON serialized as array
+      signature: response.signature,
+      message: `Successfully funded ${requestBody.address} with ${requestBody.amount} lamports`,
     })
 
   } catch (error) {
-    console.error('gRPC error getting account:', error)
+    console.error('gRPC error funding account:', error)
     
     // Handle specific gRPC errors
     if (error && typeof error === 'object' && 'code' in error) {
       const grpcError = error as any
       
-      // Handle account not found
-      if (grpcError.code === 'NOT_FOUND' || grpcError.message?.includes('not found')) {
+      // Handle insufficient funds or airdrop limits
+      if (grpcError.code === 'RESOURCE_EXHAUSTED' || grpcError.message?.includes('airdrop')) {
         return NextResponse.json(
           { 
-            error: 'Account not found', 
-            details: `Account ${requestBody?.address || 'unknown'} does not exist`,
+            error: 'Airdrop failed', 
+            details: `Failed to airdrop to ${requestBody?.address || 'unknown'}. This may be due to airdrop limits or network issues.`,
           },
-          { status: 404 }
+          { status: 429 }
+        )
+      }
+
+      // Handle invalid address
+      if (grpcError.code === 'INVALID_ARGUMENT' || grpcError.message?.includes('invalid')) {
+        return NextResponse.json(
+          { 
+            error: 'Invalid request', 
+            details: grpcError.message || 'Invalid address or amount',
+          },
+          { status: 400 }
         )
       }
 
       // Handle other gRPC errors
       return NextResponse.json(
         { 
-          error: 'Failed to get account', 
+          error: 'Failed to fund account', 
           details: grpcError.message || 'Unknown gRPC error',
           code: grpcError.code 
         },
@@ -95,7 +121,7 @@ export async function POST(request: NextRequest) {
 
     // Handle general errors
     return NextResponse.json(
-      { error: 'Failed to get account' },
+      { error: 'Failed to fund account' },
       { status: 500 }
     )
   }

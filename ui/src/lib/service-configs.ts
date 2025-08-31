@@ -1,6 +1,9 @@
 // Service configuration definitions for all ProtoSol services
 import type { ServiceMethod } from '../components/ServicePage'
 
+// Re-export ServiceMethod type for use in other components
+export type { ServiceMethod }
+
 // Account Service Configuration
 export const accountServiceConfig = {
   name: 'Account Service v1',
@@ -40,6 +43,35 @@ export const accountServiceConfig = {
           required: false,
           description: 'Optional seed for deterministic keypair generation',
           placeholder: 'Leave empty for random generation'
+        }
+      ]
+    },
+    {
+      name: 'fundNative',
+      displayName: 'Fund Native (Airdrop)',
+      description: 'Fund account with SOL using airdrop (devnet/testnet only)',
+      endpoint: '/api/account/fundNative',
+      params: [
+        {
+          name: 'address',
+          type: 'string' as const,
+          required: true,
+          description: 'Target address for funding (Base58)',
+          placeholder: 'e.g. 11111111111111111111111111111112'
+        },
+        {
+          name: 'amount',
+          type: 'string' as const,
+          required: true,
+          description: 'Amount in lamports as string (1 SOL = 1,000,000,000 lamports)',
+          placeholder: 'e.g. 1000000000 (1 SOL)'
+        },
+        {
+          name: 'commitmentLevel',
+          type: 'enum' as const,
+          required: false,
+          description: 'Confirmation level for funding confirmation',
+          enumOptions: ['processed', 'confirmed', 'finalized']
         }
       ]
     }
@@ -99,6 +131,58 @@ export const transactionServiceConfig = {
           type: 'enum' as const,
           required: false,
           description: 'Commitment level for simulation',
+          enumOptions: ['processed', 'confirmed', 'finalized']
+        }
+      ]
+    },
+    {
+      name: 'signTransaction',
+      displayName: 'Sign Transaction', 
+      description: 'Add signatures to compiled transaction (COMPILED → SIGNED)',
+      endpoint: '/api/transaction/sign',
+      params: [
+        {
+          name: 'privateKeys',
+          type: 'string' as const,
+          required: true,
+          description: 'Comma-separated list of Base58-encoded private keys for signing',
+          placeholder: 'e.g. privateKey1,privateKey2'
+        }
+      ]
+    },
+    {
+      name: 'submitTransaction',
+      displayName: 'Submit Transaction',
+      description: 'Submit signed transaction to blockchain (SIGNED → SUBMITTED)',
+      endpoint: '/api/transaction/submit',
+      params: [
+        {
+          name: 'commitmentLevel',
+          type: 'enum' as const,
+          required: false,
+          description: 'Commitment level for submission confirmation',
+          enumOptions: ['processed', 'confirmed', 'finalized']
+        }
+      ]
+    },
+    {
+      name: 'getTransaction',
+      displayName: 'Get Transaction',
+      description: 'Fetch transaction details by signature',
+      endpoint: '/api/transaction/get',
+      params: [
+        {
+          name: 'signature',
+          type: 'string' as const,
+          required: true,
+          description: 'Base58-encoded transaction signature',
+          placeholder: 'e.g. 5VERv8NMvQMB8QC...'
+        },
+        {
+          name: 'commitmentLevel',
+          type: 'enum' as const,
+          required: false,
+          description: 'Commitment level for transaction lookup',
           enumOptions: ['processed', 'confirmed', 'finalized']
         }
       ]
