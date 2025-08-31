@@ -1,11 +1,7 @@
 use super::SystemProgramServiceImpl;
 use protosol_api::protosol::solana::program::system::v1::{
-    service_server::Service as SystemProgramService,
-    CreateRequest,
-    TransferRequest,
-    AllocateRequest,
-    AssignRequest,
-    CreateWithSeedRequest,
+    service_server::Service as SystemProgramService, AllocateRequest, AssignRequest, CreateRequest,
+    CreateWithSeedRequest, TransferRequest,
 };
 use tonic::{Request, Status};
 
@@ -23,12 +19,12 @@ fn is_validation_error(status: &Status) -> bool {
 #[tokio::test(flavor = "multi_thread")]
 async fn test_create_request_validation() {
     let service = create_test_service();
-    
+
     // Valid test pubkey constants (actual Solana public keys)
     const VALID_PUBKEY: &str = "11111111111111111111111111111112"; // System Program
     const ANOTHER_VALID_PUBKEY: &str = "SysvarS1otHashes111111111111111111111111111"; // Slot Hashes Sysvar
     const INVALID_PUBKEY: &str = "invalid_not_base58!!!";
-    
+
     struct TestCase {
         name: &'static str,
         payer: &'static str,
@@ -38,7 +34,7 @@ async fn test_create_request_validation() {
         expect_validation_error: bool,
         error_contains: &'static str,
     }
-    
+
     let test_cases = vec![
         TestCase {
             name: "valid request - will fail on RPC but pass validation",
@@ -104,7 +100,7 @@ async fn test_create_request_validation() {
             error_contains: "",
         },
     ];
-    
+
     for test_case in test_cases {
         let request = Request::new(CreateRequest {
             payer: test_case.payer.to_string(),
@@ -112,17 +108,22 @@ async fn test_create_request_validation() {
             lamports: test_case.lamports,
             space: test_case.space,
         });
-        
+
         let result = service.create(request).await;
-        
+
         if test_case.expect_validation_error {
             // Should fail with validation error
-            assert!(result.is_err(), "Test '{}' expected validation error but got success", test_case.name);
+            assert!(
+                result.is_err(),
+                "Test '{}' expected validation error but got success",
+                test_case.name
+            );
             let error = result.unwrap_err();
             assert!(
                 is_validation_error(&error),
                 "Test '{}' expected validation error but got different error type: {:?}",
-                test_case.name, error.code()
+                test_case.name,
+                error.code()
             );
             assert!(
                 error.message().contains(test_case.error_contains),
@@ -138,7 +139,8 @@ async fn test_create_request_validation() {
                 assert!(
                     !is_validation_error(&error),
                     "Test '{}' should pass validation but got validation error: {}",
-                    test_case.name, error.message()
+                    test_case.name,
+                    error.message()
                 );
                 // RPC errors are expected in test environment - that's fine
             }
@@ -150,11 +152,11 @@ async fn test_create_request_validation() {
 #[tokio::test(flavor = "multi_thread")]
 async fn test_transfer_request_validation() {
     let service = create_test_service();
-    
+
     const VALID_PUBKEY: &str = "11111111111111111111111111111112"; // System Program
     const ANOTHER_VALID_PUBKEY: &str = "SysvarS1otHashes111111111111111111111111111"; // Slot Hashes Sysvar
     const INVALID_PUBKEY: &str = "invalid_not_base58!!!";
-    
+
     struct TestCase {
         name: &'static str,
         from: &'static str,
@@ -163,7 +165,7 @@ async fn test_transfer_request_validation() {
         expect_validation_error: bool,
         error_contains: &'static str,
     }
-    
+
     let test_cases = vec![
         TestCase {
             name: "valid request - will fail on RPC but pass validation",
@@ -222,24 +224,29 @@ async fn test_transfer_request_validation() {
             error_contains: "",
         },
     ];
-    
+
     for test_case in test_cases {
         let request = Request::new(TransferRequest {
             from: test_case.from.to_string(),
             to: test_case.to.to_string(),
             lamports: test_case.lamports,
         });
-        
+
         let result = service.transfer(request).await;
-        
+
         if test_case.expect_validation_error {
             // Should fail with validation error
-            assert!(result.is_err(), "Test '{}' expected validation error but got success", test_case.name);
+            assert!(
+                result.is_err(),
+                "Test '{}' expected validation error but got success",
+                test_case.name
+            );
             let error = result.unwrap_err();
             assert!(
                 is_validation_error(&error),
                 "Test '{}' expected validation error but got different error type: {:?}",
-                test_case.name, error.code()
+                test_case.name,
+                error.code()
             );
             assert!(
                 error.message().contains(test_case.error_contains),
@@ -255,7 +262,8 @@ async fn test_transfer_request_validation() {
                 assert!(
                     !is_validation_error(&error),
                     "Test '{}' should pass validation but got validation error: {}",
-                    test_case.name, error.message()
+                    test_case.name,
+                    error.message()
                 );
                 // RPC errors are expected in test environment - that's fine
             }
@@ -266,10 +274,10 @@ async fn test_transfer_request_validation() {
 #[tokio::test(flavor = "multi_thread")]
 async fn test_allocate_request_validation() {
     let service = create_test_service();
-    
+
     const VALID_PUBKEY: &str = "11111111111111111111111111111112"; // System Program
     const INVALID_PUBKEY: &str = "invalid_not_base58!!!";
-    
+
     struct TestCase {
         name: &'static str,
         account: &'static str,
@@ -277,7 +285,7 @@ async fn test_allocate_request_validation() {
         expect_validation_error: bool,
         error_contains: &'static str,
     }
-    
+
     let test_cases = vec![
         TestCase {
             name: "valid request - will fail on RPC but pass validation",
@@ -315,23 +323,28 @@ async fn test_allocate_request_validation() {
             error_contains: "",
         },
     ];
-    
+
     for test_case in test_cases {
         let request = Request::new(AllocateRequest {
             account: test_case.account.to_string(),
             space: test_case.space,
         });
-        
+
         let result = service.allocate(request).await;
-        
+
         if test_case.expect_validation_error {
             // Should fail with validation error
-            assert!(result.is_err(), "Test '{}' expected validation error but got success", test_case.name);
+            assert!(
+                result.is_err(),
+                "Test '{}' expected validation error but got success",
+                test_case.name
+            );
             let error = result.unwrap_err();
             assert!(
                 is_validation_error(&error),
                 "Test '{}' expected validation error but got different error type: {:?}",
-                test_case.name, error.code()
+                test_case.name,
+                error.code()
             );
             assert!(
                 error.message().contains(test_case.error_contains),
@@ -347,7 +360,8 @@ async fn test_allocate_request_validation() {
                 assert!(
                     !is_validation_error(&error),
                     "Test '{}' should pass validation but got validation error: {}",
-                    test_case.name, error.message()
+                    test_case.name,
+                    error.message()
                 );
                 // RPC errors are expected in test environment - that's fine
             }
@@ -358,11 +372,11 @@ async fn test_allocate_request_validation() {
 #[tokio::test(flavor = "multi_thread")]
 async fn test_assign_request_validation() {
     let service = create_test_service();
-    
+
     const VALID_PUBKEY: &str = "11111111111111111111111111111112"; // System Program
     const ANOTHER_VALID_PUBKEY: &str = "SysvarS1otHashes111111111111111111111111111"; // Slot Hashes Sysvar
     const INVALID_PUBKEY: &str = "invalid_not_base58!!!";
-    
+
     struct TestCase {
         name: &'static str,
         account: &'static str,
@@ -370,7 +384,7 @@ async fn test_assign_request_validation() {
         expect_validation_error: bool,
         error_contains: &'static str,
     }
-    
+
     let test_cases = vec![
         TestCase {
             name: "valid request - will fail on RPC but pass validation",
@@ -415,23 +429,28 @@ async fn test_assign_request_validation() {
             error_contains: "",
         },
     ];
-    
+
     for test_case in test_cases {
         let request = Request::new(AssignRequest {
             account: test_case.account.to_string(),
             owner_program: test_case.owner_program.to_string(),
         });
-        
+
         let result = service.assign(request).await;
-        
+
         if test_case.expect_validation_error {
             // Should fail with validation error
-            assert!(result.is_err(), "Test '{}' expected validation error but got success", test_case.name);
+            assert!(
+                result.is_err(),
+                "Test '{}' expected validation error but got success",
+                test_case.name
+            );
             let error = result.unwrap_err();
             assert!(
                 is_validation_error(&error),
                 "Test '{}' expected validation error but got different error type: {:?}",
-                test_case.name, error.code()
+                test_case.name,
+                error.code()
             );
             assert!(
                 error.message().contains(test_case.error_contains),
@@ -447,7 +466,8 @@ async fn test_assign_request_validation() {
                 assert!(
                     !is_validation_error(&error),
                     "Test '{}' should pass validation but got validation error: {}",
-                    test_case.name, error.message()
+                    test_case.name,
+                    error.message()
                 );
                 // RPC errors are expected in test environment - that's fine
             }
@@ -458,12 +478,12 @@ async fn test_assign_request_validation() {
 #[tokio::test(flavor = "multi_thread")]
 async fn test_create_with_seed_request_validation() {
     let service = create_test_service();
-    
+
     const VALID_PUBKEY: &str = "11111111111111111111111111111112"; // System Program
     const ANOTHER_VALID_PUBKEY: &str = "SysvarS1otHashes111111111111111111111111111"; // Slot Hashes Sysvar
     const THIRD_VALID_PUBKEY: &str = "SysvarC1ock11111111111111111111111111111111"; // Clock Sysvar
     const INVALID_PUBKEY: &str = "invalid_not_base58!!!";
-    
+
     struct TestCase {
         name: &'static str,
         payer: &'static str,
@@ -475,7 +495,7 @@ async fn test_create_with_seed_request_validation() {
         expect_validation_error: bool,
         error_contains: &'static str,
     }
-    
+
     let test_cases = vec![
         TestCase {
             name: "valid request - will fail on RPC but pass validation",
@@ -599,7 +619,7 @@ async fn test_create_with_seed_request_validation() {
             error_contains: "",
         },
     ];
-    
+
     for test_case in test_cases {
         let request = Request::new(CreateWithSeedRequest {
             payer: test_case.payer.to_string(),
@@ -609,17 +629,22 @@ async fn test_create_with_seed_request_validation() {
             lamports: test_case.lamports,
             space: test_case.space,
         });
-        
+
         let result = service.create_with_seed(request).await;
-        
+
         if test_case.expect_validation_error {
             // Should fail with validation error
-            assert!(result.is_err(), "Test '{}' expected validation error but got success", test_case.name);
+            assert!(
+                result.is_err(),
+                "Test '{}' expected validation error but got success",
+                test_case.name
+            );
             let error = result.unwrap_err();
             assert!(
                 is_validation_error(&error),
                 "Test '{}' expected validation error but got different error type: {:?}",
-                test_case.name, error.code()
+                test_case.name,
+                error.code()
             );
             assert!(
                 error.message().contains(test_case.error_contains),
@@ -635,7 +660,8 @@ async fn test_create_with_seed_request_validation() {
                 assert!(
                     !is_validation_error(&error),
                     "Test '{}' should pass validation but got validation error: {}",
-                    test_case.name, error.message()
+                    test_case.name,
+                    error.message()
                 );
                 // RPC errors are expected in test environment - that's fine
             }
