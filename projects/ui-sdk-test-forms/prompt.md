@@ -120,3 +120,5 @@ Construct yourself a comprehensive research todo list and execute it to get info
 - Rust service implementation patterns
 - Code generation workflow requirements
 - look at the connect node LIVE latest documentation at: https://github.com/connectrpc/connect-es/tree/main/packages/connect-node. These are the generated types we should be getting in lib/ts/src/protosol/solana from code generation otherwise we have a MAJOR issue.
+
+THINK VERY HARD and lets get this perfect implemenation-plan.md written to achive the GOAL!!
