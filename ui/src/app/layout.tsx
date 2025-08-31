@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import Sidebar from '../components/Sidebar'
 
 export const metadata: Metadata = {
   title: 'ProtoSol - Solana Protocol Frontend',
@@ -15,28 +16,38 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-        <nav className="border-b border-slate-200 bg-white/50 backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 flex items-center">
-                  <div className="h-8 w-8 bg-gradient-to-r from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">P</span>
+        <div className="flex h-screen">
+          {/* Sidebar */}
+          <Sidebar />
+          
+          {/* Main Content Area */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Top Navigation Bar */}
+            <header className="border-b border-slate-200 bg-white/50 backdrop-blur-sm">
+              <div className="px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between items-center h-16">
+                  <div className="flex items-center">
+                    <h1 className="text-lg font-semibold text-slate-900">
+                      Dashboard
+                    </h1>
                   </div>
-                  <span className="ml-3 text-xl font-semibold text-slate-900">ProtoSol</span>
+                  <div className="flex items-center space-x-4">
+                    <span className="text-sm text-slate-600 bg-slate-100 px-2 py-1 rounded-md">
+                      Next.js 15 + App Router
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-slate-600 bg-slate-100 px-2 py-1 rounded-md">
-                  Next.js 15 + App Router
-                </span>
+            </header>
+            
+            {/* Page Content */}
+            <main className="flex-1 overflow-auto">
+              <div className="p-4 sm:p-6 lg:p-8">
+                {children}
               </div>
-            </div>
+            </main>
           </div>
-        </nav>
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          {children}
-        </main>
+        </div>
       </body>
     </html>
   )

@@ -1,22 +1,61 @@
 // Server-side API route for generate keypair
-// Note: This demonstrates the server-side call pattern
-// In production, this would call the actual ProtoSol backend
+// Uses ProtoSol gRPC backend to generate real keypairs
 
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { accountClient } from '../../../../lib/grpc-clients'
 
-export async function POST() {
+// Define the request interface matching the protobuf structure
+interface GenerateKeyPairRequest {
+  seed?: string
+}
+
+export async function POST(request: NextRequest) {
   try {
-    // Mock keypair response - in production this would call actual ProtoSol backend
-    const keyPairResponse = {
-      keyPair: {
-        publicKey: '11111111111111111111111111111112',
-        privateKey: 'mock_private_key_would_be_64_bytes'
+    // Parse request body for optional seed parameter
+    const requestData: GenerateKeyPairRequest = {}
+    
+    try {
+      const body = await request.text()
+      if (body) {
+        const parsed = JSON.parse(body)
+        if (parsed.seed && typeof parsed.seed === 'string') {
+          requestData.seed = parsed.seed
+        }
       }
+    } catch {
+      // If parsing fails, proceed with empty request (no seed)
+      console.log('No seed provided or invalid JSON, generating random keypair')
     }
 
-    return NextResponse.json(keyPairResponse)
+    // Call ProtoSol backend through gRPC
+    const client = accountClient()
+    const response = await client.generateNewKeyPair(requestData)
+
+    // Return the generated keypair
+    return NextResponse.json({
+      keyPair: {
+        publicKey: response.keyPair?.publicKey || '',
+        privateKey: response.keyPair?.privateKey || '',
+      }
+    })
+
   } catch (error) {
-    console.error('Server error generating keypair:', error)
+    console.error('gRPC error generating keypair:', error)
+    
+    // Handle specific gRPC errors
+    if (error && typeof error === 'object' && 'code' in error) {
+      const grpcError = error as any
+      return NextResponse.json(
+        { 
+          error: 'Failed to generate keypair', 
+          details: grpcError.message || 'Unknown gRPC error',
+          code: grpcError.code 
+        },
+        { status: 500 }
+      )
+    }
+
+    // Handle general errors
     return NextResponse.json(
       { error: 'Failed to generate keypair' },
       { status: 500 }

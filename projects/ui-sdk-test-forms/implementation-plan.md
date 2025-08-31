@@ -120,6 +120,43 @@ Some critical information for the implemenation agent.
 
 ---
 
+## Phase 2.5: Backend Connectivity Validation (Confidence Building)
+
+### Step 2.5: Create TypeScript Test Playground for gRPC Client Validation
+**Objective**: Build confidence in gRPC client connectivity before proceeding with more UI features
+
+**Actions**:
+1. Create new yarn workspace member at `./tests/ts/`
+2. Set up `package.json` with dependencies: `@protosol/api`, `@connectrpc/connect`, `@connectrpc/connect-node`
+3. Create TypeScript configuration matching the UI project setup
+4. Import ProtoSol API types the same way the UI does: `import { AccountService, createClient, createGrpcTransport } from "@protosol/api"`
+5. Create test scripts to validate each service:
+   - `test-account.ts`: Test AccountService methods (GetAccount, GenerateNewKeyPair)
+   - `test-token.ts`: Test TokenProgramService methods (InitializeMint)
+   - `test-system.ts`: Test SystemProgramService methods (Create, Transfer)
+   - `test-rpc.ts`: Test RPCClientService methods (GetMinimumBalanceForRentExemption)
+   - `test-transaction.ts`: Test basic transaction operations
+6. Create `run-tests.ts` main script that calls all services systematically
+7. Add npm scripts for easy execution: `yarn test-connectivity`, `yarn test-account`, etc.
+8. Implement proper error handling and success/failure reporting
+9. Add connection health check utility
+10. Document test scenarios and expected results
+
+**Key Requirements**:
+- Use the exact same import patterns as the UI (`import from "@protosol/api"`)
+- Use `createGrpcTransport` from `@connectrpc/connect-node` (same as UI backend)
+- Implement similar error handling patterns to what we'll use in UI
+- Test both success and failure scenarios
+- Provide clear console output showing connectivity status
+
+**Validation**: 
+- All gRPC service calls work correctly from TypeScript
+- Error scenarios are handled gracefully  
+- Connection status can be verified programmatically
+- Ready to proceed with full UI implementation with confidence
+
+---
+
 ## Phase 3: Account Service Implementation
 
 ### Step 3.1: Implement Account Service Page
