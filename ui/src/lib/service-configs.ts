@@ -13,7 +13,6 @@ export const accountServiceConfig = {
       name: 'getAccount',
       displayName: 'Get Account',
       description: 'Fetch account data with commitment level support',
-      endpoint: '/api/account/getAccount',
       params: [
         {
           name: 'address',
@@ -35,7 +34,6 @@ export const accountServiceConfig = {
       name: 'generateNewKeyPair',
       displayName: 'Generate New Key Pair',
       description: 'Generate new keypair (deterministic or random)',
-      endpoint: '/api/account/generateNewKeyPair',
       params: [
         {
           name: 'seed',
@@ -50,7 +48,6 @@ export const accountServiceConfig = {
       name: 'fundNative',
       displayName: 'Fund Native (Airdrop)',
       description: 'Fund account with SOL using airdrop (devnet/testnet only)',
-      endpoint: '/api/account/fundNative',
       params: [
         {
           name: 'address',
@@ -87,7 +84,6 @@ export const transactionServiceConfig = {
       name: 'compileTransaction',
       displayName: 'Compile Transaction',
       description: 'Transform DRAFT transaction to COMPILED (DRAFT → COMPILED)',
-      endpoint: '/api/transaction/compile',
       params: [
         {
           name: 'feePayer',
@@ -109,7 +105,6 @@ export const transactionServiceConfig = {
       name: 'estimateTransaction',
       displayName: 'Estimate Transaction',
       description: 'Calculate transaction fees and compute units',
-      endpoint: '/api/transaction/estimate',
       params: [
         {
           name: 'commitmentLevel',
@@ -124,7 +119,6 @@ export const transactionServiceConfig = {
       name: 'simulateTransaction',
       displayName: 'Simulate Transaction',
       description: 'Dry run the transaction to check for errors',
-      endpoint: '/api/transaction/simulate',
       params: [
         {
           name: 'commitmentLevel',
@@ -139,7 +133,6 @@ export const transactionServiceConfig = {
       name: 'signTransaction',
       displayName: 'Sign Transaction', 
       description: 'Add signatures to compiled transaction (COMPILED → SIGNED)',
-      endpoint: '/api/transaction/sign',
       params: [
         {
           name: 'privateKeys',
@@ -154,7 +147,6 @@ export const transactionServiceConfig = {
       name: 'submitTransaction',
       displayName: 'Submit Transaction',
       description: 'Submit signed transaction to blockchain (SIGNED → SUBMITTED)',
-      endpoint: '/api/transaction/submit',
       params: [
         {
           name: 'commitmentLevel',
@@ -169,7 +161,6 @@ export const transactionServiceConfig = {
       name: 'getTransaction',
       displayName: 'Get Transaction',
       description: 'Fetch transaction details by signature',
-      endpoint: '/api/transaction/get',
       params: [
         {
           name: 'signature',
@@ -199,7 +190,6 @@ export const systemProgramServiceConfig = {
       name: 'create',
       displayName: 'Create Account',
       description: 'Create a new Solana account',
-      endpoint: '/api/program/system/create',
       params: [
         {
           name: 'payer',
@@ -242,7 +232,6 @@ export const systemProgramServiceConfig = {
       name: 'transfer',
       displayName: 'Transfer SOL',
       description: 'Transfer SOL from one account to another',
-      endpoint: '/api/program/system/transfer',
       params: [
         {
           name: 'from',
@@ -279,7 +268,6 @@ export const tokenProgramServiceConfig = {
       name: 'initialiseMint',
       displayName: 'Initialize Mint',
       description: 'Creates an InitializeMint instruction for Token 2022 program',
-      endpoint: '/api/token/initialiseMint',
       params: [
         {
           name: 'mintPubKey',
@@ -323,7 +311,6 @@ export const rpcClientServiceConfig = {
       name: 'getMinimumBalanceForRentExemption',
       displayName: 'Get Minimum Balance for Rent Exemption',
       description: 'Calculate minimum balance required for rent exemption based on data length',
-      endpoint: '/api/rpc/getMinimumBalanceForRentExemption',
       params: [
         {
           name: 'dataLength',

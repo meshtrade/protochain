@@ -18,14 +18,13 @@ export interface ServiceMethod {
   displayName: string
   description: string
   params: MethodParam[]
-  endpoint: string // API endpoint to call
 }
 
 export interface ServicePageProps {
   serviceName: string
   serviceDescription: string
   methods: ServiceMethod[]
-  onMethodCall?: (method: string, params: Record<string, any>) => Promise<any>
+  onMethodCall: (method: string, params: Record<string, any>) => Promise<any>
 }
 
 interface FormData {
@@ -101,27 +100,8 @@ export default function ServicePage({
         }
       }
 
-      // Call the method either via prop callback or direct API call
-      let result
-      if (onMethodCall) {
-        result = await onMethodCall(selectedMethod.name, processedData)
-      } else {
-        // Default API call
-        const apiResponse = await fetch(selectedMethod.endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(processedData),
-        })
-
-        if (!apiResponse.ok) {
-          const errorData = await apiResponse.json()
-          throw new Error(errorData.error || `HTTP ${apiResponse.status}`)
-        }
-
-        result = await apiResponse.json()
-      }
+      // Call the method via server action
+      const result = await onMethodCall(selectedMethod.name, processedData)
 
       setResponse({
         success: true,

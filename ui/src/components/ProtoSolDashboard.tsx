@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { generateNewKeyPairAction } from '../lib/actions/account-actions'
 
 interface DashboardState {
   sdkVersion: string
@@ -25,8 +26,8 @@ export function ProtoSolDashboard() {
     const timerId = setTimeout(() => {
       setState(prev => ({
         ...prev,
-        sdkVersion: 'Server-side API Routes',
-        sdkName: 'ProtoSol SDK (Server-side)',
+        sdkVersion: 'Server Actions',
+        sdkName: 'ProtoSol SDK (Server Actions)',
         connectionStatus: 'connected'
       }))
     }, 500) // Add a small delay to simulate loading
@@ -49,22 +50,20 @@ export function ProtoSolDashboard() {
     try {
       setLoading(true)
 
-      // Call Next.js API route on server-side
-      console.log('🟡 Calling server-side API: /api/account/generateNewKeyPair')
-      const response = await fetch('/api/account/generateNewKeyPair', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      // Call server action
+      console.log('🟡 Calling server action: generateNewKeyPairAction')
+      const formData = new FormData()
+      const result = await generateNewKeyPairAction(formData)
+      
+      if (!result.success || !result.keyPair) {
+        throw new Error(result.error || 'Failed to generate keypair')
       }
 
-      const keyPairResponse = await response.json()
-      console.log('✅ Server response:', keyPairResponse)
-      setKeypair(keyPairResponse.keyPair)
+      console.log('✅ Server action response:', result.keyPair)
+      setKeypair({
+        publicKey: result.keyPair.publicKey || '',
+        privateKey: result.keyPair.privateKey || ''
+      })
     } catch (error) {
       console.error('Error generating keypair:', error)
       // Fallback to mock if server call fails
