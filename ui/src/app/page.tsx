@@ -1,13 +1,6 @@
 import { Suspense } from 'react'
 import { ProtoSolDashboard } from '@/components/ProtoSolDashboard'
 
-// Temporary mock for ProtoSol API until workspace is resolved
-const mockProtoSolApi = {
-  VERSION: '1.0.0',
-  SDK_NAME: 'ProtoSol SDK (Mock)',
-  run: () => console.log('Mock ProtoSol SDK running...')
-}
-
 export default function HomePage() {
   return (
     <>
