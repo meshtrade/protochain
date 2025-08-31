@@ -7,13 +7,14 @@ use protosol_api::protosol::solana::program::token::v1::{
     GetCurrentMinRentForHoldingAccountRequest, GetCurrentMinRentForHoldingAccountResponse,
     GetCurrentMinRentForTokenAccountRequest, GetCurrentMinRentForTokenAccountResponse,
     InitialiseHoldingAccountRequest, InitialiseHoldingAccountResponse, InitialiseMintRequest,
-    InitialiseMintResponse, MintInfo, ParseMintRequest, ParseMintResponse,
+    InitialiseMintResponse, MintInfo, MintRequest, MintResponse, ParseMintRequest,
+    ParseMintResponse,
 };
 
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{commitment_config::CommitmentConfig, program_pack::Pack, pubkey::Pubkey};
 use spl_token_2022::{
-    instruction::{initialize_account, initialize_mint2},
+    instruction::{initialize_account, initialize_mint2, mint_to_checked},
     state::{Account, Mint},
     ID as TOKEN_2022_PROGRAM_ID,
 };
@@ -324,5 +325,51 @@ impl TokenProgramService for TokenProgramServiceImpl {
         }
 
         Ok(Response::new(CreateHoldingAccountResponse { instructions }))
+    }
+
+    /// Creates a `MintToChecked` instruction for Token 2022 program
+    async fn mint(&self, request: Request<MintRequest>) -> Result<Response<MintResponse>, Status> {
+        let req = request.into_inner();
+
+        // Parse public keys
+        let mint_pubkey = Pubkey::from_str(&req.mint_pub_key)
+            .map_err(|e| Status::invalid_argument(format!("Invalid mint_pub_key: {e}")))?;
+        let destination_account_pubkey = Pubkey::from_str(&req.destination_account_pub_key)
+            .map_err(|e| {
+                Status::invalid_argument(format!("Invalid destination_account_pub_key: {e}"))
+            })?;
+        let mint_authority_pubkey = Pubkey::from_str(&req.mint_authority_pub_key).map_err(|e| {
+            Status::invalid_argument(format!("Invalid mint_authority_pub_key: {e}"))
+        })?;
+
+        // Parse amount from string to handle large numbers
+        let amount = req
+            .amount
+            .parse::<u64>()
+            .map_err(|e| Status::invalid_argument(format!("Invalid amount: {e}")))?;
+
+        // Validate decimals
+        let decimals = u8::try_from(req.decimals)
+            .map_err(|_| Status::invalid_argument("decimals must be between 0 and 255"))?;
+
+        // Create the MintToChecked instruction (no additional signers for single authority)
+        let instruction = mint_to_checked(
+            &TOKEN_2022_PROGRAM_ID,
+            &mint_pubkey,
+            &destination_account_pubkey,
+            &mint_authority_pubkey,
+            &[], // Empty signer array for single authority
+            amount,
+            decimals,
+        )
+        .map_err(|e| {
+            Status::invalid_argument(format!("Failed to create MintToChecked instruction: {e}"))
+        })?;
+
+        // Convert to proto and return
+        let proto_instruction = sdk_instruction_to_proto(instruction);
+        Ok(Response::new(MintResponse {
+            instruction: Some(proto_instruction),
+        }))
     }
 }

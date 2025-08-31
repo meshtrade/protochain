@@ -28,6 +28,9 @@ service Service {
 
   // Creates both system account creation and holding account initialization instructions  
   rpc CreateHoldingAccount(CreateHoldingAccountRequest) returns (CreateHoldingAccountResponse);
+
+  // Mint tokens to an existing token account using MintToChecked instruction
+  rpc Mint(MintRequest) returns (MintResponse);
 }
 
 // Request to create InitialiseMint instruction
@@ -127,4 +130,18 @@ message CreateHoldingAccountRequest {
 // Response containing both create and initialize instructions
 message CreateHoldingAccountResponse {
   repeated protosol.solana.transaction.v1.SolanaInstruction instructions = 1;
+}
+
+// Request to mint tokens to a token account
+message MintRequest {
+  string mint_pub_key = 1;              // The mint to mint from
+  string destination_account_pub_key = 2; // Token account to mint to
+  string mint_authority_pub_key = 3;     // Authority that can mint tokens
+  string amount = 4;                     // Amount to mint (as string to handle large numbers)
+  uint32 decimals = 5;                   // Expected decimals for validation
+}
+
+// Response containing Mint instruction
+message MintResponse {
+  protosol.solana.transaction.v1.SolanaInstruction instruction = 1;
 }

@@ -369,18 +369,90 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, holdingAccount.Owner, "Holding account should be owned by Token 2022 program")
 	suite.Assert().NotEmpty(holdingAccount.Data, "Holding account should have data")
 	
-	suite.T().Logf("✅ Complete mint + holding account creation verified successfully:")
+	// BUILD INSTRUCTION to mint tokens into the holding account
+	mintAmount := "1000000" // 1 token with 6 decimals
+	mintInstr, err := suite.tokenProgramService.Mint(suite.ctx, &token_v1.MintRequest{
+		MintPubKey:                mintKeyResp.KeyPair.PublicKey,
+		DestinationAccountPubKey:  holdingAccKeyResp.KeyPair.PublicKey,
+		MintAuthorityPubKey:       payKeyResp.KeyPair.PublicKey, // payer is the mint authority
+		Amount:                    mintAmount,
+		Decimals:                  6, // Must match mint decimals
+	})
+	suite.Require().NoError(err, "Should create mint instruction")
+	suite.T().Logf("  Created mint instruction for %s tokens", mintAmount)
+	
+	// Compose atomic transaction with minting instruction
+	mintTx := &transaction_v1.Transaction{
+		Instructions: []*transaction_v1.SolanaInstruction{
+			mintInstr.Instruction, // Mint tokens to holding account
+		},
+		State: transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
+	}
+	suite.T().Logf("  Composed mint transaction")
+	
+	// Execute mint transaction lifecycle (compile, sign, submit)
+	compiledMintTx, err := suite.transactionService.CompileTransaction(suite.ctx, &transaction_v1.CompileTransactionRequest{
+		Transaction: mintTx,
+		FeePayer:    payKeyResp.KeyPair.PublicKey,
+	})
+	suite.Require().NoError(err, "Should compile mint transaction")
+	
+	// Sign mint transaction (only needs mint authority signature)
+	signedMintTx, err := suite.transactionService.SignTransaction(suite.ctx, &transaction_v1.SignTransactionRequest{
+		Transaction: compiledMintTx.Transaction,
+		SigningMethod: &transaction_v1.SignTransactionRequest_PrivateKeys{
+			PrivateKeys: &transaction_v1.SignWithPrivateKeys{
+				PrivateKeys: []string{
+					payKeyResp.KeyPair.PrivateKey, // mint authority signature
+				},
+			},
+		},
+	})
+	suite.Require().NoError(err, "Should sign mint transaction")
+	
+	// Submit mint transaction
+	submittedMintTx, err := suite.transactionService.SubmitTransaction(suite.ctx, &transaction_v1.SubmitTransactionRequest{
+		Transaction: signedMintTx.Transaction,
+	})
+	suite.Require().NoError(err, "Should submit mint transaction")
+	suite.T().Logf("  Mint transaction submitted: %s", submittedMintTx.Signature)
+	
+	// Wait for mint transaction confirmation
+	suite.monitorTransactionToCompletion(submittedMintTx.Signature)
+	
+	// Verify tokens were minted by checking holding account after minting
+	holdingAccountAfterMint, err := suite.accountService.GetAccount(suite.ctx, &account_v1.GetAccountRequest{
+		Address: holdingAccKeyResp.KeyPair.PublicKey,
+		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED.Enum(),
+	})
+	suite.Require().NoError(err, "Should get holding account after minting")
+	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, holdingAccountAfterMint.Owner, "Holding account should still be owned by Token 2022 program")
+	suite.Assert().NotEmpty(holdingAccountAfterMint.Data, "Holding account should have updated data after minting")
+	
+	// Verify mint supply has increased
+	parsedMintAfterMinting, err := suite.tokenProgramService.ParseMint(suite.ctx, &token_v1.ParseMintRequest{
+		AccountAddress: mintKeyResp.KeyPair.PublicKey,
+	})
+	suite.Require().NoError(err, "Should parse mint account after minting")
+	suite.Require().NotNil(parsedMintAfterMinting.Mint, "Parsed mint should not be nil")
+	suite.Assert().Equal(mintAmount, parsedMintAfterMinting.Mint.Supply, "Mint supply should match minted amount")
+
+	suite.T().Logf("✅ Complete mint + holding account creation + minting verified successfully:")
 	suite.T().Logf("   Mint Address: %s", mintKeyResp.KeyPair.PublicKey)
 	suite.T().Logf("   Mint Decimals: %d", parsedMint.Mint.Decimals)
 	suite.T().Logf("   Mint Authority: %s", parsedMint.Mint.MintAuthorityPubKey)
+	suite.T().Logf("   Mint Supply After Minting: %s", parsedMintAfterMinting.Mint.Supply)
 	suite.T().Logf("   Holding Account Address: %s", holdingAccKeyResp.KeyPair.PublicKey)
 	suite.T().Logf("   Holding Account Owner: %s", holdingAccount.Owner)
 	suite.T().Logf("   Holding Account Balance: %d lamports", holdingAccount.Lamports)
+	suite.T().Logf("   Minted Amount: %s tokens", mintAmount)
 	
 	suite.T().Logf("🔍 Blockchain verification commands:")
 	suite.T().Logf("   solana account %s --url http://localhost:8899", mintKeyResp.KeyPair.PublicKey)
 	suite.T().Logf("   solana account %s --url http://localhost:8899", holdingAccKeyResp.KeyPair.PublicKey)
+	suite.T().Logf("   spl-token account-info %s --url http://localhost:8899", holdingAccKeyResp.KeyPair.PublicKey)
 	suite.T().Logf("   solana confirm %s --url http://localhost:8899", submittedTx.Signature)
+	suite.T().Logf("   solana confirm %s --url http://localhost:8899", submittedMintTx.Signature)
 }
 
 // Helper function to wait for account visibility
