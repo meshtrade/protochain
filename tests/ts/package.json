@@ -1,0 +1,25 @@
+{
+  "name": "@protosol/tests-ts",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TypeScript playground for testing gRPC client connectivity",
+  "type": "module",
+  "scripts": {
+    "test-connectivity": "tsx run-tests.ts",
+    "test-account": "tsx test-account.ts",
+    "test-token": "tsx test-token.ts",
+    "test-system": "tsx test-system.ts",
+    "test-rpc": "tsx test-rpc.ts",
+    "test-transaction": "tsx test-transaction.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'No linting configured for test files'"
+  },
+  "dependencies": {
+    "@protosol/api": "1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  }
+}
