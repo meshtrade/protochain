@@ -16,6 +16,12 @@ service Service {
   
   // Parses mint account data into structured format
   rpc ParseMint(ParseMintRequest) returns (ParseMintResponse);
+  
+  // Creates an InitialiseHoldingAccount instruction for Token 2022 program
+  rpc InitialiseHoldingAccount(InitialiseHoldingAccountRequest) returns (InitialiseHoldingAccountResponse);
+  
+  // Gets current minimum rent for a token holding account
+  rpc GetCurrentMinRentForHoldingAccount(GetCurrentMinRentForHoldingAccountRequest) returns (GetCurrentMinRentForHoldingAccountResponse);
 }
 
 // Request to create InitialiseMint instruction
@@ -58,4 +64,26 @@ message MintInfo {
   uint32 decimals = 3;
   string supply = 4;
   bool is_initialized = 5;
+}
+
+// Request to create InitialiseHoldingAccount instruction
+message InitialiseHoldingAccountRequest {
+  string account_pub_key = 1;
+  string mint_pub_key = 2;
+  string owner_pub_key = 3;
+}
+
+// Response containing InitialiseHoldingAccount instruction
+message InitialiseHoldingAccountResponse {
+  protosol.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
+// Request to get current rent for holding account
+message GetCurrentMinRentForHoldingAccountRequest {
+  // No parameters needed - uses fixed Account::LEN size
+}
+
+// Response with current rent amount for holding account
+message GetCurrentMinRentForHoldingAccountResponse {
+  uint64 lamports = 1;
 }

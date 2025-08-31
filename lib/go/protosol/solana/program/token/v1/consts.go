@@ -5,3 +5,6 @@ const TOKEN_2022_PROGRAM_ID = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
 
 // MINT_ACCOUNT_LEN is the size in bytes of a mint account
 const MINT_ACCOUNT_LEN = 82
+
+// HOLDING_ACCOUNT_LEN is the size in bytes of a token holding account
+const HOLDING_ACCOUNT_LEN = 165

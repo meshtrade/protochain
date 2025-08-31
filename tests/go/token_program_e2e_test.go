@@ -183,6 +183,206 @@ func (suite *TokenProgramE2ETestSuite) Test_02_GetCurrentMinRentForTokenAccount(
 	suite.T().Logf("  Mint account rent: %d lamports", resp.Lamports)
 }
 
+// Test_02_5_GetCurrentMinRentForHoldingAccount tests rent calculation for holding accounts
+func (suite *TokenProgramE2ETestSuite) Test_02_5_GetCurrentMinRentForHoldingAccount() {
+	suite.T().Log("🎯 Testing Holding Account Rent Calculation")
+
+	// Get rent for holding account using our new method
+	resp, err := suite.tokenProgramService.GetCurrentMinRentForHoldingAccount(suite.ctx, &token_v1.GetCurrentMinRentForHoldingAccountRequest{})
+	suite.Require().NoError(err, "Should get holding account rent successfully")
+	suite.Require().NotZero(resp.Lamports, "Holding account rent should not be zero")
+
+	// Validate reasonable rent amount (holding accounts are 165 bytes)
+	suite.Assert().Greater(resp.Lamports, uint64(1_000_000), "Rent should be at least 1M lamports for holding account")
+	suite.T().Logf("  Holding account rent: %d lamports", resp.Lamports)
+}
+
+// Test_02_6_InitialiseHoldingAccountInstruction tests holding account instruction creation
+func (suite *TokenProgramE2ETestSuite) Test_02_6_InitialiseHoldingAccountInstruction() {
+	suite.T().Log("🎯 Testing InitialiseHoldingAccount Instruction Creation")
+
+	// Use hardcoded valid public keys for instruction creation test
+	testAccountPubKey := "11111111111111111111111111111112"       // System Program
+	testMintPubKey := "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"  // Token 2022 Program
+	testOwnerPubKey := "So11111111111111111111111111111111111111112" // Wrapped SOL
+
+	// Create holding account instruction using our new method
+	resp, err := suite.tokenProgramService.InitialiseHoldingAccount(suite.ctx, &token_v1.InitialiseHoldingAccountRequest{
+		AccountPubKey: testAccountPubKey,
+		MintPubKey:    testMintPubKey,
+		OwnerPubKey:   testOwnerPubKey,
+	})
+	suite.Require().NoError(err, "Should create holding account instruction successfully")
+	suite.Require().NotNil(resp.Instruction, "Instruction should not be nil")
+
+	// Validate instruction properties
+	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, resp.Instruction.ProgramId, "Program ID should be Token 2022")
+	suite.Assert().GreaterOrEqual(len(resp.Instruction.Accounts), 4, "Should have at least 4 accounts (account, mint, owner, rent sysvar)")
+	suite.Assert().NotEmpty(resp.Instruction.Data, "Instruction data should not be empty")
+	
+	suite.T().Logf("✅ InitialiseHoldingAccount instruction created successfully:")
+	suite.T().Logf("   Program ID: %s", resp.Instruction.ProgramId)
+	suite.T().Logf("   Accounts: %d", len(resp.Instruction.Accounts))
+	suite.T().Logf("   Data Length: %d bytes", len(resp.Instruction.Data))
+}
+
+// Test_03_Token_e2e tests complete mint + holding account creation flow
+func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
+	suite.T().Log("🎯 Testing Token 2022 Mint Creation and Holding Account Initialization")
+	
+	// Generate and fund payer account
+	payKeyResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
+	suite.Require().NoError(err, "Should generate payer keypair")
+	
+	_, err = suite.accountService.FundNative(suite.ctx, &account_v1.FundNativeRequest{
+		Address: payKeyResp.KeyPair.PublicKey,
+		Amount:  "5000000000", // 5 SOL
+	})
+	suite.Require().NoError(err, "Should fund payer account")
+	suite.T().Logf("  Funded payer account: %s", payKeyResp.KeyPair.PublicKey)
+	
+	// Wait for payer account to be funded
+	suite.waitForAccountVisible(payKeyResp.KeyPair.PublicKey)
+	
+	// Generate mint account keypair  
+	mintKeyResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
+	suite.Require().NoError(err, "Should generate mint keypair")
+	suite.T().Logf("  Generated mint account: %s", mintKeyResp.KeyPair.PublicKey)
+	
+	// Get rent for mint account
+	mintRentResp, err := suite.tokenProgramService.GetCurrentMinRentForTokenAccount(suite.ctx, &token_v1.GetCurrentMinRentForTokenAccountRequest{})
+	suite.Require().NoError(err, "Should get current rent amount for mint account")
+	suite.T().Logf("  Mint account rent: %d lamports", mintRentResp.Lamports)
+	
+	// Create mint account instruction
+	createMintInstr, err := suite.systemProgramService.Create(suite.ctx, &system_v1.CreateRequest{
+		Payer:      payKeyResp.KeyPair.PublicKey,
+		NewAccount: mintKeyResp.KeyPair.PublicKey,
+		Owner:      token_v1.TOKEN_2022_PROGRAM_ID,
+		Lamports:   mintRentResp.Lamports,
+		Space:      token_v1.MINT_ACCOUNT_LEN,
+	})
+	suite.Require().NoError(err, "Should create mint account instruction")
+	
+	// Initialize mint instruction
+	initialiseMintInstr, err := suite.tokenProgramService.InitialiseMint(suite.ctx, &token_v1.InitialiseMintRequest{
+		MintPubKey:            mintKeyResp.KeyPair.PublicKey,
+		MintAuthorityPubKey:   payKeyResp.KeyPair.PublicKey,
+		FreezeAuthorityPubKey: payKeyResp.KeyPair.PublicKey,
+		Decimals:              6,
+	})
+	suite.Require().NoError(err, "Should create initialise mint instruction")
+	
+	// Generate holding account keypair
+	holdingAccKeyResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
+	suite.Require().NoError(err, "Should generate holding account keypair")
+	suite.T().Logf("  Generated holding account: %s", holdingAccKeyResp.KeyPair.PublicKey)
+	
+	// Get rent for holding account using new method
+	holdingAccountRentResp, err := suite.tokenProgramService.GetCurrentMinRentForHoldingAccount(suite.ctx, &token_v1.GetCurrentMinRentForHoldingAccountRequest{})
+	suite.Require().NoError(err, "Should get current rent amount for token holding account")
+	suite.T().Logf("  Holding account rent: %d lamports", holdingAccountRentResp.Lamports)
+	
+	// Create holding account instruction
+	createHoldingAccInstr, err := suite.systemProgramService.Create(suite.ctx, &system_v1.CreateRequest{
+		Payer:      payKeyResp.KeyPair.PublicKey,
+		NewAccount: holdingAccKeyResp.KeyPair.PublicKey,
+		Owner:      token_v1.TOKEN_2022_PROGRAM_ID,
+		Lamports:   holdingAccountRentResp.Lamports,
+		Space:      token_v1.HOLDING_ACCOUNT_LEN,
+	})
+	suite.Require().NoError(err, "Should create holding account instruction")
+	
+	// Initialize holding account instruction
+	initialiseHoldingAccountInstr, err := suite.tokenProgramService.InitialiseHoldingAccount(suite.ctx, &token_v1.InitialiseHoldingAccountRequest{
+		AccountPubKey: holdingAccKeyResp.KeyPair.PublicKey,
+		MintPubKey:    mintKeyResp.KeyPair.PublicKey,
+		OwnerPubKey:   payKeyResp.KeyPair.PublicKey,
+	})
+	suite.Require().NoError(err, "Should initialize holding account instruction")
+	
+	// Compose atomic transaction with all 4 instructions
+	atomicTx := &transaction_v1.Transaction{
+		Instructions: []*transaction_v1.SolanaInstruction{
+			createMintInstr,
+			initialiseMintInstr.Instruction,
+			createHoldingAccInstr,
+			initialiseHoldingAccountInstr.Instruction,
+		},
+		State: transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
+	}
+	suite.T().Logf("  Composed atomic transaction with 4 instructions")
+	
+	// Execute transaction lifecycle (compile, sign, submit)
+	compiledTx, err := suite.transactionService.CompileTransaction(suite.ctx, &transaction_v1.CompileTransactionRequest{
+		Transaction: atomicTx,
+		FeePayer:    payKeyResp.KeyPair.PublicKey,
+	})
+	suite.Require().NoError(err, "Should compile transaction")
+	
+	// Sign transaction (needs both mint and holding account signatures)
+	signedTx, err := suite.transactionService.SignTransaction(suite.ctx, &transaction_v1.SignTransactionRequest{
+		Transaction: compiledTx.Transaction,
+		SigningMethod: &transaction_v1.SignTransactionRequest_PrivateKeys{
+			PrivateKeys: &transaction_v1.SignWithPrivateKeys{
+				PrivateKeys: []string{
+					payKeyResp.KeyPair.PrivateKey,        // payer signature
+					mintKeyResp.KeyPair.PrivateKey,       // mint account signature
+					holdingAccKeyResp.KeyPair.PrivateKey, // holding account signature
+				},
+			},
+		},
+	})
+	suite.Require().NoError(err, "Should sign transaction")
+	
+	// Submit transaction
+	submittedTx, err := suite.transactionService.SubmitTransaction(suite.ctx, &transaction_v1.SubmitTransactionRequest{
+		Transaction: signedTx.Transaction,
+	})
+	suite.Require().NoError(err, "Should submit transaction")
+	suite.T().Logf("  Transaction submitted: %s", submittedTx.Signature)
+	
+	// Wait for confirmation
+	suite.monitorTransactionToCompletion(submittedTx.Signature)
+	
+	// Verify mint account parsing
+	parsedMint, err := suite.tokenProgramService.ParseMint(suite.ctx, &token_v1.ParseMintRequest{
+		AccountAddress: mintKeyResp.KeyPair.PublicKey,
+	})
+	suite.Require().NoError(err, "Should parse mint account")
+	suite.Require().NotNil(parsedMint.Mint, "Parsed mint should not be nil")
+	
+	// Validate mint properties
+	suite.Assert().Equal(uint32(6), parsedMint.Mint.Decimals, "Mint should have 6 decimals")
+	suite.Assert().Equal(payKeyResp.KeyPair.PublicKey, parsedMint.Mint.MintAuthorityPubKey, "Mint authority should match")
+	suite.Assert().Equal(payKeyResp.KeyPair.PublicKey, parsedMint.Mint.FreezeAuthorityPubKey, "Freeze authority should match")
+	suite.Assert().Equal("0", parsedMint.Mint.Supply, "Initial supply should be zero")
+	suite.Assert().True(parsedMint.Mint.IsInitialized, "Mint should be initialized")
+	
+	// Verify holding account creation (ensure it exists and is owned by token program)
+	holdingAccount, err := suite.accountService.GetAccount(suite.ctx, &account_v1.GetAccountRequest{
+		Address: holdingAccKeyResp.KeyPair.PublicKey,
+		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED.Enum(),
+	})
+	suite.Require().NoError(err, "Should get holding account")
+	suite.Require().NotNil(holdingAccount, "Holding account should exist")
+	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, holdingAccount.Owner, "Holding account should be owned by Token 2022 program")
+	suite.Assert().NotEmpty(holdingAccount.Data, "Holding account should have data")
+	
+	suite.T().Logf("✅ Complete mint + holding account creation verified successfully:")
+	suite.T().Logf("   Mint Address: %s", mintKeyResp.KeyPair.PublicKey)
+	suite.T().Logf("   Mint Decimals: %d", parsedMint.Mint.Decimals)
+	suite.T().Logf("   Mint Authority: %s", parsedMint.Mint.MintAuthorityPubKey)
+	suite.T().Logf("   Holding Account Address: %s", holdingAccKeyResp.KeyPair.PublicKey)
+	suite.T().Logf("   Holding Account Owner: %s", holdingAccount.Owner)
+	suite.T().Logf("   Holding Account Balance: %d lamports", holdingAccount.Lamports)
+	
+	suite.T().Logf("🔍 Blockchain verification commands:")
+	suite.T().Logf("   solana account %s --url http://localhost:8899", mintKeyResp.KeyPair.PublicKey)
+	suite.T().Logf("   solana account %s --url http://localhost:8899", holdingAccKeyResp.KeyPair.PublicKey)
+	suite.T().Logf("   solana confirm %s --url http://localhost:8899", submittedTx.Signature)
+}
+
 // Helper function to wait for account visibility
 func (suite *TokenProgramE2ETestSuite) waitForAccountVisible(address string) {
 	suite.T().Logf("  Waiting for account %s to become visible...", address)

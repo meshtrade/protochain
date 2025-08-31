@@ -2,14 +2,20 @@ use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
 use protosol_api::protosol::solana::program::token::v1::{
-    service_server::Service as TokenProgramService, GetCurrentMinRentForTokenAccountRequest,
-    GetCurrentMinRentForTokenAccountResponse, InitialiseMintRequest, InitialiseMintResponse,
-    MintInfo, ParseMintRequest, ParseMintResponse,
+    service_server::Service as TokenProgramService, GetCurrentMinRentForHoldingAccountRequest,
+    GetCurrentMinRentForHoldingAccountResponse, GetCurrentMinRentForTokenAccountRequest,
+    GetCurrentMinRentForTokenAccountResponse, InitialiseHoldingAccountRequest,
+    InitialiseHoldingAccountResponse, InitialiseMintRequest, InitialiseMintResponse, MintInfo,
+    ParseMintRequest, ParseMintResponse,
 };
 
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{commitment_config::CommitmentConfig, program_pack::Pack, pubkey::Pubkey};
-use spl_token_2022::{instruction::initialize_mint2, state::Mint, ID as TOKEN_2022_PROGRAM_ID};
+use spl_token_2022::{
+    instruction::{initialize_account, initialize_mint2},
+    state::{Account, Mint},
+    ID as TOKEN_2022_PROGRAM_ID,
+};
 use std::str::FromStr;
 
 use crate::api::common::solana_conversions::sdk_instruction_to_proto;
@@ -139,5 +145,60 @@ impl TokenProgramService for TokenProgramServiceImpl {
         Ok(Response::new(ParseMintResponse {
             mint: Some(mint_info),
         }))
+    }
+
+    /// Creates an `InitialiseHoldingAccount` instruction for Token 2022 program
+    async fn initialise_holding_account(
+        &self,
+        request: Request<InitialiseHoldingAccountRequest>,
+    ) -> Result<Response<InitialiseHoldingAccountResponse>, Status> {
+        let req = request.into_inner();
+
+        // Parse public keys
+        let account_pubkey = Pubkey::from_str(&req.account_pub_key)
+            .map_err(|e| Status::invalid_argument(format!("Invalid account_pub_key: {e}")))?;
+        let mint_pubkey = Pubkey::from_str(&req.mint_pub_key)
+            .map_err(|e| Status::invalid_argument(format!("Invalid mint_pub_key: {e}")))?;
+        let owner_pubkey = Pubkey::from_str(&req.owner_pub_key)
+            .map_err(|e| Status::invalid_argument(format!("Invalid owner_pub_key: {e}")))?;
+
+        // Create the InitializeAccount instruction
+        let instruction = initialize_account(
+            &TOKEN_2022_PROGRAM_ID,
+            &account_pubkey,
+            &mint_pubkey,
+            &owner_pubkey,
+        )
+        .map_err(|e| {
+            Status::invalid_argument(format!(
+                "Failed to create InitialiseHoldingAccount instruction: {e}"
+            ))
+        })?;
+
+        // Convert to proto and return
+        let proto_instruction = sdk_instruction_to_proto(instruction);
+        Ok(Response::new(InitialiseHoldingAccountResponse {
+            instruction: Some(proto_instruction),
+        }))
+    }
+
+    /// Gets current minimum rent for a token holding account
+    async fn get_current_min_rent_for_holding_account(
+        &self,
+        _request: Request<GetCurrentMinRentForHoldingAccountRequest>,
+    ) -> Result<Response<GetCurrentMinRentForHoldingAccountResponse>, Status> {
+        // Get minimum balance for rent exemption using Account::LEN
+        match self
+            .rpc_client
+            .get_minimum_balance_for_rent_exemption(Account::LEN)
+        {
+            Ok(lamports) => {
+                let response = GetCurrentMinRentForHoldingAccountResponse { lamports };
+                Ok(Response::new(response))
+            }
+            Err(e) => Err(Status::internal(format!(
+                "Failed to get minimum balance for holding account: {e}"
+            ))),
+        }
     }
 }
