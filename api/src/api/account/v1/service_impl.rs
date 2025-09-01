@@ -15,6 +15,8 @@ use solana_sdk::{
     signature::{Keypair, SeedDerivable, Signer},
 };
 
+use crate::api::common::transaction_monitoring::wait_for_transaction_success_by_string;
+
 #[derive(Clone)]
 /// Core business logic implementation for account management operations
 pub struct AccountServiceImpl {
@@ -179,6 +181,9 @@ impl AccountService for AccountServiceImpl {
         &self,
         request: Request<FundNativeRequest>,
     ) -> Result<Response<FundNativeResponse>, Status> {
+        // Validate minimum funding amount to prevent common failures
+        const MIN_FUNDING_AMOUNT: u64 = 1_000_000_000; // 1 SOL for rent exemption
+
         println!("Received fund native request: {request:?}");
 
         let req = request.into_inner();
@@ -206,6 +211,14 @@ impl AccountService for AccountServiceImpl {
             return Err(Status::invalid_argument("Amount must be greater than 0"));
         }
 
+        if amount < MIN_FUNDING_AMOUNT {
+            return Err(Status::invalid_argument(
+                format!(
+                    "Funding amount too small. Minimum: {MIN_FUNDING_AMOUNT} lamports (1 SOL) required for rent exemption. Provided: {amount} lamports"
+                )
+            ));
+        }
+
         // Request airdrop
         println!("Requesting airdrop of {amount} lamports to {address}");
         // RPC client ready for airdrop request
@@ -214,15 +227,18 @@ impl AccountService for AccountServiceImpl {
             .request_airdrop(&address, amount)
             .map_err(|e| Status::internal(format!("Airdrop request failed: {e}")))?;
 
-        // Wait for confirmation - commitment level is handled by GetAccount with configurable commitment
-        println!(
-            "Waiting for airdrop confirmation: {signature} (commitment level will be used in GetAccount)"
-        );
-        self.rpc_client
-            .confirm_transaction(&signature)
-            .map_err(|e| Status::internal(format!("Failed to confirm airdrop: {e}")))?;
+        // Wait for transaction success validation (not just confirmation)
+        println!("Waiting for airdrop success validation: {signature}");
+        let commitment = commitment_level_to_config(req.commitment_level);
+        wait_for_transaction_success_by_string(
+            self.rpc_client.clone(),
+            &signature.to_string(),
+            commitment,
+            Some(60),
+        )
+        .await?;
 
-        println!("Airdrop confirmed successfully: {signature}");
+        println!("Airdrop completed successfully: {signature}");
 
         Ok(Response::new(FundNativeResponse {
             signature: signature.to_string(),
