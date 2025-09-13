@@ -51,7 +51,7 @@ protochain/
 ├── app/                          # 🏗️ Multi-App Architecture
 │   ├── solana/                  # Solana blockchain applications
 │   │   └── cmd/
-│   │       └── api/             # 🦀 Rust gRPC Backend (moved from ./api)
+│   │       └── api/             # 🦀 Rust gRPC Backend
 │   │           ├── src/main.rs  # gRPC server (port 50051)
 │   │           └── src/api/     # Service implementations
 │   │               ├── account/v1/      # Account service logic
@@ -86,7 +86,7 @@ protochain/
 
 ## 🏗️ Multi-App Architecture
 
-ProtoChain now supports a **multi-app architecture** that allows multiple applications to coexist in the same repository:
+ProtoChain features a **multi-app architecture** that allows multiple applications to coexist in the same repository:
 
 ### App Naming Convention
 - **Pattern**: `{app-type}-{executable-name}`
@@ -193,7 +193,7 @@ buf lint
 
 3. **Implement & Test**
 ```bash
-# Update Rust implementation (NEW LOCATION)
+# Update Rust implementation
 vim app/solana/cmd/api/src/api/account/v1/service_impl.rs
 
 # Run tests
