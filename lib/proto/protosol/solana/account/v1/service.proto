@@ -16,11 +16,11 @@ service Service {
 
 message GetAccountRequest {
   string address = 1;  // Base58-encoded account address to fetch from Solana network
-  optional protosol.solana.type.v1.CommitmentLevel commitment_level = 2;  // Optional commitment level for account queries
+  protosol.solana.type.v1.CommitmentLevel commitment_level = 2;  // Optional commitment level for account queries
 }
 
 message GenerateNewKeyPairRequest {
-  optional string seed = 1; // Optional deterministic seed (hex-encoded)
+  string seed = 1; // Optional deterministic seed (hex-encoded)
 }
 
 message GenerateNewKeyPairResponse {
@@ -30,7 +30,7 @@ message GenerateNewKeyPairResponse {
 message FundNativeRequest {
   string address = 1;  // Target address for funding (Base58)
   string amount = 2;   // Amount in lamports as string
-  optional protosol.solana.type.v1.CommitmentLevel commitment_level = 3;  // Optional commitment level for funding confirmation
+  protosol.solana.type.v1.CommitmentLevel commitment_level = 3;  // Optional commitment level for funding confirmation
 }
 
 message FundNativeResponse {

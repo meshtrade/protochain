@@ -37,7 +37,7 @@ message CompileTransactionResponse {
 
 message EstimateTransactionRequest {
   Transaction transaction = 1;  // Must be in COMPILED state
-  optional protosol.solana.type.v1.CommitmentLevel commitment_level = 2;  // Commitment level for fee estimation
+  protosol.solana.type.v1.CommitmentLevel commitment_level = 2;  // Commitment level for fee estimation
 }
 
 message EstimateTransactionResponse {
@@ -54,7 +54,7 @@ message EstimateTransactionResponse {
 
 message SimulateTransactionRequest {
   Transaction transaction = 1;  // Must be compiled
-  optional protosol.solana.type.v1.CommitmentLevel commitment_level = 2;  // Commitment level for simulation
+  protosol.solana.type.v1.CommitmentLevel commitment_level = 2;  // Commitment level for simulation
 }
 
 message SimulateTransactionResponse {
@@ -86,14 +86,14 @@ message SignWithSeeds {
 
 message KeySeed {
   string seed = 1;
-  optional string passphrase = 2;
+  string passphrase = 2;
 }
 
 // Request to asynchronously submit a transaction to the Solana network
 // The method returns immediately after submission without waiting for confirmation
 message SubmitTransactionRequest {
   Transaction transaction = 1;  // Must be fully signed
-  optional protosol.solana.type.v1.CommitmentLevel commitment_level = 2;  // Commitment level for transaction submission
+  protosol.solana.type.v1.CommitmentLevel commitment_level = 2;  // Commitment level for transaction submission
 }
 
 // Response containing the submission result
@@ -103,7 +103,7 @@ message SubmitTransactionRequest {
 message SubmitTransactionResponse {
   string signature = 1;  // Transaction signature
   SubmissionResult submission_result = 2;  // Submission outcome (sent vs failed to send)
-  optional string error_message = 3;  // Error details if submission failed
+  string error_message = 3;  // Error details if submission failed
 }
 
 enum SubmissionResult {
@@ -117,7 +117,7 @@ enum SubmissionResult {
 
 message GetTransactionRequest {
   string signature = 1;
-  optional protosol.solana.type.v1.CommitmentLevel commitment_level = 2;  // Commitment level for transaction retrieval
+  protosol.solana.type.v1.CommitmentLevel commitment_level = 2;  // Commitment level for transaction retrieval
 }
 
 message GetTransactionResponse {
@@ -129,16 +129,16 @@ message MonitorTransactionRequest {
   string signature = 1;                                               // Transaction signature to monitor
   protosol.solana.type.v1.CommitmentLevel commitment_level = 2;       // Target commitment level
   bool include_logs = 3;                                              // Include program execution logs
-  optional uint32 timeout_seconds = 4;                               // Monitor timeout (default: 60)
+  uint32 timeout_seconds = 4;                               // Monitor timeout (default: 60)
 }
 
 message MonitorTransactionResponse {
   string signature = 1;                                               // Transaction signature being monitored
   TransactionStatus status = 2;                                       // Current transaction status
-  optional uint64 slot = 3;                                          // Blockchain slot where transaction was processed
-  optional string error_message = 4;                                  // Error details if transaction failed
+  uint64 slot = 3;                                          // Blockchain slot where transaction was processed
+  string error_message = 4;                                  // Error details if transaction failed
   repeated string logs = 5;                                           // Program execution logs (if requested)
-  optional uint64 compute_units_consumed = 6;                        // Compute units consumed by transaction
+  uint64 compute_units_consumed = 6;                        // Compute units consumed by transaction
   protosol.solana.type.v1.CommitmentLevel current_commitment = 7;     // Current commitment level achieved
 }
 
