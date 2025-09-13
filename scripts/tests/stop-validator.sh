@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Stop Solana Local Validator
-# Usage: ./project/solana/scripts/stop-validator.sh (from root directory)
+# Usage: ./scripts/tests/stop-validator.sh (from root directory)
+#
+# For Docker-based development, use: ./scripts/tests/stop-docker.sh
 
 set -e
 

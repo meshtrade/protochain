@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Stop Solana gRPC Backend Server
-# Usage: ./project/solana/scripts/stop-backend.sh (from root directory)
+# Usage: ./scripts/tests/stop-backend.sh (from root directory)
+#
+# For Docker-based development, use: ./scripts/tests/stop-docker.sh
 
 set -e
 

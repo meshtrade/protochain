@@ -1,0 +1,69 @@
+# Docker ignore file for Protochain
+# Optimizes build context for Docker builds
+
+# Git and version control
+.git/
+.gitignore
+
+# Target directories (rebuild from source)
+**/target/
+target/
+dist/
+build/
+node_modules/
+
+# Development tools and logs
+.DS_Store
+**/.DS_Store
+*.log
+.solana-validator.log
+.solana-backend.log
+.solana-validator-ledger/
+
+# Test artifacts
+test-ledger/
+tests/go/go.sum
+
+# Documentation and development files
+*.md
+docs/
+CLAUDE.md
+
+# Backup and temporary files
+.backup-*/
+.tmp/
+.cache/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Development scripts (not needed in container)
+scripts/
+tool/
+
+# Test configurations (container uses env vars)
+**/config.json
+local-config.json
+
+# Go modules (will be downloaded during build)
+go.sum
+go.work.sum
+
+# Rust incremental build artifacts
+**/*.rs.bk
+**/Cargo.lock.bk
+
+# TypeScript build artifacts
+.next/
+out/
+*.tsbuildinfo
+yarn-error.log
+
+# Only keep what's needed for the build:
+# - Cargo.toml (workspace config)
+# - Cargo.lock (dependency versions)
+# - lib/ (source dependencies)
+# - app/solana/cmd/api/ (the app being built)

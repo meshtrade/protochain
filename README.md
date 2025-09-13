@@ -1,4 +1,4 @@
-# ProtoChain (Protochain)
+# Protochain
 
 **Protocol Buffer Wrapper for Solana SDKs**
 
@@ -172,7 +172,28 @@ buf --version      # Protocol buffer tools
 
 ### Development Workflow
 
-1. **Start Local Environment**
+#### Option 1: Docker Compose (Recommended)
+```bash
+# Start full stack (validator + API)
+./scripts/tests/start-docker.sh
+
+# Stop full stack
+./scripts/tests/stop-docker.sh
+```
+
+#### Option 2: Hybrid Development (Most Common)
+```bash
+# Start only Solana validator in Docker
+./scripts/tests/start-validator-docker.sh
+
+# Start backend locally for development (restart as needed)
+cargo run -p protochain-solana-api
+
+# Stop validator when done
+./scripts/tests/stop-validator-docker.sh
+```
+
+#### Option 3: Native Development
 ```bash
 # Terminal 1: Start Solana validator
 ./scripts/tests/start-validator.sh

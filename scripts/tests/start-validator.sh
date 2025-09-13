@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Start Solana Local Validator in background
-# Usage: ./project/solana/scripts/start-validator.sh (from root directory)
+# Usage: ./scripts/tests/start-validator.sh (from root directory)
+#
+# For Docker-based development, use: ./scripts/tests/start-docker.sh
 
 set -e
 
@@ -22,7 +24,8 @@ if [[ -f "$PID_FILE" ]]; then
     PID=$(cat "$PID_FILE")
     if kill -0 "$PID" 2>/dev/null; then
         echo "⚠️  Solana validator is already running (PID: $PID)"
-        echo "   Use ./project/solana/scripts/stop-validator.sh to stop it first"
+        echo "   Use ./scripts/tests/stop-validator.sh to stop it first"
+        echo "   Or use ./scripts/tests/start-docker.sh for Docker-based development"
         exit 1
     else
         echo "🧹 Cleaning up stale PID file"
@@ -109,9 +112,10 @@ while [[ $WAIT_COUNT -lt $MAX_WAIT ]]; do
             echo ""
             echo "💰 To get test SOL: solana airdrop 100"  
             echo "🔍 To check status: solana cluster-version"
-            echo "🛑 To stop validator: ./project/solana/scripts/stop-validator.sh"
+            echo "🛑 To stop validator: ./scripts/tests/stop-validator.sh"
             echo ""
-            echo "🎯 You can now run: ./project/solana/scripts/dev.sh start-local"
+            echo "🎯 You can now run: ./scripts/tests/start-backend.sh"
+            echo "🐳 Or try Docker: ./scripts/tests/start-docker.sh"
             exit 0
         fi
     fi
@@ -130,4 +134,4 @@ solana config set --url localhost >/dev/null 2>&1 || true
 
 echo "✅ Validator should be ready soon"
 echo "🧪 You can test with: solana cluster-version"
-echo "🛑 Use './project/solana/scripts/stop-validator.sh' to stop validator"
+echo "🛑 Use './scripts/tests/stop-validator.sh' to stop validator"

@@ -77,33 +77,47 @@ DRAFT → COMPILED → PARTIALLY_SIGNED → FULLY_SIGNED → SUBMITTED
 ## 📁 Repository Structure (Verified)
 
 ```
-protosol/
-├── api/                              # Rust backend gRPC service
-│   ├── Cargo.toml                   # Package: protosol-solana-api
-│   └── src/
-│       ├── main.rs                  # gRPC server entry (port 50051)
-│       ├── config.rs                # Configuration management
-│       ├── service_providers/       # Dependency injection layer
-│       │   ├── service_providers.rs # Main provider container
-│       │   └── solana_clients.rs    # RPC client management
-│       └── api/                     # Service implementations
-│           ├── api.rs               # API aggregator
-│           ├── account/v1/          # Account service impl
-│           │   ├── service_impl.rs  # Service logic
-│           │   └── account_v1_api.rs# API wrapper
-│           ├── transaction/v1/      # Transaction service impl
-│           │   ├── service_impl.rs  # Service logic
-│           │   ├── validation.rs    # State machine validators
-│           │   └── transaction_v1_api.rs
-│           └── program/             
-│               └── system/v1/       # System program wrapper
-│                   ├── service_impl.rs
-│                   ├── conversion.rs # Proto ↔ SDK converters
-│                   └── service_impl/tests.rs
+protochain/
+├── app/                              # 🏗️ Multi-App Architecture
+│   ├── solana/                      # Solana blockchain applications
+│   │   └── cmd/
+│   │       └── api/                 # 🦀 Rust gRPC Backend
+│   │           ├── Cargo.toml       # Package: protochain-solana-api
+│   │           ├── ci/              # 🐳 Docker containerization
+│   │           │   ├── Dockerfile   # Multi-stage production build
+│   │           │   ├── docker-build.sh # Helper script
+│   │           │   └── README.md    # Containerization guide
+│   │           └── src/
+│   │               ├── main.rs      # gRPC server entry (port 50051)
+│   │               ├── config.rs    # Configuration management
+│   │               ├── service_providers/ # Dependency injection layer
+│   │               │   ├── service_providers.rs # Main provider container
+│   │               │   └── solana_clients.rs # RPC client management
+│   │               └── api/         # Service implementations
+│   │                   ├── api.rs   # API aggregator
+│   │                   ├── account/v1/ # Account service impl
+│   │                   │   ├── service_impl.rs # Service logic
+│   │                   │   └── account_v1_api.rs # API wrapper
+│   │                   ├── transaction/v1/ # Transaction service impl
+│   │                   │   ├── service_impl.rs # Service logic
+│   │                   │   ├── validation.rs # State machine validators
+│   │                   │   └── transaction_v1_api.rs
+│   │                   └── program/
+│   │                       └── system/v1/ # System program wrapper
+│                       │   ├── service_impl.rs
+│                       │   ├── conversion.rs # Proto ↔ SDK converters
+│                       │   └── service_impl/tests.rs
+│   │
+│   └── template/                    # Template for new applications
+│       └── cmd/
+│           └── some-executable/     # 🐹 Go template app
+│               ├── main.go          # Working Go executable
+│               ├── go.mod           # Independent Go module
+│               └── README.md        # Usage documentation
 │
 ├── lib/                             # Multi-language SDKs
 │   ├── proto/                       # 🔥 SOURCE OF TRUTH
-│   │   └── protosol/solana/
+│   │   └── protochain/solana/
 │   │       ├── account/v1/          
 │   │       │   ├── account.proto   # Account data model
 │   │       │   └── service.proto   # Account operations
@@ -135,10 +149,22 @@ protosol/
 │   ├── code-gen/
 │   │   ├── generate/all.sh        # Generate all SDKs
 │   │   └── clean/all.sh           # Clean generated code
+│   ├── lint/
+│   │   ├── all.sh                 # Lint all languages
+│   │   ├── rs.sh                  # Rust linting
+│   │   └── go.sh                  # Go linting
 │   └── tests/
-│       ├── start-validator.sh     # Local Solana validator
-│       └── start-backend.sh       # Start gRPC backend
+│       ├── start-docker.sh        # 🐳 Full stack Docker Compose
+│       ├── stop-docker.sh         # Stop Docker stack
+│       ├── start-validator-docker.sh # 🐳 Validator only in Docker
+│       ├── stop-validator-docker.sh  # Stop validator Docker
+│       ├── start-validator.sh     # Native Solana validator
+│       ├── stop-validator.sh      # Stop native validator
+│       ├── start-backend.sh       # Start gRPC backend
+│       └── stop-backend.sh        # Stop gRPC backend
 │
+├── docker-compose.yml             # 🐳 Full stack orchestration
+├── .dockerignore                  # Docker build context optimization
 ├── buf.yaml                        # Buf configuration
 ├── go.work                         # Go workspace (multi-module)
 └── Cargo.toml                     # Rust workspace
@@ -233,12 +259,41 @@ vim tests/go/composable_e2e_test.go
 ```
 
 #### 6️⃣ Run Full Stack Testing
+
+**Option A: Docker Compose (Full Stack)**
+```bash
+# Start everything with Docker
+./scripts/tests/start-docker.sh
+
+# Run integration tests
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
+
+# Stop everything
+./scripts/tests/stop-docker.sh
+```
+
+**Option B: Hybrid Development (Most Common - Validator in Docker, Backend Local)**
+```bash
+# Terminal 1: Start validator in Docker (stable, no restarts needed)
+./scripts/tests/start-validator-docker.sh
+
+# Terminal 2: Start backend locally (restart freely during development)
+cargo run -p protochain-solana-api
+
+# Terminal 3: Run integration tests (auto-detects running services)
+cd tests/go && go test -v
+
+# Stop validator when done
+./scripts/tests/stop-validator-docker.sh
+```
+
+**Option C: Native Development (Traditional)**
 ```bash
 # Terminal 1: Start local Solana validator
 ./scripts/tests/start-validator.sh
 
 # Terminal 2: Start Rust backend
-cargo run --package protosol-solana-api
+cargo run -p protochain-solana-api
 # OR
 ./scripts/tests/start-backend.sh
 
@@ -261,9 +316,9 @@ RUN_INTEGRATION_TESTS=0 go test -v          # Explicitly skip integration tests
 
 ## 🔑 Key Services Explained
 
-### Account Service (`protosol.solana.account.v1`)
-Proto: `lib/proto/protosol/solana/account/v1/service.proto`
-Impl: `api/src/api/account/v1/service_impl.rs`
+### Account Service (`protochain.solana.account.v1`)
+Proto: `lib/proto/protochain/solana/account/v1/service.proto`
+Impl: `app/solana/cmd/api/src/api/account/v1/service_impl.rs`
 
 ```protobuf
 service Service {
@@ -273,9 +328,9 @@ service Service {
 }
 ```
 
-### Transaction Service (`protosol.solana.transaction.v1`)
-Proto: `lib/proto/protosol/solana/transaction/v1/service.proto`
-Impl: `api/src/api/transaction/v1/service_impl.rs`
+### Transaction Service (`protochain.solana.transaction.v1`)
+Proto: `lib/proto/protochain/solana/transaction/v1/service.proto`
+Impl: `app/solana/cmd/api/src/api/transaction/v1/service_impl.rs`
 
 ```protobuf
 service Service {
@@ -291,9 +346,9 @@ service Service {
 }
 ```
 
-### System Program Service (`protosol.solana.program.system.v1`)
-Proto: `lib/proto/protosol/solana/program/system/v1/service.proto`
-Impl: `api/src/api/program/system/v1/service_impl.rs`
+### System Program Service (`protochain.solana.program.system.v1`)
+Proto: `lib/proto/protochain/solana/program/system/v1/service.proto`
+Impl: `app/solana/cmd/api/src/api/program/system/v1/service_impl.rs`
 
 Returns `SolanaInstruction` messages for composition:
 ```protobuf
@@ -309,7 +364,7 @@ service Service {
 ## 🎨 Important Design Patterns
 
 ### Proto-to-SDK Conversion Pattern
-Location: `api/src/api/program/system/v1/conversion.rs`
+Location: `app/solana/cmd/api/src/api/program/system/v1/conversion.rs`
 
 ```rust
 // Proto → SDK
@@ -322,7 +377,7 @@ pub fn sdk_instruction_to_proto(instruction: Instruction)
 ```
 
 ### State Machine Validation
-Location: `api/src/api/transaction/v1/validation.rs`
+Location: `app/solana/cmd/api/src/api/transaction/v1/validation.rs`
 
 ```rust
 // Enforce state transitions
@@ -336,7 +391,7 @@ validate_operation_allowed_for_state(state, operation)
 ```
 
 ### Service Provider Pattern (DI)
-Location: `api/src/service_providers/`
+Location: `app/solana/cmd/api/src/service_providers/`
 
 ```rust
 ServiceProviders {
@@ -721,18 +776,120 @@ grep -r -E "[0-9a-fA-F]{64}" tests/go/ --include="*.go"
 5. **Error Message Precision**: Error messages often contain the exact solution if read carefully
 6. **Parallel Investigation**: Use multiple terminals/tools simultaneously for faster diagnosis
 
+## 🐳 Docker Development Guide
+
+### Multi-Environment Development Options
+
+**Option A: Full Stack Docker Compose (Best for Integration Testing)**
+```bash
+# Start complete stack (validator + API)
+./scripts/tests/start-docker.sh
+docker-compose logs -f                    # View all logs
+docker-compose logs -f protochain-api     # View API logs only
+
+# Run integration tests
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
+
+# Stop everything
+./scripts/tests/stop-docker.sh
+```
+
+**Option B: Hybrid Development (Most Common for Development)**
+```bash
+# Start stable validator in Docker (once per session)
+./scripts/tests/start-validator-docker.sh
+
+# Develop backend locally (restart as needed)
+cargo run -p protochain-solana-api
+
+# Monitor validator logs
+docker logs -f solana-validator
+
+# Stop validator when done
+./scripts/tests/stop-validator-docker.sh
+```
+
+**Option C: Containerized API with Helper Script**
+```bash
+# Build and run with helper script
+./app/solana/ci/docker-build.sh build
+./app/solana/ci/docker-build.sh run local     # Local validator
+./app/solana/ci/docker-build.sh run devnet    # Solana devnet
+./app/solana/ci/docker-build.sh run mainnet   # Mainnet beta
+
+# Manual Docker commands
+docker build -f app/solana/ci/Dockerfile -t protochain-solana-api .
+docker run -p 50051:50051 -e SOLANA_RPC_URL=https://api.devnet.solana.com protochain-solana-api
+```
+
+### Docker Environment Variables
+```bash
+# Solana Configuration
+SOLANA_RPC_URL=http://localhost:8899           # RPC endpoint
+SOLANA_TIMEOUT_SECONDS=30                      # Request timeout
+SOLANA_RETRY_ATTEMPTS=3                        # Retry attempts
+SOLANA_HEALTH_CHECK_ON_STARTUP=true            # Health check on start
+
+# Server Configuration
+SERVER_HOST=0.0.0.0                           # Bind address
+SERVER_PORT=50051                              # gRPC port
+
+# Logging Configuration
+RUST_LOG=info,protochain_solana_api=info       # Log levels
+PROTOCHAIN_JSON_LOGS=true                      # JSON structured logs
+```
+
+### Docker Network Endpoints
+```bash
+# Local Development (Docker Desktop)
+SOLANA_RPC_URL=http://host.docker.internal:8899  # Access host validator
+
+# Public Networks
+SOLANA_RPC_URL=https://api.devnet.solana.com      # Solana devnet
+SOLANA_RPC_URL=https://api.mainnet-beta.solana.com # Mainnet beta
+
+# Integration Testing
+SOLANA_RPC_URL=http://solana-validator:8899       # Docker Compose internal
+```
+
+### Docker Troubleshooting
+```bash
+# View container status
+docker ps --filter name=protochain
+docker-compose ps
+
+# View logs
+docker logs protochain-api
+docker logs solana-validator
+
+# Test connectivity
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"getHealth"}' \
+  http://localhost:8899
+
+# Clean up resources
+docker-compose down -v --remove-orphans
+docker system prune -f
+```
+
 ## 🚀 Quick Commands Reference
 
 ```bash
 # Daily Development
 buf lint                                    # Validate protos
 ./scripts/code-gen/generate/all.sh        # Generate all SDKs
-cargo run --package protosol-solana-api   # Run backend
+cargo run -p protochain-solana-api   # Run backend
 cargo test                                 # Run Rust unit tests
 
-# Testing
-./scripts/tests/start-validator.sh        # Start Solana
-./scripts/tests/start-backend.sh          # Start backend
+# Testing - Docker Options
+./scripts/tests/start-docker.sh          # Full stack Docker
+./scripts/tests/start-validator-docker.sh # Validator only Docker
+./scripts/tests/stop-docker.sh           # Stop Docker stack
+./scripts/tests/stop-validator-docker.sh # Stop validator Docker
+
+# Testing - Native Options
+./scripts/tests/start-validator.sh        # Start native Solana
+./scripts/tests/start-backend.sh          # Start native backend
 cd tests/go && go test -v                         # Auto-runs if services up
 cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v -run "TestComposableE2ESuite/Test_06"  # Specific test
 

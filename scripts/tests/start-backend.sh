@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Start Solana gRPC Backend Server in background
-# Usage: ./project/solana/scripts/start-backend.sh (from root directory)
+# Usage: ./scripts/tests/start-backend.sh (from root directory)
+#
+# For Docker-based development, use: ./scripts/tests/start-docker.sh
 
 set -e
 
@@ -21,7 +23,8 @@ if [[ -f "$PID_FILE" ]]; then
     PID=$(cat "$PID_FILE")
     if kill -0 "$PID" 2>/dev/null; then
         echo "⚠️  Backend server is already running (PID: $PID)"
-        echo "   Use ./project/solana/scripts/stop-backend.sh to stop it first"
+        echo "   Use ./scripts/tests/stop-backend.sh to stop it first"
+        echo "   Or use ./scripts/tests/start-docker.sh for Docker-based development"
         exit 1
     else
         echo "🧹 Cleaning up stale PID file"
@@ -78,8 +81,8 @@ while [[ $WAIT_COUNT -lt $MAX_WAIT ]]; do
     if command -v nc >/dev/null 2>&1; then
         if nc -z localhost 50051 2>/dev/null; then
             echo "✅ Server is ready and accepting connections!"
-            echo "🎯 Use './project/solana/scripts/run-tests.sh' to run tests"
-            echo "🛑 Use './project/solana/scripts/stop-backend.sh' to stop server"
+            echo "🎯 Run integration tests: cd tests/go && go test -v"
+            echo "🛑 Use './scripts/tests/stop-backend.sh' to stop server"
             exit 0
         fi
     fi
@@ -92,11 +95,11 @@ done
 # Final check if we couldn't use nc
 if ! command -v nc >/dev/null 2>&1; then
     echo "✅ Server should be ready (nc not available for port check)"
-    echo "🎯 Use './project/solana/scripts/run-tests.sh' to run tests"
-    echo "🛑 Use './project/solana/scripts/stop-backend.sh' to stop server"
+    echo "🎯 Run integration tests: cd tests/go && go test -v"
+    echo "🛑 Use './scripts/tests/stop-backend.sh' to stop server"
     exit 0
 fi
 
 echo "⚠️  Server started but may not be fully ready yet"
-echo "🎯 You can still try running tests with './project/solana/scripts/run-tests.sh'"
-echo "🛑 Use './project/solana/scripts/stop-backend.sh' to stop server"
+echo "🎯 You can still try running tests with: cd tests/go && go test -v"
+echo "🛑 Use './scripts/tests/stop-backend.sh' to stop server"
