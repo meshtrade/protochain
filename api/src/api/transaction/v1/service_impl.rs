@@ -30,8 +30,8 @@ use crate::api::transaction::v1::validation::{
     validate_operation_allowed_for_state, validate_state_transition,
     validate_transaction_state_consistency,
 };
-use protosol_api::protosol::solana::r#type::v1::CommitmentLevel;
-use protosol_api::protosol::solana::transaction::v1::{
+use protochain_api::protochain::solana::r#type::v1::CommitmentLevel;
+use protochain_api::protochain::solana::transaction::v1::{
     service_server::Service as TransactionService, sign_transaction_request,
     CompileTransactionRequest, CompileTransactionResponse, EstimateTransactionRequest,
     EstimateTransactionResponse, GetTransactionRequest, GetTransactionResponse,
@@ -1105,7 +1105,11 @@ impl TransactionService for TransactionServiceImpl {
         })?;
 
         // Validate timeout (if provided)
-        let timeout_seconds = if req.timeout_seconds == 0 { 60 } else { req.timeout_seconds };
+        let timeout_seconds = if req.timeout_seconds == 0 {
+            60
+        } else {
+            req.timeout_seconds
+        };
         if !(5..=300).contains(&timeout_seconds) {
             error!(
                 timeout_seconds = timeout_seconds,

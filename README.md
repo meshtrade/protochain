@@ -1,4 +1,4 @@
-# ProtoChain (ProtoSol)
+# ProtoChain (Protochain)
 
 **Protocol Buffer Wrapper for Solana SDKs**
 
@@ -21,10 +21,10 @@ Addresses the challenge where your backend needs to be in one language, but the 
 ## 🏗️ Architecture Overview
 
 ### Protocol-First Design
-- **Source of Truth**: All APIs defined in `lib/proto/protosol/solana/` using Protocol Buffers
+- **Source of Truth**: All APIs defined in `lib/proto/protochain/solana/` using Protocol Buffers
 - **Versioning**: Every service is versioned (v1) for backward compatibility
 - **Standards**: Follows Google AIP resource-oriented design patterns
-- **Namespace**: `protosol.solana.[domain].v1` structure
+- **Namespace**: `protochain.solana.[domain].v1` structure
 
 ### Composable Transaction Model
 Implements a strict state machine for transaction lifecycle:
@@ -34,7 +34,7 @@ DRAFT → COMPILED → PARTIALLY_SIGNED → FULLY_SIGNED → SUBMITTED
 
 ### Multi-Language SDK Generation
 - **Rust** (`lib/rust/`): Generated with tonic/prost for backend implementation
-- **Go** (`lib/go/`): Generated with custom interfaces via protoc-gen-protosolgo
+- **Go** (`lib/go/`): Generated with custom interfaces via protoc-gen-protochaingo
 - **TypeScript** (`lib/ts/`): Generated with @bufbuild/protobuf for browser/Node.js
 
 ## 📁 Repository Structure
@@ -42,7 +42,7 @@ DRAFT → COMPILED → PARTIALLY_SIGNED → FULLY_SIGNED → SUBMITTED
 ```
 protochain/
 ├── lib/proto/                     # 🔥 PROTOCOL DEFINITIONS (Source of Truth)
-│   └── protosol/solana/
+│   └── protochain/solana/
 │       ├── account/v1/           # Account management services
 │       ├── transaction/v1/       # Transaction lifecycle services
 │       ├── program/system/v1/    # System program wrappers
@@ -58,7 +58,7 @@ protochain/
 │
 ├── lib/                         # 📦 Generated Multi-Language SDKs
 │   ├── rust/src/               # Generated Rust bindings
-│   ├── go/protosol/           # Generated Go SDK + interfaces
+│   ├── go/protochain/           # Generated Go SDK + interfaces
 │   └── ts/src/               # Generated TypeScript SDK
 │
 ├── tests/go/                   # 🧪 Integration Test Suite
@@ -77,24 +77,24 @@ protochain/
 
 ## 🚀 Key Features & Services
 
-### Account Service (`protosol.solana.account.v1`)
+### Account Service (`protochain.solana.account.v1`)
 - **Account Retrieval**: Fetch account data with configurable commitment levels
 - **Keypair Generation**: Create deterministic or random keypairs
 - **Native Funding**: Airdrop SOL for development (devnet/testnet)
 
-### Transaction Service (`protosol.solana.transaction.v1`)
+### Transaction Service (`protochain.solana.transaction.v1`)
 - **Lifecycle Management**: Complete DRAFT→COMPILED→SIGNED→SUBMITTED flow
 - **Fee Estimation**: Calculate transaction costs before submission
 - **Simulation**: Dry-run transactions for validation
 - **Real-time Monitoring**: Stream transaction status updates via gRPC
 
-### System Program Service (`protosol.solana.program.system.v1`)
+### System Program Service (`protochain.solana.program.system.v1`)
 - **Account Creation**: Create new accounts with proper rent calculations
 - **SOL Transfers**: Transfer native SOL between accounts
 - **Space Allocation**: Allocate account storage space
 - **Owner Assignment**: Change account ownership
 
-### RPC Client Service (`protosol.solana.rpc_client.v1`)
+### RPC Client Service (`protochain.solana.rpc_client.v1`)
 - **Direct RPC Access**: Wrapper for raw Solana RPC methods
 - **Rent Calculations**: Get minimum balance for rent exemption
 - **Commitment Levels**: Support for processed/confirmed/finalized
@@ -145,8 +145,8 @@ buf --version      # Protocol buffer tools
 
 2. **Make Proto Changes**
 ```bash
-# Edit proto files in lib/proto/protosol/solana/
-vim lib/proto/protosol/solana/account/v1/service.proto
+# Edit proto files in lib/proto/protochain/solana/
+vim lib/proto/protochain/solana/account/v1/service.proto
 
 # Validate and generate code
 buf lint

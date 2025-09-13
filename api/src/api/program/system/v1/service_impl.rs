@@ -2,13 +2,13 @@ use solana_sdk::{pubkey::Pubkey, system_instruction, system_program};
 use std::str::FromStr;
 use tonic::{Request, Response, Status};
 
-use protosol_api::protosol::solana::program::system::v1::{
+use protochain_api::protochain::solana::program::system::v1::{
     service_server::Service as SystemProgramService, AdvanceNonceAccountRequest, AllocateRequest,
     AllocateWithSeedRequest, AssignRequest, AssignWithSeedRequest, AuthorizeNonceAccountRequest,
     CreateRequest, CreateWithSeedRequest, InitializeNonceAccountRequest, TransferRequest,
     TransferWithSeedRequest, UpgradeNonceAccountRequest, WithdrawNonceAccountRequest,
 };
-use protosol_api::protosol::solana::transaction::v1::SolanaInstruction;
+use protochain_api::protochain::solana::transaction::v1::SolanaInstruction;
 
 use crate::api::common::solana_conversions::sdk_instruction_to_proto;
 

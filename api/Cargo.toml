@@ -1,10 +1,10 @@
 [package]
-name = "protosol-solana-api"
+name = "protochain-solana-api"
 version = "0.1.0"
 edition = "2021"
 description = "Protocol Buffer wrapper for Solana blockchain operations via gRPC"
 license = "MIT"
-repository = "https://github.com/BRBussy/protosol"
+repository = "https://github.com/BRBussy/protochain"
 keywords = ["solana", "blockchain", "grpc", "protobuf", "crypto"]
 categories = ["api-bindings", "cryptography::cryptocurrencies"]
 
@@ -41,4 +41,4 @@ hex = "0.4"
 spl-token-2022 = "3.0.0"
 
 # Reference the API crate within the workspace
-protosol-api = { path = "../lib/rust" }
+protochain-api = { path = "../lib/rust" }

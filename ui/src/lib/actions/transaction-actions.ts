@@ -41,7 +41,7 @@ export async function compileTransactionAction(formData: FormData) {
       recentBlockhash: recentBlockhash || undefined
     }
 
-    // Call ProtoSol backend through gRPC directly from server action
+    // Call Protochain backend through gRPC directly from server action
     const client = transactionClient()
     const response = await client.compileTransaction(grpcRequest)
 
@@ -76,7 +76,7 @@ export async function estimateTransactionAction(formData: FormData) {
       commitmentLevel
     }
 
-    // Call ProtoSol backend through gRPC directly from server action
+    // Call Protochain backend through gRPC directly from server action
     const client = transactionClient()
     const response = await client.estimateTransaction(grpcRequest)
 
@@ -112,7 +112,7 @@ export async function simulateTransactionAction(formData: FormData) {
       commitmentLevel
     }
 
-    // Call ProtoSol backend through gRPC directly from server action
+    // Call Protochain backend through gRPC directly from server action
     const client = transactionClient()
     const response = await client.simulateTransaction(grpcRequest)
 
@@ -166,7 +166,7 @@ export async function signTransactionAction(formData: FormData) {
       privateKeys: validPrivateKeys
     }
 
-    // Call ProtoSol backend through gRPC directly from server action
+    // Call Protochain backend through gRPC directly from server action
     const client = transactionClient()
     const response = await client.signTransaction(grpcRequest)
 
@@ -202,7 +202,7 @@ export async function submitTransactionAction(formData: FormData) {
       commitmentLevel
     }
 
-    // Call ProtoSol backend through gRPC directly from server action
+    // Call Protochain backend through gRPC directly from server action
     const client = transactionClient()
     const response = await client.submitTransaction(grpcRequest)
 
@@ -238,7 +238,7 @@ export async function getTransactionAction(formData: FormData) {
       commitmentLevel
     }
 
-    // Call ProtoSol backend through gRPC directly from server action
+    // Call Protochain backend through gRPC directly from server action
     const client = transactionClient()
     const response = await client.getTransaction(grpcRequest)
 

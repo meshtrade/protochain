@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
-import { SystemProgramService, createClient, createGrpcTransport, AccountService } from "@protosol/api";
-import { CreateRequest, TransferRequest } from "@protosol/api";
+import { SystemProgramService, createClient, createGrpcTransport, AccountService } from "@protochain/api";
+import { CreateRequest, TransferRequest } from "@protochain/api";
 
 const BACKEND_ENDPOINT = "http://localhost:50051";
 

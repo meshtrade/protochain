@@ -27,7 +27,7 @@ export async function getMinimumBalanceForRentExemptionAction(formData: FormData
       dataLength: dataLengthBigInt,
     }
 
-    // Call ProtoSol backend through gRPC directly from server action
+    // Call Protochain backend through gRPC directly from server action
     const client = rpcClient()
     const response = await client.getMinimumBalanceForRentExemption(grpcRequest)
 
@@ -84,7 +84,7 @@ export async function initializeMintAction(formData: FormData) {
       freezeAuthority: formData.get('freezeAuthority') as string || undefined
     }
 
-    // Call ProtoSol backend through gRPC directly from server action
+    // Call Protochain backend through gRPC directly from server action
     const client = tokenProgramClient()
     const response = await client.initialiseMint(grpcRequest)
 
@@ -151,7 +151,7 @@ export async function systemCreateAccountAction(formData: FormData) {
       owner
     }
 
-    // Call ProtoSol backend through gRPC directly from server action
+    // Call Protochain backend through gRPC directly from server action
     const client = systemProgramClient()
     const response = await client.create(grpcRequest)
 
@@ -204,7 +204,7 @@ export async function systemTransferAction(formData: FormData) {
       lamports: lamportsNum
     }
 
-    // Call ProtoSol backend through gRPC directly from server action
+    // Call Protochain backend through gRPC directly from server action
     const client = systemProgramClient()
     const response = await client.transfer(grpcRequest)
 

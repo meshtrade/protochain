@@ -1,7 +1,7 @@
 {
-  "name": "@protosol/api",
+  "name": "@protochain/api",
   "version": "1.0.0",
-  "description": "TypeScript bindings for Protosol gRPC APIs",
+  "description": "TypeScript bindings for Protochain gRPC APIs",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -47,7 +47,7 @@
     "protobuf",
     "grpc",
     "typescript",
-    "protosol",
+    "protochain",
     "solana",
     "blockchain",
     "financial-services"

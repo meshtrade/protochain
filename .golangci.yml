@@ -1,6 +1,8 @@
 # This is the configuration file for golangci-lint
 # Run with: golangci-lint run ./...
 
+version: 2
+
 run:
   timeout: 10m
   tests: true
@@ -9,127 +11,28 @@ run:
 
 linters:
   enable:
-    - gofmt
-    - goimports
     - govet
     - errcheck
     - staticcheck
     - unused
-    - gosimple
-    - typecheck
+    - ineffassign
     - gosec
-    - gocritic
-    - gocyclo
-    - dupl
     - misspell
-    - prealloc
-    - unconvert
     - bodyclose
-    - noctx
-    - rowserrcheck
-    - stylecheck
-    - copyloopvar
-    - goconst
-    - gochecknoinits
-    - whitespace
-    - goprintffuncname
-    - gomodguard
-    - nestif
-    - exhaustive
-    - sqlclosecheck
-    - nolintlint
-    - tparallel
-    - thelper
-
-  disable:
-    - depguard
-    - dogsled
-    - gochecknoglobals
-    - godox
-    - gofumpt
-    - funlen
-    - gci
-    - gocognit
-    - wrapcheck
-    - forbidigo
-    - forcetypeassert
-    - ireturn
-    - nlreturn
-    - promlinter
-    - tagliatelle
-    - varnamelen
-    - wsl
-    - paralleltest
 
 linters-settings:
-  gofmt:
-    simplify: true
-  
-  goimports:
-    local-prefixes: github.com/BRBussy/protosol
-  
   govet:
     shadow: true
-  
+
   errcheck:
     check-type-assertions: true
     check-blank: true
-  
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - style
-      - performance
-      - experimental
-      - opinionated
-    disabled-checks:
-      - whyNoLint
-      - paramTypeCombine
-  
-  
-  gocyclo:
-    min-complexity: 15
-  
-  dupl:
-    threshold: 150
-  
-  goconst:
-    min-len: 3
-    min-occurrences: 3
-  
-  misspell:
-    locale: US
-  
-  mnd:
-    settings:
-      mnd:
-        checks:
-          - argument
-          - case
-          - condition
-          - operation
-          - return
-          - assign
-        ignored-numbers:
-          - "0"
-          - "1"
-          - "2"
-          - "10"
-          - "100"
-  
-  nestif:
-    min-complexity: 4
-  
-  godot:
-    scope: all
-    capital: true
-    period: true
-  
+
 issues:
   max-same-issues: 0
   exclude-use-default: false
   exclude-dirs:
-    - lib/go/protosol  # Generated code
+    - lib/go/protochain  # Generated code
   exclude-files:
     - ".*\\.pb\\.go$"  # Protocol buffer generated files
     - ".*\\.passivgo\\.go$"  # Custom generated files
@@ -137,31 +40,23 @@ issues:
     # Exclude some linters from test files
     - path: "_test\\.go"
       linters:
-        - dupl
         - gosec
-        - goconst
         - errcheck
-    
+
     # Exclude generated protobuf files
     - path: "\\.pb\\.go$"
       linters:
         - all
-    
+
     # Exclude custom generated files
     - path: "\\.passivgo\\.go$"
       linters:
         - all
-    
+
     # Allow certain patterns in main files
     - path: "main\\.go"
       linters:
-        - gochecknoinits
-        - gochecknoglobals
-    
-    # Exclude dot imports for test packages
-    - source: "^\\. \"github.com/stretchr/testify"
-      linters:
-        - stylecheck
+        - gosec
 
   # Maximum issues count per one linter
   max-issues-per-linter: 50

@@ -1,4 +1,4 @@
-module github.com/BRBussy/protosol/lib/go
+module github.com/BRBussy/protochain/lib/go
 
 go 1.24.3
 

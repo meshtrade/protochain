@@ -34,9 +34,9 @@ project/solana/cmd/api-test/
 Go integration tests use the generated client libraries:
 ```go
 import (
-    account_v1 "github.com/BRBussy/protosol/lib/go/protosol/solana/account/v1"
-    system_program_v1 "github.com/BRBussy/protosol/lib/go/protosol/solana/program/system/v1"
-    transaction_v1 "github.com/BRBussy/protosol/lib/go/protosol/solana/transaction/v1"
+    account_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/account/v1"
+    system_program_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/program/system/v1"
+    transaction_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/transaction/v1"
 )
 ```
 

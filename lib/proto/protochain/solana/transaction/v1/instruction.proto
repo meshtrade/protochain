@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package protochain.solana.transaction.v1;
+
+option go_package = "github.com/BRBussy/protochain/lib/go/protochain/solana/transaction/v1;transaction_v1";
+
+// SolanaInstruction represents a single instruction for Solana execution
+message SolanaInstruction {
+  // Program ID that will execute this instruction (base58 encoded)
+  string program_id = 1;
+  
+  // Accounts required by this instruction with their permission requirements
+  repeated SolanaAccountMeta accounts = 2;
+  
+  // Instruction data (program-specific parameters)
+  bytes data = 3;
+  
+  // Optional description for debugging/logging
+  string description = 4;
+}
+
+// SolanaAccountMeta represents account metadata with permissions
+message SolanaAccountMeta {
+  // Account public key (base58 encoded)
+  string pubkey = 1;
+  
+  // Whether this account must sign the transaction
+  bool is_signer = 2;
+  
+  // Whether this account's data may be modified
+  bool is_writable = 3;
+}

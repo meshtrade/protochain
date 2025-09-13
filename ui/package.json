@@ -1,5 +1,5 @@
 {
-  "name": "protosol-ui",
+  "name": "protochain-ui",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -19,7 +19,7 @@
     "@connectrpc/connect-next": "^2.0.0",
     "@connectrpc/connect-node": "^2.0.0",
     "@heroicons/react": "^2.0.18",
-    "@protosol/api": "1.0.0"
+    "@protochain/api": "1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

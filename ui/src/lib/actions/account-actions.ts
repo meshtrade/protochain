@@ -35,7 +35,7 @@ export async function getAccountAction(formData: FormData) {
       commitmentLevel
     }
 
-    // Call ProtoSol backend through gRPC directly from server action
+    // Call Protochain backend through gRPC directly from server action
     const client = accountClient()
     const response = await client.getAccount(grpcRequest)
 
@@ -65,7 +65,7 @@ export async function generateNewKeyPairAction() {
     // Build gRPC request (no parameters needed for basic generation)
     const grpcRequest: any = {}
 
-    // Call ProtoSol backend through gRPC directly from server action
+    // Call Protochain backend through gRPC directly from server action
     const client = accountClient()
     const response = await client.generateNewKeyPair(grpcRequest)
 
@@ -108,7 +108,7 @@ export async function fundNativeAction(formData: FormData) {
       commitmentLevel
     }
 
-    // Call ProtoSol backend through gRPC directly from server action
+    // Call Protochain backend through gRPC directly from server action
     const client = accountClient()
     const response = await client.fundNative(grpcRequest)
 

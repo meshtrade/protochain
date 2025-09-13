@@ -9,11 +9,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	account_v1 "github.com/BRBussy/protosol/lib/go/protosol/solana/account/v1"
-	system_v1 "github.com/BRBussy/protosol/lib/go/protosol/solana/program/system/v1"
-	token_v1 "github.com/BRBussy/protosol/lib/go/protosol/solana/program/token/v1"
-	transaction_v1 "github.com/BRBussy/protosol/lib/go/protosol/solana/transaction/v1"
-	type_v1 "github.com/BRBussy/protosol/lib/go/protosol/solana/type/v1"
+	account_v1 "github.com/BRBussy/protochain/lib/go/protosol/solana/account/v1"
+	system_v1 "github.com/BRBussy/protochain/lib/go/protosol/solana/program/system/v1"
+	token_v1 "github.com/BRBussy/protochain/lib/go/protosol/solana/program/token/v1"
+	transaction_v1 "github.com/BRBussy/protochain/lib/go/protosol/solana/transaction/v1"
+	type_v1 "github.com/BRBussy/protochain/lib/go/protosol/solana/type/v1"
 )
 
 // TokenProgramE2ETestSuite tests the Token Program service functionality

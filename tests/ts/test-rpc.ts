@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
-import { RPCClientService, createClient, createGrpcTransport } from "@protosol/api";
-import { GetMinimumBalanceForRentExemptionRequest } from "@protosol/api";
+import { RPCClientService, createClient, createGrpcTransport } from "@protochain/api";
+import { GetMinimumBalanceForRentExemptionRequest } from "@protochain/api";
 
 const BACKEND_ENDPOINT = "http://localhost:50051";
 

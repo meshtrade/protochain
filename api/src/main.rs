@@ -1,6 +1,6 @@
-//! # `ProtoSol` Solana API Backend
+//! # `Protochain` Solana API Backend
 //!
-//! This is the main gRPC server for the `ProtoSol` Solana API.
+//! This is the main gRPC server for the `Protochain` Solana API.
 //! It provides a Protocol Buffer-based API over Solana blockchain operations.
 //!
 //! The server provides services for:
@@ -17,11 +17,11 @@ use tracing::{debug, error, info, warn};
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 // Import the generated protobuf services
-use protosol_api::protosol::solana::account::v1::service_server::ServiceServer as AccountServiceServer;
-use protosol_api::protosol::solana::program::system::v1::service_server::ServiceServer as SystemProgramServiceServer;
-use protosol_api::protosol::solana::program::token::v1::service_server::ServiceServer as TokenProgramServiceServer;
-use protosol_api::protosol::solana::rpc_client::v1::service_server::ServiceServer as RpcClientServiceServer;
-use protosol_api::protosol::solana::transaction::v1::service_server::ServiceServer as TransactionServiceServer;
+use protochain_api::protochain::solana::account::v1::service_server::ServiceServer as AccountServiceServer;
+use protochain_api::protochain::solana::program::system::v1::service_server::ServiceServer as SystemProgramServiceServer;
+use protochain_api::protochain::solana::program::token::v1::service_server::ServiceServer as TokenProgramServiceServer;
+use protochain_api::protochain::solana::rpc_client::v1::service_server::ServiceServer as RpcClientServiceServer;
+use protochain_api::protochain::solana::transaction::v1::service_server::ServiceServer as TransactionServiceServer;
 
 // Import our application modules
 mod api;
@@ -43,18 +43,18 @@ use service_providers::ServiceProviders;
 /// - Includes source code locations for debug builds
 ///
 /// Environment Variables:
-/// - `RUST_LOG`: Controls log level filtering (e.g., "debug", "`protosol_solana_api=trace`")
-/// - `PROTOSOL_JSON_LOGS`: Set to "true" for JSON structured output
+/// - `RUST_LOG`: Controls log level filtering (e.g., "debug", "`protochain_solana_api=trace`")
+/// - `PROTOCHAIN_JSON_LOGS`: Set to "true" for JSON structured output
 ///
 /// Examples:
 /// - Development: `RUST_LOG=debug` cargo run
-/// - Production: `RUST_LOG=info` `PROTOSOL_JSON_LOGS=true` ./protosol-solana-api
-/// - Service-specific: `RUST_LOG=protosol_solana_api=trace,websocket=debug` cargo run
+/// - Production: `RUST_LOG=info` `PROTOCHAIN_JSON_LOGS=true` ./protochain-solana-api
+/// - Service-specific: `RUST_LOG=protochain_solana_api=trace,websocket=debug` cargo run
 fn init_logging() {
     let env_filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new("info,protosol_solana_api=info"));
+        .unwrap_or_else(|_| EnvFilter::new("info,protochain_solana_api=info"));
 
-    let use_json = std::env::var("PROTOSOL_JSON_LOGS").unwrap_or_default() == "true";
+    let use_json = std::env::var("PROTOCHAIN_JSON_LOGS").unwrap_or_default() == "true";
 
     if use_json {
         // JSON structured logging for production

@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package protochain.solana.rpc_client.v1;
+
+import "protochain/solana/type/v1/commitment_level.proto";
+
+option go_package = "github.com/BRBussy/protochain/lib/go/protochain/solana/rpc_client/v1;rpc_client_v1";
+
+service Service {
+  rpc GetMinimumBalanceForRentExemption(GetMinimumBalanceForRentExemptionRequest) returns (GetMinimumBalanceForRentExemptionResponse);
+}
+
+message GetMinimumBalanceForRentExemptionRequest {
+    uint64 data_length = 1;
+    protochain.solana.type.v1.CommitmentLevel commitment_level = 2;
+}
+
+message GetMinimumBalanceForRentExemptionResponse {
+    uint64 balance = 1;
+}

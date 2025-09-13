@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package protochain.solana.account.v1;
+
+option go_package = "github.com/BRBussy/protochain/lib/go/protochain/solana/account/v1;account_v1";
+
+import "protochain/solana/account/v1/account.proto";
+import "protochain/solana/type/v1/keypair.proto";
+import "protochain/solana/type/v1/commitment_level.proto";
+
+service Service {
+  rpc GetAccount(GetAccountRequest) returns (protochain.solana.account.v1.Account);
+  rpc GenerateNewKeyPair(GenerateNewKeyPairRequest) returns (GenerateNewKeyPairResponse);
+  rpc FundNative(FundNativeRequest) returns (FundNativeResponse);
+}
+
+message GetAccountRequest {
+  string address = 1;  // Base58-encoded account address to fetch from Solana network
+  protochain.solana.type.v1.CommitmentLevel commitment_level = 2;  // Optional commitment level for account queries
+}
+
+message GenerateNewKeyPairRequest {
+  string seed = 1; // Optional deterministic seed (hex-encoded)
+}
+
+message GenerateNewKeyPairResponse {
+  protochain.solana.type.v1.KeyPair key_pair = 1;
+}
+
+message FundNativeRequest {
+  string address = 1;  // Target address for funding (Base58)
+  string amount = 2;   // Amount in lamports as string
+  protochain.solana.type.v1.CommitmentLevel commitment_level = 3;  // Optional commitment level for funding confirmation
+}
+
+message FundNativeResponse {
+  string signature = 1; // Transaction signature of airdrop
+}

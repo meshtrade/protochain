@@ -4,7 +4,7 @@
 //! and their protobuf representations. These utilities are designed to be reusable across
 //! multiple Solana program API implementations.
 
-use protosol_api::protosol::solana::transaction::v1::{SolanaAccountMeta, SolanaInstruction};
+use protochain_api::protochain::solana::transaction::v1::{SolanaAccountMeta, SolanaInstruction};
 use solana_sdk::{instruction::AccountMeta, instruction::Instruction};
 use std::str::FromStr;
 

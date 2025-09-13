@@ -1,7 +1,7 @@
 version: v2
 modules:
   - path: lib/proto
-    name: buf.build/brbussy/protosol
+    name: buf.build/brbussy/protochain
 
 lint:
   use:

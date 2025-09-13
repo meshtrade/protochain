@@ -48,7 +48,7 @@ echo "📄 Logs will be written to: ${LOG_FILE#$PROJECT_ROOT/}"
 echo ""
 
 # Start the new structured server in background and capture PID
-cargo run -p protosol-solana-api > "$LOG_FILE" 2>&1 &
+cargo run -p protochain-solana-api > "$LOG_FILE" 2>&1 &
 SERVER_PID=$!
 
 # Save PID and port

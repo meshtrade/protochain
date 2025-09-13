@@ -2,11 +2,11 @@ use std::str::FromStr;
 use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
-use protosol_api::protosol::solana::account::v1::{
+use protochain_api::protochain::solana::account::v1::{
     service_server::Service as AccountService, Account, FundNativeRequest, FundNativeResponse,
     GenerateNewKeyPairRequest, GenerateNewKeyPairResponse, GetAccountRequest,
 };
-use protosol_api::protosol::solana::r#type::v1::{CommitmentLevel, KeyPair};
+use protochain_api::protochain::solana::r#type::v1::{CommitmentLevel, KeyPair};
 
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{

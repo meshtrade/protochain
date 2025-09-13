@@ -1,6 +1,6 @@
 /**
- * ProtoSol gRPC Client Infrastructure
- * Provides centralized client management for all ProtoSol services
+ * Protochain gRPC Client Infrastructure
+ * Provides centralized client management for all Protochain services
  */
 
 import { createClient, Client } from "@connectrpc/connect";
@@ -11,7 +11,7 @@ import {
   SystemProgramService,
   TokenProgramService,
   RPCClientService,
-} from "@protosol/api";
+} from "@protochain/api";
 
 // =============================================================================
 // CONFIGURATION
@@ -125,7 +125,7 @@ export function getGrpcClients(): GrpcClients {
 // =============================================================================
 
 /**
- * Tests connectivity to the ProtoSol backend
+ * Tests connectivity to the Protochain backend
  * Attempts a simple RPC call to verify the connection
  */
 export async function testGrpcConnection(): Promise<{

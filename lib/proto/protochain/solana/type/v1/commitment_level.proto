@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package protochain.solana.type.v1;
+
+option go_package = "github.com/BRBussy/protochain/lib/go/protochain/solana/type/v1;solana_type_v1";
+
+// CommitmentLevel represents the different levels of transaction confirmation
+// available in the Solana blockchain network. These levels provide different
+// trade-offs between speed and reliability of transaction confirmation.
+enum CommitmentLevel {
+  // UNSPECIFIED allows services to use their default commitment level.
+  // This provides backward compatibility and lets services choose appropriate defaults.
+  COMMITMENT_LEVEL_UNSPECIFIED = 0;
+  
+  // PROCESSED means the transaction has been processed by the leader and included
+  // in a block, but the block has not yet been confirmed by the cluster.
+  // This is the fastest option but least reliable for finality guarantees.
+  COMMITMENT_LEVEL_PROCESSED = 1;
+  
+  // CONFIRMED means the transaction has been processed and the block containing
+  // the transaction has been confirmed by a supermajority of the cluster.
+  // This provides a good balance between speed and reliability.
+  COMMITMENT_LEVEL_CONFIRMED = 2;
+  
+  // FINALIZED means the transaction has been processed, confirmed, and the block
+  // containing the transaction has been finalized by the cluster (rooted).
+  // This is the slowest but most reliable option for absolute finality.
+  COMMITMENT_LEVEL_FINALIZED = 3;
+}

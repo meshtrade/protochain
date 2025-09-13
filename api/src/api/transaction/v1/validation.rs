@@ -1,6 +1,6 @@
 // Pure validation functions - no external dependencies, fully unit testable
 
-use protosol_api::protosol::solana::transaction::v1::{Transaction, TransactionState};
+use protochain_api::protochain::solana::transaction::v1::{Transaction, TransactionState};
 
 /// Validates that a state transition is allowed in the transaction lifecycle
 pub fn validate_state_transition(
@@ -9,14 +9,9 @@ pub fn validate_state_transition(
 ) -> Result<(), String> {
     match (from, to) {
         // Valid forward transitions in the transaction lifecycle
-        (TransactionState::Draft, TransactionState::Compiled)
-        | (
-            TransactionState::Compiled,
-            TransactionState::PartiallySigned | TransactionState::FullySigned,
-        )
-        | (TransactionState::PartiallySigned, TransactionState::FullySigned)
-        // Allow self-transition for PartiallySigneg to add more signatures
-        | (TransactionState::PartiallySigned, TransactionState::PartiallySigned) => Ok(()),
+        (TransactionState::Draft, TransactionState::Compiled) |
+(TransactionState::Compiled | TransactionState::PartiallySigned,
+TransactionState::PartiallySigned | TransactionState::FullySigned) => Ok(()),
 
         // No transitions allowed from FULLY_SIGNED (terminal state)
         (TransactionState::FullySigned, _) => {
@@ -152,7 +147,7 @@ pub fn validate_operation_allowed_for_state(
 #[allow(clippy::unwrap_used)] // unwrap is acceptable in tests for cleaner assertions
 mod tests {
     use super::*;
-    use protosol_api::protosol::solana::transaction::v1::*;
+    use protochain_api::protochain::solana::transaction::v1::*;
 
     #[test]
     fn test_valid_state_transitions() {

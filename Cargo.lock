@@ -2885,7 +2885,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "protosol-api"
+name = "protochain-api"
 version = "0.1.0"
 dependencies = [
  "prost",
@@ -2895,7 +2895,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "protosol-solana-api"
+name = "protochain-solana-api"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -2904,7 +2904,7 @@ dependencies = [
  "dashmap",
  "futures-util",
  "hex",
- "protosol-api",
+ "protochain-api",
  "serde",
  "serde_json",
  "solana-client",

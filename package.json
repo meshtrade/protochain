@@ -1,5 +1,5 @@
 {
-  "name": "protosol-monorepo",
+  "name": "protochain-monorepo",
   "private": true,
   "workspaces": [
     "lib/ts",

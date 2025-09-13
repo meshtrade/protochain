@@ -1,5 +1,5 @@
 {
-  "name": "@protosol/tests-ts",
+  "name": "@protochain/tests-ts",
   "version": "1.0.0",
   "private": true,
   "description": "TypeScript playground for testing gRPC client connectivity",
@@ -15,7 +15,7 @@
     "lint": "echo 'No linting configured for test files'"
   },
   "dependencies": {
-    "@protosol/api": "1.0.0"
+    "@protochain/api": "1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

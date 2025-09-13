@@ -76,16 +76,16 @@ func WithSecure() ServiceOption {
 
 // discoverCredentials attempts to find API credentials using the standard discovery hierarchy:
 //
-// 1. PROTOSOL_API_CREDENTIALS environment variable
+// 1. PROTOCHAIN_API_CREDENTIALS environment variable
 // 2. Default credential file location:
-//   - Linux:   $XDG_CONFIG_HOME/protosol/credentials.json or fallback to $HOME/.config/protosol/credentials.json
-//   - macOS:   $HOME/Library/Application Support/protosol/credentials.json
-//   - Windows: C:\Users\<user>\AppData\Roaming\protosol\credentials.json
+//   - Linux:   $XDG_CONFIG_HOME/protochain/credentials.json or fallback to $HOME/.config/protochain/credentials.json
+//   - macOS:   $HOME/Library/Application Support/protochain/credentials.json
+//   - Windows: C:\Users\<user>\AppData\Roaming\protochain\credentials.json
 //
 // This follows the same pattern as other cloud SDKs for credential discovery.
 func discoverCredentials() string {
 	// Check environment variable first
-	if creds := os.Getenv("PROTOSOL_API_CREDENTIALS"); creds != "" {
+	if creds := os.Getenv("PROTOCHAIN_API_CREDENTIALS"); creds != "" {
 		return creds
 	}
 
@@ -98,16 +98,16 @@ func discoverCredentials() string {
 
 	switch runtime.GOOS {
 	case "darwin": // macOS
-		defaultPath = filepath.Join(homeDir, "Library", "Application Support", "protosol", "credentials.json")
+		defaultPath = filepath.Join(homeDir, "Library", "Application Support", "protochain", "credentials.json")
 	case "windows":
-		defaultPath = filepath.Join(homeDir, "AppData", "Roaming", "protosol", "credentials.json")
+		defaultPath = filepath.Join(homeDir, "AppData", "Roaming", "protochain", "credentials.json")
 	default: // Linux and others
 		// Use XDG_CONFIG_HOME if set, otherwise fallback to ~/.config
 		configHome := os.Getenv("XDG_CONFIG_HOME")
 		if configHome == "" {
 			configHome = filepath.Join(homeDir, ".config")
 		}
-		defaultPath = filepath.Join(configHome, "protosol", "credentials.json")
+		defaultPath = filepath.Join(configHome, "protochain", "credentials.json")
 	}
 
 	// Check if the default path exists

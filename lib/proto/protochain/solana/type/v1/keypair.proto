@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package protochain.solana.type.v1;
+
+option go_package = "github.com/BRBussy/protochain/lib/go/protochain/solana/type/v1;solana_type_v1";
+
+// KeyPair represents a Solana cryptographic key pair for transaction signing
+message KeyPair {
+  string public_key = 1;   // Base58 encoded public key 
+  string private_key = 2;  // Hex encoded private key (32 bytes)
+}

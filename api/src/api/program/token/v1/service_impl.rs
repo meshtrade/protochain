@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
-use protosol_api::protosol::solana::program::token::v1::{
+use protochain_api::protochain::solana::program::token::v1::{
     service_server::Service as TokenProgramService, CreateHoldingAccountRequest,
     CreateHoldingAccountResponse, CreateMintRequest, CreateMintResponse,
     GetCurrentMinRentForHoldingAccountRequest, GetCurrentMinRentForHoldingAccountResponse,
@@ -22,7 +22,7 @@ use std::str::FromStr;
 
 use crate::api::common::solana_conversions::sdk_instruction_to_proto;
 use crate::api::program::system::v1::service_impl::SystemProgramServiceImpl;
-use protosol_api::protosol::solana::program::system::v1::{
+use protochain_api::protochain::solana::program::system::v1::{
     service_server::Service as SystemProgramService, CreateRequest as SystemCreateRequest,
 };
 

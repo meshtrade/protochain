@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ProtoSol TypeScript Linting Script
+# Protochain TypeScript Linting Script
 # Uses yarn exclusively and configures linters to skip generated files
 
 set -e

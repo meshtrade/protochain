@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ProtoSol Go Linting Script
+# Protochain Go Linting Script
 # Requires golangci-lint to be pre-installed
 
 set -e

@@ -16,13 +16,13 @@ To regenerate the code:
 Add this to your `Cargo.toml`:
 ```toml
 [dependencies]
-protosol-api = { path = "../path/to/api/rust" }
+protochain-api = { path = "../path/to/api/rust" }
 ```
 
 Then use in your code:
 ```rust
-use protosol_api::{Transaction, SubmitTransactionRequest};
-use protosol_api::service_client::ServiceClient;
+use protochain_api::{Transaction, SubmitTransactionRequest};
+use protochain_api::service_client::ServiceClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

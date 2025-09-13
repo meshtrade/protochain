@@ -1,4 +1,4 @@
-// Service configuration definitions for all ProtoSol services
+// Service configuration definitions for all Protochain services
 import type { ServiceMethod } from '../components/ServicePage'
 
 // Re-export ServiceMethod type for use in other components

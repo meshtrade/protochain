@@ -1,44 +1,44 @@
-//! Protosol API Rust SDK
+//! Protochain API Rust SDK
 //!
-//! This crate provides Rust bindings for the Protosol API protocol buffers.
+//! This crate provides Rust bindings for the Protochain API protocol buffers.
 //! All code is auto-generated from protobuf definitions.
 
-pub mod protosol {
+pub mod protochain {
     pub mod solana {
         pub mod transaction {
             pub mod v1 {
-                include!("protosol.solana.transaction.v1.rs");
+                include!("protochain.solana.transaction.v1.rs");
             }
         }
         pub mod account {
             pub mod v1 {
-                include!("protosol.solana.account.v1.rs");
+                include!("protochain.solana.account.v1.rs");
             }
         }
         pub mod program {
             pub mod system {
                 pub mod v1 {
-                    include!("protosol.solana.program.system.v1.rs");
+                    include!("protochain.solana.program.system.v1.rs");
                 }
             }
             pub mod token {
                 pub mod v1 {
-                    include!("protosol.solana.program.token.v1.rs");
+                    include!("protochain.solana.program.token.v1.rs");
                 }
             }
         }
         pub mod r#type {
             pub mod v1 {
-                include!("protosol.solana.type.v1.rs");
+                include!("protochain.solana.type.v1.rs");
             }
         }
         pub mod rpc_client {
             pub mod v1 {
-                include!("protosol.solana.rpc_client.v1.rs");
+                include!("protochain.solana.rpc_client.v1.rs");
             }
         }
     }
 }
 
 // Re-export commonly used types at the crate root for convenience
-pub use protosol::solana::transaction::v1::*;
+pub use protochain::solana::transaction::v1::*;

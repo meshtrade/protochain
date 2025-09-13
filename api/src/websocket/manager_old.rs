@@ -9,11 +9,11 @@ use solana_client::rpc_config::RpcSignatureSubscribeConfig;
 use solana_sdk::{signature::Signature, commitment_config::CommitmentConfig};
 use tonic::Status;
 
-use protosol_api::protosol::solana::transaction::v1::{
+use protochain_api::protochain::solana::transaction::v1::{
     MonitorTransactionResponse,
     TransactionStatus,
 };
-use protosol_api::protosol::solana::r#type::v1::CommitmentLevel;
+use protochain_api::protochain::solana::r#type::v1::CommitmentLevel;
 
 /// Handle for managing a signature subscription
 #[derive(Debug)]

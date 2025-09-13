@@ -1,10 +1,10 @@
 [package]
-name = "protosol-api"
+name = "protochain-api"
 version = "0.1.0"
 edition = "2021"
 authors = ["BRBussy"]
-description = "Protosol API Rust SDK - Generated protobuf and gRPC code"
-repository = "https://github.com/BRBussy/protosol"
+description = "Protochain API Rust SDK - Generated protobuf and gRPC code"
+repository = "https://github.com/BRBussy/protochain"
 license = "MIT"
 
 # Generated code - disable linting

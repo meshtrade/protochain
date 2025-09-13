@@ -1,5 +1,5 @@
 use super::SystemProgramServiceImpl;
-use protosol_api::protosol::solana::program::system::v1::{
+use protochain_api::protochain::solana::program::system::v1::{
     service_server::Service as SystemProgramService, AllocateRequest, AssignRequest, CreateRequest,
     CreateWithSeedRequest, TransferRequest,
 };

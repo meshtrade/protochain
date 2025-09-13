@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
-use protosol_api::protosol::solana::rpc_client::v1::{
+use protochain_api::protochain::solana::rpc_client::v1::{
     service_server::Service as RpcClientService, GetMinimumBalanceForRentExemptionRequest,
     GetMinimumBalanceForRentExemptionResponse,
 };

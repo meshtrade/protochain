@@ -22,9 +22,9 @@ if [[ ! -f "$PID_FILE" ]]; then
     echo "   Server may not be running or was not started with start-backend.sh"
     
     # Try to find any running cargo processes for our project
-    CARGO_PID=$(pgrep -f "protosol-solana-api" 2>/dev/null || true)
+    CARGO_PID=$(pgrep -f "protochain-solana-api" 2>/dev/null || true)
     if [[ -n "$CARGO_PID" ]]; then
-        echo "🔍 Found running protosol-solana-api process (PID: $CARGO_PID)"
+        echo "🔍 Found running protochain-solana-api process (PID: $CARGO_PID)"
         echo "   Attempting to stop it..."
         kill "$CARGO_PID" 2>/dev/null || true
         sleep 2
@@ -35,7 +35,7 @@ if [[ ! -f "$PID_FILE" ]]; then
             kill -9 "$CARGO_PID" 2>/dev/null || true
         fi
         
-        echo "✅ Stopped running protosol-solana-api process"
+        echo "✅ Stopped running protochain-solana-api process"
     else
         echo "ℹ️  No running backend processes found"
     fi

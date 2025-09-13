@@ -13,8 +13,8 @@ use tokio_stream::StreamExt;
 use tonic::Status;
 use tracing::{debug, info, warn};
 
-use protosol_api::protosol::solana::r#type::v1::CommitmentLevel;
-use protosol_api::protosol::solana::transaction::v1::{
+use protochain_api::protochain::solana::r#type::v1::CommitmentLevel;
+use protochain_api::protochain::solana::transaction::v1::{
     MonitorTransactionResponse, TransactionStatus,
 };
 

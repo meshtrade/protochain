@@ -5,14 +5,14 @@ plugins:
   - remote: buf.build/protocolbuffers/go
     out: ./lib/go
     opt:
-      - module=github.com/BRBussy/protosol/lib/go
+      - module=github.com/BRBussy/protochain/lib/go
   - remote: buf.build/grpc/go
     out: ./lib/go
     opt:
-      - module=github.com/BRBussy/protosol/lib/go
+      - module=github.com/BRBussy/protochain/lib/go
   
-  # Custom protosolgo plugin for interface generation
-  - local: ["go", "run", "./tool/protoc-gen/cmd/protosolgo"]
+  # Custom protochaingo plugin for interface generation
+  - local: ["go", "run", "./tool/protoc-gen/cmd/protochaingo"]
     out: ./lib/go
     strategy: all
   

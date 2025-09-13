@@ -4,5 +4,5 @@ use (
 	.
 	./lib/go
 	./tests/go
-	./tool/protoc-gen/cmd/protosolgo
+	./tool/protoc-gen/cmd/protochaingo
 )

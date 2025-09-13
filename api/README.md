@@ -65,10 +65,10 @@ Start the server using the development scripts:
 Run the application directly:
 ```bash
 # From project root
-cargo run -p protosol-solana-api
+cargo run -p protochain-solana-api
 
 # With specific network
-SOLANA_RPC_URL="https://api.mainnet-beta.solana.com" cargo run -p protosol-solana-api
+SOLANA_RPC_URL="https://api.mainnet-beta.solana.com" cargo run -p protochain-solana-api
 ```
 
 ### Testing

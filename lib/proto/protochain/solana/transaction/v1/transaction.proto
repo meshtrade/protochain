@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package protochain.solana.transaction.v1;
+
+import "protochain/solana/transaction/v1/instruction.proto";
+
+option go_package = "github.com/BRBussy/protochain/lib/go/protochain/solana/transaction/v1;transaction_v1";
+
+// Transaction lifecycle states
+enum TransactionState {
+  TRANSACTION_STATE_UNSPECIFIED = 0;
+  TRANSACTION_STATE_DRAFT = 1;          // Can add/remove instructions
+  TRANSACTION_STATE_COMPILED = 2;       // Instructions compiled to data, read-only
+  TRANSACTION_STATE_PARTIALLY_SIGNED = 3; // Some signatures added
+  TRANSACTION_STATE_FULLY_SIGNED = 4;   // All signatures present, ready for submission
+}
+
+// Configuration for transaction compilation and execution
+message TransactionConfig {
+  // Compute budget configuration
+  uint32 compute_unit_limit = 1;
+  uint64 compute_unit_price = 2;
+  uint64 priority_fee = 3;
+  
+  // Validation options
+  bool skip_preflight = 4;
+  bool skip_account_validation = 5;
+}
+
+// Composable transaction supporting multiple instructions
+message Transaction {
+  // Instructions for composition (populated in draft state)
+  repeated SolanaInstruction instructions = 1;
+  
+  // Transaction lifecycle state
+  TransactionState state = 2;
+  
+  // Transaction configuration
+  TransactionConfig config = 3;
+  
+  // Compiled transaction data (populated when compiled)
+  string data = 4;
+  
+  // Transaction metadata
+  string fee_payer = 5;
+  string recent_blockhash = 6;
+  repeated string signatures = 7;
+  
+  // Transaction hash (when submitted)
+  string hash = 8;
+  string signature = 9; // Primary signature for compatibility with existing account service
+}

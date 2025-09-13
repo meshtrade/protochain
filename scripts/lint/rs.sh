@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ProtoSol Rust Linting Script
+# Protochain Rust Linting Script
 # Uses cargo fmt and clippy with auto-fix
 
 set -e

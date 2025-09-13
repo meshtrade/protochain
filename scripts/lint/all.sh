@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ProtoSol Unified Linting Script
+# Protochain Unified Linting Script
 # Runs all linters with auto-fix across TypeScript, Go, and Rust workspaces
 
 set -e
@@ -15,7 +15,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}   ProtoSol Unified Linting Check${NC}"
+echo -e "${BLUE}   Protochain Unified Linting Check${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 

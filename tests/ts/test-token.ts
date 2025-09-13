@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
-import { TokenProgramService, createClient, createGrpcTransport, AccountService } from "@protosol/api";
-import { InitialiseMintRequest } from "@protosol/api";
+import { TokenProgramService, createClient, createGrpcTransport, AccountService } from "@protochain/api";
+import { InitialiseMintRequest } from "@protochain/api";
 
 const BACKEND_ENDPOINT = "http://localhost:50051";
 

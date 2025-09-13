@@ -17,7 +17,7 @@ Compile the TypeScript code using Yarn workspace commands:
 
 ```bash
 # Build this workspace only
-yarn workspace @protosol/api-ts build
+yarn workspace @protochain/api-ts build
 
 # Or build all workspaces from root
 yarn build
@@ -29,7 +29,7 @@ Run TypeScript type checking without building:
 
 ```bash
 # Type check this workspace only  
-yarn workspace @protosol/api-ts typecheck
+yarn workspace @protochain/api-ts typecheck
 
 # Or type check all workspaces from root
 yarn typecheck
@@ -43,7 +43,7 @@ Import the generated types and services:
 import { 
   Account, 
   AccountServiceClient 
-} from '@protosol/api-ts';
+} from '@protochain/api-ts';
 
 // Use the generated types and clients in your application
 ```
@@ -51,10 +51,10 @@ import {
 ## Generated Files
 
 The following files are auto-generated from protobuf definitions:
-- `src/protosol/solana/account/v1/` - Account management types and services
-- `src/protosol/solana/program/system/v1/` - System program types and services  
-- `src/protosol/solana/transaction/v1/` - Transaction types and services
-- `src/protosol/solana/type/v1/` - Common types (commitment levels, keypairs)
+- `src/protochain/solana/account/v1/` - Account management types and services
+- `src/protochain/solana/program/system/v1/` - System program types and services  
+- `src/protochain/solana/transaction/v1/` - Transaction types and services
+- `src/protochain/solana/type/v1/` - Common types (commitment levels, keypairs)
 
 ## Development
 
