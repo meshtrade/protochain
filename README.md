@@ -1,2 +1,2 @@
-# protosol
-A set of tools for interacting with the Solana Blockchain via Protobuf
+# protochain
+A set of tools for interacting with Blockchain via Protobuf

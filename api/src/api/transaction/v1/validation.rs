@@ -14,7 +14,9 @@ pub fn validate_state_transition(
             TransactionState::Compiled,
             TransactionState::PartiallySigned | TransactionState::FullySigned,
         )
-        | (TransactionState::PartiallySigned, TransactionState::FullySigned) => Ok(()),
+        | (TransactionState::PartiallySigned, TransactionState::FullySigned)
+        // Allow self-transition for PartiallySigneg to add more signatures
+        | (TransactionState::PartiallySigned, TransactionState::PartiallySigned) => Ok(()),
 
         // No transitions allowed from FULLY_SIGNED (terminal state)
         (TransactionState::FullySigned, _) => {

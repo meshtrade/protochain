@@ -90,10 +90,10 @@ impl WebSocketManager {
         MonitorTransactionResponse {
             signature: signature_str.to_string(),
             status: TransactionStatus::Timeout.into(),
-            slot: None,
-            error_message: Some("Monitoring timeout reached".to_string()),
+            slot: 0,
+            error_message: "Monitoring timeout reached".to_string(),
             logs: vec![],
-            compute_units_consumed: None,
+            compute_units_consumed: 0,
             current_commitment: CommitmentLevel::Unspecified.into(),
         }
     }
@@ -256,10 +256,10 @@ impl WebSocketManager {
                     let response = MonitorTransactionResponse {
                         signature: signature_str.clone(),
                         status: transaction_status.into(),
-                        slot: Some(status.slot),
-                        error_message,
+                        slot: status.slot,
+                        error_message: error_message.unwrap_or_default(),
                         logs: if include_logs { vec![] } else { vec![] }, // Could fetch tx details for logs
-                        compute_units_consumed: None,
+                        compute_units_consumed: 0,
                         current_commitment: match transaction_status {
                             TransactionStatus::Finalized => CommitmentLevel::Finalized,
                             TransactionStatus::Confirmed => CommitmentLevel::Confirmed,
@@ -305,10 +305,10 @@ impl WebSocketManager {
                 let _ = sender.send(MonitorTransactionResponse {
                     signature: signature_str.clone(),
                     status: TransactionStatus::Failed.into(),
-                    slot: None,
-                    error_message: Some(format!("WebSocket connection failed: {e}")),
+                    slot: 0,
+                    error_message: format!("WebSocket connection failed: {e}"),
                     logs: vec![],
-                    compute_units_consumed: None,
+                    compute_units_consumed: 0,
                     current_commitment: CommitmentLevel::Unspecified.into(),
                 });
                 return;
@@ -333,10 +333,10 @@ impl WebSocketManager {
                 let _ = sender.send(MonitorTransactionResponse {
                     signature: signature_str.clone(),
                     status: TransactionStatus::Failed.into(),
-                    slot: None,
-                    error_message: Some(format!("Signature subscription failed: {e}")),
+                    slot: 0,
+                    error_message: format!("Signature subscription failed: {e}"),
                     logs: vec![],
-                    compute_units_consumed: None,
+                    compute_units_consumed: 0,
                     current_commitment: CommitmentLevel::Unspecified.into(),
                 });
                 return;
@@ -394,10 +394,10 @@ impl WebSocketManager {
                             let response = MonitorTransactionResponse {
                                 signature: signature_str.clone(),
                                 status: transaction_status.into(),
-                                slot: Some(status.slot),
-                                error_message,
+                                slot: status.slot,
+                                error_message: error_message.unwrap_or_default(),
                                 logs: vec![], // RPC polling doesn't include logs by default
-                                compute_units_consumed: None,
+                                compute_units_consumed: 0,
                                 current_commitment: match transaction_status {
                                     TransactionStatus::Finalized => CommitmentLevel::Finalized,
                                     TransactionStatus::Confirmed => CommitmentLevel::Confirmed,
@@ -497,10 +497,10 @@ impl WebSocketManager {
         MonitorTransactionResponse {
             signature: signature.to_string(),
             status: status.into(),
-            slot: Some(notification.context.slot),
-            error_message,
+            slot: notification.context.slot,
+            error_message: error_message.unwrap_or_default(),
             logs,
-            compute_units_consumed: compute_units,
+            compute_units_consumed: compute_units.unwrap_or(0),
             current_commitment: commitment_level.into(),
         }
     }

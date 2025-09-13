@@ -362,7 +362,7 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	// Verify holding account creation (ensure it exists and is owned by token program)
 	holdingAccount, err := suite.accountService.GetAccount(suite.ctx, &account_v1.GetAccountRequest{
 		Address: holdingAccKeyResp.KeyPair.PublicKey,
-		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED.Enum(),
+		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 	})
 	suite.Require().NoError(err, "Should get holding account")
 	suite.Require().NotNil(holdingAccount, "Holding account should exist")
@@ -423,7 +423,7 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	// Verify tokens were minted by checking holding account after minting
 	holdingAccountAfterMint, err := suite.accountService.GetAccount(suite.ctx, &account_v1.GetAccountRequest{
 		Address: holdingAccKeyResp.KeyPair.PublicKey,
-		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED.Enum(),
+		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 	})
 	suite.Require().NoError(err, "Should get holding account after minting")
 	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, holdingAccountAfterMint.Owner, "Holding account should still be owned by Token 2022 program")
@@ -461,7 +461,7 @@ func (suite *TokenProgramE2ETestSuite) waitForAccountVisible(address string) {
 	for attempt := 1; attempt <= 10; attempt++ {
 		_, err := suite.accountService.GetAccount(suite.ctx, &account_v1.GetAccountRequest{
 			Address: address,
-			CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED.Enum(),
+			CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 		})
 		if err == nil {
 			suite.T().Logf("  Account visible after %d attempts", attempt)

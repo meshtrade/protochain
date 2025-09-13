@@ -292,18 +292,16 @@ fn classify_by_message(error_message: &str) -> SubmissionResult {
 /// - FINALIZED: Slowest, most reliable (irreversible, ~13s typical)
 ///
 /// The confirmed default prevents timing issues while maintaining reasonable performance.
-fn commitment_level_to_config(commitment_level: Option<i32>) -> CommitmentConfig {
-    commitment_level.map_or_else(CommitmentConfig::confirmed, |level| {
-        match CommitmentLevel::try_from(level) {
-            Ok(CommitmentLevel::Processed) => CommitmentConfig::processed(),
-            Ok(CommitmentLevel::Confirmed) => CommitmentConfig::confirmed(),
-            Ok(CommitmentLevel::Finalized) => CommitmentConfig::finalized(),
-            Ok(CommitmentLevel::Unspecified) | Err(_) => {
-                // Default to confirmed for reliability - matches account service default
-                CommitmentConfig::confirmed()
-            }
+fn commitment_level_to_config(commitment_level: i32) -> CommitmentConfig {
+    match CommitmentLevel::try_from(commitment_level) {
+        Ok(CommitmentLevel::Processed) => CommitmentConfig::processed(),
+        Ok(CommitmentLevel::Confirmed) => CommitmentConfig::confirmed(),
+        Ok(CommitmentLevel::Finalized) => CommitmentConfig::finalized(),
+        Ok(CommitmentLevel::Unspecified) | Err(_) => {
+            // Default to confirmed for reliability - matches account service default
+            CommitmentConfig::confirmed()
         }
-    })
+    }
 }
 
 #[tonic::async_trait]
@@ -936,7 +934,7 @@ impl TransactionService for TransactionServiceImpl {
         Ok(Response::new(SubmitTransactionResponse {
             signature: signature_result,
             submission_result: submission_result.into(),
-            error_message,
+            error_message: error_message.unwrap_or_default(),
         }))
     }
 
@@ -1107,7 +1105,7 @@ impl TransactionService for TransactionServiceImpl {
         })?;
 
         // Validate timeout (if provided)
-        let timeout_seconds = req.timeout_seconds.unwrap_or(60);
+        let timeout_seconds = if req.timeout_seconds == 0 { 60 } else { req.timeout_seconds };
         if !(5..=300).contains(&timeout_seconds) {
             error!(
                 timeout_seconds = timeout_seconds,
@@ -1198,10 +1196,10 @@ async fn send_timeout_notification(
     let timeout_response = MonitorTransactionResponse {
         signature: signature.to_string(),
         status: TransactionStatus::Timeout.into(),
-        slot: None,
-        error_message: Some("Stream monitoring timeout reached".to_string()),
+        slot: 0,
+        error_message: "Stream monitoring timeout reached".to_string(),
         logs: vec![],
-        compute_units_consumed: None,
+        compute_units_consumed: 0,
         current_commitment: CommitmentLevel::Unspecified.into(),
     };
 

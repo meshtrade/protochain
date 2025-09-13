@@ -33,18 +33,16 @@ impl AccountServiceImpl {
 
 /// Helper function to convert proto `CommitmentLevel` to Solana `CommitmentConfig`
 /// Provides sensible defaults when commitment level is not specified
-fn commitment_level_to_config(commitment_level: Option<i32>) -> CommitmentConfig {
-    commitment_level.map_or_else(CommitmentConfig::confirmed, |level| {
-        match CommitmentLevel::try_from(level) {
-            Ok(CommitmentLevel::Processed) => CommitmentConfig::processed(),
-            Ok(CommitmentLevel::Confirmed) => CommitmentConfig::confirmed(),
-            Ok(CommitmentLevel::Finalized) => CommitmentConfig::finalized(),
-            Ok(CommitmentLevel::Unspecified) | Err(_) => {
-                // Default to confirmed for reliability - matches our previous fix
-                CommitmentConfig::confirmed()
-            }
+fn commitment_level_to_config(commitment_level: i32) -> CommitmentConfig {
+    match CommitmentLevel::try_from(commitment_level) {
+        Ok(CommitmentLevel::Processed) => CommitmentConfig::processed(),
+        Ok(CommitmentLevel::Confirmed) => CommitmentConfig::confirmed(),
+        Ok(CommitmentLevel::Finalized) => CommitmentConfig::finalized(),
+        Ok(CommitmentLevel::Unspecified) | Err(_) => {
+            // Default to confirmed for reliability - matches our previous fix
+            CommitmentConfig::confirmed()
         }
-    })
+    }
 }
 
 #[tonic::async_trait]
@@ -142,26 +140,23 @@ impl AccountService for AccountServiceImpl {
         let req = request.into_inner();
 
         // Generate keypair (random or from seed)
-        let keypair = match req.seed {
-            Some(seed) => {
-                // Deterministic generation from seed
-                let seed_bytes = hex::decode(&seed)
-                    .map_err(|e| Status::invalid_argument(format!("Invalid hex seed: {e}")))?;
+        let keypair = if req.seed.is_empty() {
+            // Random generation
+            Keypair::new()
+        } else {
+            // Deterministic generation from seed
+            let seed_bytes = hex::decode(&req.seed)
+                .map_err(|e| Status::invalid_argument(format!("Invalid hex seed: {e}")))?;
 
-                if seed_bytes.len() != 32 {
-                    return Err(Status::invalid_argument("Seed must be exactly 32 bytes"));
-                }
+            if seed_bytes.len() != 32 {
+                return Err(Status::invalid_argument("Seed must be exactly 32 bytes"));
+            }
 
-                let mut seed_array = [0u8; 32];
-                seed_array.copy_from_slice(&seed_bytes);
-                Keypair::from_seed(&seed_array).map_err(|e| {
-                    Status::internal(format!("Failed to generate keypair from seed: {e}"))
-                })?
-            }
-            None => {
-                // Random generation
-                Keypair::new()
-            }
+            let mut seed_array = [0u8; 32];
+            seed_array.copy_from_slice(&seed_bytes);
+            Keypair::from_seed(&seed_array).map_err(|e| {
+                Status::internal(format!("Failed to generate keypair from seed: {e}"))
+            })?
         };
 
         // Create protobuf KeyPair with proper field names

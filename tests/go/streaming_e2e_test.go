@@ -120,7 +120,7 @@ func (suite *StreamingE2ETestSuite) Test_01_EnhancedSubmitTransactionResponse() 
 	// Submit transaction and check enhanced response
 	submitResp, err := suite.transactionService.SubmitTransaction(suite.ctx, &transaction_v1.SubmitTransactionRequest{
 		Transaction:     signResp.Transaction,
-		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED.Enum(),
+		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 	})
 	suite.Require().NoError(err, "Should submit transaction")
 
@@ -204,7 +204,7 @@ func (suite *StreamingE2ETestSuite) Test_03_MonitorTransactionTimeout() {
 		Signature:       fakeSignature,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 		IncludeLogs:     false,
-		TimeoutSeconds:  uint32Ptr(5), // 5 second timeout
+		TimeoutSeconds:  5, // 5 second timeout
 	})
 
 	// Stream must be created successfully with real backend
@@ -316,7 +316,7 @@ func (suite *StreamingE2ETestSuite) Test_04_SubmitAndMonitorWorkflow() {
 	// Submit transaction
 	submitResp, err := suite.transactionService.SubmitTransaction(suite.ctx, &transaction_v1.SubmitTransactionRequest{
 		Transaction:     signResp.Transaction,
-		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED.Enum(),
+		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 	})
 	suite.Require().NoError(err, "Should submit transaction")
 	suite.Assert().Equal(transaction_v1.SubmissionResult_SUBMISSION_RESULT_SUBMITTED, submitResp.SubmissionResult,
@@ -329,7 +329,7 @@ func (suite *StreamingE2ETestSuite) Test_04_SubmitAndMonitorWorkflow() {
 		Signature:       submitResp.Signature,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 		IncludeLogs:     true,
-		TimeoutSeconds:  uint32Ptr(30),
+		TimeoutSeconds:  30,
 	})
 
 	// Stream must be created successfully with real backend
@@ -529,7 +529,7 @@ func (suite *StreamingE2ETestSuite) Test_07_TransactionLifecycle_EstimateSimulat
 	commitmentLevel := type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED
 	estimateResp, err := suite.transactionService.EstimateTransaction(suite.ctx, &transaction_v1.EstimateTransactionRequest{
 		Transaction:     compileResp.Transaction,
-		CommitmentLevel: &commitmentLevel,
+		CommitmentLevel: commitmentLevel,
 	})
 	suite.Require().NoError(err, "Should estimate transaction")
 	suite.Require().NotNil(estimateResp, "Should return estimation")
@@ -548,7 +548,7 @@ func (suite *StreamingE2ETestSuite) Test_07_TransactionLifecycle_EstimateSimulat
 	suite.T().Log("📤 Step 2: Simulating transaction")
 	simulateResp, err := suite.transactionService.SimulateTransaction(suite.ctx, &transaction_v1.SimulateTransactionRequest{
 		Transaction:     compileResp.Transaction,
-		CommitmentLevel: &commitmentLevel,
+		CommitmentLevel: commitmentLevel,
 	})
 	suite.Require().NoError(err, "Should simulate transaction")
 	suite.Require().NotNil(simulateResp, "Should return simulation result")
@@ -748,7 +748,7 @@ func (suite *StreamingE2ETestSuite) Test_09_ComprehensiveStreamingIntegration() 
 	commitmentLevel := type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED
 	estimateResp, err := suite.transactionService.EstimateTransaction(suite.ctx, &transaction_v1.EstimateTransactionRequest{
 		Transaction:     compiledTx,
-		CommitmentLevel: &commitmentLevel,
+		CommitmentLevel: commitmentLevel,
 	})
 	suite.Require().NoError(err, "Should estimate transaction costs")
 
@@ -783,7 +783,7 @@ func (suite *StreamingE2ETestSuite) Test_09_ComprehensiveStreamingIntegration() 
 	suite.T().Log("📤 Step 9: 🚀 SUBMITTING ATOMIC TRANSACTION TO BLOCKCHAIN! 🚀")
 	submitResp, err := suite.transactionService.SubmitTransaction(suite.ctx, &transaction_v1.SubmitTransactionRequest{
 		Transaction:     signedTx,
-		CommitmentLevel: &commitmentLevel,
+		CommitmentLevel: commitmentLevel,
 	})
 	suite.Require().NoError(err, "Should submit transaction successfully")
 	suite.Require().NotNil(submitResp, "Submit response should not be nil")
@@ -846,7 +846,7 @@ func (suite *StreamingE2ETestSuite) Test_09_ComprehensiveStreamingIntegration() 
 
 	submitResp2, err := suite.transactionService.SubmitTransaction(suite.ctx, &transaction_v1.SubmitTransactionRequest{
 		Transaction:     signResp2.Transaction,
-		CommitmentLevel: &commitmentLevel,
+		CommitmentLevel: commitmentLevel,
 	})
 	suite.Require().NoError(err, "Should submit second transaction")
 	suite.Assert().Equal(transaction_v1.SubmissionResult_SUBMISSION_RESULT_SUBMITTED, submitResp2.SubmissionResult,
@@ -891,7 +891,7 @@ func (suite *StreamingE2ETestSuite) Test_09_ComprehensiveStreamingIntegration() 
 
 	submitResp3, err := suite.transactionService.SubmitTransaction(suite.ctx, &transaction_v1.SubmitTransactionRequest{
 		Transaction:     signResp3.Transaction,
-		CommitmentLevel: &commitmentLevel,
+		CommitmentLevel: commitmentLevel,
 	})
 	suite.Require().NoError(err, "Should submit transfer transaction")
 	suite.Assert().Equal(transaction_v1.SubmissionResult_SUBMISSION_RESULT_SUBMITTED, submitResp3.SubmissionResult,
@@ -966,7 +966,7 @@ func (suite *StreamingE2ETestSuite) monitorTransactionToCompletion(signature str
 		Signature:       signature,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 		IncludeLogs:     false,
-		TimeoutSeconds:  uint32Ptr(30),
+		TimeoutSeconds:  30,
 	})
 
 	suite.Require().NoError(err, "Must create monitoring stream for signature: %s", signature)
@@ -1088,7 +1088,7 @@ func (suite *StreamingE2ETestSuite) Test_10_PreStreamingValidation() {
 		Signature:       txSignature,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 		IncludeLogs:     true, // Enable logs to get more detailed info
-		TimeoutSeconds:  uint32Ptr(45), // Longer timeout for validation
+		TimeoutSeconds:  45, // Longer timeout for validation
 	})
 	suite.Require().NoError(err, "Should create monitoring stream")
 
