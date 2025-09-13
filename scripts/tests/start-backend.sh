@@ -36,8 +36,8 @@ if [[ ! -f "Cargo.toml" ]]; then
     exit 1
 fi
 
-if ! grep -q "api" Cargo.toml; then
-    echo "❌ Error: 'api' workspace member not found in Cargo.toml"
+if ! grep -q "app/solana/cmd/api" Cargo.toml; then
+    echo "❌ Error: 'app/solana/cmd/api' workspace member not found in Cargo.toml"
     echo "   Make sure the Rust workspace is properly configured"
     exit 1
 fi

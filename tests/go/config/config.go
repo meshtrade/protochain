@@ -130,7 +130,7 @@ func hasProtochainMarkers(dir string) bool {
 		"claude.md",
 		"buf.yaml",
 		"lib/proto",
-		"api/Cargo.toml",
+		"app/solana/cmd/api/Cargo.toml",
 		"go.work",
 	}
 

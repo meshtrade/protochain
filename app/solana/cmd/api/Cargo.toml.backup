@@ -1,0 +1,44 @@
+[package]
+name = "protochain-solana-api"
+version = "0.1.0"
+edition = "2021"
+description = "Protocol Buffer wrapper for Solana blockchain operations via gRPC"
+license = "MIT"
+repository = "https://github.com/BRBussy/protochain"
+keywords = ["solana", "blockchain", "grpc", "protobuf", "crypto"]
+categories = ["api-bindings", "cryptography::cryptocurrencies"]
+
+[lints]
+workspace = true
+
+[dependencies]
+# Use workspace dependencies
+tokio.workspace = true
+tonic.workspace = true
+solana-client.workspace = true
+solana-sdk.workspace = true
+solana-transaction-status.workspace = true
+solana-pubsub-client.workspace = true
+solana-rpc-client-api.workspace = true
+serde_json.workspace = true
+futures-util.workspace = true
+tokio-stream.workspace = true
+dashmap.workspace = true
+uuid.workspace = true
+
+# Structured logging dependencies
+tracing.workspace = true
+tracing-subscriber.workspace = true
+tracing-appender.workspace = true
+
+# Additional dependencies
+serde = { version = "1.0", features = ["derive"] }
+anyhow = "1.0"
+thiserror = "1.0"
+bincode = "1.3"
+bs58 = "0.5"
+hex = "0.4"
+spl-token-2022 = "3.0.0"
+
+# Reference the API crate within the workspace
+protochain-api = { path = "../lib/rust" }

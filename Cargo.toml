@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "api"
+    "app/solana/cmd/api"
 ]
 
 # Exclude generated code from workspace
