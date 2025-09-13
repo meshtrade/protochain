@@ -29,3 +29,6 @@ yarn-error.log
 .solana-backend.pid
 .solana-backend.port
 .solana-cli-config.backup
+
+# Repository restructuring backup directories
+.backup-before-restructure/
