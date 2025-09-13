@@ -48,13 +48,22 @@ protochain/
 │       ├── program/system/v1/    # System program wrappers
 │       └── type/v1/              # Shared type definitions
 │
-├── api/                          # 🦀 Rust gRPC Backend Implementation
-│   └── src/
-│       ├── main.rs              # gRPC server (port 50051)
-│       └── api/                 # Service implementations
-│           ├── account/v1/      # Account service logic
-│           ├── transaction/v1/  # Transaction state machine
-│           └── program/system/v1/ # System program conversions
+├── app/                          # 🏗️ Multi-App Architecture
+│   ├── solana/                  # Solana blockchain applications
+│   │   └── cmd/
+│   │       └── api/             # 🦀 Rust gRPC Backend (moved from ./api)
+│   │           ├── src/main.rs  # gRPC server (port 50051)
+│   │           └── src/api/     # Service implementations
+│   │               ├── account/v1/      # Account service logic
+│   │               ├── transaction/v1/  # Transaction state machine
+│   │               └── program/system/v1/ # System program conversions
+│   │
+│   └── template/               # Template for new applications
+│       └── cmd/
+│           └── some-executable/ # 🐹 Go template app (template-some-executable)
+│               ├── main.go     # Working Go executable
+│               ├── go.mod      # Independent Go module
+│               └── README.md   # Usage documentation
 │
 ├── lib/                         # 📦 Generated Multi-Language SDKs
 │   ├── rust/src/               # Generated Rust bindings
@@ -74,6 +83,35 @@ protochain/
 │
 └── CLAUDE.md                   # 📖 Comprehensive development guide
 ```
+
+## 🏗️ Multi-App Architecture
+
+ProtoChain now supports a **multi-app architecture** that allows multiple applications to coexist in the same repository:
+
+### App Naming Convention
+- **Pattern**: `{app-type}-{executable-name}`
+- **Location**: `./app/{app-type}/cmd/{executable-name}/`
+- **Example**: `template-some-executable` located at `./app/template/cmd/some-executable/`
+
+### Current Applications
+
+#### 🦀 **Solana API** (`solana-api`)
+- **Location**: `./app/solana/cmd/api/`
+- **Package**: `protochain-solana-api`
+- **Description**: Complete Rust gRPC backend for Solana blockchain operations
+- **Features**: All ProtoChain services (Account, Transaction, System Program, RPC Client)
+
+#### 🐹 **Template App** (`template-some-executable`)
+- **Location**: `./app/template/cmd/some-executable/`
+- **Package**: `template-some-executable`
+- **Description**: Template Go executable demonstrating app structure
+- **Purpose**: Starting point for new applications
+
+### Adding New Applications
+1. Create directory: `./app/{type}/cmd/{name}/`
+2. Follow naming convention: `{type}-{name}`
+3. Implement according to application type (Go, Rust, etc.)
+4. Add to workspace configuration if needed
 
 ## 🚀 Key Features & Services
 
@@ -155,15 +193,24 @@ buf lint
 
 3. **Implement & Test**
 ```bash
-# Update Rust implementation
-vim api/src/api/account/v1/service_impl.rs
+# Update Rust implementation (NEW LOCATION)
+vim app/solana/cmd/api/src/api/account/v1/service_impl.rs
 
 # Run tests
 cargo test                    # Rust unit tests
 cd tests/go && go test -v     # Go integration tests (auto-detects services)
 ```
 
-4. **Quality Assurance**
+4. **Try Template App**
+```bash
+# Run the template app to understand the structure
+go run ./app/template/cmd/some-executable/main.go
+
+# Test with arguments
+go run ./app/template/cmd/some-executable/main.go test arg
+```
+
+5. **Quality Assurance**
 ```bash
 # MANDATORY: Run linting after ANY code changes
 ./scripts/lint/all.sh         # All languages
