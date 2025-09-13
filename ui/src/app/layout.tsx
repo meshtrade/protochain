@@ -3,9 +3,9 @@ import './globals.css'
 import Sidebar from '../components/Sidebar'
 
 export const metadata: Metadata = {
-  title: 'ProtoSol - Solana Protocol Frontend',
-  description: 'Modern React frontend for ProtoSol Solana SDK',
-  keywords: ['solana', 'blockchain', 'protoSol', 'typescript', 'rpc'],
+  title: 'Protochain - Solana Protocol Frontend',
+  description: 'Modern React frontend for Protochain Solana SDK',
+  keywords: ['solana', 'blockchain', 'protochain', 'typescript', 'rpc'],
 }
 
 export default function RootLayout({

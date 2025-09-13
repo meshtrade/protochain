@@ -166,7 +166,7 @@ export default function Sidebar() {
             <span className="text-white font-bold text-sm">P</span>
           </div>
           <div className="ml-3">
-            <h1 className="text-lg font-semibold text-slate-900">ProtoSol</h1>
+            <h1 className="text-lg font-semibold text-slate-900">Protochain</h1>
             <p className="text-xs text-slate-500">API Dashboard</p>
           </div>
         </div>

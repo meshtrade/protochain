@@ -8,9 +8,9 @@
   ],
   "packageManager": "yarn@1.22.22",
   "scripts": {
-    "start:ui": "yarn workspace protosol-ui dev",
-    "build:ui": "yarn workspace protosol-ui build",
-    "lint:ui": "yarn workspace protosol-ui lint",
-    "typecheck:ui": "yarn workspace protosol-ui typecheck"
+    "start:ui": "yarn workspace protochain-ui dev",
+    "build:ui": "yarn workspace protochain-ui build",
+    "lint:ui": "yarn workspace protochain-ui lint",
+    "typecheck:ui": "yarn workspace protochain-ui typecheck"
   }
 }

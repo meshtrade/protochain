@@ -10,7 +10,7 @@ const nextConfig = {
     },
   },
   // Enable experimental features for latest NextJS
-  transpilePackages: ['@protosol/api'],
+  transpilePackages: ['@protochain/api'],
 }
 
 export default nextConfig

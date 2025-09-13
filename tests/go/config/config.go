@@ -72,8 +72,8 @@ func findAPITestRoot() (string, error) {
 			return wd, nil
 		}
 
-		// Also check if we're in a protosol project root
-		if hasProtosolMarkers(wd) {
+		// Also check if we're in a protochain project root
+		if hasProtochainMarkers(wd) {
 			testsGoPath := filepath.Join(wd, "tests", "go")
 			if isDir(testsGoPath) {
 				return testsGoPath, nil
@@ -106,8 +106,8 @@ func GetTestKeypairPath() (string, error) {
 
 	// Navigate up to find the project root, then locate the keypair
 	for {
-		// Check for protosol project root markers
-		if hasProtosolMarkers(wd) {
+		// Check for protochain project root markers
+		if hasProtochainMarkers(wd) {
 			keypairPath := filepath.Join(wd, "project", "solana", "scripts", "test-keypair.json")
 			if _, err := os.Stat(keypairPath); err == nil {
 				return keypairPath, nil
@@ -124,8 +124,8 @@ func GetTestKeypairPath() (string, error) {
 	return "", fmt.Errorf("test keypair not found, expected at project/solana/scripts/test-keypair.json")
 }
 
-func hasProtosolMarkers(dir string) bool {
-	// Check for known project files/directories that indicate protosol root
+func hasProtochainMarkers(dir string) bool {
+	// Check for known project files/directories that indicate protochain root
 	markers := []string{
 		"claude.md",
 		"buf.yaml",

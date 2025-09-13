@@ -1,6 +1,6 @@
-# Protosol API Rust SDK
+# Protochain API Rust SDK
 
-This crate provides Rust bindings for the Protosol API protocol buffers.
+This crate provides Rust bindings for the Protochain API protocol buffers.
 
 ## Generated Code
 

@@ -8,8 +8,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	rpc_client_v1 "github.com/BRBussy/protochain/lib/go/protosol/solana/rpc_client/v1"
-	type_v1 "github.com/BRBussy/protochain/lib/go/protosol/solana/type/v1"
+	rpc_client_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/rpc_client/v1"
+	type_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/type/v1"
 )
 
 // RpcClientE2ETestSuite tests the RPC Client service functionality

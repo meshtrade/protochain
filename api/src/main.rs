@@ -37,7 +37,7 @@ use service_providers::ServiceProviders;
 ///
 /// Logging Configuration:
 /// - Uses environment variable `RUST_LOG` for level filtering (default: "info")
-/// - JSON format for production environments (when `PROTOSOL_JSON_LOGS=true`)
+/// - JSON format for production environments (when `PROTOCHAIN_JSON_LOGS=true`)
 /// - Human-readable format for development (default)
 /// - Supports log levels: trace, debug, info, warn, error
 /// - Includes source code locations for debug builds

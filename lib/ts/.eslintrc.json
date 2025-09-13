@@ -22,7 +22,7 @@
   "ignorePatterns": [
     "dist/**",
     "node_modules/**",
-    "src/protosol/**"
+    "src/protochain/**"
   ],
   "overrides": [
     {

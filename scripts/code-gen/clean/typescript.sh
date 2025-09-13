@@ -25,7 +25,7 @@ if [ -d "${PROJECT_ROOT}/lib/ts/src" ]; then
     find "${PROJECT_ROOT}/lib/ts/src" -name "*_pb.ts" -type f -delete 2>/dev/null || true
     
     # Remove generated directories that might be empty
-    find "${PROJECT_ROOT}/lib/ts/src" -type d -name "protosol" -exec rm -rf {} + 2>/dev/null || true
+    find "${PROJECT_ROOT}/lib/ts/src" -type d -name "protochain" -exec rm -rf {} + 2>/dev/null || true
     
     echo "✅ TypeScript generated files cleaned"
     

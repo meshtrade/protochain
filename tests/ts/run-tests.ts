@@ -28,9 +28,9 @@ async function checkBackendHealth(): Promise<boolean> {
       return true;
     } else {
       console.log(`❌ Backend is not reachable at ${BACKEND_ENDPOINT}`);
-      console.log("   Make sure the ProtoSol backend is running:");
+      console.log("   Make sure the Protochain backend is running:");
       console.log("   1. Start Solana validator: ./scripts/tests/start-validator.sh");
-      console.log("   2. Start ProtoSol backend: cargo run --package protosol-solana-api");
+      console.log("   2. Start Protochain backend: cargo run --package protochain-solana-api");
       return false;
     }
   } catch (error) {
@@ -57,7 +57,7 @@ async function runTest(name: string, testFunction: () => Promise<boolean>): Prom
 }
 
 async function main() {
-  console.log("🔧 ProtoSol gRPC Client Validation Test Suite");
+  console.log("🔧 Protochain gRPC Client Validation Test Suite");
   console.log("=".repeat(60));
   
   // Check backend health first

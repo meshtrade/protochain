@@ -25,7 +25,7 @@ interface GrpcConfig {
 
 // Default configuration - can be overridden via environment variables
 const defaultConfig: GrpcConfig = {
-  baseUrl: process.env.PROTOSOL_GRPC_URL || "http://localhost:50051",
+  baseUrl: process.env.PROTOCHAIN_GRPC_URL || "http://localhost:50051",
   timeout: 30000, // 30 seconds
   keepAlive: true,
 };

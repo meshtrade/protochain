@@ -1,6 +1,6 @@
 dist/
 node_modules/
-src/protosol/
+src/protochain/
 *.min.js
 *.min.css
 coverage/

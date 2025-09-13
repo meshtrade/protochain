@@ -1,6 +1,6 @@
 # TypeScript API Bindings
 
-This directory contains auto-generated TypeScript bindings for the Protosol gRPC APIs, generated using the [@bufbuild/es](https://buf.build/bufbuild/es) plugin.
+This directory contains auto-generated TypeScript bindings for the Protochain gRPC APIs, generated using the [@bufbuild/es](https://buf.build/bufbuild/es) plugin.
 
 ## Installation
 
@@ -52,7 +52,7 @@ import {
 
 The following files are auto-generated from protobuf definitions:
 - `src/protochain/solana/account/v1/` - Account management types and services
-- `src/protochain/solana/program/system/v1/` - System program types and services  
+- `src/protochain/solana/program/system/v1/` - System program types and services
 - `src/protochain/solana/transaction/v1/` - Transaction types and services
 - `src/protochain/solana/type/v1/` - Common types (commitment levels, keypairs)
 

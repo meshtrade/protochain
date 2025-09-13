@@ -5,7 +5,7 @@ import (
 
 	"google.golang.org/protobuf/compiler/protogen"
 
-	"github.com/BRBussy/protochain/tool/protoc-gen/cmd/protosolgo/pkg/generate"
+	"github.com/BRBussy/protochain/tool/protoc-gen/cmd/protochaingo/pkg/generate"
 )
 
 func main() {

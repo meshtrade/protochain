@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { ProtoSolDashboard } from '@/components/ProtoSolDashboard'
+import { ProtochainDashboard } from '@/components/ProtochainDashboard'
 
 export default function HomePage() {
   return (
@@ -10,10 +10,10 @@ export default function HomePage() {
             Welcome to the Prototype
           </div>
           <h1 className="text-4xl sm:text-6xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            ProtoSol UI Demo
+            Protochain UI Demo
           </h1>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Experience the latest in blockchain development with Next.js 15, TypeScript, and the ProtoSol SDK.
+            Experience the latest in blockchain development with Next.js 15, TypeScript, and the Protochain SDK.
             Built with modern approaches and cutting-edge technologies.
           </p>
           <div className="flex flex-wrap justify-center gap-3 pt-4">
@@ -30,7 +30,7 @@ export default function HomePage() {
               Tailwind CSS
             </span>
             <span className="px-3 py-1 text-sm bg-emerald-100 text-emerald-800 rounded-full">
-              ProtoSol SDK
+              Protochain SDK
             </span>
           </div>
         </div>
@@ -38,7 +38,7 @@ export default function HomePage() {
 
       <div className="mt-16">
         <Suspense fallback={<LoadingSkeleton />}>
-          <ProtoSolDashboard />
+          <ProtochainDashboard />
         </Suspense>
       </div>
     </>

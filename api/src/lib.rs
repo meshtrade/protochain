@@ -1,4 +1,4 @@
-//! `ProtoSol` Solana API Backend
+//! `Protochain` Solana API Backend
 //!
 //! This crate provides a gRPC API layer over Solana blockchain operations,
 //! implementing services for accounts, transactions, and system programs.

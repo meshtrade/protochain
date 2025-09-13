@@ -57,8 +57,8 @@ for TS_DIR in "${TS_WORKSPACES[@]}"; do
     echo -e "${YELLOW}Running ESLint with auto-fix on ${WORKSPACE_NAME}...${NC}"
     
     if [ "${WORKSPACE_NAME}" = "ts" ]; then
-        # lib/ts - skip generated protosol files
-        if find src -name "*.ts" -o -name "*.tsx" | grep -v "src/protosol/" | head -1 > /dev/null 2>&1; then
+        # lib/ts - skip generated protochain files
+        if find src -name "*.ts" -o -name "*.tsx" | grep -v "src/protochain/" | head -1 > /dev/null 2>&1; then
             if yarn lint:fix; then
                 echo -e "${GREEN}✓ ESLint passed for ${WORKSPACE_NAME}${NC}"
             else

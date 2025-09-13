@@ -32,7 +32,7 @@ import {
   parseMintAction
 } from '../../../../lib/actions/token-program-actions'
 
-// Transaction states based on ProtoSol state machine
+// Transaction states based on Protochain state machine
 enum TransactionState {
   DRAFT = 'DRAFT',
   COMPILED = 'COMPILED', 
@@ -57,7 +57,7 @@ interface DraftTransaction {
   submittedAt?: Date
 }
 
-// Placeholder instruction interface (will be replaced by actual ProtoSol types)
+// Placeholder instruction interface (will be replaced by actual Protochain types)
 interface SolanaInstruction {
   programId: string
   accounts: Array<{

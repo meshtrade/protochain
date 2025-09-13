@@ -36,7 +36,7 @@
             "name": "Debug Backend (Rust)",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/target/debug/protosol-solana-api",
+            "program": "${workspaceFolder}/target/debug/protochain-solana-api",
             "cwd": "${workspaceFolder}/api",
             "stopOnEntry": false,
             "args": [],
@@ -44,7 +44,7 @@
                 "RUST_LOG": "debug",
                 "SOLANA_RPC_URL": "http://localhost:8899"
             },
-            "preLaunchTask": "cargo: build --bin protosol-solana-api"
+            "preLaunchTask": "cargo: build --bin protochain-solana-api"
         }
     ],
     "inputs": [

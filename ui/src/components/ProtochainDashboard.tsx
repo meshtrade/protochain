@@ -10,7 +10,7 @@ interface DashboardState {
   connectionStatus: 'connecting' | 'connected' | 'disconnected'
 }
 
-export function ProtoSolDashboard() {
+export function ProtochainDashboard() {
   const [state, setState] = useState<DashboardState>({
     sdkVersion: 'Loading...',
     sdkName: 'Loading...',
@@ -27,7 +27,7 @@ export function ProtoSolDashboard() {
       setState(prev => ({
         ...prev,
         sdkVersion: 'Server Actions',
-        sdkName: 'ProtoSol SDK (Server Actions)',
+        sdkName: 'Protochain SDK (Server Actions)',
         connectionStatus: 'connected'
       }))
     }, 500) // Add a small delay to simulate loading
@@ -95,10 +95,10 @@ export function ProtoSolDashboard() {
     <div className="bg-white rounded-2xl shadow-xl p-8 max-w-4xl mx-auto">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-slate-900 mb-2">
-          ProtoSol SDK Dashboard
+          Protochain SDK Dashboard
         </h2>
         <p className="text-slate-600">
-          Running the latest ProtoSol SDK with Next.js 15
+          Running the latest Protochain SDK with Next.js 15
         </p>
       </div>
 
@@ -149,7 +149,7 @@ export function ProtoSolDashboard() {
       {/* Interactive Demo Section */}
       <div className="border-t border-slate-200 pt-8">
         <h3 className="text-xl font-semibold text-slate-800 mb-4">
-          Interactive Demo - ProtoSol API Calls
+          Interactive Demo - Protochain API Calls
         </h3>
         <div className="space-y-4">
           <div className="flex gap-4 items-center">
@@ -185,7 +185,7 @@ export function ProtoSolDashboard() {
 
           {/* API Call Examples */}
           <div className="bg-slate-50 rounded-lg p-6 mt-6">
-            <h4 className="font-medium text-slate-800 mb-4">Available ProtoSol API Calls:</h4>
+            <h4 className="font-medium text-slate-800 mb-4">Available Protochain API Calls:</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div className="space-y-2">
                 <div className="font-medium text-slate-700">Account Services:</div>
@@ -226,7 +226,7 @@ export function ProtoSolDashboard() {
       <div className="border-t border-slate-200 pt-8 mt-8">
         <div className="text-center text-slate-500">
           <p className="text-sm mb-2">
-            This is a modern Next.js 15 App Router application using the ProtoSol TypeScript SDK.
+            This is a modern Next.js 15 App Router application using the Protochain TypeScript SDK.
           </p>
           <p className="text-xs">
             Built with TypeScript, Tailwind CSS, and the latest web technologies.

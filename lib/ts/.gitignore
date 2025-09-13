@@ -1,5 +1,5 @@
 # Generated protobuf files
-src/protosol/
+src/protochain/
 
 # Build artifacts
 dist/
