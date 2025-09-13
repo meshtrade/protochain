@@ -1,6 +1,6 @@
 # Solana gRPC Application Server
 
-This is the structured Solana gRPC API backend service implementing professional enterprise architecture patterns modeled after the mesh application structure.
+This is the structured Solana gRPC API backend service.
 
 ## Architecture
 
