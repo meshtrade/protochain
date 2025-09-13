@@ -11,12 +11,12 @@ ProtoChain provides a language-agnostic gRPC API layer over Solana blockchain op
 
 ## 🎯 Mission
 
-Solve the fundamental challenge where your backend needs to be in one language, but the best Solana SDK is in another. ProtoChain enables you to:
+Addresses the challenge where your backend needs to be in one language, but the most mature Solana SDK is in Rust. ProtoChain provides:
 
-- **Build in Any Language**: Generate SDKs for Go, TypeScript, Rust, Python, etc.
-- **Use Best-in-Class SDKs**: Leverage Rust's mature Solana ecosystem via gRPC
-- **Scale Production Systems**: Battle-tested streaming architecture with comprehensive monitoring
-- **Develop Protocol-First**: All APIs defined in Protocol Buffers for consistency
+- **Multi-Language SDK Generation**: Generate SDKs for Go, TypeScript, Rust, Python, etc.
+- **Rust SDK Access**: Access Rust's Solana ecosystem via gRPC from any language
+- **Streaming Transaction Monitoring**: gRPC streaming for real-time transaction status updates
+- **Protocol Buffer Definitions**: All APIs defined in Protocol Buffers for consistency
 
 ## 🏗️ Architecture Overview
 
@@ -99,9 +99,9 @@ protochain/
 - **Rent Calculations**: Get minimum balance for rent exemption
 - **Commitment Levels**: Support for processed/confirmed/finalized
 
-## ✅ Production-Ready Testing
+## ✅ Test Coverage
 
-**All Tests Passing**: Comprehensive test coverage with real blockchain integration
+Test suite includes unit tests and integration tests with local blockchain validation
 
 ### 🦀 Rust Unit Tests (30/30 ✅)
 - Service implementations and business logic
@@ -109,17 +109,17 @@ protochain/
 - Error handling and edge cases
 - Protocol buffer conversions
 
-### 🐹 Go Integration Tests (All Suites ✅)
-- **Real Blockchain Testing**: Creates actual accounts, submits real transactions
-- **Streaming Validation**: Tests real-time transaction monitoring
-- **Multi-instruction Atomic Transactions**: Verifies Solana's atomic execution
-- **Complete Workflows**: End-to-end user journey testing
+### 🐹 Go Integration Tests
+- **Local Blockchain Testing**: Creates accounts and submits transactions to local validator
+- **Streaming Implementation**: Tests gRPC streaming transaction status updates
+- **Multi-instruction Transactions**: Tests atomic transaction execution
+- **Service Integration**: End-to-end API functionality testing
 
-**Recent Test Run Results:**
-- 4 accounts created with verified balances
-- 4 transactions submitted and finalized on blockchain
-- All streaming notifications working correctly
-- Token program functionality fully validated
+**Test Implementation:**
+- Creates test accounts and verifies balances on local validator
+- Submits transactions and monitors status via streaming APIs
+- Tests transaction state machine transitions
+- Validates system and token program functionality
 
 ## 🛠️ Quick Start
 
@@ -171,14 +171,14 @@ cd tests/go && go test -v     # Go integration tests (auto-detects services)
 ./scripts/lint/go.sh          # Go only
 ```
 
-## 🎯 Key Design Principles
+## 🎯 Technical Design
 
 - **Protocol-First**: Proto definitions drive all development
-- **State Machine Integrity**: Strict transaction lifecycle enforcement
-- **Production Quality**: Comprehensive testing with real blockchain integration
-- **Multi-Language**: Generate clean, idiomatic SDKs for any language
-- **Streaming Architecture**: Real-time transaction monitoring capabilities
-- **Error Resilience**: Robust error handling and graceful degradation
+- **State Machine**: Enforces transaction lifecycle transitions
+- **Testing**: Unit tests and integration tests with local blockchain
+- **Multi-Language**: Generates SDKs for multiple programming languages
+- **Streaming**: gRPC streaming for transaction monitoring
+- **Error Handling**: Structured error responses via gRPC Status
 
 ## 📚 Documentation
 
@@ -194,6 +194,10 @@ cd tests/go && go test -v     # Go integration tests (auto-detects services)
 4. Run mandatory linting: `./scripts/lint/all.sh`
 5. Verify blockchain integration with integration tests
 
-## 🏆 Status
+## 🏆 Current Status
 
-**Production Ready** - All tests passing, comprehensive blockchain integration verified, streaming architecture functional, multi-language SDKs generated and tested.
+- All unit tests passing (30/30)
+- Integration tests passing with local Solana validator
+- gRPC streaming implementation functional
+- Multi-language SDK generation working
+- Transaction state machine implemented and tested
