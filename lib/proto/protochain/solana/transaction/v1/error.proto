@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package protochain.solana.transaction.v1;
+
+option go_package = "github.com/BRBussy/protochain/lib/go/protochain/solana/transaction/v1;transaction_v1";
+
+// Structured error information for transaction submission failures
+//
+// This message provides comprehensive error details that enable callers to determine
+// with 100% certainty the state of their transaction submission and whether retry
+// is appropriate. The error classification follows the "re-signing test" principle:
+// - PERMANENT failures require rebuilding and re-signing the transaction
+// - TEMPORARY failures can be resolved with the same signed transaction
+// - INDETERMINATE states can be resolved by waiting for blockhash expiration
+message TransactionError {
+  // Specific error code for programmatic handling
+  TransactionErrorCode code = 1;
+
+  // Human-readable error message
+  string message = 2;
+
+  // JSON-encoded additional error context and details
+  string details = 3;
+
+  // Whether the same transaction might succeed if retried without modification
+  bool retryable = 4;
+
+  // Certainty level about transaction submission status
+  TransactionSubmissionCertainty certainty = 5;
+
+  // Original transaction blockhash for resolution timing
+  string blockhash = 6;
+
+  // Slot when blockhash expires (~150 blocks after creation)
+  uint64 blockhash_expiry_slot = 7;
+}
+
+// Comprehensive error codes for transaction submission failures
+//
+// Error classification is based on the "re-signing test" principle:
+// - If fixing the error requires creating a new transaction with new signatures, it's PERMANENT
+// - If the same signed transaction could work later, it's TEMPORARY
+// - If we cannot determine whether the transaction was sent, it's INDETERMINATE
+enum TransactionErrorCode {
+  TRANSACTION_ERROR_CODE_UNSPECIFIED = 0;
+
+  // PERMANENT FAILURES - Transaction was NOT sent and will NEVER succeed as-is
+  // These require rebuilding and re-signing the transaction
+
+  // Transaction structure or format errors
+  TRANSACTION_ERROR_CODE_INVALID_TRANSACTION = 1;           // Malformed transaction structure
+  TRANSACTION_ERROR_CODE_INVALID_SIGNATURE = 2;             // Missing or invalid signatures
+  TRANSACTION_ERROR_CODE_SIGNATURE_VERIFICATION_FAILED = 3; // Signature verification failed
+  TRANSACTION_ERROR_CODE_TRANSACTION_TOO_LARGE = 10;        // Transaction exceeds size limits
+
+  // Account and validation errors
+  TRANSACTION_ERROR_CODE_ACCOUNT_NOT_FOUND = 4;             // Required account doesn't exist
+  TRANSACTION_ERROR_CODE_INVALID_ACCOUNT = 5;               // Account in invalid state
+  TRANSACTION_ERROR_CODE_INVALID_BLOCKHASH_FORMAT = 9;      // Blockhash format is invalid
+  TRANSACTION_ERROR_CODE_BLOCKHASH_NOT_FOUND = 11;          // Expired blockhash - requires re-signing
+
+  // Program execution errors
+  TRANSACTION_ERROR_CODE_PROGRAM_ERROR = 6;                 // Program execution failed
+  TRANSACTION_ERROR_CODE_INSTRUCTION_ERROR = 7;             // Instruction execution failed
+  TRANSACTION_ERROR_CODE_PRECOMPILE_VERIFICATION_FAILED = 8; // Precompile verification failed
+
+  // TEMPORARY FAILURES - Same exact transaction could succeed later without modification
+  // These are truly transient conditions affecting the same signed transaction
+
+  TRANSACTION_ERROR_CODE_INSUFFICIENT_FUNDS = 20;           // Add funds, same transaction works
+  TRANSACTION_ERROR_CODE_ACCOUNT_IN_USE = 21;               // Account locked, wait for unlock
+  TRANSACTION_ERROR_CODE_WOULD_EXCEED_BLOCK_LIMIT = 22;     // Block capacity limit, try next block
+  TRANSACTION_ERROR_CODE_TRANSIENT_SIMULATION_FAILURE = 23; // Temporary simulation issues
+
+  // INDETERMINATE - Cannot determine if transaction was submitted
+  // These errors leave us uncertain about submission status but can be resolved
+
+  TRANSACTION_ERROR_CODE_NETWORK_ERROR = 40;                // Could fail before/during/after send
+  TRANSACTION_ERROR_CODE_TIMEOUT = 41;                      // DANGEROUS - might have been sent
+  TRANSACTION_ERROR_CODE_NODE_UNHEALTHY = 42;               // Node might have received it first
+  TRANSACTION_ERROR_CODE_RATE_LIMITED = 43;                // Depends on where rate limiting occurs
+  TRANSACTION_ERROR_CODE_RPC_ERROR = 44;                    // Generic RPC failures
+  TRANSACTION_ERROR_CODE_CONNECTION_FAILED = 45;            // Connection establishment failed
+  TRANSACTION_ERROR_CODE_REQUEST_FAILED = 46;               // HTTP/transport request failed
+  TRANSACTION_ERROR_CODE_UNKNOWN = 47;                      // Any unclassified error
+}
+
+// Transaction submission certainty levels
+//
+// This enum indicates our level of certainty about whether the transaction
+// was actually sent to the Solana network. This is critical for preventing
+// duplicate transactions and implementing proper retry logic.
+enum TransactionSubmissionCertainty {
+  // We are certain about what happened to the transaction
+  TRANSACTION_SUBMISSION_CERTAINTY_UNSPECIFIED = 0;     // Default/unknown state
+  TRANSACTION_SUBMISSION_CERTAINTY_NOT_SUBMITTED = 1;   // 100% certain transaction was NOT sent to network
+  TRANSACTION_SUBMISSION_CERTAINTY_SUBMITTED = 2;       // 100% certain transaction WAS sent to network
+
+  // We are uncertain but can resolve the state through blockchain analysis
+  TRANSACTION_SUBMISSION_CERTAINTY_UNKNOWN_RESOLVABLE = 3; // Wait for blockhash expiry, then check blockchain
+  TRANSACTION_SUBMISSION_CERTAINTY_UNKNOWN = 4;            // Cannot determine and cannot easily resolve
+}

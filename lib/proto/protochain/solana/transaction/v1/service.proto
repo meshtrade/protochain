@@ -3,6 +3,7 @@ syntax = "proto3";
 package protochain.solana.transaction.v1;
 
 import "protochain/solana/transaction/v1/transaction.proto";
+import "protochain/solana/transaction/v1/error.proto";
 import "protochain/solana/type/v1/commitment_level.proto";
 
 option go_package = "github.com/BRBussy/protochain/lib/go/protochain/solana/transaction/v1;transaction_v1";
@@ -103,7 +104,8 @@ message SubmitTransactionRequest {
 message SubmitTransactionResponse {
   string signature = 1;  // Transaction signature
   SubmissionResult submission_result = 2;  // Submission outcome (sent vs failed to send)
-  string error_message = 3;  // Error details if submission failed
+  string error_message = 3;  // Error details if submission failed (kept for backward compatibility)
+  TransactionError structured_error = 4;  // NEW: Structured error details with certainty indicators
 }
 
 enum SubmissionResult {
@@ -113,6 +115,7 @@ enum SubmissionResult {
   SUBMISSION_RESULT_FAILED_NETWORK_ERROR = 3;       // Network/RPC error prevented submission
   SUBMISSION_RESULT_FAILED_INSUFFICIENT_FUNDS = 4;  // Fee payer has insufficient balance
   SUBMISSION_RESULT_FAILED_INVALID_SIGNATURE = 5;   // Transaction signature validation failed
+  SUBMISSION_RESULT_INDETERMINATE = 6;              // NEW: State unknown - use structured_error for resolution
 }
 
 message GetTransactionRequest {

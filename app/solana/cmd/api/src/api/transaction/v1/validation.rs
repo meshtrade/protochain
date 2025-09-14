@@ -9,9 +9,11 @@ pub fn validate_state_transition(
 ) -> Result<(), String> {
     match (from, to) {
         // Valid forward transitions in the transaction lifecycle
-        (TransactionState::Draft, TransactionState::Compiled) |
-(TransactionState::Compiled | TransactionState::PartiallySigned,
-TransactionState::PartiallySigned | TransactionState::FullySigned) => Ok(()),
+        (TransactionState::Draft, TransactionState::Compiled)
+        | (
+            TransactionState::Compiled | TransactionState::PartiallySigned,
+            TransactionState::PartiallySigned | TransactionState::FullySigned,
+        ) => Ok(()),
 
         // No transitions allowed from FULLY_SIGNED (terminal state)
         (TransactionState::FullySigned, _) => {

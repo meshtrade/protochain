@@ -2,28 +2,24 @@
 // @generated from file protochain/solana/transaction/v1/transaction.proto (package protochain.solana.transaction.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenEnum, GenFile, GenMessage } from '@bufbuild/protobuf/codegenv2';
-import { enumDesc, fileDesc, messageDesc } from '@bufbuild/protobuf/codegenv2';
-import type { SolanaInstruction } from './instruction_pb';
-import { file_protochain_solana_transaction_v1_instruction } from './instruction_pb';
-import type { Message } from '@bufbuild/protobuf';
+import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { SolanaInstruction } from "./instruction_pb";
+import { file_protochain_solana_transaction_v1_instruction } from "./instruction_pb";
+import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file protochain/solana/transaction/v1/transaction.proto.
  */
-export const file_protochain_solana_transaction_v1_transaction: GenFile =
-  /*@__PURE__*/
-  fileDesc(
-    'CjJwcm90b2NoYWluL3NvbGFuYS90cmFuc2FjdGlvbi92MS90cmFuc2FjdGlvbi5wcm90bxIgcHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEimgEKEVRyYW5zYWN0aW9uQ29uZmlnEhoKEmNvbXB1dGVfdW5pdF9saW1pdBgBIAEoDRIaChJjb21wdXRlX3VuaXRfcHJpY2UYAiABKAQSFAoMcHJpb3JpdHlfZmVlGAMgASgEEhYKDnNraXBfcHJlZmxpZ2h0GAQgASgIEh8KF3NraXBfYWNjb3VudF92YWxpZGF0aW9uGAUgASgIItACCgtUcmFuc2FjdGlvbhJJCgxpbnN0cnVjdGlvbnMYASADKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbhJBCgVzdGF0ZRgCIAEoDjIyLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlRyYW5zYWN0aW9uU3RhdGUSQwoGY29uZmlnGAMgASgLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuVHJhbnNhY3Rpb25Db25maWcSDAoEZGF0YRgEIAEoCRIRCglmZWVfcGF5ZXIYBSABKAkSGAoQcmVjZW50X2Jsb2NraGFzaBgGIAEoCRISCgpzaWduYXR1cmVzGAcgAygJEgwKBGhhc2gYCCABKAkSEQoJc2lnbmF0dXJlGAkgASgJKr4BChBUcmFuc2FjdGlvblN0YXRlEiEKHVRSQU5TQUNUSU9OX1NUQVRFX1VOU1BFQ0lGSUVEEAASGwoXVFJBTlNBQ1RJT05fU1RBVEVfRFJBRlQQARIeChpUUkFOU0FDVElPTl9TVEFURV9DT01QSUxFRBACEiYKIlRSQU5TQUNUSU9OX1NUQVRFX1BBUlRJQUxMWV9TSUdORUQQAxIiCh5UUkFOU0FDVElPTl9TVEFURV9GVUxMWV9TSUdORUQQBEJWWlRnaXRodWIuY29tL0JSQnVzc3kvcHJvdG9jaGFpbi9saWIvZ28vcHJvdG9jaGFpbi9zb2xhbmEvdHJhbnNhY3Rpb24vdjE7dHJhbnNhY3Rpb25fdjFiBnByb3RvMw',
-    [file_protochain_solana_transaction_v1_instruction],
-  );
+export const file_protochain_solana_transaction_v1_transaction: GenFile = /*@__PURE__*/
+  fileDesc("CjJwcm90b2NoYWluL3NvbGFuYS90cmFuc2FjdGlvbi92MS90cmFuc2FjdGlvbi5wcm90bxIgcHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEimgEKEVRyYW5zYWN0aW9uQ29uZmlnEhoKEmNvbXB1dGVfdW5pdF9saW1pdBgBIAEoDRIaChJjb21wdXRlX3VuaXRfcHJpY2UYAiABKAQSFAoMcHJpb3JpdHlfZmVlGAMgASgEEhYKDnNraXBfcHJlZmxpZ2h0GAQgASgIEh8KF3NraXBfYWNjb3VudF92YWxpZGF0aW9uGAUgASgIItACCgtUcmFuc2FjdGlvbhJJCgxpbnN0cnVjdGlvbnMYASADKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbhJBCgVzdGF0ZRgCIAEoDjIyLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlRyYW5zYWN0aW9uU3RhdGUSQwoGY29uZmlnGAMgASgLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuVHJhbnNhY3Rpb25Db25maWcSDAoEZGF0YRgEIAEoCRIRCglmZWVfcGF5ZXIYBSABKAkSGAoQcmVjZW50X2Jsb2NraGFzaBgGIAEoCRISCgpzaWduYXR1cmVzGAcgAygJEgwKBGhhc2gYCCABKAkSEQoJc2lnbmF0dXJlGAkgASgJKr4BChBUcmFuc2FjdGlvblN0YXRlEiEKHVRSQU5TQUNUSU9OX1NUQVRFX1VOU1BFQ0lGSUVEEAASGwoXVFJBTlNBQ1RJT05fU1RBVEVfRFJBRlQQARIeChpUUkFOU0FDVElPTl9TVEFURV9DT01QSUxFRBACEiYKIlRSQU5TQUNUSU9OX1NUQVRFX1BBUlRJQUxMWV9TSUdORUQQAxIiCh5UUkFOU0FDVElPTl9TVEFURV9GVUxMWV9TSUdORUQQBEJWWlRnaXRodWIuY29tL0JSQnVzc3kvcHJvdG9jaGFpbi9saWIvZ28vcHJvdG9jaGFpbi9zb2xhbmEvdHJhbnNhY3Rpb24vdjE7dHJhbnNhY3Rpb25fdjFiBnByb3RvMw", [file_protochain_solana_transaction_v1_instruction]);
 
 /**
  * Configuration for transaction compilation and execution
  *
  * @generated from message protochain.solana.transaction.v1.TransactionConfig
  */
-export type TransactionConfig = Message<'protochain.solana.transaction.v1.TransactionConfig'> & {
+export type TransactionConfig = Message<"protochain.solana.transaction.v1.TransactionConfig"> & {
   /**
    * Compute budget configuration
    *
@@ -58,8 +54,7 @@ export type TransactionConfig = Message<'protochain.solana.transaction.v1.Transa
  * Describes the message protochain.solana.transaction.v1.TransactionConfig.
  * Use `create(TransactionConfigSchema)` to create a new message.
  */
-export const TransactionConfigSchema: GenMessage<TransactionConfig> =
-  /*@__PURE__*/
+export const TransactionConfigSchema: GenMessage<TransactionConfig> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_transaction, 0);
 
 /**
@@ -67,7 +62,7 @@ export const TransactionConfigSchema: GenMessage<TransactionConfig> =
  *
  * @generated from message protochain.solana.transaction.v1.Transaction
  */
-export type Transaction = Message<'protochain.solana.transaction.v1.Transaction'> & {
+export type Transaction = Message<"protochain.solana.transaction.v1.Transaction"> & {
   /**
    * Instructions for composition (populated in draft state)
    *
@@ -132,8 +127,7 @@ export type Transaction = Message<'protochain.solana.transaction.v1.Transaction'
  * Describes the message protochain.solana.transaction.v1.Transaction.
  * Use `create(TransactionSchema)` to create a new message.
  */
-export const TransactionSchema: GenMessage<Transaction> =
-  /*@__PURE__*/
+export const TransactionSchema: GenMessage<Transaction> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_transaction, 1);
 
 /**
@@ -179,6 +173,6 @@ export enum TransactionState {
 /**
  * Describes the enum protochain.solana.transaction.v1.TransactionState.
  */
-export const TransactionStateSchema: GenEnum<TransactionState> =
-  /*@__PURE__*/
+export const TransactionStateSchema: GenEnum<TransactionState> = /*@__PURE__*/
   enumDesc(file_protochain_solana_transaction_v1_transaction, 0);
+

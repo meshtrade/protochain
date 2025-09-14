@@ -2,18 +2,15 @@
 // @generated from file protochain/solana/account/v1/account.proto (package protochain.solana.account.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage } from '@bufbuild/protobuf/codegenv2';
-import { fileDesc, messageDesc } from '@bufbuild/protobuf/codegenv2';
-import type { Message } from '@bufbuild/protobuf';
+import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file protochain/solana/account/v1/account.proto.
  */
-export const file_protochain_solana_account_v1_account: GenFile =
-  /*@__PURE__*/
-  fileDesc(
-    'Cipwcm90b2NoYWluL3NvbGFuYS9hY2NvdW50L3YxL2FjY291bnQucHJvdG8SHHByb3RvY2hhaW4uc29sYW5hLmFjY291bnQudjEicQoHQWNjb3VudBIPCgdhZGRyZXNzGAEgASgJEhAKCGxhbXBvcnRzGAIgASgEEg0KBW93bmVyGAMgASgJEhIKCmV4ZWN1dGFibGUYBCABKAgSDAoEZGF0YRgFIAEoCRISCgpyZW50X2Vwb2NoGAYgASgEQk5aTGdpdGh1Yi5jb20vQlJCdXNzeS9wcm90b2NoYWluL2xpYi9nby9wcm90b2NoYWluL3NvbGFuYS9hY2NvdW50L3YxO2FjY291bnRfdjFiBnByb3RvMw',
-  );
+export const file_protochain_solana_account_v1_account: GenFile = /*@__PURE__*/
+  fileDesc("Cipwcm90b2NoYWluL3NvbGFuYS9hY2NvdW50L3YxL2FjY291bnQucHJvdG8SHHByb3RvY2hhaW4uc29sYW5hLmFjY291bnQudjEicQoHQWNjb3VudBIPCgdhZGRyZXNzGAEgASgJEhAKCGxhbXBvcnRzGAIgASgEEg0KBW93bmVyGAMgASgJEhIKCmV4ZWN1dGFibGUYBCABKAgSDAoEZGF0YRgFIAEoCRISCgpyZW50X2Vwb2NoGAYgASgEQk5aTGdpdGh1Yi5jb20vQlJCdXNzeS9wcm90b2NoYWluL2xpYi9nby9wcm90b2NoYWluL3NvbGFuYS9hY2NvdW50L3YxO2FjY291bnRfdjFiBnByb3RvMw");
 
 /**
  *
@@ -21,7 +18,7 @@ export const file_protochain_solana_account_v1_account: GenFile =
  *
  * @generated from message protochain.solana.account.v1.Account
  */
-export type Account = Message<'protochain.solana.account.v1.Account'> & {
+export type Account = Message<"protochain.solana.account.v1.Account"> & {
   /**
    * Base58-encoded account address
    *
@@ -69,6 +66,6 @@ export type Account = Message<'protochain.solana.account.v1.Account'> & {
  * Describes the message protochain.solana.account.v1.Account.
  * Use `create(AccountSchema)` to create a new message.
  */
-export const AccountSchema: GenMessage<Account> =
-  /*@__PURE__*/
+export const AccountSchema: GenMessage<Account> = /*@__PURE__*/
   messageDesc(file_protochain_solana_account_v1_account, 0);
+

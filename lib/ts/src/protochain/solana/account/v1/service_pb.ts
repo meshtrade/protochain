@@ -2,34 +2,26 @@
 // @generated from file protochain/solana/account/v1/service.proto (package protochain.solana.account.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage, GenService } from '@bufbuild/protobuf/codegenv2';
-import { fileDesc, messageDesc, serviceDesc } from '@bufbuild/protobuf/codegenv2';
-import type { AccountSchema } from './account_pb';
-import { file_protochain_solana_account_v1_account } from './account_pb';
-import type { KeyPair } from '../../type/v1/keypair_pb';
-import { file_protochain_solana_type_v1_keypair } from '../../type/v1/keypair_pb';
-import type { CommitmentLevel } from '../../type/v1/commitment_level_pb';
-import { file_protochain_solana_type_v1_commitment_level } from '../../type/v1/commitment_level_pb';
-import type { Message } from '@bufbuild/protobuf';
+import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
+import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { AccountSchema } from "./account_pb";
+import { file_protochain_solana_account_v1_account } from "./account_pb";
+import type { KeyPair } from "../../type/v1/keypair_pb";
+import { file_protochain_solana_type_v1_keypair } from "../../type/v1/keypair_pb";
+import type { CommitmentLevel } from "../../type/v1/commitment_level_pb";
+import { file_protochain_solana_type_v1_commitment_level } from "../../type/v1/commitment_level_pb";
+import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file protochain/solana/account/v1/service.proto.
  */
-export const file_protochain_solana_account_v1_service: GenFile =
-  /*@__PURE__*/
-  fileDesc(
-    'Cipwcm90b2NoYWluL3NvbGFuYS9hY2NvdW50L3YxL3NlcnZpY2UucHJvdG8SHHByb3RvY2hhaW4uc29sYW5hLmFjY291bnQudjEiagoRR2V0QWNjb3VudFJlcXVlc3QSDwoHYWRkcmVzcxgBIAEoCRJEChBjb21taXRtZW50X2xldmVsGAIgASgOMioucHJvdG9jaGFpbi5zb2xhbmEudHlwZS52MS5Db21taXRtZW50TGV2ZWwiKQoZR2VuZXJhdGVOZXdLZXlQYWlyUmVxdWVzdBIMCgRzZWVkGAEgASgJIlIKGkdlbmVyYXRlTmV3S2V5UGFpclJlc3BvbnNlEjQKCGtleV9wYWlyGAEgASgLMiIucHJvdG9jaGFpbi5zb2xhbmEudHlwZS52MS5LZXlQYWlyInoKEUZ1bmROYXRpdmVSZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkSDgoGYW1vdW50GAIgASgJEkQKEGNvbW1pdG1lbnRfbGV2ZWwYAyABKA4yKi5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLkNvbW1pdG1lbnRMZXZlbCInChJGdW5kTmF0aXZlUmVzcG9uc2USEQoJc2lnbmF0dXJlGAEgASgJMuoCCgdTZXJ2aWNlEmQKCkdldEFjY291bnQSLy5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkdldEFjY291bnRSZXF1ZXN0GiUucHJvdG9jaGFpbi5zb2xhbmEuYWNjb3VudC52MS5BY2NvdW50EocBChJHZW5lcmF0ZU5ld0tleVBhaXISNy5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkdlbmVyYXRlTmV3S2V5UGFpclJlcXVlc3QaOC5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkdlbmVyYXRlTmV3S2V5UGFpclJlc3BvbnNlEm8KCkZ1bmROYXRpdmUSLy5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkZ1bmROYXRpdmVSZXF1ZXN0GjAucHJvdG9jaGFpbi5zb2xhbmEuYWNjb3VudC52MS5GdW5kTmF0aXZlUmVzcG9uc2VCTlpMZ2l0aHViLmNvbS9CUkJ1c3N5L3Byb3RvY2hhaW4vbGliL2dvL3Byb3RvY2hhaW4vc29sYW5hL2FjY291bnQvdjE7YWNjb3VudF92MWIGcHJvdG8z',
-    [
-      file_protochain_solana_account_v1_account,
-      file_protochain_solana_type_v1_keypair,
-      file_protochain_solana_type_v1_commitment_level,
-    ],
-  );
+export const file_protochain_solana_account_v1_service: GenFile = /*@__PURE__*/
+  fileDesc("Cipwcm90b2NoYWluL3NvbGFuYS9hY2NvdW50L3YxL3NlcnZpY2UucHJvdG8SHHByb3RvY2hhaW4uc29sYW5hLmFjY291bnQudjEiagoRR2V0QWNjb3VudFJlcXVlc3QSDwoHYWRkcmVzcxgBIAEoCRJEChBjb21taXRtZW50X2xldmVsGAIgASgOMioucHJvdG9jaGFpbi5zb2xhbmEudHlwZS52MS5Db21taXRtZW50TGV2ZWwiKQoZR2VuZXJhdGVOZXdLZXlQYWlyUmVxdWVzdBIMCgRzZWVkGAEgASgJIlIKGkdlbmVyYXRlTmV3S2V5UGFpclJlc3BvbnNlEjQKCGtleV9wYWlyGAEgASgLMiIucHJvdG9jaGFpbi5zb2xhbmEudHlwZS52MS5LZXlQYWlyInoKEUZ1bmROYXRpdmVSZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkSDgoGYW1vdW50GAIgASgJEkQKEGNvbW1pdG1lbnRfbGV2ZWwYAyABKA4yKi5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLkNvbW1pdG1lbnRMZXZlbCInChJGdW5kTmF0aXZlUmVzcG9uc2USEQoJc2lnbmF0dXJlGAEgASgJMuoCCgdTZXJ2aWNlEmQKCkdldEFjY291bnQSLy5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkdldEFjY291bnRSZXF1ZXN0GiUucHJvdG9jaGFpbi5zb2xhbmEuYWNjb3VudC52MS5BY2NvdW50EocBChJHZW5lcmF0ZU5ld0tleVBhaXISNy5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkdlbmVyYXRlTmV3S2V5UGFpclJlcXVlc3QaOC5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkdlbmVyYXRlTmV3S2V5UGFpclJlc3BvbnNlEm8KCkZ1bmROYXRpdmUSLy5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkZ1bmROYXRpdmVSZXF1ZXN0GjAucHJvdG9jaGFpbi5zb2xhbmEuYWNjb3VudC52MS5GdW5kTmF0aXZlUmVzcG9uc2VCTlpMZ2l0aHViLmNvbS9CUkJ1c3N5L3Byb3RvY2hhaW4vbGliL2dvL3Byb3RvY2hhaW4vc29sYW5hL2FjY291bnQvdjE7YWNjb3VudF92MWIGcHJvdG8z", [file_protochain_solana_account_v1_account, file_protochain_solana_type_v1_keypair, file_protochain_solana_type_v1_commitment_level]);
 
 /**
  * @generated from message protochain.solana.account.v1.GetAccountRequest
  */
-export type GetAccountRequest = Message<'protochain.solana.account.v1.GetAccountRequest'> & {
+export type GetAccountRequest = Message<"protochain.solana.account.v1.GetAccountRequest"> & {
   /**
    * Base58-encoded account address to fetch from Solana network
    *
@@ -49,54 +41,49 @@ export type GetAccountRequest = Message<'protochain.solana.account.v1.GetAccount
  * Describes the message protochain.solana.account.v1.GetAccountRequest.
  * Use `create(GetAccountRequestSchema)` to create a new message.
  */
-export const GetAccountRequestSchema: GenMessage<GetAccountRequest> =
-  /*@__PURE__*/
+export const GetAccountRequestSchema: GenMessage<GetAccountRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_account_v1_service, 0);
 
 /**
  * @generated from message protochain.solana.account.v1.GenerateNewKeyPairRequest
  */
-export type GenerateNewKeyPairRequest =
-  Message<'protochain.solana.account.v1.GenerateNewKeyPairRequest'> & {
-    /**
-     * Optional deterministic seed (hex-encoded)
-     *
-     * @generated from field: string seed = 1;
-     */
-    seed: string;
-  };
+export type GenerateNewKeyPairRequest = Message<"protochain.solana.account.v1.GenerateNewKeyPairRequest"> & {
+  /**
+   * Optional deterministic seed (hex-encoded)
+   *
+   * @generated from field: string seed = 1;
+   */
+  seed: string;
+};
 
 /**
  * Describes the message protochain.solana.account.v1.GenerateNewKeyPairRequest.
  * Use `create(GenerateNewKeyPairRequestSchema)` to create a new message.
  */
-export const GenerateNewKeyPairRequestSchema: GenMessage<GenerateNewKeyPairRequest> =
-  /*@__PURE__*/
+export const GenerateNewKeyPairRequestSchema: GenMessage<GenerateNewKeyPairRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_account_v1_service, 1);
 
 /**
  * @generated from message protochain.solana.account.v1.GenerateNewKeyPairResponse
  */
-export type GenerateNewKeyPairResponse =
-  Message<'protochain.solana.account.v1.GenerateNewKeyPairResponse'> & {
-    /**
-     * @generated from field: protochain.solana.type.v1.KeyPair key_pair = 1;
-     */
-    keyPair?: KeyPair;
-  };
+export type GenerateNewKeyPairResponse = Message<"protochain.solana.account.v1.GenerateNewKeyPairResponse"> & {
+  /**
+   * @generated from field: protochain.solana.type.v1.KeyPair key_pair = 1;
+   */
+  keyPair?: KeyPair;
+};
 
 /**
  * Describes the message protochain.solana.account.v1.GenerateNewKeyPairResponse.
  * Use `create(GenerateNewKeyPairResponseSchema)` to create a new message.
  */
-export const GenerateNewKeyPairResponseSchema: GenMessage<GenerateNewKeyPairResponse> =
-  /*@__PURE__*/
+export const GenerateNewKeyPairResponseSchema: GenMessage<GenerateNewKeyPairResponse> = /*@__PURE__*/
   messageDesc(file_protochain_solana_account_v1_service, 2);
 
 /**
  * @generated from message protochain.solana.account.v1.FundNativeRequest
  */
-export type FundNativeRequest = Message<'protochain.solana.account.v1.FundNativeRequest'> & {
+export type FundNativeRequest = Message<"protochain.solana.account.v1.FundNativeRequest"> & {
   /**
    * Target address for funding (Base58)
    *
@@ -123,14 +110,13 @@ export type FundNativeRequest = Message<'protochain.solana.account.v1.FundNative
  * Describes the message protochain.solana.account.v1.FundNativeRequest.
  * Use `create(FundNativeRequestSchema)` to create a new message.
  */
-export const FundNativeRequestSchema: GenMessage<FundNativeRequest> =
-  /*@__PURE__*/
+export const FundNativeRequestSchema: GenMessage<FundNativeRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_account_v1_service, 3);
 
 /**
  * @generated from message protochain.solana.account.v1.FundNativeResponse
  */
-export type FundNativeResponse = Message<'protochain.solana.account.v1.FundNativeResponse'> & {
+export type FundNativeResponse = Message<"protochain.solana.account.v1.FundNativeResponse"> & {
   /**
    * Transaction signature of airdrop
    *
@@ -143,8 +129,7 @@ export type FundNativeResponse = Message<'protochain.solana.account.v1.FundNativ
  * Describes the message protochain.solana.account.v1.FundNativeResponse.
  * Use `create(FundNativeResponseSchema)` to create a new message.
  */
-export const FundNativeResponseSchema: GenMessage<FundNativeResponse> =
-  /*@__PURE__*/
+export const FundNativeResponseSchema: GenMessage<FundNativeResponse> = /*@__PURE__*/
   messageDesc(file_protochain_solana_account_v1_service, 4);
 
 /**
@@ -155,24 +140,26 @@ export const Service: GenService<{
    * @generated from rpc protochain.solana.account.v1.Service.GetAccount
    */
   getAccount: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof GetAccountRequestSchema;
     output: typeof AccountSchema;
-  };
+  },
   /**
    * @generated from rpc protochain.solana.account.v1.Service.GenerateNewKeyPair
    */
   generateNewKeyPair: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof GenerateNewKeyPairRequestSchema;
     output: typeof GenerateNewKeyPairResponseSchema;
-  };
+  },
   /**
    * @generated from rpc protochain.solana.account.v1.Service.FundNative
    */
   fundNative: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof FundNativeRequestSchema;
     output: typeof FundNativeResponseSchema;
-  };
-}> = /*@__PURE__*/ serviceDesc(file_protochain_solana_account_v1_service, 0);
+  },
+}> = /*@__PURE__*/
+  serviceDesc(file_protochain_solana_account_v1_service, 0);
+

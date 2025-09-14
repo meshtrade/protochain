@@ -2,288 +2,262 @@
 // @generated from file protochain/solana/transaction/v1/service.proto (package protochain.solana.transaction.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenEnum, GenFile, GenMessage, GenService } from '@bufbuild/protobuf/codegenv2';
-import { enumDesc, fileDesc, messageDesc, serviceDesc } from '@bufbuild/protobuf/codegenv2';
-import type { Transaction } from './transaction_pb';
-import { file_protochain_solana_transaction_v1_transaction } from './transaction_pb';
-import type { CommitmentLevel } from '../../type/v1/commitment_level_pb';
-import { file_protochain_solana_type_v1_commitment_level } from '../../type/v1/commitment_level_pb';
-import type { Message } from '@bufbuild/protobuf';
+import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Transaction } from "./transaction_pb";
+import { file_protochain_solana_transaction_v1_transaction } from "./transaction_pb";
+import type { TransactionError } from "./error_pb";
+import { file_protochain_solana_transaction_v1_error } from "./error_pb";
+import type { CommitmentLevel } from "../../type/v1/commitment_level_pb";
+import { file_protochain_solana_type_v1_commitment_level } from "../../type/v1/commitment_level_pb";
+import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file protochain/solana/transaction/v1/service.proto.
  */
-export const file_protochain_solana_transaction_v1_service: GenFile =
-  /*@__PURE__*/
-  fileDesc(
-    'Ci5wcm90b2NoYWluL3NvbGFuYS90cmFuc2FjdGlvbi92MS9zZXJ2aWNlLnByb3RvEiBwcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MSKMAQoZQ29tcGlsZVRyYW5zYWN0aW9uUmVxdWVzdBJCCgt0cmFuc2FjdGlvbhgBIAEoCzItLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlRyYW5zYWN0aW9uEhEKCWZlZV9wYXllchgCIAEoCRIYChByZWNlbnRfYmxvY2toYXNoGAMgASgJImAKGkNvbXBpbGVUcmFuc2FjdGlvblJlc3BvbnNlEkIKC3RyYW5zYWN0aW9uGAEgASgLMi0ucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuVHJhbnNhY3Rpb24ipgEKGkVzdGltYXRlVHJhbnNhY3Rpb25SZXF1ZXN0EkIKC3RyYW5zYWN0aW9uGAEgASgLMi0ucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuVHJhbnNhY3Rpb24SRAoQY29tbWl0bWVudF9sZXZlbBgCIAEoDjIqLnByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEuQ29tbWl0bWVudExldmVsImAKG0VzdGltYXRlVHJhbnNhY3Rpb25SZXNwb25zZRIVCg1jb21wdXRlX3VuaXRzGAEgASgEEhQKDGZlZV9sYW1wb3J0cxgCIAEoBBIUCgxwcmlvcml0eV9mZWUYAyABKAQipgEKGlNpbXVsYXRlVHJhbnNhY3Rpb25SZXF1ZXN0EkIKC3RyYW5zYWN0aW9uGAEgASgLMi0ucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuVHJhbnNhY3Rpb24SRAoQY29tbWl0bWVudF9sZXZlbBgCIAEoDjIqLnByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEuQ29tbWl0bWVudExldmVsIksKG1NpbXVsYXRlVHJhbnNhY3Rpb25SZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIEg0KBWVycm9yGAIgASgJEgwKBGxvZ3MYAyADKAki/wEKFlNpZ25UcmFuc2FjdGlvblJlcXVlc3QSQgoLdHJhbnNhY3Rpb24YASABKAsyLS5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5UcmFuc2FjdGlvbhJNCgxwcml2YXRlX2tleXMYAiABKAsyNS5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5TaWduV2l0aFByaXZhdGVLZXlzSAASQAoFc2VlZHMYAyABKAsyLy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5TaWduV2l0aFNlZWRzSABCEAoOc2lnbmluZ19tZXRob2QiXQoXU2lnblRyYW5zYWN0aW9uUmVzcG9uc2USQgoLdHJhbnNhY3Rpb24YASABKAsyLS5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5UcmFuc2FjdGlvbiIrChNTaWduV2l0aFByaXZhdGVLZXlzEhQKDHByaXZhdGVfa2V5cxgBIAMoCSJJCg1TaWduV2l0aFNlZWRzEjgKBXNlZWRzGAEgAygLMikucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuS2V5U2VlZCIrCgdLZXlTZWVkEgwKBHNlZWQYASABKAkSEgoKcGFzc3BocmFzZRgCIAEoCSKkAQoYU3VibWl0VHJhbnNhY3Rpb25SZXF1ZXN0EkIKC3RyYW5zYWN0aW9uGAEgASgLMi0ucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuVHJhbnNhY3Rpb24SRAoQY29tbWl0bWVudF9sZXZlbBgCIAEoDjIqLnByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEuQ29tbWl0bWVudExldmVsIpQBChlTdWJtaXRUcmFuc2FjdGlvblJlc3BvbnNlEhEKCXNpZ25hdHVyZRgBIAEoCRJNChFzdWJtaXNzaW9uX3Jlc3VsdBgCIAEoDjIyLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlN1Ym1pc3Npb25SZXN1bHQSFQoNZXJyb3JfbWVzc2FnZRgDIAEoCSJwChVHZXRUcmFuc2FjdGlvblJlcXVlc3QSEQoJc2lnbmF0dXJlGAEgASgJEkQKEGNvbW1pdG1lbnRfbGV2ZWwYAiABKA4yKi5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLkNvbW1pdG1lbnRMZXZlbCJcChZHZXRUcmFuc2FjdGlvblJlc3BvbnNlEkIKC3RyYW5zYWN0aW9uGAEgASgLMi0ucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuVHJhbnNhY3Rpb24iowEKGU1vbml0b3JUcmFuc2FjdGlvblJlcXVlc3QSEQoJc2lnbmF0dXJlGAEgASgJEkQKEGNvbW1pdG1lbnRfbGV2ZWwYAiABKA4yKi5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLkNvbW1pdG1lbnRMZXZlbBIUCgxpbmNsdWRlX2xvZ3MYAyABKAgSFwoPdGltZW91dF9zZWNvbmRzGAQgASgNIo8CChpNb25pdG9yVHJhbnNhY3Rpb25SZXNwb25zZRIRCglzaWduYXR1cmUYASABKAkSQwoGc3RhdHVzGAIgASgOMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuVHJhbnNhY3Rpb25TdGF0dXMSDAoEc2xvdBgDIAEoBBIVCg1lcnJvcl9tZXNzYWdlGAQgASgJEgwKBGxvZ3MYBSADKAkSHgoWY29tcHV0ZV91bml0c19jb25zdW1lZBgGIAEoBBJGChJjdXJyZW50X2NvbW1pdG1lbnQYByABKA4yKi5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLkNvbW1pdG1lbnRMZXZlbCqMAgoQU3VibWlzc2lvblJlc3VsdBIhCh1TVUJNSVNTSU9OX1JFU1VMVF9VTlNQRUNJRklFRBAAEh8KG1NVQk1JU1NJT05fUkVTVUxUX1NVQk1JVFRFRBABEicKI1NVQk1JU1NJT05fUkVTVUxUX0ZBSUxFRF9WQUxJREFUSU9OEAISKgomU1VCTUlTU0lPTl9SRVNVTFRfRkFJTEVEX05FVFdPUktfRVJST1IQAxIvCitTVUJNSVNTSU9OX1JFU1VMVF9GQUlMRURfSU5TVUZGSUNJRU5UX0ZVTkRTEAQSLgoqU1VCTUlTU0lPTl9SRVNVTFRfRkFJTEVEX0lOVkFMSURfU0lHTkFUVVJFEAUqnQIKEVRyYW5zYWN0aW9uU3RhdHVzEiIKHlRSQU5TQUNUSU9OX1NUQVRVU19VTlNQRUNJRklFRBAAEh8KG1RSQU5TQUNUSU9OX1NUQVRVU19SRUNFSVZFRBABEiAKHFRSQU5TQUNUSU9OX1NUQVRVU19QUk9DRVNTRUQQAhIgChxUUkFOU0FDVElPTl9TVEFUVVNfQ09ORklSTUVEEAMSIAocVFJBTlNBQ1RJT05fU1RBVFVTX0ZJTkFMSVpFRBAEEh0KGVRSQU5TQUNUSU9OX1NUQVRVU19GQUlMRUQQBRIeChpUUkFOU0FDVElPTl9TVEFUVVNfRFJPUFBFRBAGEh4KGlRSQU5TQUNUSU9OX1NUQVRVU19USU1FT1VUEAcy9wcKB1NlcnZpY2USjwEKEkNvbXBpbGVUcmFuc2FjdGlvbhI7LnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLkNvbXBpbGVUcmFuc2FjdGlvblJlcXVlc3QaPC5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Db21waWxlVHJhbnNhY3Rpb25SZXNwb25zZRKSAQoTRXN0aW1hdGVUcmFuc2FjdGlvbhI8LnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLkVzdGltYXRlVHJhbnNhY3Rpb25SZXF1ZXN0Gj0ucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuRXN0aW1hdGVUcmFuc2FjdGlvblJlc3BvbnNlEpIBChNTaW11bGF0ZVRyYW5zYWN0aW9uEjwucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU2ltdWxhdGVUcmFuc2FjdGlvblJlcXVlc3QaPS5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5TaW11bGF0ZVRyYW5zYWN0aW9uUmVzcG9uc2UShgEKD1NpZ25UcmFuc2FjdGlvbhI4LnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNpZ25UcmFuc2FjdGlvblJlcXVlc3QaOS5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5TaWduVHJhbnNhY3Rpb25SZXNwb25zZRKMAQoRU3VibWl0VHJhbnNhY3Rpb24SOi5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5TdWJtaXRUcmFuc2FjdGlvblJlcXVlc3QaOy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5TdWJtaXRUcmFuc2FjdGlvblJlc3BvbnNlEoMBCg5HZXRUcmFuc2FjdGlvbhI3LnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLkdldFRyYW5zYWN0aW9uUmVxdWVzdBo4LnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLkdldFRyYW5zYWN0aW9uUmVzcG9uc2USkQEKEk1vbml0b3JUcmFuc2FjdGlvbhI7LnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLk1vbml0b3JUcmFuc2FjdGlvblJlcXVlc3QaPC5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Nb25pdG9yVHJhbnNhY3Rpb25SZXNwb25zZTABQlZaVGdpdGh1Yi5jb20vQlJCdXNzeS9wcm90b2NoYWluL2xpYi9nby9wcm90b2NoYWluL3NvbGFuYS90cmFuc2FjdGlvbi92MTt0cmFuc2FjdGlvbl92MWIGcHJvdG8z',
-    [
-      file_protochain_solana_transaction_v1_transaction,
-      file_protochain_solana_type_v1_commitment_level,
-    ],
-  );
+export const file_protochain_solana_transaction_v1_service: GenFile = /*@__PURE__*/
+  fileDesc("Ci5wcm90b2NoYWluL3NvbGFuYS90cmFuc2FjdGlvbi92MS9zZXJ2aWNlLnByb3RvEiBwcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MSKMAQoZQ29tcGlsZVRyYW5zYWN0aW9uUmVxdWVzdBJCCgt0cmFuc2FjdGlvbhgBIAEoCzItLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlRyYW5zYWN0aW9uEhEKCWZlZV9wYXllchgCIAEoCRIYChByZWNlbnRfYmxvY2toYXNoGAMgASgJImAKGkNvbXBpbGVUcmFuc2FjdGlvblJlc3BvbnNlEkIKC3RyYW5zYWN0aW9uGAEgASgLMi0ucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuVHJhbnNhY3Rpb24ipgEKGkVzdGltYXRlVHJhbnNhY3Rpb25SZXF1ZXN0EkIKC3RyYW5zYWN0aW9uGAEgASgLMi0ucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuVHJhbnNhY3Rpb24SRAoQY29tbWl0bWVudF9sZXZlbBgCIAEoDjIqLnByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEuQ29tbWl0bWVudExldmVsImAKG0VzdGltYXRlVHJhbnNhY3Rpb25SZXNwb25zZRIVCg1jb21wdXRlX3VuaXRzGAEgASgEEhQKDGZlZV9sYW1wb3J0cxgCIAEoBBIUCgxwcmlvcml0eV9mZWUYAyABKAQipgEKGlNpbXVsYXRlVHJhbnNhY3Rpb25SZXF1ZXN0EkIKC3RyYW5zYWN0aW9uGAEgASgLMi0ucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuVHJhbnNhY3Rpb24SRAoQY29tbWl0bWVudF9sZXZlbBgCIAEoDjIqLnByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEuQ29tbWl0bWVudExldmVsIksKG1NpbXVsYXRlVHJhbnNhY3Rpb25SZXNwb25zZRIPCgdzdWNjZXNzGAEgASgIEg0KBWVycm9yGAIgASgJEgwKBGxvZ3MYAyADKAki/wEKFlNpZ25UcmFuc2FjdGlvblJlcXVlc3QSQgoLdHJhbnNhY3Rpb24YASABKAsyLS5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5UcmFuc2FjdGlvbhJNCgxwcml2YXRlX2tleXMYAiABKAsyNS5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5TaWduV2l0aFByaXZhdGVLZXlzSAASQAoFc2VlZHMYAyABKAsyLy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5TaWduV2l0aFNlZWRzSABCEAoOc2lnbmluZ19tZXRob2QiXQoXU2lnblRyYW5zYWN0aW9uUmVzcG9uc2USQgoLdHJhbnNhY3Rpb24YASABKAsyLS5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5UcmFuc2FjdGlvbiIrChNTaWduV2l0aFByaXZhdGVLZXlzEhQKDHByaXZhdGVfa2V5cxgBIAMoCSJJCg1TaWduV2l0aFNlZWRzEjgKBXNlZWRzGAEgAygLMikucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuS2V5U2VlZCIrCgdLZXlTZWVkEgwKBHNlZWQYASABKAkSEgoKcGFzc3BocmFzZRgCIAEoCSKkAQoYU3VibWl0VHJhbnNhY3Rpb25SZXF1ZXN0EkIKC3RyYW5zYWN0aW9uGAEgASgLMi0ucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuVHJhbnNhY3Rpb24SRAoQY29tbWl0bWVudF9sZXZlbBgCIAEoDjIqLnByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEuQ29tbWl0bWVudExldmVsIuIBChlTdWJtaXRUcmFuc2FjdGlvblJlc3BvbnNlEhEKCXNpZ25hdHVyZRgBIAEoCRJNChFzdWJtaXNzaW9uX3Jlc3VsdBgCIAEoDjIyLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlN1Ym1pc3Npb25SZXN1bHQSFQoNZXJyb3JfbWVzc2FnZRgDIAEoCRJMChBzdHJ1Y3R1cmVkX2Vycm9yGAQgASgLMjIucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuVHJhbnNhY3Rpb25FcnJvciJwChVHZXRUcmFuc2FjdGlvblJlcXVlc3QSEQoJc2lnbmF0dXJlGAEgASgJEkQKEGNvbW1pdG1lbnRfbGV2ZWwYAiABKA4yKi5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLkNvbW1pdG1lbnRMZXZlbCJcChZHZXRUcmFuc2FjdGlvblJlc3BvbnNlEkIKC3RyYW5zYWN0aW9uGAEgASgLMi0ucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuVHJhbnNhY3Rpb24iowEKGU1vbml0b3JUcmFuc2FjdGlvblJlcXVlc3QSEQoJc2lnbmF0dXJlGAEgASgJEkQKEGNvbW1pdG1lbnRfbGV2ZWwYAiABKA4yKi5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLkNvbW1pdG1lbnRMZXZlbBIUCgxpbmNsdWRlX2xvZ3MYAyABKAgSFwoPdGltZW91dF9zZWNvbmRzGAQgASgNIo8CChpNb25pdG9yVHJhbnNhY3Rpb25SZXNwb25zZRIRCglzaWduYXR1cmUYASABKAkSQwoGc3RhdHVzGAIgASgOMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuVHJhbnNhY3Rpb25TdGF0dXMSDAoEc2xvdBgDIAEoBBIVCg1lcnJvcl9tZXNzYWdlGAQgASgJEgwKBGxvZ3MYBSADKAkSHgoWY29tcHV0ZV91bml0c19jb25zdW1lZBgGIAEoBBJGChJjdXJyZW50X2NvbW1pdG1lbnQYByABKA4yKi5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLkNvbW1pdG1lbnRMZXZlbCqxAgoQU3VibWlzc2lvblJlc3VsdBIhCh1TVUJNSVNTSU9OX1JFU1VMVF9VTlNQRUNJRklFRBAAEh8KG1NVQk1JU1NJT05fUkVTVUxUX1NVQk1JVFRFRBABEicKI1NVQk1JU1NJT05fUkVTVUxUX0ZBSUxFRF9WQUxJREFUSU9OEAISKgomU1VCTUlTU0lPTl9SRVNVTFRfRkFJTEVEX05FVFdPUktfRVJST1IQAxIvCitTVUJNSVNTSU9OX1JFU1VMVF9GQUlMRURfSU5TVUZGSUNJRU5UX0ZVTkRTEAQSLgoqU1VCTUlTU0lPTl9SRVNVTFRfRkFJTEVEX0lOVkFMSURfU0lHTkFUVVJFEAUSIwofU1VCTUlTU0lPTl9SRVNVTFRfSU5ERVRFUk1JTkFURRAGKp0CChFUcmFuc2FjdGlvblN0YXR1cxIiCh5UUkFOU0FDVElPTl9TVEFUVVNfVU5TUEVDSUZJRUQQABIfChtUUkFOU0FDVElPTl9TVEFUVVNfUkVDRUlWRUQQARIgChxUUkFOU0FDVElPTl9TVEFUVVNfUFJPQ0VTU0VEEAISIAocVFJBTlNBQ1RJT05fU1RBVFVTX0NPTkZJUk1FRBADEiAKHFRSQU5TQUNUSU9OX1NUQVRVU19GSU5BTElaRUQQBBIdChlUUkFOU0FDVElPTl9TVEFUVVNfRkFJTEVEEAUSHgoaVFJBTlNBQ1RJT05fU1RBVFVTX0RST1BQRUQQBhIeChpUUkFOU0FDVElPTl9TVEFUVVNfVElNRU9VVBAHMvcHCgdTZXJ2aWNlEo8BChJDb21waWxlVHJhbnNhY3Rpb24SOy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Db21waWxlVHJhbnNhY3Rpb25SZXF1ZXN0GjwucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuQ29tcGlsZVRyYW5zYWN0aW9uUmVzcG9uc2USkgEKE0VzdGltYXRlVHJhbnNhY3Rpb24SPC5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Fc3RpbWF0ZVRyYW5zYWN0aW9uUmVxdWVzdBo9LnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLkVzdGltYXRlVHJhbnNhY3Rpb25SZXNwb25zZRKSAQoTU2ltdWxhdGVUcmFuc2FjdGlvbhI8LnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNpbXVsYXRlVHJhbnNhY3Rpb25SZXF1ZXN0Gj0ucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU2ltdWxhdGVUcmFuc2FjdGlvblJlc3BvbnNlEoYBCg9TaWduVHJhbnNhY3Rpb24SOC5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5TaWduVHJhbnNhY3Rpb25SZXF1ZXN0GjkucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU2lnblRyYW5zYWN0aW9uUmVzcG9uc2USjAEKEVN1Ym1pdFRyYW5zYWN0aW9uEjoucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU3VibWl0VHJhbnNhY3Rpb25SZXF1ZXN0GjsucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU3VibWl0VHJhbnNhY3Rpb25SZXNwb25zZRKDAQoOR2V0VHJhbnNhY3Rpb24SNy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5HZXRUcmFuc2FjdGlvblJlcXVlc3QaOC5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5HZXRUcmFuc2FjdGlvblJlc3BvbnNlEpEBChJNb25pdG9yVHJhbnNhY3Rpb24SOy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Nb25pdG9yVHJhbnNhY3Rpb25SZXF1ZXN0GjwucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuTW9uaXRvclRyYW5zYWN0aW9uUmVzcG9uc2UwAUJWWlRnaXRodWIuY29tL0JSQnVzc3kvcHJvdG9jaGFpbi9saWIvZ28vcHJvdG9jaGFpbi9zb2xhbmEvdHJhbnNhY3Rpb24vdjE7dHJhbnNhY3Rpb25fdjFiBnByb3RvMw", [file_protochain_solana_transaction_v1_transaction, file_protochain_solana_transaction_v1_error, file_protochain_solana_type_v1_commitment_level]);
 
 /**
  * Request/Response messages
  *
  * @generated from message protochain.solana.transaction.v1.CompileTransactionRequest
  */
-export type CompileTransactionRequest =
-  Message<'protochain.solana.transaction.v1.CompileTransactionRequest'> & {
-    /**
-     * Must be in DRAFT state
-     *
-     * @generated from field: protochain.solana.transaction.v1.Transaction transaction = 1;
-     */
-    transaction?: Transaction;
+export type CompileTransactionRequest = Message<"protochain.solana.transaction.v1.CompileTransactionRequest"> & {
+  /**
+   * Must be in DRAFT state
+   *
+   * @generated from field: protochain.solana.transaction.v1.Transaction transaction = 1;
+   */
+  transaction?: Transaction;
 
-    /**
-     * Who pays transaction fees
-     *
-     * @generated from field: string fee_payer = 2;
-     */
-    feePayer: string;
+  /**
+   * Who pays transaction fees
+   *
+   * @generated from field: string fee_payer = 2;
+   */
+  feePayer: string;
 
-    /**
-     * Optional - will fetch if empty
-     *
-     * @generated from field: string recent_blockhash = 3;
-     */
-    recentBlockhash: string;
-  };
+  /**
+   * Optional - will fetch if empty
+   *
+   * @generated from field: string recent_blockhash = 3;
+   */
+  recentBlockhash: string;
+};
 
 /**
  * Describes the message protochain.solana.transaction.v1.CompileTransactionRequest.
  * Use `create(CompileTransactionRequestSchema)` to create a new message.
  */
-export const CompileTransactionRequestSchema: GenMessage<CompileTransactionRequest> =
-  /*@__PURE__*/
+export const CompileTransactionRequestSchema: GenMessage<CompileTransactionRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_service, 0);
 
 /**
  * @generated from message protochain.solana.transaction.v1.CompileTransactionResponse
  */
-export type CompileTransactionResponse =
-  Message<'protochain.solana.transaction.v1.CompileTransactionResponse'> & {
-    /**
-     * Now in COMPILED state
-     *
-     * @generated from field: protochain.solana.transaction.v1.Transaction transaction = 1;
-     */
-    transaction?: Transaction;
-  };
+export type CompileTransactionResponse = Message<"protochain.solana.transaction.v1.CompileTransactionResponse"> & {
+  /**
+   * Now in COMPILED state
+   *
+   * @generated from field: protochain.solana.transaction.v1.Transaction transaction = 1;
+   */
+  transaction?: Transaction;
+};
 
 /**
  * Describes the message protochain.solana.transaction.v1.CompileTransactionResponse.
  * Use `create(CompileTransactionResponseSchema)` to create a new message.
  */
-export const CompileTransactionResponseSchema: GenMessage<CompileTransactionResponse> =
-  /*@__PURE__*/
+export const CompileTransactionResponseSchema: GenMessage<CompileTransactionResponse> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_service, 1);
 
 /**
  * @generated from message protochain.solana.transaction.v1.EstimateTransactionRequest
  */
-export type EstimateTransactionRequest =
-  Message<'protochain.solana.transaction.v1.EstimateTransactionRequest'> & {
-    /**
-     * Must be in COMPILED state
-     *
-     * @generated from field: protochain.solana.transaction.v1.Transaction transaction = 1;
-     */
-    transaction?: Transaction;
+export type EstimateTransactionRequest = Message<"protochain.solana.transaction.v1.EstimateTransactionRequest"> & {
+  /**
+   * Must be in COMPILED state
+   *
+   * @generated from field: protochain.solana.transaction.v1.Transaction transaction = 1;
+   */
+  transaction?: Transaction;
 
-    /**
-     * Commitment level for fee estimation
-     *
-     * @generated from field: protochain.solana.type.v1.CommitmentLevel commitment_level = 2;
-     */
-    commitmentLevel: CommitmentLevel;
-  };
+  /**
+   * Commitment level for fee estimation
+   *
+   * @generated from field: protochain.solana.type.v1.CommitmentLevel commitment_level = 2;
+   */
+  commitmentLevel: CommitmentLevel;
+};
 
 /**
  * Describes the message protochain.solana.transaction.v1.EstimateTransactionRequest.
  * Use `create(EstimateTransactionRequestSchema)` to create a new message.
  */
-export const EstimateTransactionRequestSchema: GenMessage<EstimateTransactionRequest> =
-  /*@__PURE__*/
+export const EstimateTransactionRequestSchema: GenMessage<EstimateTransactionRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_service, 2);
 
 /**
  * @generated from message protochain.solana.transaction.v1.EstimateTransactionResponse
  */
-export type EstimateTransactionResponse =
-  Message<'protochain.solana.transaction.v1.EstimateTransactionResponse'> & {
-    /**
-     * Estimated compute units required
-     *
-     * @generated from field: uint64 compute_units = 1;
-     */
-    computeUnits: bigint;
+export type EstimateTransactionResponse = Message<"protochain.solana.transaction.v1.EstimateTransactionResponse"> & {
+  /**
+   * Estimated compute units required
+   *
+   * @generated from field: uint64 compute_units = 1;
+   */
+  computeUnits: bigint;
 
-    /**
-     * Estimated total transaction fee
-     *
-     * @generated from field: uint64 fee_lamports = 2;
-     */
-    feeLamports: bigint;
+  /**
+   * Estimated total transaction fee
+   *
+   * @generated from field: uint64 fee_lamports = 2;
+   */
+  feeLamports: bigint;
 
-    /**
-     * Current network priority fee estimate
-     *
-     * @generated from field: uint64 priority_fee = 3;
-     */
-    priorityFee: bigint;
-  };
+  /**
+   * Current network priority fee estimate
+   *
+   * @generated from field: uint64 priority_fee = 3;
+   */
+  priorityFee: bigint;
+};
 
 /**
  * Describes the message protochain.solana.transaction.v1.EstimateTransactionResponse.
  * Use `create(EstimateTransactionResponseSchema)` to create a new message.
  */
-export const EstimateTransactionResponseSchema: GenMessage<EstimateTransactionResponse> =
-  /*@__PURE__*/
+export const EstimateTransactionResponseSchema: GenMessage<EstimateTransactionResponse> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_service, 3);
 
 /**
  * @generated from message protochain.solana.transaction.v1.SimulateTransactionRequest
  */
-export type SimulateTransactionRequest =
-  Message<'protochain.solana.transaction.v1.SimulateTransactionRequest'> & {
-    /**
-     * Must be compiled
-     *
-     * @generated from field: protochain.solana.transaction.v1.Transaction transaction = 1;
-     */
-    transaction?: Transaction;
+export type SimulateTransactionRequest = Message<"protochain.solana.transaction.v1.SimulateTransactionRequest"> & {
+  /**
+   * Must be compiled
+   *
+   * @generated from field: protochain.solana.transaction.v1.Transaction transaction = 1;
+   */
+  transaction?: Transaction;
 
-    /**
-     * Commitment level for simulation
-     *
-     * @generated from field: protochain.solana.type.v1.CommitmentLevel commitment_level = 2;
-     */
-    commitmentLevel: CommitmentLevel;
-  };
+  /**
+   * Commitment level for simulation
+   *
+   * @generated from field: protochain.solana.type.v1.CommitmentLevel commitment_level = 2;
+   */
+  commitmentLevel: CommitmentLevel;
+};
 
 /**
  * Describes the message protochain.solana.transaction.v1.SimulateTransactionRequest.
  * Use `create(SimulateTransactionRequestSchema)` to create a new message.
  */
-export const SimulateTransactionRequestSchema: GenMessage<SimulateTransactionRequest> =
-  /*@__PURE__*/
+export const SimulateTransactionRequestSchema: GenMessage<SimulateTransactionRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_service, 4);
 
 /**
  * @generated from message protochain.solana.transaction.v1.SimulateTransactionResponse
  */
-export type SimulateTransactionResponse =
-  Message<'protochain.solana.transaction.v1.SimulateTransactionResponse'> & {
-    /**
-     * @generated from field: bool success = 1;
-     */
-    success: boolean;
+export type SimulateTransactionResponse = Message<"protochain.solana.transaction.v1.SimulateTransactionResponse"> & {
+  /**
+   * @generated from field: bool success = 1;
+   */
+  success: boolean;
 
-    /**
-     * @generated from field: string error = 2;
-     */
-    error: string;
+  /**
+   * @generated from field: string error = 2;
+   */
+  error: string;
 
-    /**
-     * @generated from field: repeated string logs = 3;
-     */
-    logs: string[];
-  };
+  /**
+   * @generated from field: repeated string logs = 3;
+   */
+  logs: string[];
+};
 
 /**
  * Describes the message protochain.solana.transaction.v1.SimulateTransactionResponse.
  * Use `create(SimulateTransactionResponseSchema)` to create a new message.
  */
-export const SimulateTransactionResponseSchema: GenMessage<SimulateTransactionResponse> =
-  /*@__PURE__*/
+export const SimulateTransactionResponseSchema: GenMessage<SimulateTransactionResponse> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_service, 5);
 
 /**
  * @generated from message protochain.solana.transaction.v1.SignTransactionRequest
  */
-export type SignTransactionRequest =
-  Message<'protochain.solana.transaction.v1.SignTransactionRequest'> & {
-    /**
-     * @generated from field: protochain.solana.transaction.v1.Transaction transaction = 1;
-     */
-    transaction?: Transaction;
+export type SignTransactionRequest = Message<"protochain.solana.transaction.v1.SignTransactionRequest"> & {
+  /**
+   * @generated from field: protochain.solana.transaction.v1.Transaction transaction = 1;
+   */
+  transaction?: Transaction;
 
+  /**
+   * @generated from oneof protochain.solana.transaction.v1.SignTransactionRequest.signing_method
+   */
+  signingMethod: {
     /**
-     * @generated from oneof protochain.solana.transaction.v1.SignTransactionRequest.signing_method
+     * @generated from field: protochain.solana.transaction.v1.SignWithPrivateKeys private_keys = 2;
      */
-    signingMethod:
-      | {
-          /**
-           * @generated from field: protochain.solana.transaction.v1.SignWithPrivateKeys private_keys = 2;
-           */
-          value: SignWithPrivateKeys;
-          case: 'privateKeys';
-        }
-      | {
-          /**
-           * @generated from field: protochain.solana.transaction.v1.SignWithSeeds seeds = 3;
-           */
-          value: SignWithSeeds;
-          case: 'seeds';
-        }
-      | { case: undefined; value?: undefined };
-  };
+    value: SignWithPrivateKeys;
+    case: "privateKeys";
+  } | {
+    /**
+     * @generated from field: protochain.solana.transaction.v1.SignWithSeeds seeds = 3;
+     */
+    value: SignWithSeeds;
+    case: "seeds";
+  } | { case: undefined; value?: undefined };
+};
 
 /**
  * Describes the message protochain.solana.transaction.v1.SignTransactionRequest.
  * Use `create(SignTransactionRequestSchema)` to create a new message.
  */
-export const SignTransactionRequestSchema: GenMessage<SignTransactionRequest> =
-  /*@__PURE__*/
+export const SignTransactionRequestSchema: GenMessage<SignTransactionRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_service, 6);
 
 /**
  * @generated from message protochain.solana.transaction.v1.SignTransactionResponse
  */
-export type SignTransactionResponse =
-  Message<'protochain.solana.transaction.v1.SignTransactionResponse'> & {
-    /**
-     * @generated from field: protochain.solana.transaction.v1.Transaction transaction = 1;
-     */
-    transaction?: Transaction;
-  };
+export type SignTransactionResponse = Message<"protochain.solana.transaction.v1.SignTransactionResponse"> & {
+  /**
+   * @generated from field: protochain.solana.transaction.v1.Transaction transaction = 1;
+   */
+  transaction?: Transaction;
+};
 
 /**
  * Describes the message protochain.solana.transaction.v1.SignTransactionResponse.
  * Use `create(SignTransactionResponseSchema)` to create a new message.
  */
-export const SignTransactionResponseSchema: GenMessage<SignTransactionResponse> =
-  /*@__PURE__*/
+export const SignTransactionResponseSchema: GenMessage<SignTransactionResponse> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_service, 7);
 
 /**
  * @generated from message protochain.solana.transaction.v1.SignWithPrivateKeys
  */
-export type SignWithPrivateKeys =
-  Message<'protochain.solana.transaction.v1.SignWithPrivateKeys'> & {
-    /**
-     * Base58 encoded private keys
-     *
-     * @generated from field: repeated string private_keys = 1;
-     */
-    privateKeys: string[];
-  };
+export type SignWithPrivateKeys = Message<"protochain.solana.transaction.v1.SignWithPrivateKeys"> & {
+  /**
+   * Base58 encoded private keys
+   *
+   * @generated from field: repeated string private_keys = 1;
+   */
+  privateKeys: string[];
+};
 
 /**
  * Describes the message protochain.solana.transaction.v1.SignWithPrivateKeys.
  * Use `create(SignWithPrivateKeysSchema)` to create a new message.
  */
-export const SignWithPrivateKeysSchema: GenMessage<SignWithPrivateKeys> =
-  /*@__PURE__*/
+export const SignWithPrivateKeysSchema: GenMessage<SignWithPrivateKeys> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_service, 8);
 
 /**
  * @generated from message protochain.solana.transaction.v1.SignWithSeeds
  */
-export type SignWithSeeds = Message<'protochain.solana.transaction.v1.SignWithSeeds'> & {
+export type SignWithSeeds = Message<"protochain.solana.transaction.v1.SignWithSeeds"> & {
   /**
    * @generated from field: repeated protochain.solana.transaction.v1.KeySeed seeds = 1;
    */
@@ -294,14 +268,13 @@ export type SignWithSeeds = Message<'protochain.solana.transaction.v1.SignWithSe
  * Describes the message protochain.solana.transaction.v1.SignWithSeeds.
  * Use `create(SignWithSeedsSchema)` to create a new message.
  */
-export const SignWithSeedsSchema: GenMessage<SignWithSeeds> =
-  /*@__PURE__*/
+export const SignWithSeedsSchema: GenMessage<SignWithSeeds> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_service, 9);
 
 /**
  * @generated from message protochain.solana.transaction.v1.KeySeed
  */
-export type KeySeed = Message<'protochain.solana.transaction.v1.KeySeed'> & {
+export type KeySeed = Message<"protochain.solana.transaction.v1.KeySeed"> & {
   /**
    * @generated from field: string seed = 1;
    */
@@ -317,8 +290,7 @@ export type KeySeed = Message<'protochain.solana.transaction.v1.KeySeed'> & {
  * Describes the message protochain.solana.transaction.v1.KeySeed.
  * Use `create(KeySeedSchema)` to create a new message.
  */
-export const KeySeedSchema: GenMessage<KeySeed> =
-  /*@__PURE__*/
+export const KeySeedSchema: GenMessage<KeySeed> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_service, 10);
 
 /**
@@ -327,29 +299,27 @@ export const KeySeedSchema: GenMessage<KeySeed> =
  *
  * @generated from message protochain.solana.transaction.v1.SubmitTransactionRequest
  */
-export type SubmitTransactionRequest =
-  Message<'protochain.solana.transaction.v1.SubmitTransactionRequest'> & {
-    /**
-     * Must be fully signed
-     *
-     * @generated from field: protochain.solana.transaction.v1.Transaction transaction = 1;
-     */
-    transaction?: Transaction;
+export type SubmitTransactionRequest = Message<"protochain.solana.transaction.v1.SubmitTransactionRequest"> & {
+  /**
+   * Must be fully signed
+   *
+   * @generated from field: protochain.solana.transaction.v1.Transaction transaction = 1;
+   */
+  transaction?: Transaction;
 
-    /**
-     * Commitment level for transaction submission
-     *
-     * @generated from field: protochain.solana.type.v1.CommitmentLevel commitment_level = 2;
-     */
-    commitmentLevel: CommitmentLevel;
-  };
+  /**
+   * Commitment level for transaction submission
+   *
+   * @generated from field: protochain.solana.type.v1.CommitmentLevel commitment_level = 2;
+   */
+  commitmentLevel: CommitmentLevel;
+};
 
 /**
  * Describes the message protochain.solana.transaction.v1.SubmitTransactionRequest.
  * Use `create(SubmitTransactionRequestSchema)` to create a new message.
  */
-export const SubmitTransactionRequestSchema: GenMessage<SubmitTransactionRequest> =
-  /*@__PURE__*/
+export const SubmitTransactionRequestSchema: GenMessage<SubmitTransactionRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_service, 11);
 
 /**
@@ -360,81 +330,82 @@ export const SubmitTransactionRequestSchema: GenMessage<SubmitTransactionRequest
  *
  * @generated from message protochain.solana.transaction.v1.SubmitTransactionResponse
  */
-export type SubmitTransactionResponse =
-  Message<'protochain.solana.transaction.v1.SubmitTransactionResponse'> & {
-    /**
-     * Transaction signature
-     *
-     * @generated from field: string signature = 1;
-     */
-    signature: string;
+export type SubmitTransactionResponse = Message<"protochain.solana.transaction.v1.SubmitTransactionResponse"> & {
+  /**
+   * Transaction signature
+   *
+   * @generated from field: string signature = 1;
+   */
+  signature: string;
 
-    /**
-     * Submission outcome (sent vs failed to send)
-     *
-     * @generated from field: protochain.solana.transaction.v1.SubmissionResult submission_result = 2;
-     */
-    submissionResult: SubmissionResult;
+  /**
+   * Submission outcome (sent vs failed to send)
+   *
+   * @generated from field: protochain.solana.transaction.v1.SubmissionResult submission_result = 2;
+   */
+  submissionResult: SubmissionResult;
 
-    /**
-     * Error details if submission failed
-     *
-     * @generated from field: string error_message = 3;
-     */
-    errorMessage: string;
-  };
+  /**
+   * Error details if submission failed (kept for backward compatibility)
+   *
+   * @generated from field: string error_message = 3;
+   */
+  errorMessage: string;
+
+  /**
+   * NEW: Structured error details with certainty indicators
+   *
+   * @generated from field: protochain.solana.transaction.v1.TransactionError structured_error = 4;
+   */
+  structuredError?: TransactionError;
+};
 
 /**
  * Describes the message protochain.solana.transaction.v1.SubmitTransactionResponse.
  * Use `create(SubmitTransactionResponseSchema)` to create a new message.
  */
-export const SubmitTransactionResponseSchema: GenMessage<SubmitTransactionResponse> =
-  /*@__PURE__*/
+export const SubmitTransactionResponseSchema: GenMessage<SubmitTransactionResponse> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_service, 12);
 
 /**
  * @generated from message protochain.solana.transaction.v1.GetTransactionRequest
  */
-export type GetTransactionRequest =
-  Message<'protochain.solana.transaction.v1.GetTransactionRequest'> & {
-    /**
-     * @generated from field: string signature = 1;
-     */
-    signature: string;
+export type GetTransactionRequest = Message<"protochain.solana.transaction.v1.GetTransactionRequest"> & {
+  /**
+   * @generated from field: string signature = 1;
+   */
+  signature: string;
 
-    /**
-     * Commitment level for transaction retrieval
-     *
-     * @generated from field: protochain.solana.type.v1.CommitmentLevel commitment_level = 2;
-     */
-    commitmentLevel: CommitmentLevel;
-  };
+  /**
+   * Commitment level for transaction retrieval
+   *
+   * @generated from field: protochain.solana.type.v1.CommitmentLevel commitment_level = 2;
+   */
+  commitmentLevel: CommitmentLevel;
+};
 
 /**
  * Describes the message protochain.solana.transaction.v1.GetTransactionRequest.
  * Use `create(GetTransactionRequestSchema)` to create a new message.
  */
-export const GetTransactionRequestSchema: GenMessage<GetTransactionRequest> =
-  /*@__PURE__*/
+export const GetTransactionRequestSchema: GenMessage<GetTransactionRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_service, 13);
 
 /**
  * @generated from message protochain.solana.transaction.v1.GetTransactionResponse
  */
-export type GetTransactionResponse =
-  Message<'protochain.solana.transaction.v1.GetTransactionResponse'> & {
-    /**
-     * @generated from field: protochain.solana.transaction.v1.Transaction transaction = 1;
-     */
-    transaction?: Transaction;
-  };
+export type GetTransactionResponse = Message<"protochain.solana.transaction.v1.GetTransactionResponse"> & {
+  /**
+   * @generated from field: protochain.solana.transaction.v1.Transaction transaction = 1;
+   */
+  transaction?: Transaction;
+};
 
 /**
  * Describes the message protochain.solana.transaction.v1.GetTransactionResponse.
  * Use `create(GetTransactionResponseSchema)` to create a new message.
  */
-export const GetTransactionResponseSchema: GenMessage<GetTransactionResponse> =
-  /*@__PURE__*/
+export const GetTransactionResponseSchema: GenMessage<GetTransactionResponse> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_service, 14);
 
 /**
@@ -442,106 +413,102 @@ export const GetTransactionResponseSchema: GenMessage<GetTransactionResponse> =
  *
  * @generated from message protochain.solana.transaction.v1.MonitorTransactionRequest
  */
-export type MonitorTransactionRequest =
-  Message<'protochain.solana.transaction.v1.MonitorTransactionRequest'> & {
-    /**
-     * Transaction signature to monitor
-     *
-     * @generated from field: string signature = 1;
-     */
-    signature: string;
+export type MonitorTransactionRequest = Message<"protochain.solana.transaction.v1.MonitorTransactionRequest"> & {
+  /**
+   * Transaction signature to monitor
+   *
+   * @generated from field: string signature = 1;
+   */
+  signature: string;
 
-    /**
-     * Target commitment level
-     *
-     * @generated from field: protochain.solana.type.v1.CommitmentLevel commitment_level = 2;
-     */
-    commitmentLevel: CommitmentLevel;
+  /**
+   * Target commitment level
+   *
+   * @generated from field: protochain.solana.type.v1.CommitmentLevel commitment_level = 2;
+   */
+  commitmentLevel: CommitmentLevel;
 
-    /**
-     * Include program execution logs
-     *
-     * @generated from field: bool include_logs = 3;
-     */
-    includeLogs: boolean;
+  /**
+   * Include program execution logs
+   *
+   * @generated from field: bool include_logs = 3;
+   */
+  includeLogs: boolean;
 
-    /**
-     * Monitor timeout (default: 60)
-     *
-     * @generated from field: uint32 timeout_seconds = 4;
-     */
-    timeoutSeconds: number;
-  };
+  /**
+   * Monitor timeout (default: 60)
+   *
+   * @generated from field: uint32 timeout_seconds = 4;
+   */
+  timeoutSeconds: number;
+};
 
 /**
  * Describes the message protochain.solana.transaction.v1.MonitorTransactionRequest.
  * Use `create(MonitorTransactionRequestSchema)` to create a new message.
  */
-export const MonitorTransactionRequestSchema: GenMessage<MonitorTransactionRequest> =
-  /*@__PURE__*/
+export const MonitorTransactionRequestSchema: GenMessage<MonitorTransactionRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_service, 15);
 
 /**
  * @generated from message protochain.solana.transaction.v1.MonitorTransactionResponse
  */
-export type MonitorTransactionResponse =
-  Message<'protochain.solana.transaction.v1.MonitorTransactionResponse'> & {
-    /**
-     * Transaction signature being monitored
-     *
-     * @generated from field: string signature = 1;
-     */
-    signature: string;
+export type MonitorTransactionResponse = Message<"protochain.solana.transaction.v1.MonitorTransactionResponse"> & {
+  /**
+   * Transaction signature being monitored
+   *
+   * @generated from field: string signature = 1;
+   */
+  signature: string;
 
-    /**
-     * Current transaction status
-     *
-     * @generated from field: protochain.solana.transaction.v1.TransactionStatus status = 2;
-     */
-    status: TransactionStatus;
+  /**
+   * Current transaction status
+   *
+   * @generated from field: protochain.solana.transaction.v1.TransactionStatus status = 2;
+   */
+  status: TransactionStatus;
 
-    /**
-     * Blockchain slot where transaction was processed
-     *
-     * @generated from field: uint64 slot = 3;
-     */
-    slot: bigint;
+  /**
+   * Blockchain slot where transaction was processed
+   *
+   * @generated from field: uint64 slot = 3;
+   */
+  slot: bigint;
 
-    /**
-     * Error details if transaction failed
-     *
-     * @generated from field: string error_message = 4;
-     */
-    errorMessage: string;
+  /**
+   * Error details if transaction failed
+   *
+   * @generated from field: string error_message = 4;
+   */
+  errorMessage: string;
 
-    /**
-     * Program execution logs (if requested)
-     *
-     * @generated from field: repeated string logs = 5;
-     */
-    logs: string[];
+  /**
+   * Program execution logs (if requested)
+   *
+   * @generated from field: repeated string logs = 5;
+   */
+  logs: string[];
 
-    /**
-     * Compute units consumed by transaction
-     *
-     * @generated from field: uint64 compute_units_consumed = 6;
-     */
-    computeUnitsConsumed: bigint;
+  /**
+   * Compute units consumed by transaction
+   *
+   * @generated from field: uint64 compute_units_consumed = 6;
+   */
+  computeUnitsConsumed: bigint;
 
-    /**
-     * Current commitment level achieved
-     *
-     * @generated from field: protochain.solana.type.v1.CommitmentLevel current_commitment = 7;
-     */
-    currentCommitment: CommitmentLevel;
-  };
+  /**
+   * Current commitment level achieved
+   *
+   * @generated from field: protochain.solana.type.v1.CommitmentLevel current_commitment = 7;
+   */
+  currentCommitment: CommitmentLevel;
+};
 
 /**
  * Describes the message protochain.solana.transaction.v1.MonitorTransactionResponse.
  * Use `create(MonitorTransactionResponseSchema)` to create a new message.
  */
-export const MonitorTransactionResponseSchema: GenMessage<MonitorTransactionResponse> =
-  /*@__PURE__*/
+export const MonitorTransactionResponseSchema: GenMessage<MonitorTransactionResponse> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_service, 16);
 
 /**
@@ -587,13 +554,19 @@ export enum SubmissionResult {
    * @generated from enum value: SUBMISSION_RESULT_FAILED_INVALID_SIGNATURE = 5;
    */
   FAILED_INVALID_SIGNATURE = 5,
+
+  /**
+   * NEW: State unknown - use structured_error for resolution
+   *
+   * @generated from enum value: SUBMISSION_RESULT_INDETERMINATE = 6;
+   */
+  INDETERMINATE = 6,
 }
 
 /**
  * Describes the enum protochain.solana.transaction.v1.SubmissionResult.
  */
-export const SubmissionResultSchema: GenEnum<SubmissionResult> =
-  /*@__PURE__*/
+export const SubmissionResultSchema: GenEnum<SubmissionResult> = /*@__PURE__*/
   enumDesc(file_protochain_solana_transaction_v1_service, 0);
 
 /**
@@ -658,8 +631,7 @@ export enum TransactionStatus {
 /**
  * Describes the enum protochain.solana.transaction.v1.TransactionStatus.
  */
-export const TransactionStatusSchema: GenEnum<TransactionStatus> =
-  /*@__PURE__*/
+export const TransactionStatusSchema: GenEnum<TransactionStatus> = /*@__PURE__*/
   enumDesc(file_protochain_solana_transaction_v1_service, 1);
 
 /**
@@ -672,34 +644,34 @@ export const Service: GenService<{
    * @generated from rpc protochain.solana.transaction.v1.Service.CompileTransaction
    */
   compileTransaction: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof CompileTransactionRequestSchema;
     output: typeof CompileTransactionResponseSchema;
-  };
+  },
   /**
    * @generated from rpc protochain.solana.transaction.v1.Service.EstimateTransaction
    */
   estimateTransaction: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof EstimateTransactionRequestSchema;
     output: typeof EstimateTransactionResponseSchema;
-  };
+  },
   /**
    * @generated from rpc protochain.solana.transaction.v1.Service.SimulateTransaction
    */
   simulateTransaction: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof SimulateTransactionRequestSchema;
     output: typeof SimulateTransactionResponseSchema;
-  };
+  },
   /**
    * @generated from rpc protochain.solana.transaction.v1.Service.SignTransaction
    */
   signTransaction: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof SignTransactionRequestSchema;
     output: typeof SignTransactionResponseSchema;
-  };
+  },
   /**
    * Asynchronously submits a signed transaction to the network
    * Returns immediately after submission without waiting for confirmation
@@ -708,26 +680,28 @@ export const Service: GenService<{
    * @generated from rpc protochain.solana.transaction.v1.Service.SubmitTransaction
    */
   submitTransaction: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof SubmitTransactionRequestSchema;
     output: typeof SubmitTransactionResponseSchema;
-  };
+  },
   /**
    * Transaction retrieval and monitoring
    *
    * @generated from rpc protochain.solana.transaction.v1.Service.GetTransaction
    */
   getTransaction: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof GetTransactionRequestSchema;
     output: typeof GetTransactionResponseSchema;
-  };
+  },
   /**
    * @generated from rpc protochain.solana.transaction.v1.Service.MonitorTransaction
    */
   monitorTransaction: {
-    methodKind: 'server_streaming';
+    methodKind: "server_streaming";
     input: typeof MonitorTransactionRequestSchema;
     output: typeof MonitorTransactionResponseSchema;
-  };
-}> = /*@__PURE__*/ serviceDesc(file_protochain_solana_transaction_v1_service, 0);
+  },
+}> = /*@__PURE__*/
+  serviceDesc(file_protochain_solana_transaction_v1_service, 0);
+

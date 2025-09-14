@@ -3,6 +3,8 @@
 //! This module contains the version 1 implementation of the Transaction API,
 //! including state machine validation, service implementation, and gRPC wrappers.
 
+/// Structured error building for enhanced transaction submission responses
+pub mod error_builder;
 /// Core business logic implementation for transaction operations
 pub mod service_impl;
 /// gRPC service wrapper for Transaction v1 API

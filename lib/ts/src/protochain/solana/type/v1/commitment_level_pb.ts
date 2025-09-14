@@ -2,17 +2,14 @@
 // @generated from file protochain/solana/type/v1/commitment_level.proto (package protochain.solana.type.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenEnum, GenFile } from '@bufbuild/protobuf/codegenv2';
-import { enumDesc, fileDesc } from '@bufbuild/protobuf/codegenv2';
+import type { GenEnum, GenFile } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc } from "@bufbuild/protobuf/codegenv2";
 
 /**
  * Describes the file protochain/solana/type/v1/commitment_level.proto.
  */
-export const file_protochain_solana_type_v1_commitment_level: GenFile =
-  /*@__PURE__*/
-  fileDesc(
-    'CjBwcm90b2NoYWluL3NvbGFuYS90eXBlL3YxL2NvbW1pdG1lbnRfbGV2ZWwucHJvdG8SGXByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEqkwEKD0NvbW1pdG1lbnRMZXZlbBIgChxDT01NSVRNRU5UX0xFVkVMX1VOU1BFQ0lGSUVEEAASHgoaQ09NTUlUTUVOVF9MRVZFTF9QUk9DRVNTRUQQARIeChpDT01NSVRNRU5UX0xFVkVMX0NPTkZJUk1FRBACEh4KGkNPTU1JVE1FTlRfTEVWRUxfRklOQUxJWkVEEANCT1pNZ2l0aHViLmNvbS9CUkJ1c3N5L3Byb3RvY2hhaW4vbGliL2dvL3Byb3RvY2hhaW4vc29sYW5hL3R5cGUvdjE7c29sYW5hX3R5cGVfdjFiBnByb3RvMw',
-  );
+export const file_protochain_solana_type_v1_commitment_level: GenFile = /*@__PURE__*/
+  fileDesc("CjBwcm90b2NoYWluL3NvbGFuYS90eXBlL3YxL2NvbW1pdG1lbnRfbGV2ZWwucHJvdG8SGXByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEqkwEKD0NvbW1pdG1lbnRMZXZlbBIgChxDT01NSVRNRU5UX0xFVkVMX1VOU1BFQ0lGSUVEEAASHgoaQ09NTUlUTUVOVF9MRVZFTF9QUk9DRVNTRUQQARIeChpDT01NSVRNRU5UX0xFVkVMX0NPTkZJUk1FRBACEh4KGkNPTU1JVE1FTlRfTEVWRUxfRklOQUxJWkVEEANCT1pNZ2l0aHViLmNvbS9CUkJ1c3N5L3Byb3RvY2hhaW4vbGliL2dvL3Byb3RvY2hhaW4vc29sYW5hL3R5cGUvdjE7c29sYW5hX3R5cGVfdjFiBnByb3RvMw");
 
 /**
  * CommitmentLevel represents the different levels of transaction confirmation
@@ -61,6 +58,6 @@ export enum CommitmentLevel {
 /**
  * Describes the enum protochain.solana.type.v1.CommitmentLevel.
  */
-export const CommitmentLevelSchema: GenEnum<CommitmentLevel> =
-  /*@__PURE__*/
+export const CommitmentLevelSchema: GenEnum<CommitmentLevel> = /*@__PURE__*/
   enumDesc(file_protochain_solana_type_v1_commitment_level, 0);
+

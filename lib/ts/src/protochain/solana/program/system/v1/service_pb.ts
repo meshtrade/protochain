@@ -2,21 +2,17 @@
 // @generated from file protochain/solana/program/system/v1/service.proto (package protochain.solana.program.system.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage, GenService } from '@bufbuild/protobuf/codegenv2';
-import { fileDesc, messageDesc, serviceDesc } from '@bufbuild/protobuf/codegenv2';
-import type { SolanaInstructionSchema } from '../../../transaction/v1/instruction_pb';
-import { file_protochain_solana_transaction_v1_instruction } from '../../../transaction/v1/instruction_pb';
-import type { Message } from '@bufbuild/protobuf';
+import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
+import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { SolanaInstructionSchema } from "../../../transaction/v1/instruction_pb";
+import { file_protochain_solana_transaction_v1_instruction } from "../../../transaction/v1/instruction_pb";
+import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file protochain/solana/program/system/v1/service.proto.
  */
-export const file_protochain_solana_program_system_v1_service: GenFile =
-  /*@__PURE__*/
-  fileDesc(
-    'CjFwcm90b2NoYWluL3NvbGFuYS9wcm9ncmFtL3N5c3RlbS92MS9zZXJ2aWNlLnByb3RvEiNwcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MSJjCg1DcmVhdGVSZXF1ZXN0Eg0KBXBheWVyGAEgASgJEhMKC25ld19hY2NvdW50GAIgASgJEg0KBW93bmVyGAMgASgJEhAKCGxhbXBvcnRzGAQgASgEEg0KBXNwYWNlGAUgASgEIj0KD1RyYW5zZmVyUmVxdWVzdBIMCgRmcm9tGAEgASgJEgoKAnRvGAIgASgJEhAKCGxhbXBvcnRzGAMgASgEIjEKD0FsbG9jYXRlUmVxdWVzdBIPCgdhY2NvdW50GAEgASgJEg0KBXNwYWNlGAIgASgEIjcKDUFzc2lnblJlcXVlc3QSDwoHYWNjb3VudBgBIAEoCRIVCg1vd25lcl9wcm9ncmFtGAIgASgJIngKFUNyZWF0ZVdpdGhTZWVkUmVxdWVzdBINCgVwYXllchgBIAEoCRITCgtuZXdfYWNjb3VudBgCIAEoCRIMCgRiYXNlGAMgASgJEgwKBHNlZWQYBCABKAkSEAoIbGFtcG9ydHMYBSABKAQSDQoFc3BhY2UYBiABKAQiVQoXQWxsb2NhdGVXaXRoU2VlZFJlcXVlc3QSDwoHYWNjb3VudBgBIAEoCRIMCgRiYXNlGAIgASgJEgwKBHNlZWQYAyABKAkSDQoFc3BhY2UYBCABKAQiWwoVQXNzaWduV2l0aFNlZWRSZXF1ZXN0Eg8KB2FjY291bnQYASABKAkSDAoEYmFzZRgCIAEoCRIMCgRzZWVkGAMgASgJEhUKDW93bmVyX3Byb2dyYW0YBCABKAkiawoXVHJhbnNmZXJXaXRoU2VlZFJlcXVlc3QSDAoEZnJvbRgBIAEoCRIRCglmcm9tX2Jhc2UYAiABKAkSEQoJZnJvbV9zZWVkGAMgASgJEgoKAnRvGAQgASgJEhAKCGxhbXBvcnRzGAUgASgEIkkKHUluaXRpYWxpemVOb25jZUFjY291bnRSZXF1ZXN0EhUKDW5vbmNlX2FjY291bnQYASABKAkSEQoJYXV0aG9yaXR5GAIgASgJImcKHEF1dGhvcml6ZU5vbmNlQWNjb3VudFJlcXVlc3QSFQoNbm9uY2VfYWNjb3VudBgBIAEoCRIZChFjdXJyZW50X2F1dGhvcml0eRgCIAEoCRIVCg1uZXdfYXV0aG9yaXR5GAMgASgJImUKG1dpdGhkcmF3Tm9uY2VBY2NvdW50UmVxdWVzdBIVCg1ub25jZV9hY2NvdW50GAEgASgJEhEKCWF1dGhvcml0eRgCIAEoCRIKCgJ0bxgDIAEoCRIQCghsYW1wb3J0cxgEIAEoBCJGChpBZHZhbmNlTm9uY2VBY2NvdW50UmVxdWVzdBIVCg1ub25jZV9hY2NvdW50GAEgASgJEhEKCWF1dGhvcml0eRgCIAEoCSIzChpVcGdyYWRlTm9uY2VBY2NvdW50UmVxdWVzdBIVCg1ub25jZV9hY2NvdW50GAEgASgJMscNCgdTZXJ2aWNlEnEKBkNyZWF0ZRIyLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLkNyZWF0ZVJlcXVlc3QaMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbhJ1CghUcmFuc2ZlchI0LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLlRyYW5zZmVyUmVxdWVzdBozLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uEnUKCEFsbG9jYXRlEjQucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuQWxsb2NhdGVSZXF1ZXN0GjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24ScQoGQXNzaWduEjIucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuQXNzaWduUmVxdWVzdBozLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uEoEBCg5DcmVhdGVXaXRoU2VlZBI6LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLkNyZWF0ZVdpdGhTZWVkUmVxdWVzdBozLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uEoUBChBBbGxvY2F0ZVdpdGhTZWVkEjwucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuQWxsb2NhdGVXaXRoU2VlZFJlcXVlc3QaMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbhKBAQoOQXNzaWduV2l0aFNlZWQSOi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5Bc3NpZ25XaXRoU2VlZFJlcXVlc3QaMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbhKFAQoQVHJhbnNmZXJXaXRoU2VlZBI8LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLlRyYW5zZmVyV2l0aFNlZWRSZXF1ZXN0GjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24SkQEKFkluaXRpYWxpemVOb25jZUFjY291bnQSQi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5Jbml0aWFsaXplTm9uY2VBY2NvdW50UmVxdWVzdBozLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uEo8BChVBdXRob3JpemVOb25jZUFjY291bnQSQS5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5BdXRob3JpemVOb25jZUFjY291bnRSZXF1ZXN0GjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24SjQEKFFdpdGhkcmF3Tm9uY2VBY2NvdW50EkAucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuV2l0aGRyYXdOb25jZUFjY291bnRSZXF1ZXN0GjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24SiwEKE0FkdmFuY2VOb25jZUFjY291bnQSPy5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5BZHZhbmNlTm9uY2VBY2NvdW50UmVxdWVzdBozLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uEosBChNVcGdyYWRlTm9uY2VBY2NvdW50Ej8ucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuVXBncmFkZU5vbmNlQWNjb3VudFJlcXVlc3QaMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbkJUWlJnaXRodWIuY29tL0JSQnVzc3kvcHJvdG9jaGFpbi9saWIvZ28vcHJvdG9jaGFpbi9zb2xhbmEvcHJvZ3JhbS9zeXN0ZW0vdjE7c3lzdGVtX3YxYgZwcm90bzM',
-    [file_protochain_solana_transaction_v1_instruction],
-  );
+export const file_protochain_solana_program_system_v1_service: GenFile = /*@__PURE__*/
+  fileDesc("CjFwcm90b2NoYWluL3NvbGFuYS9wcm9ncmFtL3N5c3RlbS92MS9zZXJ2aWNlLnByb3RvEiNwcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MSJjCg1DcmVhdGVSZXF1ZXN0Eg0KBXBheWVyGAEgASgJEhMKC25ld19hY2NvdW50GAIgASgJEg0KBW93bmVyGAMgASgJEhAKCGxhbXBvcnRzGAQgASgEEg0KBXNwYWNlGAUgASgEIj0KD1RyYW5zZmVyUmVxdWVzdBIMCgRmcm9tGAEgASgJEgoKAnRvGAIgASgJEhAKCGxhbXBvcnRzGAMgASgEIjEKD0FsbG9jYXRlUmVxdWVzdBIPCgdhY2NvdW50GAEgASgJEg0KBXNwYWNlGAIgASgEIjcKDUFzc2lnblJlcXVlc3QSDwoHYWNjb3VudBgBIAEoCRIVCg1vd25lcl9wcm9ncmFtGAIgASgJIngKFUNyZWF0ZVdpdGhTZWVkUmVxdWVzdBINCgVwYXllchgBIAEoCRITCgtuZXdfYWNjb3VudBgCIAEoCRIMCgRiYXNlGAMgASgJEgwKBHNlZWQYBCABKAkSEAoIbGFtcG9ydHMYBSABKAQSDQoFc3BhY2UYBiABKAQiVQoXQWxsb2NhdGVXaXRoU2VlZFJlcXVlc3QSDwoHYWNjb3VudBgBIAEoCRIMCgRiYXNlGAIgASgJEgwKBHNlZWQYAyABKAkSDQoFc3BhY2UYBCABKAQiWwoVQXNzaWduV2l0aFNlZWRSZXF1ZXN0Eg8KB2FjY291bnQYASABKAkSDAoEYmFzZRgCIAEoCRIMCgRzZWVkGAMgASgJEhUKDW93bmVyX3Byb2dyYW0YBCABKAkiawoXVHJhbnNmZXJXaXRoU2VlZFJlcXVlc3QSDAoEZnJvbRgBIAEoCRIRCglmcm9tX2Jhc2UYAiABKAkSEQoJZnJvbV9zZWVkGAMgASgJEgoKAnRvGAQgASgJEhAKCGxhbXBvcnRzGAUgASgEIkkKHUluaXRpYWxpemVOb25jZUFjY291bnRSZXF1ZXN0EhUKDW5vbmNlX2FjY291bnQYASABKAkSEQoJYXV0aG9yaXR5GAIgASgJImcKHEF1dGhvcml6ZU5vbmNlQWNjb3VudFJlcXVlc3QSFQoNbm9uY2VfYWNjb3VudBgBIAEoCRIZChFjdXJyZW50X2F1dGhvcml0eRgCIAEoCRIVCg1uZXdfYXV0aG9yaXR5GAMgASgJImUKG1dpdGhkcmF3Tm9uY2VBY2NvdW50UmVxdWVzdBIVCg1ub25jZV9hY2NvdW50GAEgASgJEhEKCWF1dGhvcml0eRgCIAEoCRIKCgJ0bxgDIAEoCRIQCghsYW1wb3J0cxgEIAEoBCJGChpBZHZhbmNlTm9uY2VBY2NvdW50UmVxdWVzdBIVCg1ub25jZV9hY2NvdW50GAEgASgJEhEKCWF1dGhvcml0eRgCIAEoCSIzChpVcGdyYWRlTm9uY2VBY2NvdW50UmVxdWVzdBIVCg1ub25jZV9hY2NvdW50GAEgASgJMscNCgdTZXJ2aWNlEnEKBkNyZWF0ZRIyLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLkNyZWF0ZVJlcXVlc3QaMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbhJ1CghUcmFuc2ZlchI0LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLlRyYW5zZmVyUmVxdWVzdBozLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uEnUKCEFsbG9jYXRlEjQucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuQWxsb2NhdGVSZXF1ZXN0GjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24ScQoGQXNzaWduEjIucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuQXNzaWduUmVxdWVzdBozLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uEoEBCg5DcmVhdGVXaXRoU2VlZBI6LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLkNyZWF0ZVdpdGhTZWVkUmVxdWVzdBozLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uEoUBChBBbGxvY2F0ZVdpdGhTZWVkEjwucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuQWxsb2NhdGVXaXRoU2VlZFJlcXVlc3QaMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbhKBAQoOQXNzaWduV2l0aFNlZWQSOi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5Bc3NpZ25XaXRoU2VlZFJlcXVlc3QaMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbhKFAQoQVHJhbnNmZXJXaXRoU2VlZBI8LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLlRyYW5zZmVyV2l0aFNlZWRSZXF1ZXN0GjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24SkQEKFkluaXRpYWxpemVOb25jZUFjY291bnQSQi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5Jbml0aWFsaXplTm9uY2VBY2NvdW50UmVxdWVzdBozLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uEo8BChVBdXRob3JpemVOb25jZUFjY291bnQSQS5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5BdXRob3JpemVOb25jZUFjY291bnRSZXF1ZXN0GjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24SjQEKFFdpdGhkcmF3Tm9uY2VBY2NvdW50EkAucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuV2l0aGRyYXdOb25jZUFjY291bnRSZXF1ZXN0GjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24SiwEKE0FkdmFuY2VOb25jZUFjY291bnQSPy5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5BZHZhbmNlTm9uY2VBY2NvdW50UmVxdWVzdBozLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uEosBChNVcGdyYWRlTm9uY2VBY2NvdW50Ej8ucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuVXBncmFkZU5vbmNlQWNjb3VudFJlcXVlc3QaMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbkJUWlJnaXRodWIuY29tL0JSQnVzc3kvcHJvdG9jaGFpbi9saWIvZ28vcHJvdG9jaGFpbi9zb2xhbmEvcHJvZ3JhbS9zeXN0ZW0vdjE7c3lzdGVtX3YxYgZwcm90bzM", [file_protochain_solana_transaction_v1_instruction]);
 
 /**
  * CreateRequest represents the parameters needed to create a new Solana account
@@ -24,7 +20,7 @@ export const file_protochain_solana_program_system_v1_service: GenFile =
  *
  * @generated from message protochain.solana.program.system.v1.CreateRequest
  */
-export type CreateRequest = Message<'protochain.solana.program.system.v1.CreateRequest'> & {
+export type CreateRequest = Message<"protochain.solana.program.system.v1.CreateRequest"> & {
   /**
    * The account that will pay for the new account creation (must be a signer)
    *
@@ -65,8 +61,7 @@ export type CreateRequest = Message<'protochain.solana.program.system.v1.CreateR
  * Describes the message protochain.solana.program.system.v1.CreateRequest.
  * Use `create(CreateRequestSchema)` to create a new message.
  */
-export const CreateRequestSchema: GenMessage<CreateRequest> =
-  /*@__PURE__*/
+export const CreateRequestSchema: GenMessage<CreateRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_system_v1_service, 0);
 
 /**
@@ -74,7 +69,7 @@ export const CreateRequestSchema: GenMessage<CreateRequest> =
  *
  * @generated from message protochain.solana.program.system.v1.TransferRequest
  */
-export type TransferRequest = Message<'protochain.solana.program.system.v1.TransferRequest'> & {
+export type TransferRequest = Message<"protochain.solana.program.system.v1.TransferRequest"> & {
   /**
    * The account sending the lamports (must be a signer)
    *
@@ -101,8 +96,7 @@ export type TransferRequest = Message<'protochain.solana.program.system.v1.Trans
  * Describes the message protochain.solana.program.system.v1.TransferRequest.
  * Use `create(TransferRequestSchema)` to create a new message.
  */
-export const TransferRequestSchema: GenMessage<TransferRequest> =
-  /*@__PURE__*/
+export const TransferRequestSchema: GenMessage<TransferRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_system_v1_service, 1);
 
 /**
@@ -110,7 +104,7 @@ export const TransferRequestSchema: GenMessage<TransferRequest> =
  *
  * @generated from message protochain.solana.program.system.v1.AllocateRequest
  */
-export type AllocateRequest = Message<'protochain.solana.program.system.v1.AllocateRequest'> & {
+export type AllocateRequest = Message<"protochain.solana.program.system.v1.AllocateRequest"> & {
   /**
    * The account to allocate space for (must be a signer)
    *
@@ -130,8 +124,7 @@ export type AllocateRequest = Message<'protochain.solana.program.system.v1.Alloc
  * Describes the message protochain.solana.program.system.v1.AllocateRequest.
  * Use `create(AllocateRequestSchema)` to create a new message.
  */
-export const AllocateRequestSchema: GenMessage<AllocateRequest> =
-  /*@__PURE__*/
+export const AllocateRequestSchema: GenMessage<AllocateRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_system_v1_service, 2);
 
 /**
@@ -139,7 +132,7 @@ export const AllocateRequestSchema: GenMessage<AllocateRequest> =
  *
  * @generated from message protochain.solana.program.system.v1.AssignRequest
  */
-export type AssignRequest = Message<'protochain.solana.program.system.v1.AssignRequest'> & {
+export type AssignRequest = Message<"protochain.solana.program.system.v1.AssignRequest"> & {
   /**
    * The account to assign a new owner to (must be a signer)
    *
@@ -159,8 +152,7 @@ export type AssignRequest = Message<'protochain.solana.program.system.v1.AssignR
  * Describes the message protochain.solana.program.system.v1.AssignRequest.
  * Use `create(AssignRequestSchema)` to create a new message.
  */
-export const AssignRequestSchema: GenMessage<AssignRequest> =
-  /*@__PURE__*/
+export const AssignRequestSchema: GenMessage<AssignRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_system_v1_service, 3);
 
 /**
@@ -168,57 +160,55 @@ export const AssignRequestSchema: GenMessage<AssignRequest> =
  *
  * @generated from message protochain.solana.program.system.v1.CreateWithSeedRequest
  */
-export type CreateWithSeedRequest =
-  Message<'protochain.solana.program.system.v1.CreateWithSeedRequest'> & {
-    /**
-     * The account that will pay for the new account creation (must be a signer)
-     *
-     * @generated from field: string payer = 1;
-     */
-    payer: string;
+export type CreateWithSeedRequest = Message<"protochain.solana.program.system.v1.CreateWithSeedRequest"> & {
+  /**
+   * The account that will pay for the new account creation (must be a signer)
+   *
+   * @generated from field: string payer = 1;
+   */
+  payer: string;
 
-    /**
-     * The public key of the new account to be created
-     *
-     * @generated from field: string new_account = 2;
-     */
-    newAccount: string;
+  /**
+   * The public key of the new account to be created
+   *
+   * @generated from field: string new_account = 2;
+   */
+  newAccount: string;
 
-    /**
-     * The base public key used to derive the new account address
-     *
-     * @generated from field: string base = 3;
-     */
-    base: string;
+  /**
+   * The base public key used to derive the new account address
+   *
+   * @generated from field: string base = 3;
+   */
+  base: string;
 
-    /**
-     * The seed string used to derive the new account address
-     *
-     * @generated from field: string seed = 4;
-     */
-    seed: string;
+  /**
+   * The seed string used to derive the new account address
+   *
+   * @generated from field: string seed = 4;
+   */
+  seed: string;
 
-    /**
-     * Amount of lamports to transfer to the new account
-     *
-     * @generated from field: uint64 lamports = 5;
-     */
-    lamports: bigint;
+  /**
+   * Amount of lamports to transfer to the new account
+   *
+   * @generated from field: uint64 lamports = 5;
+   */
+  lamports: bigint;
 
-    /**
-     * Number of bytes of memory to allocate for the account
-     *
-     * @generated from field: uint64 space = 6;
-     */
-    space: bigint;
-  };
+  /**
+   * Number of bytes of memory to allocate for the account
+   *
+   * @generated from field: uint64 space = 6;
+   */
+  space: bigint;
+};
 
 /**
  * Describes the message protochain.solana.program.system.v1.CreateWithSeedRequest.
  * Use `create(CreateWithSeedRequestSchema)` to create a new message.
  */
-export const CreateWithSeedRequestSchema: GenMessage<CreateWithSeedRequest> =
-  /*@__PURE__*/
+export const CreateWithSeedRequestSchema: GenMessage<CreateWithSeedRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_system_v1_service, 4);
 
 /**
@@ -226,238 +216,222 @@ export const CreateWithSeedRequestSchema: GenMessage<CreateWithSeedRequest> =
  *
  * @generated from message protochain.solana.program.system.v1.AllocateWithSeedRequest
  */
-export type AllocateWithSeedRequest =
-  Message<'protochain.solana.program.system.v1.AllocateWithSeedRequest'> & {
-    /**
-     * @generated from field: string account = 1;
-     */
-    account: string;
+export type AllocateWithSeedRequest = Message<"protochain.solana.program.system.v1.AllocateWithSeedRequest"> & {
+  /**
+   * @generated from field: string account = 1;
+   */
+  account: string;
 
-    /**
-     * @generated from field: string base = 2;
-     */
-    base: string;
+  /**
+   * @generated from field: string base = 2;
+   */
+  base: string;
 
-    /**
-     * @generated from field: string seed = 3;
-     */
-    seed: string;
+  /**
+   * @generated from field: string seed = 3;
+   */
+  seed: string;
 
-    /**
-     * @generated from field: uint64 space = 4;
-     */
-    space: bigint;
-  };
+  /**
+   * @generated from field: uint64 space = 4;
+   */
+  space: bigint;
+};
 
 /**
  * Describes the message protochain.solana.program.system.v1.AllocateWithSeedRequest.
  * Use `create(AllocateWithSeedRequestSchema)` to create a new message.
  */
-export const AllocateWithSeedRequestSchema: GenMessage<AllocateWithSeedRequest> =
-  /*@__PURE__*/
+export const AllocateWithSeedRequestSchema: GenMessage<AllocateWithSeedRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_system_v1_service, 5);
 
 /**
  * @generated from message protochain.solana.program.system.v1.AssignWithSeedRequest
  */
-export type AssignWithSeedRequest =
-  Message<'protochain.solana.program.system.v1.AssignWithSeedRequest'> & {
-    /**
-     * @generated from field: string account = 1;
-     */
-    account: string;
+export type AssignWithSeedRequest = Message<"protochain.solana.program.system.v1.AssignWithSeedRequest"> & {
+  /**
+   * @generated from field: string account = 1;
+   */
+  account: string;
 
-    /**
-     * @generated from field: string base = 2;
-     */
-    base: string;
+  /**
+   * @generated from field: string base = 2;
+   */
+  base: string;
 
-    /**
-     * @generated from field: string seed = 3;
-     */
-    seed: string;
+  /**
+   * @generated from field: string seed = 3;
+   */
+  seed: string;
 
-    /**
-     * @generated from field: string owner_program = 4;
-     */
-    ownerProgram: string;
-  };
+  /**
+   * @generated from field: string owner_program = 4;
+   */
+  ownerProgram: string;
+};
 
 /**
  * Describes the message protochain.solana.program.system.v1.AssignWithSeedRequest.
  * Use `create(AssignWithSeedRequestSchema)` to create a new message.
  */
-export const AssignWithSeedRequestSchema: GenMessage<AssignWithSeedRequest> =
-  /*@__PURE__*/
+export const AssignWithSeedRequestSchema: GenMessage<AssignWithSeedRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_system_v1_service, 6);
 
 /**
  * @generated from message protochain.solana.program.system.v1.TransferWithSeedRequest
  */
-export type TransferWithSeedRequest =
-  Message<'protochain.solana.program.system.v1.TransferWithSeedRequest'> & {
-    /**
-     * @generated from field: string from = 1;
-     */
-    from: string;
+export type TransferWithSeedRequest = Message<"protochain.solana.program.system.v1.TransferWithSeedRequest"> & {
+  /**
+   * @generated from field: string from = 1;
+   */
+  from: string;
 
-    /**
-     * @generated from field: string from_base = 2;
-     */
-    fromBase: string;
+  /**
+   * @generated from field: string from_base = 2;
+   */
+  fromBase: string;
 
-    /**
-     * @generated from field: string from_seed = 3;
-     */
-    fromSeed: string;
+  /**
+   * @generated from field: string from_seed = 3;
+   */
+  fromSeed: string;
 
-    /**
-     * @generated from field: string to = 4;
-     */
-    to: string;
+  /**
+   * @generated from field: string to = 4;
+   */
+  to: string;
 
-    /**
-     * @generated from field: uint64 lamports = 5;
-     */
-    lamports: bigint;
-  };
+  /**
+   * @generated from field: uint64 lamports = 5;
+   */
+  lamports: bigint;
+};
 
 /**
  * Describes the message protochain.solana.program.system.v1.TransferWithSeedRequest.
  * Use `create(TransferWithSeedRequestSchema)` to create a new message.
  */
-export const TransferWithSeedRequestSchema: GenMessage<TransferWithSeedRequest> =
-  /*@__PURE__*/
+export const TransferWithSeedRequestSchema: GenMessage<TransferWithSeedRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_system_v1_service, 7);
 
 /**
  * @generated from message protochain.solana.program.system.v1.InitializeNonceAccountRequest
  */
-export type InitializeNonceAccountRequest =
-  Message<'protochain.solana.program.system.v1.InitializeNonceAccountRequest'> & {
-    /**
-     * @generated from field: string nonce_account = 1;
-     */
-    nonceAccount: string;
+export type InitializeNonceAccountRequest = Message<"protochain.solana.program.system.v1.InitializeNonceAccountRequest"> & {
+  /**
+   * @generated from field: string nonce_account = 1;
+   */
+  nonceAccount: string;
 
-    /**
-     * @generated from field: string authority = 2;
-     */
-    authority: string;
-  };
+  /**
+   * @generated from field: string authority = 2;
+   */
+  authority: string;
+};
 
 /**
  * Describes the message protochain.solana.program.system.v1.InitializeNonceAccountRequest.
  * Use `create(InitializeNonceAccountRequestSchema)` to create a new message.
  */
-export const InitializeNonceAccountRequestSchema: GenMessage<InitializeNonceAccountRequest> =
-  /*@__PURE__*/
+export const InitializeNonceAccountRequestSchema: GenMessage<InitializeNonceAccountRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_system_v1_service, 8);
 
 /**
  * @generated from message protochain.solana.program.system.v1.AuthorizeNonceAccountRequest
  */
-export type AuthorizeNonceAccountRequest =
-  Message<'protochain.solana.program.system.v1.AuthorizeNonceAccountRequest'> & {
-    /**
-     * @generated from field: string nonce_account = 1;
-     */
-    nonceAccount: string;
+export type AuthorizeNonceAccountRequest = Message<"protochain.solana.program.system.v1.AuthorizeNonceAccountRequest"> & {
+  /**
+   * @generated from field: string nonce_account = 1;
+   */
+  nonceAccount: string;
 
-    /**
-     * @generated from field: string current_authority = 2;
-     */
-    currentAuthority: string;
+  /**
+   * @generated from field: string current_authority = 2;
+   */
+  currentAuthority: string;
 
-    /**
-     * @generated from field: string new_authority = 3;
-     */
-    newAuthority: string;
-  };
+  /**
+   * @generated from field: string new_authority = 3;
+   */
+  newAuthority: string;
+};
 
 /**
  * Describes the message protochain.solana.program.system.v1.AuthorizeNonceAccountRequest.
  * Use `create(AuthorizeNonceAccountRequestSchema)` to create a new message.
  */
-export const AuthorizeNonceAccountRequestSchema: GenMessage<AuthorizeNonceAccountRequest> =
-  /*@__PURE__*/
+export const AuthorizeNonceAccountRequestSchema: GenMessage<AuthorizeNonceAccountRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_system_v1_service, 9);
 
 /**
  * @generated from message protochain.solana.program.system.v1.WithdrawNonceAccountRequest
  */
-export type WithdrawNonceAccountRequest =
-  Message<'protochain.solana.program.system.v1.WithdrawNonceAccountRequest'> & {
-    /**
-     * @generated from field: string nonce_account = 1;
-     */
-    nonceAccount: string;
+export type WithdrawNonceAccountRequest = Message<"protochain.solana.program.system.v1.WithdrawNonceAccountRequest"> & {
+  /**
+   * @generated from field: string nonce_account = 1;
+   */
+  nonceAccount: string;
 
-    /**
-     * @generated from field: string authority = 2;
-     */
-    authority: string;
+  /**
+   * @generated from field: string authority = 2;
+   */
+  authority: string;
 
-    /**
-     * @generated from field: string to = 3;
-     */
-    to: string;
+  /**
+   * @generated from field: string to = 3;
+   */
+  to: string;
 
-    /**
-     * @generated from field: uint64 lamports = 4;
-     */
-    lamports: bigint;
-  };
+  /**
+   * @generated from field: uint64 lamports = 4;
+   */
+  lamports: bigint;
+};
 
 /**
  * Describes the message protochain.solana.program.system.v1.WithdrawNonceAccountRequest.
  * Use `create(WithdrawNonceAccountRequestSchema)` to create a new message.
  */
-export const WithdrawNonceAccountRequestSchema: GenMessage<WithdrawNonceAccountRequest> =
-  /*@__PURE__*/
+export const WithdrawNonceAccountRequestSchema: GenMessage<WithdrawNonceAccountRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_system_v1_service, 10);
 
 /**
  * @generated from message protochain.solana.program.system.v1.AdvanceNonceAccountRequest
  */
-export type AdvanceNonceAccountRequest =
-  Message<'protochain.solana.program.system.v1.AdvanceNonceAccountRequest'> & {
-    /**
-     * @generated from field: string nonce_account = 1;
-     */
-    nonceAccount: string;
+export type AdvanceNonceAccountRequest = Message<"protochain.solana.program.system.v1.AdvanceNonceAccountRequest"> & {
+  /**
+   * @generated from field: string nonce_account = 1;
+   */
+  nonceAccount: string;
 
-    /**
-     * @generated from field: string authority = 2;
-     */
-    authority: string;
-  };
+  /**
+   * @generated from field: string authority = 2;
+   */
+  authority: string;
+};
 
 /**
  * Describes the message protochain.solana.program.system.v1.AdvanceNonceAccountRequest.
  * Use `create(AdvanceNonceAccountRequestSchema)` to create a new message.
  */
-export const AdvanceNonceAccountRequestSchema: GenMessage<AdvanceNonceAccountRequest> =
-  /*@__PURE__*/
+export const AdvanceNonceAccountRequestSchema: GenMessage<AdvanceNonceAccountRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_system_v1_service, 11);
 
 /**
  * @generated from message protochain.solana.program.system.v1.UpgradeNonceAccountRequest
  */
-export type UpgradeNonceAccountRequest =
-  Message<'protochain.solana.program.system.v1.UpgradeNonceAccountRequest'> & {
-    /**
-     * @generated from field: string nonce_account = 1;
-     */
-    nonceAccount: string;
-  };
+export type UpgradeNonceAccountRequest = Message<"protochain.solana.program.system.v1.UpgradeNonceAccountRequest"> & {
+  /**
+   * @generated from field: string nonce_account = 1;
+   */
+  nonceAccount: string;
+};
 
 /**
  * Describes the message protochain.solana.program.system.v1.UpgradeNonceAccountRequest.
  * Use `create(UpgradeNonceAccountRequestSchema)` to create a new message.
  */
-export const UpgradeNonceAccountRequestSchema: GenMessage<UpgradeNonceAccountRequest> =
-  /*@__PURE__*/
+export const UpgradeNonceAccountRequestSchema: GenMessage<UpgradeNonceAccountRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_system_v1_service, 12);
 
 /**
@@ -470,106 +444,108 @@ export const Service: GenService<{
    * @generated from rpc protochain.solana.program.system.v1.Service.Create
    */
   create: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof CreateRequestSchema;
     output: typeof SolanaInstructionSchema;
-  };
+  },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.Transfer
    */
   transfer: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof TransferRequestSchema;
     output: typeof SolanaInstructionSchema;
-  };
+  },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.Allocate
    */
   allocate: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof AllocateRequestSchema;
     output: typeof SolanaInstructionSchema;
-  };
+  },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.Assign
    */
   assign: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof AssignRequestSchema;
     output: typeof SolanaInstructionSchema;
-  };
+  },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.CreateWithSeed
    */
   createWithSeed: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof CreateWithSeedRequestSchema;
     output: typeof SolanaInstructionSchema;
-  };
+  },
   /**
    * Extended system program operations
    *
    * @generated from rpc protochain.solana.program.system.v1.Service.AllocateWithSeed
    */
   allocateWithSeed: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof AllocateWithSeedRequestSchema;
     output: typeof SolanaInstructionSchema;
-  };
+  },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.AssignWithSeed
    */
   assignWithSeed: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof AssignWithSeedRequestSchema;
     output: typeof SolanaInstructionSchema;
-  };
+  },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.TransferWithSeed
    */
   transferWithSeed: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof TransferWithSeedRequestSchema;
     output: typeof SolanaInstructionSchema;
-  };
+  },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.InitializeNonceAccount
    */
   initializeNonceAccount: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof InitializeNonceAccountRequestSchema;
     output: typeof SolanaInstructionSchema;
-  };
+  },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.AuthorizeNonceAccount
    */
   authorizeNonceAccount: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof AuthorizeNonceAccountRequestSchema;
     output: typeof SolanaInstructionSchema;
-  };
+  },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.WithdrawNonceAccount
    */
   withdrawNonceAccount: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof WithdrawNonceAccountRequestSchema;
     output: typeof SolanaInstructionSchema;
-  };
+  },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.AdvanceNonceAccount
    */
   advanceNonceAccount: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof AdvanceNonceAccountRequestSchema;
     output: typeof SolanaInstructionSchema;
-  };
+  },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.UpgradeNonceAccount
    */
   upgradeNonceAccount: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof UpgradeNonceAccountRequestSchema;
     output: typeof SolanaInstructionSchema;
-  };
-}> = /*@__PURE__*/ serviceDesc(file_protochain_solana_program_system_v1_service, 0);
+  },
+}> = /*@__PURE__*/
+  serviceDesc(file_protochain_solana_program_system_v1_service, 0);
+

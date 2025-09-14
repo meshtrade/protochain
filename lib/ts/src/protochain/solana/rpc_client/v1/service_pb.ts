@@ -2,63 +2,55 @@
 // @generated from file protochain/solana/rpc_client/v1/service.proto (package protochain.solana.rpc_client.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage, GenService } from '@bufbuild/protobuf/codegenv2';
-import { fileDesc, messageDesc, serviceDesc } from '@bufbuild/protobuf/codegenv2';
-import type { CommitmentLevel } from '../../type/v1/commitment_level_pb';
-import { file_protochain_solana_type_v1_commitment_level } from '../../type/v1/commitment_level_pb';
-import type { Message } from '@bufbuild/protobuf';
+import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
+import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { CommitmentLevel } from "../../type/v1/commitment_level_pb";
+import { file_protochain_solana_type_v1_commitment_level } from "../../type/v1/commitment_level_pb";
+import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file protochain/solana/rpc_client/v1/service.proto.
  */
-export const file_protochain_solana_rpc_client_v1_service: GenFile =
-  /*@__PURE__*/
-  fileDesc(
-    'Ci1wcm90b2NoYWluL3NvbGFuYS9ycGNfY2xpZW50L3YxL3NlcnZpY2UucHJvdG8SH3Byb3RvY2hhaW4uc29sYW5hLnJwY19jbGllbnQudjEihQEKKEdldE1pbmltdW1CYWxhbmNlRm9yUmVudEV4ZW1wdGlvblJlcXVlc3QSEwoLZGF0YV9sZW5ndGgYASABKAQSRAoQY29tbWl0bWVudF9sZXZlbBgCIAEoDjIqLnByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEuQ29tbWl0bWVudExldmVsIjwKKUdldE1pbmltdW1CYWxhbmNlRm9yUmVudEV4ZW1wdGlvblJlc3BvbnNlEg8KB2JhbGFuY2UYASABKAQyxgEKB1NlcnZpY2USugEKIUdldE1pbmltdW1CYWxhbmNlRm9yUmVudEV4ZW1wdGlvbhJJLnByb3RvY2hhaW4uc29sYW5hLnJwY19jbGllbnQudjEuR2V0TWluaW11bUJhbGFuY2VGb3JSZW50RXhlbXB0aW9uUmVxdWVzdBpKLnByb3RvY2hhaW4uc29sYW5hLnJwY19jbGllbnQudjEuR2V0TWluaW11bUJhbGFuY2VGb3JSZW50RXhlbXB0aW9uUmVzcG9uc2VCVFpSZ2l0aHViLmNvbS9CUkJ1c3N5L3Byb3RvY2hhaW4vbGliL2dvL3Byb3RvY2hhaW4vc29sYW5hL3JwY19jbGllbnQvdjE7cnBjX2NsaWVudF92MWIGcHJvdG8z',
-    [file_protochain_solana_type_v1_commitment_level],
-  );
+export const file_protochain_solana_rpc_client_v1_service: GenFile = /*@__PURE__*/
+  fileDesc("Ci1wcm90b2NoYWluL3NvbGFuYS9ycGNfY2xpZW50L3YxL3NlcnZpY2UucHJvdG8SH3Byb3RvY2hhaW4uc29sYW5hLnJwY19jbGllbnQudjEihQEKKEdldE1pbmltdW1CYWxhbmNlRm9yUmVudEV4ZW1wdGlvblJlcXVlc3QSEwoLZGF0YV9sZW5ndGgYASABKAQSRAoQY29tbWl0bWVudF9sZXZlbBgCIAEoDjIqLnByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEuQ29tbWl0bWVudExldmVsIjwKKUdldE1pbmltdW1CYWxhbmNlRm9yUmVudEV4ZW1wdGlvblJlc3BvbnNlEg8KB2JhbGFuY2UYASABKAQyxgEKB1NlcnZpY2USugEKIUdldE1pbmltdW1CYWxhbmNlRm9yUmVudEV4ZW1wdGlvbhJJLnByb3RvY2hhaW4uc29sYW5hLnJwY19jbGllbnQudjEuR2V0TWluaW11bUJhbGFuY2VGb3JSZW50RXhlbXB0aW9uUmVxdWVzdBpKLnByb3RvY2hhaW4uc29sYW5hLnJwY19jbGllbnQudjEuR2V0TWluaW11bUJhbGFuY2VGb3JSZW50RXhlbXB0aW9uUmVzcG9uc2VCVFpSZ2l0aHViLmNvbS9CUkJ1c3N5L3Byb3RvY2hhaW4vbGliL2dvL3Byb3RvY2hhaW4vc29sYW5hL3JwY19jbGllbnQvdjE7cnBjX2NsaWVudF92MWIGcHJvdG8z", [file_protochain_solana_type_v1_commitment_level]);
 
 /**
  * @generated from message protochain.solana.rpc_client.v1.GetMinimumBalanceForRentExemptionRequest
  */
-export type GetMinimumBalanceForRentExemptionRequest =
-  Message<'protochain.solana.rpc_client.v1.GetMinimumBalanceForRentExemptionRequest'> & {
-    /**
-     * @generated from field: uint64 data_length = 1;
-     */
-    dataLength: bigint;
+export type GetMinimumBalanceForRentExemptionRequest = Message<"protochain.solana.rpc_client.v1.GetMinimumBalanceForRentExemptionRequest"> & {
+  /**
+   * @generated from field: uint64 data_length = 1;
+   */
+  dataLength: bigint;
 
-    /**
-     * @generated from field: protochain.solana.type.v1.CommitmentLevel commitment_level = 2;
-     */
-    commitmentLevel: CommitmentLevel;
-  };
+  /**
+   * @generated from field: protochain.solana.type.v1.CommitmentLevel commitment_level = 2;
+   */
+  commitmentLevel: CommitmentLevel;
+};
 
 /**
  * Describes the message protochain.solana.rpc_client.v1.GetMinimumBalanceForRentExemptionRequest.
  * Use `create(GetMinimumBalanceForRentExemptionRequestSchema)` to create a new message.
  */
-export const GetMinimumBalanceForRentExemptionRequestSchema: GenMessage<GetMinimumBalanceForRentExemptionRequest> =
-  /*@__PURE__*/
+export const GetMinimumBalanceForRentExemptionRequestSchema: GenMessage<GetMinimumBalanceForRentExemptionRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_rpc_client_v1_service, 0);
 
 /**
  * @generated from message protochain.solana.rpc_client.v1.GetMinimumBalanceForRentExemptionResponse
  */
-export type GetMinimumBalanceForRentExemptionResponse =
-  Message<'protochain.solana.rpc_client.v1.GetMinimumBalanceForRentExemptionResponse'> & {
-    /**
-     * @generated from field: uint64 balance = 1;
-     */
-    balance: bigint;
-  };
+export type GetMinimumBalanceForRentExemptionResponse = Message<"protochain.solana.rpc_client.v1.GetMinimumBalanceForRentExemptionResponse"> & {
+  /**
+   * @generated from field: uint64 balance = 1;
+   */
+  balance: bigint;
+};
 
 /**
  * Describes the message protochain.solana.rpc_client.v1.GetMinimumBalanceForRentExemptionResponse.
  * Use `create(GetMinimumBalanceForRentExemptionResponseSchema)` to create a new message.
  */
-export const GetMinimumBalanceForRentExemptionResponseSchema: GenMessage<GetMinimumBalanceForRentExemptionResponse> =
-  /*@__PURE__*/
+export const GetMinimumBalanceForRentExemptionResponseSchema: GenMessage<GetMinimumBalanceForRentExemptionResponse> = /*@__PURE__*/
   messageDesc(file_protochain_solana_rpc_client_v1_service, 1);
 
 /**
@@ -69,8 +61,10 @@ export const Service: GenService<{
    * @generated from rpc protochain.solana.rpc_client.v1.Service.GetMinimumBalanceForRentExemption
    */
   getMinimumBalanceForRentExemption: {
-    methodKind: 'unary';
+    methodKind: "unary";
     input: typeof GetMinimumBalanceForRentExemptionRequestSchema;
     output: typeof GetMinimumBalanceForRentExemptionResponseSchema;
-  };
-}> = /*@__PURE__*/ serviceDesc(file_protochain_solana_rpc_client_v1_service, 0);
+  },
+}> = /*@__PURE__*/
+  serviceDesc(file_protochain_solana_rpc_client_v1_service, 0);
+

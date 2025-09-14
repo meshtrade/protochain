@@ -26,6 +26,7 @@ use tonic::{Request, Response, Status};
 use tracing::{debug, error, info, warn};
 
 use crate::api::common::solana_conversions::proto_instruction_to_sdk;
+use crate::api::transaction::v1::error_builder;
 use crate::api::transaction::v1::validation::{
     validate_operation_allowed_for_state, validate_state_transition,
     validate_transaction_state_consistency,
@@ -77,6 +78,9 @@ impl TransactionServiceImpl {
 
 /// Classifies Solana RPC client errors into appropriate `SubmissionResult` categories
 ///
+/// DEPRECATED: This function provides backward compatibility for the legacy enum classification.
+/// New code should use `error_builder::build_structured_error` for comprehensive error analysis.
+///
 /// This function performs type-safe error analysis using Solana's structured error types
 /// instead of fragile string pattern matching. It provides reliable classification based
 /// on the actual error enums from the Solana codebase.
@@ -119,9 +123,17 @@ fn classify_submission_error(error: &ClientError) -> SubmissionResult {
             ..
         }) => SubmissionResult::FailedNetworkError,
 
-        // Network transport errors - connectivity, timeouts, HTTP issues
-        ClientErrorKind::Io(_) | ClientErrorKind::Reqwest(_) => {
-            SubmissionResult::FailedNetworkError
+        // Network transport errors - connectivity, timeouts, HTTP issues (INDETERMINATE)
+        ClientErrorKind::Io(_) => SubmissionResult::Indeterminate,
+
+        ClientErrorKind::Reqwest(reqwest_error) => {
+            if reqwest_error.is_timeout() {
+                // Timeouts are especially dangerous - transaction might have been sent
+                SubmissionResult::Indeterminate
+            } else {
+                // Connection/request failures - also indeterminate
+                SubmissionResult::Indeterminate
+            }
         }
 
         // Cryptographic signing errors
@@ -133,7 +145,12 @@ fn classify_submission_error(error: &ClientError) -> SubmissionResult {
         }
 
         // Fallback for unstructured errors - use string analysis as last resort
-        ClientErrorKind::RpcError(_) | ClientErrorKind::Custom(_) => {
+        ClientErrorKind::RpcError(_) => {
+            // Generic RPC errors are typically indeterminate
+            SubmissionResult::Indeterminate
+        }
+
+        ClientErrorKind::Custom(_) => {
             // Only use string matching for truly unstructured error types
             classify_by_message(&error.to_string())
         }
@@ -894,7 +911,7 @@ impl TransactionService for TransactionServiceImpl {
         );
 
         // Submit the transaction with proper configuration
-        let (signature_result, submission_result, error_message) =
+        let (signature_result, submission_result, structured_error) =
             match self.rpc_client.send_transaction_with_config(
                 &solana_transaction,
                 solana_client::rpc_config::RpcSendTransactionConfig {
@@ -919,22 +936,46 @@ impl TransactionService for TransactionServiceImpl {
                 }
                 Err(e) => {
                     let classification = classify_submission_error(&e);
-                    let error_msg = format!("Transaction submission failed: {e}");
+
+                    // Get current slot for blockhash resolution
+                    let current_slot = self.rpc_client.get_slot().unwrap_or(0);
+
+                    // Parse blockhash from transaction for resolution strategy
+                    let transaction_blockhash = transaction
+                        .recent_blockhash
+                        .parse()
+                        .unwrap_or_else(|_| solana_sdk::hash::Hash::default());
+
+                    // Build comprehensive structured error
+                    let structured_err = error_builder::build_structured_error(
+                        &e,
+                        classification,
+                        &transaction_blockhash,
+                        current_slot,
+                    );
+
                     error!(
                         error = %e,
                         fee_payer = %transaction.fee_payer,
                         commitment_level = ?commitment,
                         classification = ?classification,
+                        certainty = ?structured_err.certainty,
+                        retryable = structured_err.retryable,
                         "Transaction submission failed"
                     );
-                    (String::new(), classification, Some(error_msg))
+
+                    (String::new(), classification, Some(structured_err))
                 }
             };
 
         Ok(Response::new(SubmitTransactionResponse {
             signature: signature_result,
             submission_result: submission_result.into(),
-            error_message: error_message.unwrap_or_default(),
+            error_message: structured_error
+                .as_ref()
+                .map(|e| e.message.clone())
+                .unwrap_or_default(),
+            structured_error,
         }))
     }
 

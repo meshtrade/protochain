@@ -2,27 +2,24 @@
 // @generated from file protochain/solana/type/v1/keypair.proto (package protochain.solana.type.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage } from '@bufbuild/protobuf/codegenv2';
-import { fileDesc, messageDesc } from '@bufbuild/protobuf/codegenv2';
-import type { Message } from '@bufbuild/protobuf';
+import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file protochain/solana/type/v1/keypair.proto.
  */
-export const file_protochain_solana_type_v1_keypair: GenFile =
-  /*@__PURE__*/
-  fileDesc(
-    'Cidwcm90b2NoYWluL3NvbGFuYS90eXBlL3YxL2tleXBhaXIucHJvdG8SGXByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEiMgoHS2V5UGFpchISCgpwdWJsaWNfa2V5GAEgASgJEhMKC3ByaXZhdGVfa2V5GAIgASgJQk9aTWdpdGh1Yi5jb20vQlJCdXNzeS9wcm90b2NoYWluL2xpYi9nby9wcm90b2NoYWluL3NvbGFuYS90eXBlL3YxO3NvbGFuYV90eXBlX3YxYgZwcm90bzM',
-  );
+export const file_protochain_solana_type_v1_keypair: GenFile = /*@__PURE__*/
+  fileDesc("Cidwcm90b2NoYWluL3NvbGFuYS90eXBlL3YxL2tleXBhaXIucHJvdG8SGXByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEiMgoHS2V5UGFpchISCgpwdWJsaWNfa2V5GAEgASgJEhMKC3ByaXZhdGVfa2V5GAIgASgJQk9aTWdpdGh1Yi5jb20vQlJCdXNzeS9wcm90b2NoYWluL2xpYi9nby9wcm90b2NoYWluL3NvbGFuYS90eXBlL3YxO3NvbGFuYV90eXBlX3YxYgZwcm90bzM");
 
 /**
  * KeyPair represents a Solana cryptographic key pair for transaction signing
  *
  * @generated from message protochain.solana.type.v1.KeyPair
  */
-export type KeyPair = Message<'protochain.solana.type.v1.KeyPair'> & {
+export type KeyPair = Message<"protochain.solana.type.v1.KeyPair"> & {
   /**
-   * Base58 encoded public key
+   * Base58 encoded public key 
    *
    * @generated from field: string public_key = 1;
    */
@@ -40,6 +37,6 @@ export type KeyPair = Message<'protochain.solana.type.v1.KeyPair'> & {
  * Describes the message protochain.solana.type.v1.KeyPair.
  * Use `create(KeyPairSchema)` to create a new message.
  */
-export const KeyPairSchema: GenMessage<KeyPair> =
-  /*@__PURE__*/
+export const KeyPairSchema: GenMessage<KeyPair> = /*@__PURE__*/
   messageDesc(file_protochain_solana_type_v1_keypair, 0);
+

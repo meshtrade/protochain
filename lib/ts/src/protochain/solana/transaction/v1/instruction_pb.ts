@@ -2,25 +2,22 @@
 // @generated from file protochain/solana/transaction/v1/instruction.proto (package protochain.solana.transaction.v1, syntax proto3)
 /* eslint-disable */
 
-import type { GenFile, GenMessage } from '@bufbuild/protobuf/codegenv2';
-import { fileDesc, messageDesc } from '@bufbuild/protobuf/codegenv2';
-import type { Message } from '@bufbuild/protobuf';
+import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file protochain/solana/transaction/v1/instruction.proto.
  */
-export const file_protochain_solana_transaction_v1_instruction: GenFile =
-  /*@__PURE__*/
-  fileDesc(
-    'CjJwcm90b2NoYWluL3NvbGFuYS90cmFuc2FjdGlvbi92MS9pbnN0cnVjdGlvbi5wcm90bxIgcHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEikQEKEVNvbGFuYUluc3RydWN0aW9uEhIKCnByb2dyYW1faWQYASABKAkSRQoIYWNjb3VudHMYAiADKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFBY2NvdW50TWV0YRIMCgRkYXRhGAMgASgMEhMKC2Rlc2NyaXB0aW9uGAQgASgJIksKEVNvbGFuYUFjY291bnRNZXRhEg4KBnB1YmtleRgBIAEoCRIRCglpc19zaWduZXIYAiABKAgSEwoLaXNfd3JpdGFibGUYAyABKAhCVlpUZ2l0aHViLmNvbS9CUkJ1c3N5L3Byb3RvY2hhaW4vbGliL2dvL3Byb3RvY2hhaW4vc29sYW5hL3RyYW5zYWN0aW9uL3YxO3RyYW5zYWN0aW9uX3YxYgZwcm90bzM',
-  );
+export const file_protochain_solana_transaction_v1_instruction: GenFile = /*@__PURE__*/
+  fileDesc("CjJwcm90b2NoYWluL3NvbGFuYS90cmFuc2FjdGlvbi92MS9pbnN0cnVjdGlvbi5wcm90bxIgcHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEikQEKEVNvbGFuYUluc3RydWN0aW9uEhIKCnByb2dyYW1faWQYASABKAkSRQoIYWNjb3VudHMYAiADKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFBY2NvdW50TWV0YRIMCgRkYXRhGAMgASgMEhMKC2Rlc2NyaXB0aW9uGAQgASgJIksKEVNvbGFuYUFjY291bnRNZXRhEg4KBnB1YmtleRgBIAEoCRIRCglpc19zaWduZXIYAiABKAgSEwoLaXNfd3JpdGFibGUYAyABKAhCVlpUZ2l0aHViLmNvbS9CUkJ1c3N5L3Byb3RvY2hhaW4vbGliL2dvL3Byb3RvY2hhaW4vc29sYW5hL3RyYW5zYWN0aW9uL3YxO3RyYW5zYWN0aW9uX3YxYgZwcm90bzM");
 
 /**
  * SolanaInstruction represents a single instruction for Solana execution
  *
  * @generated from message protochain.solana.transaction.v1.SolanaInstruction
  */
-export type SolanaInstruction = Message<'protochain.solana.transaction.v1.SolanaInstruction'> & {
+export type SolanaInstruction = Message<"protochain.solana.transaction.v1.SolanaInstruction"> & {
   /**
    * Program ID that will execute this instruction (base58 encoded)
    *
@@ -54,8 +51,7 @@ export type SolanaInstruction = Message<'protochain.solana.transaction.v1.Solana
  * Describes the message protochain.solana.transaction.v1.SolanaInstruction.
  * Use `create(SolanaInstructionSchema)` to create a new message.
  */
-export const SolanaInstructionSchema: GenMessage<SolanaInstruction> =
-  /*@__PURE__*/
+export const SolanaInstructionSchema: GenMessage<SolanaInstruction> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_instruction, 0);
 
 /**
@@ -63,7 +59,7 @@ export const SolanaInstructionSchema: GenMessage<SolanaInstruction> =
  *
  * @generated from message protochain.solana.transaction.v1.SolanaAccountMeta
  */
-export type SolanaAccountMeta = Message<'protochain.solana.transaction.v1.SolanaAccountMeta'> & {
+export type SolanaAccountMeta = Message<"protochain.solana.transaction.v1.SolanaAccountMeta"> & {
   /**
    * Account public key (base58 encoded)
    *
@@ -90,6 +86,6 @@ export type SolanaAccountMeta = Message<'protochain.solana.transaction.v1.Solana
  * Describes the message protochain.solana.transaction.v1.SolanaAccountMeta.
  * Use `create(SolanaAccountMetaSchema)` to create a new message.
  */
-export const SolanaAccountMetaSchema: GenMessage<SolanaAccountMeta> =
-  /*@__PURE__*/
+export const SolanaAccountMetaSchema: GenMessage<SolanaAccountMeta> = /*@__PURE__*/
   messageDesc(file_protochain_solana_transaction_v1_instruction, 1);
+
