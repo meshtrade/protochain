@@ -23,7 +23,7 @@ use solana_sdk::{
 /// 2. **Certainty Classification**: Distinguish errors that occur before vs during/after submission
 /// 3. **Blockhash Resolution**: Provide timing information for resolving indeterminate states
 /// 4. **Backward Compatibility**: Maintain existing error classification while enhancing
-
+///
 /// Builds a structured `TransactionError` from Solana client error and context
 ///
 /// This function performs comprehensive error analysis to provide:
@@ -77,11 +77,14 @@ fn classify_error_with_certainty(
         }) => {
             let certainty = TransactionSubmissionCertainty::NotSubmitted;
 
-            if let Some(ref tx_error) = simulation_result.err {
-                (classify_transaction_error(tx_error), certainty)
-            } else {
-                (TransactionErrorCode::InvalidTransaction, certainty)
-            }
+            let error_code = simulation_result
+                .err
+                .as_ref()
+                .map_or(TransactionErrorCode::InvalidTransaction, |tx_error| {
+                    classify_transaction_error(tx_error)
+                });
+
+            (error_code, certainty)
         }
 
         // Direct transaction errors - usually from preflight or validation
@@ -176,8 +179,10 @@ const fn classify_transaction_error(
             TransactionErrorCode::WouldExceedBlockLimit
         }
 
-        // Account locking issues (TEMPORARY - wait for unlock)
-        SdkTransactionError::TooManyAccountLocks => TransactionErrorCode::AccountInUse,
+        // Account locking and usage issues (TEMPORARY - wait for unlock/availability)
+        SdkTransactionError::TooManyAccountLocks | SdkTransactionError::AccountInUse => {
+            TransactionErrorCode::AccountInUse
+        }
 
         // Network maintenance (TEMPORARY)
         SdkTransactionError::ClusterMaintenance => TransactionErrorCode::TransientSimulationFailure,
@@ -196,41 +201,28 @@ const fn classify_transaction_error(
         // Blockhash errors (PERMANENT - requires re-signing with new blockhash)
         SdkTransactionError::BlockhashNotFound => TransactionErrorCode::BlockhashNotFound,
 
-        // Transaction structure errors (PERMANENT)
-        SdkTransactionError::SanitizeFailure
-        | SdkTransactionError::UnsupportedVersion
-        | SdkTransactionError::DuplicateInstruction(_)
-        | SdkTransactionError::UnbalancedTransaction => TransactionErrorCode::InvalidTransaction,
-
         // Program execution and instruction errors
         SdkTransactionError::InstructionError(instruction_index, instruction_error) => {
             classify_instruction_error(*instruction_index, instruction_error)
         }
 
-        // Address lookup table errors (PERMANENT)
-        SdkTransactionError::AddressLookupTableNotFound
+        // Transaction structure and validation errors (PERMANENT)
+        SdkTransactionError::SanitizeFailure
+        | SdkTransactionError::UnsupportedVersion
+        | SdkTransactionError::DuplicateInstruction(_)
+        | SdkTransactionError::UnbalancedTransaction
+        | SdkTransactionError::AddressLookupTableNotFound
         | SdkTransactionError::InvalidAddressLookupTableOwner
         | SdkTransactionError::InvalidAddressLookupTableData
-        | SdkTransactionError::InvalidAddressLookupTableIndex => {
-            TransactionErrorCode::InvalidTransaction
-        }
-
-        // Other validation errors (PERMANENT)
-        SdkTransactionError::CallChainTooDeep
+        | SdkTransactionError::InvalidAddressLookupTableIndex
+        | SdkTransactionError::CallChainTooDeep
         | SdkTransactionError::InvalidAccountIndex
         | SdkTransactionError::InvalidProgramForExecution
         | SdkTransactionError::MaxLoadedAccountsDataSizeExceeded
         | SdkTransactionError::InvalidLoadedAccountsDataSizeLimit
         | SdkTransactionError::ResanitizationNeeded
-        | SdkTransactionError::ProgramExecutionTemporarilyRestricted { .. } => {
-            TransactionErrorCode::InvalidTransaction
-        }
-
-        // Successfully processed (shouldn't be an error, but handle gracefully)
-        SdkTransactionError::AlreadyProcessed => TransactionErrorCode::InvalidTransaction,
-
-        // Account in use (TEMPORARY - wait for account to be available)
-        SdkTransactionError::AccountInUse => TransactionErrorCode::AccountInUse,
+        | SdkTransactionError::ProgramExecutionTemporarilyRestricted { .. }
+        | SdkTransactionError::AlreadyProcessed => TransactionErrorCode::InvalidTransaction,
     }
 }
 

@@ -59,7 +59,7 @@ func (suite *StreamingE2ETestSuite) TearDownSuite() {
 		suite.cancel()
 	}
 	if suite.grpcConn != nil {
-		suite.grpcConn.Close()
+		_ = suite.grpcConn.Close()
 	}
 }
 
@@ -397,7 +397,7 @@ func (suite *StreamingE2ETestSuite) Test_05_SystemProgram_CreateInstruction() {
 	request := &system_v1.CreateRequest{
 		Payer:      payerAddr,
 		NewAccount: newAccountAddr,
-		Owner:      "", // Default to system program
+		Owner:      "",         // Default to system program
 		Lamports:   1000000000, // 1 SOL
 		Space:      0,
 	}
@@ -682,7 +682,7 @@ func (suite *StreamingE2ETestSuite) Test_09_ComprehensiveStreamingIntegration() 
 	createSecondInstr, err := suite.systemProgramService.Create(suite.ctx, &system_v1.CreateRequest{
 		Payer:      primaryAddr,
 		NewAccount: secondAddr,
-		Owner:      "", // Default to system program
+		Owner:      "",         // Default to system program
 		Lamports:   2000000000, // 2 SOL
 		Space:      0,
 	})
@@ -692,7 +692,7 @@ func (suite *StreamingE2ETestSuite) Test_09_ComprehensiveStreamingIntegration() 
 	createThirdInstr, err := suite.systemProgramService.Create(suite.ctx, &system_v1.CreateRequest{
 		Payer:      primaryAddr,
 		NewAccount: thirdAddr,
-		Owner:      "", // Default to system program
+		Owner:      "",         // Default to system program
 		Lamports:   1000000000, // 1 SOL
 		Space:      0,
 	})
@@ -816,7 +816,7 @@ func (suite *StreamingE2ETestSuite) Test_09_ComprehensiveStreamingIntegration() 
 	createFourthInstr, err := suite.systemProgramService.Create(suite.ctx, &system_v1.CreateRequest{
 		Payer:      primaryAddr,
 		NewAccount: fourthAddr,
-		Owner:      "", // Default to system program
+		Owner:      "",        // Default to system program
 		Lamports:   300000000, // 0.3 SOL
 		Space:      0,
 	})
@@ -1072,7 +1072,7 @@ func (suite *StreamingE2ETestSuite) Test_10_PreStreamingValidation() {
 	// 🚀 CRITICAL: Now we submit the transaction and immediately start streaming
 	// This creates a race condition where we can test if WebSocket is fast enough
 	suite.T().Log("🚀 CRITICAL MOMENT: Submitting transaction and immediately starting streaming monitor")
-	
+
 	// Step 6a: Submit transaction (asynchronously, don't wait)
 	submitResp, err := suite.transactionService.SubmitTransaction(suite.ctx, &transaction_v1.SubmitTransactionRequest{
 		Transaction: signResp.Transaction,
@@ -1083,12 +1083,12 @@ func (suite *StreamingE2ETestSuite) Test_10_PreStreamingValidation() {
 
 	// Step 6b: IMMEDIATELY start monitoring stream (this is the race condition test)
 	suite.T().Log("⚡ IMMEDIATELY starting transaction monitoring stream...")
-	
+
 	stream, err := suite.transactionService.MonitorTransaction(suite.ctx, &transaction_v1.MonitorTransactionRequest{
 		Signature:       txSignature,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 		IncludeLogs:     true, // Enable logs to get more detailed info
-		TimeoutSeconds:  45, // Longer timeout for validation
+		TimeoutSeconds:  45,   // Longer timeout for validation
 	})
 	suite.Require().NoError(err, "Should create monitoring stream")
 
@@ -1099,7 +1099,7 @@ func (suite *StreamingE2ETestSuite) Test_10_PreStreamingValidation() {
 	rpcNotifications := 0
 
 	suite.T().Log("🔍 Monitoring transaction status updates with detailed tracking...")
-	
+
 	for {
 		resp, err := stream.Recv()
 		if err == io.EOF {
@@ -1109,10 +1109,10 @@ func (suite *StreamingE2ETestSuite) Test_10_PreStreamingValidation() {
 
 		elapsed := time.Since(startTime)
 		statusSequence = append(statusSequence, resp.Status)
-		
+
 		// Try to infer if this came from WebSocket or RPC polling
 		// (we can enhance backend logging to be more specific)
-		suite.T().Logf("📊 [+%dms] Status: %s, Slot: %d, Logs: %d entries", 
+		suite.T().Logf("📊 [+%dms] Status: %s, Slot: %d, Logs: %d entries",
 			elapsed.Milliseconds(), resp.Status, resp.GetSlot(), len(resp.GetLogs()))
 
 		// Count different types of notifications based on timing patterns
@@ -1141,20 +1141,20 @@ func (suite *StreamingE2ETestSuite) Test_10_PreStreamingValidation() {
 	suite.T().Log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 	suite.T().Log("🔍 STREAMING VALIDATION RESULTS:")
 	suite.T().Log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-	
+
 	// Validate we got status updates
 	suite.Require().True(len(statusSequence) >= 1, "Should receive at least one status update")
-	
+
 	// Log the complete sequence for analysis
 	suite.T().Logf("📈 Status sequence: %v", statusSequence)
 	suite.T().Logf("⚡ Potential WebSocket notifications (< 100ms): %d", wsNotifications)
 	suite.T().Logf("🔄 Potential RPC polling notifications (≥ 100ms): %d", rpcNotifications)
-	
+
 	// Validate final status is success
 	finalStatus := statusSequence[len(statusSequence)-1]
 	suite.Require().True(
 		finalStatus == transaction_v1.TransactionStatus_TRANSACTION_STATUS_CONFIRMED ||
-		finalStatus == transaction_v1.TransactionStatus_TRANSACTION_STATUS_FINALIZED,
+			finalStatus == transaction_v1.TransactionStatus_TRANSACTION_STATUS_FINALIZED,
 		"Final status should be CONFIRMED or FINALIZED")
 
 	// If we got very fast notifications, it's likely WebSocket worked
@@ -1168,11 +1168,6 @@ func (suite *StreamingE2ETestSuite) Test_10_PreStreamingValidation() {
 
 	suite.T().Log("✅ Pre-streaming validation completed successfully")
 	suite.T().Log("🎯 PROOF: Transaction monitoring works via streaming architecture")
-}
-
-// Helper to create uint32 pointer
-func uint32Ptr(v uint32) *uint32 {
-	return &v
 }
 
 // Streaming tests require real backend connection - no simulation mode

@@ -146,7 +146,7 @@ func (suite *ErrorCategoriesTestSuite) Test_01_InsufficientFunds() {
 
 	// Create account with minimal balance (insufficient for transaction)
 	fromAddress, fromPrivateKey := suite.createFundedTestAccount("1000") // Only 1000 lamports
-	toAddress, _ := suite.createFundedTestAccount("1000000000")           // 1 SOL
+	toAddress, _ := suite.createFundedTestAccount("1000000000")          // 1 SOL
 
 	// Create transaction that requires more funds than available
 	transaction := &transaction_v1.Transaction{
@@ -158,7 +158,7 @@ func (suite *ErrorCategoriesTestSuite) Test_01_InsufficientFunds() {
 
 	// Compile transaction
 	compileResp, err := suite.transactionService.CompileTransaction(suite.ctx, &transaction_v1.CompileTransactionRequest{
-		Transaction:      transaction,
+		Transaction:     transaction,
 		FeePayer:        fromAddress,
 		RecentBlockhash: "", // Will fetch latest
 	})
@@ -226,7 +226,7 @@ func (suite *ErrorCategoriesTestSuite) Test_02_InvalidSignature() {
 
 	// Compile transaction
 	compileResp, err := suite.transactionService.CompileTransaction(suite.ctx, &transaction_v1.CompileTransactionRequest{
-		Transaction:      transaction,
+		Transaction:     transaction,
 		FeePayer:        fromAddress,
 		RecentBlockhash: "",
 	})
@@ -277,7 +277,7 @@ func (suite *ErrorCategoriesTestSuite) Test_03_SuccessfulSubmission() {
 
 	// Create funded accounts with adequate balances
 	fromAddress, fromPrivateKey := suite.createFundedTestAccount("1000000000") // 1 SOL
-	toAddress, _ := suite.createFundedTestAccount("1000000000")                 // 1 SOL
+	toAddress, _ := suite.createFundedTestAccount("1000000000")                // 1 SOL
 
 	// Create simple transfer transaction
 	transaction := &transaction_v1.Transaction{
@@ -289,7 +289,7 @@ func (suite *ErrorCategoriesTestSuite) Test_03_SuccessfulSubmission() {
 
 	// Compile transaction
 	compileResp, err := suite.transactionService.CompileTransaction(suite.ctx, &transaction_v1.CompileTransactionRequest{
-		Transaction:      transaction,
+		Transaction:     transaction,
 		FeePayer:        fromAddress,
 		RecentBlockhash: "",
 	})
@@ -367,7 +367,7 @@ func (suite *ErrorCategoriesTestSuite) Test_04_ExpiredBlockhash() {
 
 	// Compile transaction with expired blockhash
 	compileResp, err := suite.transactionService.CompileTransaction(suite.ctx, &transaction_v1.CompileTransactionRequest{
-		Transaction:      transaction,
+		Transaction:     transaction,
 		FeePayer:        fromAddress,
 		RecentBlockhash: expiredBlockhash,
 	})
@@ -432,7 +432,7 @@ func (suite *ErrorCategoriesTestSuite) Test_05_IndeterminateState_NetworkError()
 
 	// Create funded accounts for the test transaction
 	fromAddress, fromPrivateKey := suite.createFundedTestAccount("1000000000") // 1 SOL
-	toAddress, _ := suite.createFundedTestAccount("1000000000")                 // 1 SOL
+	toAddress, _ := suite.createFundedTestAccount("1000000000")                // 1 SOL
 
 	// Create transaction
 	transaction := &transaction_v1.Transaction{
@@ -444,7 +444,7 @@ func (suite *ErrorCategoriesTestSuite) Test_05_IndeterminateState_NetworkError()
 
 	// Compile transaction with valid RPC
 	compileResp, err := suite.transactionService.CompileTransaction(suite.ctx, &transaction_v1.CompileTransactionRequest{
-		Transaction:      transaction,
+		Transaction:     transaction,
 		FeePayer:        fromAddress,
 		RecentBlockhash: "",
 	})
@@ -545,7 +545,7 @@ func (suite *ErrorCategoriesTestSuite) Test_06_StructuredErrorFields() {
 
 	// Complete transaction lifecycle to submission failure
 	compileResp, err := suite.transactionService.CompileTransaction(suite.ctx, &transaction_v1.CompileTransactionRequest{
-		Transaction:      transaction,
+		Transaction:     transaction,
 		FeePayer:        fromAddress,
 		RecentBlockhash: "",
 	})

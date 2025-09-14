@@ -15,10 +15,10 @@ import (
 // RpcClientE2ETestSuite tests the RPC Client service functionality
 type RpcClientE2ETestSuite struct {
 	suite.Suite
-	ctx               context.Context
-	cancel            context.CancelFunc
-	grpcConn          *grpc.ClientConn
-	rpcClientService  rpc_client_v1.ServiceClient
+	ctx              context.Context
+	cancel           context.CancelFunc
+	grpcConn         *grpc.ClientConn
+	rpcClientService rpc_client_v1.ServiceClient
 }
 
 func (suite *RpcClientE2ETestSuite) SetupSuite() {
@@ -46,7 +46,7 @@ func (suite *RpcClientE2ETestSuite) TearDownSuite() {
 		suite.cancel()
 	}
 	if suite.grpcConn != nil {
-		suite.grpcConn.Close()
+		_ = suite.grpcConn.Close()
 	}
 }
 
@@ -88,23 +88,23 @@ func (suite *RpcClientE2ETestSuite) Test_01_GetMinimumBalanceForRentExemption() 
 			})
 			suite.Require().NoError(err, "should succeed in getting minimum balance for rent exemption")
 			suite.Require().NotZero(resp.Balance, "minimum balance for rent exemption should not be zero")
-			
+
 			// Verify the balance is reasonable (at least some minimum lamports)
 			// Using 890_880 as a baseline since that's approximately the minimum for a 0-byte account
 			// but not hardcoding exact values since they can change with Solana updates
-			suite.Assert().Greater(resp.Balance, uint64(800_000), 
+			suite.Assert().Greater(resp.Balance, uint64(800_000),
 				"minimum balance should be at least 800,000 lamports (reasonable minimum)")
-			
+
 			// Verify that larger data requires more lamports (monotonic increase)
 			if i > 0 {
 				suite.Assert().Greater(resp.Balance, previousBalance,
 					"data length %d should require more lamports than data length %d",
 					tc.dataLength, previousDataLength)
 			}
-			
-			suite.T().Logf("  Data length %d requires %d lamports for rent exemption", 
+
+			suite.T().Logf("  Data length %d requires %d lamports for rent exemption",
 				tc.dataLength, resp.Balance)
-			
+
 			previousBalance = resp.Balance
 			previousDataLength = tc.dataLength
 		})
@@ -132,7 +132,7 @@ func (suite *RpcClientE2ETestSuite) Test_02_GetMinimumBalanceWithCommitmentLevel
 			})
 			suite.Require().NoError(err, "should succeed with %s commitment level", cl.name)
 			suite.Require().NotZero(resp.Balance, "balance should not be zero with %s commitment", cl.name)
-			
+
 			suite.T().Logf("  Commitment %s: %d lamports required", cl.name, resp.Balance)
 		})
 	}
