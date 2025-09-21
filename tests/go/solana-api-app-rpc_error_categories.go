@@ -83,18 +83,18 @@ func (suite *ErrorCategoriesTestSuite) createFundedTestAccount(fundingAmount str
 	})
 	suite.Require().NoError(err, "Should fund account")
 
-	if fundResp != nil && fundResp.Signature != "" {
-		suite.monitorTransactionToCompletion(fundResp.Signature)
-	}
-
 	// Wait for account visibility
-	suite.waitForAccountVisible(address)
+	suite.waitForAccountVisible(fundResp.GetSignature(), address)
 
 	return address, privateKey
 }
 
 // Helper function to wait for account to become visible on blockchain
-func (suite *ErrorCategoriesTestSuite) waitForAccountVisible(address string) {
+func (suite *ErrorCategoriesTestSuite) waitForAccountVisible(signature, address string) {
+	if signature != "" {
+		suite.monitorTransactionToCompletion(signature)
+	}
+
 	for attempt := 1; attempt <= 15; attempt++ {
 		_, err := suite.accountService.GetAccount(suite.ctx, &account_v1.GetAccountRequest{
 			Address:         address,

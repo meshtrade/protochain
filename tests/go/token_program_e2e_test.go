@@ -73,7 +73,7 @@ func (suite *TokenProgramE2ETestSuite) Test_01_InitialiseMint() {
 	suite.Require().NoError(err, "Should generate payer keypair")
 
 	// Fund payer account
-	_, err = suite.accountService.FundNative(suite.ctx, &account_v1.FundNativeRequest{
+	fundResp, err := suite.accountService.FundNative(suite.ctx, &account_v1.FundNativeRequest{
 		Address: payKeyResp.KeyPair.PublicKey,
 		Amount:  "5000000000", // 5 SOL
 	})
@@ -81,7 +81,7 @@ func (suite *TokenProgramE2ETestSuite) Test_01_InitialiseMint() {
 	suite.T().Logf("  Funded payer account: %s", payKeyResp.KeyPair.PublicKey)
 
 	// Wait for payer account to be funded
-	suite.waitForAccountVisible(payKeyResp.KeyPair.PublicKey)
+	suite.waitForAccountVisible(fundResp.GetSignature(), payKeyResp.KeyPair.PublicKey)
 
 	// Generate mint account keypair
 	mintKeyResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
@@ -149,11 +149,8 @@ func (suite *TokenProgramE2ETestSuite) Test_01_InitialiseMint() {
 	suite.Require().NoError(err, "Should submit transaction")
 	suite.T().Logf("  Transaction submitted: %s", submittedTx.Signature)
 
-	// Wait for confirmation
-	suite.monitorTransactionToCompletion(submittedTx.Signature)
-
 	// Ensure mint account visible before parsing
-	suite.waitForAccountVisible(mintKeyResp.KeyPair.PublicKey)
+	suite.waitForAccountVisible(submittedTx.Signature, mintKeyResp.KeyPair.PublicKey)
 
 	// Verify mint creation by parsing the account
 	parsedMint, err := suite.tokenProgramService.ParseMint(suite.ctx, &token_v1.ParseMintRequest{
@@ -249,7 +246,8 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	payKeyResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
 	suite.Require().NoError(err, "Should generate payer keypair")
 
-	_, err = suite.accountService.FundNative(suite.ctx, &account_v1.FundNativeRequest{
+	// Fund payer account
+	fundResp, err := suite.accountService.FundNative(suite.ctx, &account_v1.FundNativeRequest{
 		Address: payKeyResp.KeyPair.PublicKey,
 		Amount:  "5000000000", // 5 SOL
 	})
@@ -257,7 +255,7 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	suite.T().Logf("  Funded payer account: %s", payKeyResp.KeyPair.PublicKey)
 
 	// Wait for payer account to be funded
-	suite.waitForAccountVisible(payKeyResp.KeyPair.PublicKey)
+	suite.waitForAccountVisible(fundResp.GetSignature(), payKeyResp.KeyPair.PublicKey)
 
 	// Generate mint account keypair
 	mintKeyResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
@@ -367,12 +365,9 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	suite.Require().NoError(err, "Should submit transaction")
 	suite.T().Logf("  Transaction submitted: %s", submittedTx.Signature)
 
-	// Wait for confirmation
-	suite.monitorTransactionToCompletion(submittedTx.Signature)
-
 	// Ensure mint and holding accounts are visible before parsing and fetching
-	suite.waitForAccountVisible(mintKeyResp.KeyPair.PublicKey)
-	suite.waitForAccountVisible(holdingAccKeyResp.KeyPair.PublicKey)
+	suite.waitForAccountVisible(submittedTx.Signature, mintKeyResp.KeyPair.PublicKey)
+	suite.waitForAccountVisible(submittedTx.Signature, holdingAccKeyResp.KeyPair.PublicKey)
 
 	// Verify mint account parsing
 	parsedMint, err := suite.tokenProgramService.ParseMint(suite.ctx, &token_v1.ParseMintRequest{
@@ -448,7 +443,7 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	suite.Require().NoError(err, "Should submit mint transaction")
 	suite.T().Logf("  Mint transaction submitted: %s", submittedMintTx.Signature)
 
-	// Wait for mint transaction confirmation
+	// Wait for mint transaction confirmation (ensures account data updates)
 	suite.monitorTransactionToCompletion(submittedMintTx.Signature)
 
 	// Verify tokens were minted by checking holding account after minting
@@ -501,7 +496,11 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 }
 
 // Helper function to wait for account visibility
-func (suite *TokenProgramE2ETestSuite) waitForAccountVisible(address string) {
+func (suite *TokenProgramE2ETestSuite) waitForAccountVisible(signature, address string) {
+	if signature != "" {
+		suite.monitorTransactionToCompletion(signature)
+	}
+
 	suite.T().Logf("  Waiting for account %s to become visible...", address)
 	for attempt := 1; attempt <= 10; attempt++ {
 		_, err := suite.accountService.GetAccount(suite.ctx, &account_v1.GetAccountRequest{
