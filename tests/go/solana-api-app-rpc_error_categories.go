@@ -2,6 +2,7 @@ package apitest
 
 import (
 	"context"
+	"io"
 	"testing"
 	"time"
 
@@ -76,11 +77,15 @@ func (suite *ErrorCategoriesTestSuite) createFundedTestAccount(fundingAmount str
 	privateKey = keyResp.KeyPair.PrivateKey
 
 	// Fund the account
-	_, err = suite.accountService.FundNative(suite.ctx, &account_v1.FundNativeRequest{
+	fundResp, err := suite.accountService.FundNative(suite.ctx, &account_v1.FundNativeRequest{
 		Address: address,
 		Amount:  fundingAmount,
 	})
 	suite.Require().NoError(err, "Should fund account")
+
+	if fundResp != nil && fundResp.Signature != "" {
+		suite.monitorTransactionToCompletion(fundResp.Signature)
+	}
 
 	// Wait for account visibility
 	suite.waitForAccountVisible(address)
@@ -320,21 +325,18 @@ func (suite *ErrorCategoriesTestSuite) Test_03_SuccessfulSubmission() {
 
 	suite.T().Logf("✅ Transaction submitted successfully: %s", submitResp.Signature)
 
-	// Optional: Verify transaction appears on blockchain
-	if len(submitResp.Signature) > 0 {
-		// Give some time for transaction to be processed
-		time.Sleep(2 * time.Second)
+	suite.monitorTransactionToCompletion(submitResp.Signature)
 
-		getTxResp, err := suite.transactionService.GetTransaction(suite.ctx, &transaction_v1.GetTransactionRequest{
-			Signature:       submitResp.Signature,
-			CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
-		})
+	// Optional: Verify transaction appears on blockchain via GetTransaction for logging
+	getTxResp, err := suite.transactionService.GetTransaction(suite.ctx, &transaction_v1.GetTransactionRequest{
+		Signature:       submitResp.Signature,
+		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
+	})
 
-		if err == nil && getTxResp.Transaction != nil {
-			suite.T().Logf("✅ Transaction confirmed on blockchain: %s", submitResp.Signature)
-		} else {
-			suite.T().Logf("⚠️  Transaction not yet confirmed (expected for fast test): %s", submitResp.Signature)
-		}
+	if err == nil && getTxResp.Transaction != nil {
+		suite.T().Logf("✅ Transaction confirmed on blockchain: %s", submitResp.Signature)
+	} else {
+		suite.T().Logf("⚠️  Transaction not yet retrievable via GetTransaction: %s (err=%v)", submitResp.Signature, err)
 	}
 }
 
@@ -600,4 +602,52 @@ func (suite *ErrorCategoriesTestSuite) Test_06_StructuredErrorFields() {
 // TestErrorCategoriesTestSuite runs the complete error classification test suite
 func TestErrorCategoriesTestSuite(t *testing.T) {
 	suite.Run(t, new(ErrorCategoriesTestSuite))
+}
+
+func (suite *ErrorCategoriesTestSuite) monitorTransactionToCompletion(signature string) {
+	suite.T().Logf("  Monitoring transaction %s via streaming...", signature)
+
+	stream, err := suite.transactionService.MonitorTransaction(suite.ctx, &transaction_v1.MonitorTransactionRequest{
+		Signature:       signature,
+		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
+		IncludeLogs:     false,
+		TimeoutSeconds:  60,
+	})
+	suite.Require().NoError(err, "Must open monitoring stream for signature: %s", signature)
+
+	confirmed := false
+	for {
+		resp, err := stream.Recv()
+		if err == io.EOF {
+			suite.Require().True(confirmed, "Stream ended without confirmation for signature: %s", signature)
+			break
+		}
+		suite.Require().NoError(err, "Stream must not error for signature: %s", signature)
+
+		suite.T().Logf("  Transaction %s status: %v", signature, resp.Status)
+
+		if resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_CONFIRMED ||
+			resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_FINALIZED {
+			confirmed = true
+			suite.T().Logf("  ✅ Transaction %s confirmed", signature)
+			break
+		}
+
+		if resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_FAILED {
+			suite.Require().Fail("Transaction FAILED", "Transaction %s failed: %s", signature, resp.GetErrorMessage())
+			return
+		}
+
+		if resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_TIMEOUT {
+			suite.Require().Fail("Transaction TIMED OUT", "Transaction %s monitoring timed out", signature)
+			return
+		}
+
+		if resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_DROPPED {
+			suite.Require().Fail("Transaction DROPPED", "Transaction %s dropped by network", signature)
+			return
+		}
+	}
+
+	suite.Require().True(confirmed, "Transaction %s must reach CONFIRMED or FINALIZED", signature)
 }

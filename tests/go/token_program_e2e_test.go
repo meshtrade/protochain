@@ -463,11 +463,23 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	suite.Assert().Equal(memoAccountSpace, len(memoDecodedData), "Holding account data length should remain memo-enabled size")
 
 	// Verify mint supply has increased
-	parsedMintAfterMinting, err := suite.tokenProgramService.ParseMint(suite.ctx, &token_v1.ParseMintRequest{
-		AccountAddress: mintKeyResp.KeyPair.PublicKey,
-	})
-	suite.Require().NoError(err, "Should parse mint account after minting")
-	suite.Require().NotNil(parsedMintAfterMinting.Mint, "Parsed mint should not be nil")
+	var parsedMintAfterMinting *token_v1.ParseMintResponse
+	for attempt := 1; attempt <= 10; attempt++ {
+		parsedMintAfterMinting, err = suite.tokenProgramService.ParseMint(suite.ctx, &token_v1.ParseMintRequest{
+			AccountAddress: mintKeyResp.KeyPair.PublicKey,
+		})
+		suite.Require().NoError(err, "Should parse mint account after minting (attempt %d)", attempt)
+
+		if parsedMintAfterMinting != nil && parsedMintAfterMinting.Mint != nil && parsedMintAfterMinting.Mint.Supply == mintAmount {
+			break
+		}
+
+		if attempt < 10 {
+			time.Sleep(200 * time.Millisecond)
+		}
+	}
+	suite.Require().NotNil(parsedMintAfterMinting, "ParseMint response should not be nil after minting")
+	suite.Require().NotNil(parsedMintAfterMinting.Mint, "Parsed mint should not be nil after minting")
 	suite.Assert().Equal(mintAmount, parsedMintAfterMinting.Mint.Supply, "Mint supply should match minted amount")
 
 	suite.T().Logf("✅ Complete mint + holding account creation + minting verified successfully:")
