@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
+	"io"
 	"testing"
 	"time"
 
@@ -150,6 +151,9 @@ func (suite *TokenProgramE2ETestSuite) Test_01_InitialiseMint() {
 
 	// Wait for confirmation
 	suite.monitorTransactionToCompletion(submittedTx.Signature)
+
+	// Ensure mint account visible before parsing
+	suite.waitForAccountVisible(mintKeyResp.KeyPair.PublicKey)
 
 	// Verify mint creation by parsing the account
 	parsedMint, err := suite.tokenProgramService.ParseMint(suite.ctx, &token_v1.ParseMintRequest{
@@ -366,6 +370,10 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	// Wait for confirmation
 	suite.monitorTransactionToCompletion(submittedTx.Signature)
 
+	// Ensure mint and holding accounts are visible before parsing and fetching
+	suite.waitForAccountVisible(mintKeyResp.KeyPair.PublicKey)
+	suite.waitForAccountVisible(holdingAccKeyResp.KeyPair.PublicKey)
+
 	// Verify mint account parsing
 	parsedMint, err := suite.tokenProgramService.ParseMint(suite.ctx, &token_v1.ParseMintRequest{
 		AccountAddress: mintKeyResp.KeyPair.PublicKey,
@@ -501,24 +509,51 @@ func (suite *TokenProgramE2ETestSuite) waitForAccountVisible(address string) {
 
 // Helper function to monitor transaction to completion
 func (suite *TokenProgramE2ETestSuite) monitorTransactionToCompletion(signature string) {
-	suite.T().Logf("  Monitoring transaction %s for completion...", signature)
+	suite.T().Logf("  Monitoring transaction %s for completion via streaming...", signature)
 
-	for attempt := 1; attempt <= 30; attempt++ {
-		tx, err := suite.transactionService.GetTransaction(suite.ctx, &transaction_v1.GetTransactionRequest{
-			Signature: signature,
-		})
+	stream, err := suite.transactionService.MonitorTransaction(suite.ctx, &transaction_v1.MonitorTransactionRequest{
+		Signature:       signature,
+		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
+		IncludeLogs:     false,
+		TimeoutSeconds:  60,
+	})
+	suite.Require().NoError(err, "Must create monitoring stream for signature: %s", signature)
 
-		if err == nil && tx.Transaction != nil {
-			suite.T().Logf("  Transaction confirmed after %d attempts", attempt)
+	confirmed := false
+	for {
+		resp, err := stream.Recv()
+		if err == io.EOF {
+			suite.Require().True(confirmed, "Stream ended without confirmation for signature: %s", signature)
+			break
+		}
+		suite.Require().NoError(err, "Stream must not error for signature: %s", signature)
+
+		suite.T().Logf("  Transaction %s status: %v", signature, resp.Status)
+
+		if resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_CONFIRMED ||
+			resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_FINALIZED {
+			confirmed = true
+			suite.T().Logf("  ✅ Transaction %s successfully confirmed", signature)
+			break
+		}
+
+		if resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_FAILED {
+			suite.Require().Fail("Transaction FAILED", "Transaction %s failed with error: %s", signature, resp.GetErrorMessage())
 			return
 		}
 
-		if attempt < 30 {
-			time.Sleep(1000 * time.Millisecond)
+		if resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_TIMEOUT {
+			suite.Require().Fail("Transaction TIMED OUT", "Transaction %s monitoring timed out", signature)
+			return
+		}
+
+		if resp.Status == transaction_v1.TransactionStatus_TRANSACTION_STATUS_DROPPED {
+			suite.Require().Fail("Transaction DROPPED", "Transaction %s was dropped by network", signature)
+			return
 		}
 	}
 
-	suite.T().Logf("  Transaction monitoring completed")
+	suite.Require().True(confirmed, "Transaction %s must reach CONFIRMED or FINALIZED status", signature)
 }
 
 func decodeAccountDataBytes(s *TokenProgramE2ETestSuite, raw string) []byte {
