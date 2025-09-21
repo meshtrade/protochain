@@ -11,7 +11,7 @@ pub struct SystemProgramV1API {
 
 impl SystemProgramV1API {
     /// Creates a new `SystemProgramV1API` instance with the provided service providers
-    pub fn new(_service_providers: Arc<ServiceProviders>) -> Self {
+    pub fn new(_service_providers: &Arc<ServiceProviders>) -> Self {
         // No RPC client needed for instruction-based system program service
 
         Self {

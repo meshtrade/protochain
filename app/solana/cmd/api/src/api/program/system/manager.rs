@@ -11,7 +11,7 @@ pub struct System {
 
 impl System {
     /// Creates a new System instance with the provided service providers
-    pub fn new(service_providers: Arc<ServiceProviders>) -> Self {
+    pub fn new(service_providers: &Arc<ServiceProviders>) -> Self {
         Self {
             v1: Arc::new(SystemProgramV1API::new(service_providers)),
         }

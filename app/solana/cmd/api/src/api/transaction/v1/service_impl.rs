@@ -129,11 +129,9 @@ fn classify_submission_error(error: &ClientError) -> SubmissionResult {
         ClientErrorKind::Reqwest(reqwest_error) => {
             if reqwest_error.is_timeout() {
                 // Timeouts are especially dangerous - transaction might have been sent
-                SubmissionResult::Indeterminate
-            } else {
-                // Connection/request failures - also indeterminate
-                SubmissionResult::Indeterminate
             }
+            // Connection/request failures - also indeterminate
+            SubmissionResult::Indeterminate
         }
 
         // Cryptographic signing errors

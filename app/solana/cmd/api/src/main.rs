@@ -135,7 +135,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     // Initialize application API layer
-    let api = Arc::new(Api::new(Arc::clone(&service_providers)));
+    let api = Arc::new(Api::new(&service_providers));
 
     // Configure server address from config
     let addr = format!("{}:{}", config.server.host, config.server.port).parse()?;

@@ -5,7 +5,9 @@ use solana_client::rpc_response::{
     ProcessedSignatureResult, ReceivedSignatureResult, Response, RpcSignatureResult,
 };
 use solana_pubsub_client::nonblocking::pubsub_client::PubsubClient;
-use solana_sdk::{commitment_config::CommitmentConfig, signature::Signature};
+use solana_sdk::{
+    commitment_config::CommitmentConfig, signature::Signature, transaction::TransactionError,
+};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc;
@@ -82,6 +84,30 @@ impl WebSocketManager {
                 | TransactionStatus::Finalized
                 | TransactionStatus::Failed
                 | TransactionStatus::Dropped
+        )
+    }
+
+    const fn commitment_from_status(status: TransactionStatus) -> CommitmentLevel {
+        match status {
+            TransactionStatus::Finalized => CommitmentLevel::Finalized,
+            TransactionStatus::Confirmed => CommitmentLevel::Confirmed,
+            _ => CommitmentLevel::Processed,
+        }
+    }
+
+    fn summarize_status(
+        err: Option<&TransactionError>,
+        confirmations: Option<u64>,
+    ) -> (TransactionStatus, Option<String>) {
+        err.map_or_else(
+            || {
+                let status = match confirmations {
+                    Some(0) | None => TransactionStatus::Finalized,
+                    Some(_) => TransactionStatus::Confirmed,
+                };
+                (status, None)
+            },
+            |err| (TransactionStatus::Failed, Some(format!("Transaction failed: {err:?}"))),
         )
     }
 
@@ -216,6 +242,7 @@ impl WebSocketManager {
     }
 
     /// Handles the actual signature subscription logic using real Solana WebSocket
+    #[allow(clippy::too_many_arguments, clippy::cognitive_complexity)]
     async fn handle_signature_subscription(
         signature: Signature,
         signature_str: String,
@@ -237,20 +264,12 @@ impl WebSocketManager {
             Ok(status_response) => {
                 if let Some(Some(status)) = status_response.value.first() {
                     // Transaction already has a final status - send it immediately
-                    let (transaction_status, error_message) = match &status.err {
-                        Some(err) => (
-                            TransactionStatus::Failed,
-                            Some(format!("Transaction failed: {err:?}")),
-                        ),
-                        None => {
-                            // Transaction succeeded, determine the commitment level
-                            match status.confirmations {
-                                Some(0) => (TransactionStatus::Finalized, None),
-                                Some(_) => (TransactionStatus::Confirmed, None),
-                                None => (TransactionStatus::Finalized, None), // No confirmations means finalized
-                            }
-                        }
-                    };
+                    let (transaction_status, error_message) = Self::summarize_status(
+                        status.err.as_ref(),
+                        status.confirmations.map(|value| value as u64),
+                    );
+
+                    let logs = Vec::new(); // Could fetch tx details for logs
 
                     // Send the current status immediately
                     let response = MonitorTransactionResponse {
@@ -258,14 +277,9 @@ impl WebSocketManager {
                         status: transaction_status.into(),
                         slot: status.slot,
                         error_message: error_message.unwrap_or_default(),
-                        logs: if include_logs { vec![] } else { vec![] }, // Could fetch tx details for logs
+                        logs,
                         compute_units_consumed: 0,
-                        current_commitment: match transaction_status {
-                            TransactionStatus::Finalized => CommitmentLevel::Finalized,
-                            TransactionStatus::Confirmed => CommitmentLevel::Confirmed,
-                            _ => CommitmentLevel::Processed,
-                        }
-                        .into(),
+                        current_commitment: Self::commitment_from_status(transaction_status).into(),
                     };
 
                     info!(
@@ -380,29 +394,19 @@ impl WebSocketManager {
                     if let Ok(status_response) = rpc_client.get_signature_statuses(&[signature]).await {
                         if let Some(Some(status)) = status_response.value.first() {
                             // Transaction status found via RPC polling
-                            let (transaction_status, error_message) = match &status.err {
-                                Some(err) => (TransactionStatus::Failed, Some(format!("Transaction failed: {err:?}"))),
-                                None => {
-                                    match status.confirmations {
-                                        Some(0) => (TransactionStatus::Finalized, None),
-                                        Some(_) => (TransactionStatus::Confirmed, None),
-                                        None => (TransactionStatus::Finalized, None),
-                                    }
-                                }
-                            };
+                            let (transaction_status, error_message) = Self::summarize_status(
+                                status.err.as_ref(),
+                                status.confirmations.map(|value| value as u64),
+                            );
 
                             let response = MonitorTransactionResponse {
                                 signature: signature_str.clone(),
                                 status: transaction_status.into(),
                                 slot: status.slot,
                                 error_message: error_message.unwrap_or_default(),
-                                logs: vec![], // RPC polling doesn't include logs by default
+                                logs: Vec::new(), // RPC polling doesn't include logs by default
                                 compute_units_consumed: 0,
-                                current_commitment: match transaction_status {
-                                    TransactionStatus::Finalized => CommitmentLevel::Finalized,
-                                    TransactionStatus::Confirmed => CommitmentLevel::Confirmed,
-                                    _ => CommitmentLevel::Processed,
-                                }.into(),
+                                current_commitment: Self::commitment_from_status(transaction_status).into(),
                             };
 
                             info!(

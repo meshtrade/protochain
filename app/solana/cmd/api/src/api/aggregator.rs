@@ -20,12 +20,12 @@ pub struct Api {
 
 impl Api {
     /// Creates a new API instance with the provided service providers
-    pub fn new(service_providers: Arc<ServiceProviders>) -> Self {
+    pub fn new(service_providers: &Arc<ServiceProviders>) -> Self {
         Self {
-            account_v1: Arc::new(AccountV1API::new(&service_providers)),
-            transaction_v1: Arc::new(TransactionV1API::new(&service_providers)),
-            program: Arc::new(Program::new(Arc::clone(&service_providers))),
-            rpc_client_v1: Arc::new(RpcClientV1API::new(&service_providers)),
+            account_v1: Arc::new(AccountV1API::new(service_providers)),
+            transaction_v1: Arc::new(TransactionV1API::new(service_providers)),
+            program: Arc::new(Program::new(service_providers)),
+            rpc_client_v1: Arc::new(RpcClientV1API::new(service_providers)),
         }
     }
 }

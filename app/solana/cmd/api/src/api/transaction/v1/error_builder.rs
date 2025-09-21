@@ -260,25 +260,20 @@ const fn classify_instruction_error(
 /// Based on the error classification, determines whether retrying the same
 /// transaction (or a similar one) might succeed
 pub const fn determine_retryability(code: TransactionErrorCode) -> bool {
-    match code {
-        // TEMPORARY failures - same transaction might succeed later
+    matches!(
+        code,
         TransactionErrorCode::InsufficientFunds
-        | TransactionErrorCode::AccountInUse
-        | TransactionErrorCode::WouldExceedBlockLimit
-        | TransactionErrorCode::TransientSimulationFailure => true,
-
-        // INDETERMINATE failures - might be worth investigating/resolving
-        TransactionErrorCode::NetworkError
-        | TransactionErrorCode::Timeout
-        | TransactionErrorCode::NodeUnhealthy
-        | TransactionErrorCode::RateLimited
-        | TransactionErrorCode::RpcError
-        | TransactionErrorCode::ConnectionFailed
-        | TransactionErrorCode::RequestFailed => true,
-
-        // PERMANENT failures - will never succeed as-is
-        _ => false,
-    }
+            | TransactionErrorCode::AccountInUse
+            | TransactionErrorCode::WouldExceedBlockLimit
+            | TransactionErrorCode::TransientSimulationFailure
+            | TransactionErrorCode::NetworkError
+            | TransactionErrorCode::Timeout
+            | TransactionErrorCode::NodeUnhealthy
+            | TransactionErrorCode::RateLimited
+            | TransactionErrorCode::RpcError
+            | TransactionErrorCode::ConnectionFailed
+            | TransactionErrorCode::RequestFailed
+    )
 }
 
 /// Extracts detailed error context as JSON string

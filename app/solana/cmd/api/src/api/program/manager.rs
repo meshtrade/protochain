@@ -14,10 +14,10 @@ pub struct Program {
 
 impl Program {
     /// Creates a new Program instance with the provided service providers
-    pub fn new(service_providers: Arc<ServiceProviders>) -> Self {
+    pub fn new(service_providers: &Arc<ServiceProviders>) -> Self {
         Self {
-            system: Arc::new(System::new(Arc::clone(&service_providers))),
-            token: Arc::new(TokenV1API::new(&service_providers)),
+            system: Arc::new(System::new(service_providers)),
+            token: Arc::new(TokenV1API::new(service_providers)),
         }
     }
 }

@@ -14,6 +14,7 @@ use protochain_api::protochain::solana::program::token::v1::{
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{commitment_config::CommitmentConfig, program_pack::Pack, pubkey::Pubkey};
 use spl_token_2022::{
+    extension::{memo_transfer::instruction::enable_required_transfer_memos, ExtensionType},
     instruction::{initialize_account, initialize_mint2, mint_to_checked},
     state::{Account, Mint},
     ID as TOKEN_2022_PROGRAM_ID,
@@ -38,6 +39,30 @@ impl TokenProgramServiceImpl {
     pub const fn new(rpc_client: Arc<RpcClient>) -> Self {
         Self { rpc_client }
     }
+}
+
+#[allow(clippy::result_large_err)]
+fn holding_account_space(require_memo: bool) -> Result<u64, Status> {
+    if !require_memo {
+        return Ok(Account::LEN as u64);
+    }
+
+    let len = ExtensionType::try_calculate_account_len::<Account>(&[ExtensionType::MemoTransfer])
+        .map_err(|e| {
+        Status::internal(format!("failed to calculate memo-transfer account length: {e}"))
+    })?;
+
+    u64::try_from(len).map_err(|_| Status::internal("memo-transfer account length overflow"))
+}
+
+#[allow(clippy::result_large_err)]
+fn memo_rent_lamports(rpc: &RpcClient, require_memo: bool) -> Result<u64, Status> {
+    let space = holding_account_space(require_memo)?;
+    let space_usize = usize::try_from(space)
+        .map_err(|_| Status::internal("memo-transfer account length overflow"))?;
+
+    rpc.get_minimum_balance_for_rent_exemption(space_usize)
+        .map_err(|e| Status::internal(format!("failed to fetch memo-aware rent: {e}")))
 }
 
 #[tonic::async_trait]
@@ -160,6 +185,11 @@ impl TokenProgramService for TokenProgramServiceImpl {
     ) -> Result<Response<InitialiseHoldingAccountResponse>, Status> {
         let req = request.into_inner();
 
+        let require_memo = req
+            .memo_transfer_config
+            .as_ref()
+            .is_some_and(|cfg| cfg.require_incoming_memo);
+
         // Parse public keys
         let account_pubkey = Pubkey::from_str(&req.account_pub_key)
             .map_err(|e| Status::invalid_argument(format!("Invalid account_pub_key: {e}")))?;
@@ -169,7 +199,7 @@ impl TokenProgramService for TokenProgramServiceImpl {
             .map_err(|e| Status::invalid_argument(format!("Invalid owner_pub_key: {e}")))?;
 
         // Create the InitializeAccount instruction
-        let instruction = initialize_account(
+        let init_instruction = initialize_account(
             &TOKEN_2022_PROGRAM_ID,
             &account_pubkey,
             &mint_pubkey,
@@ -181,31 +211,45 @@ impl TokenProgramService for TokenProgramServiceImpl {
             ))
         })?;
 
-        // Convert to proto and return
-        let proto_instruction = sdk_instruction_to_proto(instruction);
+        let init_proto = sdk_instruction_to_proto(init_instruction);
+        let mut instruction_list = Vec::with_capacity(if require_memo { 2 } else { 1 });
+        instruction_list.push(init_proto.clone());
+
+        if require_memo {
+            let memo_instruction = enable_required_transfer_memos(
+                &TOKEN_2022_PROGRAM_ID,
+                &account_pubkey,
+                &owner_pubkey,
+                &[],
+            )
+            .map_err(|e| {
+                Status::invalid_argument(format!(
+                    "Failed to create memo transfer enable instruction: {e}"
+                ))
+            })?;
+            instruction_list.push(sdk_instruction_to_proto(memo_instruction));
+        }
+
         Ok(Response::new(InitialiseHoldingAccountResponse {
-            instruction: Some(proto_instruction),
+            instruction: Some(init_proto),
+            instructions: instruction_list,
         }))
     }
 
     /// Gets current minimum rent for a token holding account
     async fn get_current_min_rent_for_holding_account(
         &self,
-        _request: Request<GetCurrentMinRentForHoldingAccountRequest>,
+        request: Request<GetCurrentMinRentForHoldingAccountRequest>,
     ) -> Result<Response<GetCurrentMinRentForHoldingAccountResponse>, Status> {
-        // Get minimum balance for rent exemption using Account::LEN
-        match self
-            .rpc_client
-            .get_minimum_balance_for_rent_exemption(Account::LEN)
-        {
-            Ok(lamports) => {
-                let response = GetCurrentMinRentForHoldingAccountResponse { lamports };
-                Ok(Response::new(response))
-            }
-            Err(e) => Err(Status::internal(format!(
-                "Failed to get minimum balance for holding account: {e}"
-            ))),
-        }
+        let req = request.into_inner();
+        let require_memo = req
+            .memo_transfer_config
+            .as_ref()
+            .is_some_and(|cfg| cfg.require_incoming_memo);
+
+        let lamports = memo_rent_lamports(&self.rpc_client, require_memo)?;
+        let response = GetCurrentMinRentForHoldingAccountResponse { lamports };
+        Ok(Response::new(response))
     }
 
     /// Creates both system account creation and mint initialization instructions
@@ -286,13 +330,13 @@ impl TokenProgramService for TokenProgramServiceImpl {
             return Err(Status::invalid_argument("holding_account_pub_key must match new_account"));
         }
 
-        // Step 1: Get current rent for holding account
-        let rent_response = self
-            .get_current_min_rent_for_holding_account(Request::new(
-                GetCurrentMinRentForHoldingAccountRequest {},
-            ))
-            .await?
-            .into_inner();
+        let require_memo = req
+            .memo_transfer_config
+            .as_ref()
+            .is_some_and(|cfg| cfg.require_incoming_memo);
+
+        let space = holding_account_space(require_memo)?;
+        let rent_lamports = memo_rent_lamports(&self.rpc_client, require_memo)?;
 
         // Step 2: Create system account creation instruction
         let system_service = SystemProgramServiceImpl::new();
@@ -301,8 +345,8 @@ impl TokenProgramService for TokenProgramServiceImpl {
                 payer: req.payer.clone(),
                 new_account: req.new_account.clone(),
                 owner: TOKEN_2022_PROGRAM_ID.to_string(),
-                lamports: rent_response.lamports,
-                space: Account::LEN as u64,
+                lamports: rent_lamports,
+                space,
             }))
             .await?
             .into_inner();
@@ -313,16 +357,15 @@ impl TokenProgramService for TokenProgramServiceImpl {
                 account_pub_key: req.holding_account_pub_key,
                 mint_pub_key: req.mint_pub_key,
                 owner_pub_key: req.owner_pub_key,
+                memo_transfer_config: req.memo_transfer_config,
             }))
             .await?
             .into_inner();
 
         // Step 4: Compose response with both instructions
-        let mut instructions = Vec::new();
+        let mut instructions = Vec::with_capacity(1 + init_response.instructions.len());
         instructions.push(create_instruction);
-        if let Some(init_instruction) = init_response.instruction {
-            instructions.push(init_instruction);
-        }
+        instructions.extend(init_response.instructions);
 
         Ok(Response::new(CreateHoldingAccountResponse { instructions }))
     }

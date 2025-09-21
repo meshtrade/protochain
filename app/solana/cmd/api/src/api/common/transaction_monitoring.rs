@@ -23,6 +23,7 @@ use tracing::{error, info, warn};
 /// - Was confirmed on the blockchain
 /// - Executed successfully without errors  
 /// - Did not fail due to insufficient funds, invalid instructions, etc.
+#[allow(clippy::cognitive_complexity)]
 pub async fn wait_for_transaction_success(
     rpc_client: Arc<RpcClient>,
     signature: &Signature,

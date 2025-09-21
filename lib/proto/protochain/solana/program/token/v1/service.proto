@@ -17,16 +17,16 @@ service Service {
   // Parses mint account data into structured format
   rpc ParseMint(ParseMintRequest) returns (ParseMintResponse);
   
-  // Creates an InitialiseHoldingAccount instruction for Token 2022 program
+  // Creates an InitialiseHoldingAccount instruction for Token 2022 program. When memo_transfer_config.require_incoming_memo is true, returns both initialise and memo-enable instructions.
   rpc InitialiseHoldingAccount(InitialiseHoldingAccountRequest) returns (InitialiseHoldingAccountResponse);
   
-  // Gets current minimum rent for a token holding account
+  // Gets current minimum rent for a token holding account, optionally accounting for memo transfer extension size when memo_transfer_config is provided.
   rpc GetCurrentMinRentForHoldingAccount(GetCurrentMinRentForHoldingAccountRequest) returns (GetCurrentMinRentForHoldingAccountResponse);
   
-  // Creates both system account creation and mint initialization instructions
+  // Creates both system account creation and mint initialization instructions. Memo transfer is not applicable to mint accounts.
   rpc CreateMint(CreateMintRequest) returns (CreateMintResponse);
 
-  // Creates both system account creation and holding account initialization instructions  
+  // Creates both system account creation and holding account initialization instructions. Adds memo-enable instruction when requested.
   rpc CreateHoldingAccount(CreateHoldingAccountRequest) returns (CreateHoldingAccountResponse);
 
   // Mint tokens to an existing token account using MintToChecked instruction
@@ -75,26 +75,51 @@ message MintInfo {
   bool is_initialized = 5;
 }
 
+message MemoTransferConfig {
+  // Require every inbound transfer into the account to include a memo.
+  bool require_incoming_memo = 1;
+}
+
 // Request to create InitialiseHoldingAccount instruction
 message InitialiseHoldingAccountRequest {
   string account_pub_key = 1;
   string mint_pub_key = 2;
   string owner_pub_key = 3;
+  MemoTransferConfig memo_transfer_config = 4; // optional, defaults to false
 }
 
 // Response containing InitialiseHoldingAccount instruction
 message InitialiseHoldingAccountResponse {
-  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1; // legacy single instruction
+  repeated protochain.solana.transaction.v1.SolanaInstruction instructions = 2; // canonical list, includes memo enable when requested
 }
 
 // Request to get current rent for holding account
 message GetCurrentMinRentForHoldingAccountRequest {
-  // No parameters needed - uses fixed Account::LEN size
+  MemoTransferConfig memo_transfer_config = 1; // optional, defaults to false
 }
 
 // Response with current rent amount for holding account
 message GetCurrentMinRentForHoldingAccountResponse {
   uint64 lamports = 1;
+}
+
+// Request to create and initialize a holding account in one call  
+message CreateHoldingAccountRequest {
+  // System program create fields
+  string payer = 1;           // Account paying for creation (signer)
+  string new_account = 2;     // Holding account to create (signer)
+  
+  // Token program initialize holding account fields
+  string holding_account_pub_key = 3;   // Same as new_account for validation
+  string mint_pub_key = 4;              // Mint this account will hold
+  string owner_pub_key = 5;             // Owner of the holding account
+  MemoTransferConfig memo_transfer_config = 6; // optional, defaults to false
+}
+
+// Response containing both create and initialize instructions
+message CreateHoldingAccountResponse {
+  repeated protochain.solana.transaction.v1.SolanaInstruction instructions = 1;
 }
 
 // Request to create and initialize a mint account in one call
@@ -112,23 +137,6 @@ message CreateMintRequest {
 
 // Response containing both create and initialize instructions
 message CreateMintResponse {
-  repeated protochain.solana.transaction.v1.SolanaInstruction instructions = 1;
-}
-
-// Request to create and initialize a holding account in one call  
-message CreateHoldingAccountRequest {
-  // System program create fields
-  string payer = 1;           // Account paying for creation (signer)
-  string new_account = 2;     // Holding account to create (signer)
-  
-  // Token program initialize holding account fields
-  string holding_account_pub_key = 3;   // Same as new_account for validation
-  string mint_pub_key = 4;              // Mint this account will hold
-  string owner_pub_key = 5;             // Owner of the holding account
-}
-
-// Response containing both create and initialize instructions
-message CreateHoldingAccountResponse {
   repeated protochain.solana.transaction.v1.SolanaInstruction instructions = 1;
 }
 
