@@ -4,7 +4,7 @@
 ##############################################################################
 # Stage 1: Heavy Rust build environment
 ##############################################################################
-FROM rust:1.80-bullseye AS builder
+FROM rust:latest AS builder
 
 # Install system dependencies for Solana and crypto libraries
 RUN apt-get update && apt-get install -y \
