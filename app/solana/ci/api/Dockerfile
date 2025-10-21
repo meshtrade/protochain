@@ -27,6 +27,18 @@ COPY lib/ lib/
 # Copy the specific app directory we're building
 COPY app/solana/cmd/api/ app/solana/cmd/api/
 
+# Copy scripts directory for code generation
+COPY scripts/ scripts/
+
+# Copy buf configuration
+COPY buf.yaml .
+COPY buf.lock .
+
+# Run code generation before building
+# This generates the Rust SDK from proto definitions
+RUN chmod +x scripts/code-gen/generate/all.sh && \
+    ./scripts/code-gen/generate/all.sh
+
 # Build the application in release mode
 # Use specific package name to build just the Solana API
 RUN cargo build --release --package protochain-solana-api
