@@ -17,7 +17,7 @@ RUN echo "🔍 Validating protobuf definitions..." && \
     echo "✅ Protobuf definitions validated" && \
     echo "" && \
     echo "🏃 Generating Rust code from protobuf definitions..." && \
-    buf generate lib/proto --template lib/_code_gen/buf.gen.rust.yaml && \
+    buf generate --config lib/_code_gen/buf.gen.rust.yaml && \
     echo "✅ Rust code generation complete!"
 
 ##############################################################################
