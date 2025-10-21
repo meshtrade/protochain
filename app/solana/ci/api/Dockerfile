@@ -9,7 +9,6 @@ WORKDIR /protochain
 # Copy proto files and configuration
 COPY lib/proto/ lib/proto/
 COPY buf.yaml .
-COPY buf.lock .
 COPY scripts/code-gen/ scripts/code-gen/
 
 # Run code generation
