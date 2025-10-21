@@ -15,6 +15,7 @@ workspace = true
 # Use workspace dependencies
 tokio.workspace = true
 tonic.workspace = true
+tonic-health.workspace = true
 solana-client.workspace = true
 solana-sdk.workspace = true
 solana-transaction-status.workspace = true

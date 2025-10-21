@@ -168,8 +168,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Clone service providers for graceful shutdown
     let service_providers_shutdown = Arc::clone(&service_providers);
 
+    // Create health check service
+    let (_health_reporter, health_service) = tonic_health::server::health_reporter();
+
+    // The health reporter will automatically respond SERVING for all services
+    // since we've successfully initialized everything up to this point
+    info!("📋 Health check service initialized - ready to accept connections!");
+
     // Set up graceful shutdown
     let server = Server::builder()
+        .add_service(health_service)
         .add_service(TransactionServiceServer::new(transaction_service))
         .add_service(AccountServiceServer::new(account_service))
         .add_service(SystemProgramServiceServer::new(system_program_service))
