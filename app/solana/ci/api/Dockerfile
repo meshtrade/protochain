@@ -1,10 +1,10 @@
 ##############################################################################
 # Stage 1: Code generation with buf
 ##############################################################################
-FROM alpine:latest AS codegen
+FROM bufbuild/buf:latest AS codegen
 
-# Install buf and required tools for code generation
-RUN apk add --no-cache buf bash
+# Install bash for script execution
+RUN apk add --no-cache bash
 
 # Set working directory
 WORKDIR /protochain
