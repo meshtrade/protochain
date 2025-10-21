@@ -1,8 +1,23 @@
-# Protochain Solana API - Multi-stage Docker build
-# Builds the protochain-solana-api package for containerized deployment
+##############################################################################
+# Stage 1: Code generation with buf
+##############################################################################
+FROM bufbuild/buf:latest AS codegen
+
+# Set working directory
+WORKDIR /protochain
+
+# Copy proto files and configuration
+COPY lib/proto/ lib/proto/
+COPY buf.yaml .
+COPY buf.lock .
+COPY scripts/code-gen/ scripts/code-gen/
+
+# Run code generation
+RUN chmod +x scripts/code-gen/generate/all.sh && \
+    ./scripts/code-gen/generate/all.sh
 
 ##############################################################################
-# Stage 1: Heavy Rust build environment
+# Stage 2: Heavy Rust build environment
 ##############################################################################
 FROM rust:latest AS builder
 
@@ -21,22 +36,11 @@ WORKDIR /protochain
 COPY Cargo.toml .
 COPY Cargo.lock .
 
-# Copy the entire lib directory since it contains workspace dependencies
-COPY lib/ lib/
+# Copy generated lib directory from codegen stage
+COPY --from=codegen /protochain/lib/ lib/
 
 # Copy the specific app directory we're building
 COPY app/solana/cmd/api/ app/solana/cmd/api/
-
-# Copy scripts directory for code generation
-COPY scripts/ scripts/
-
-# Copy buf configuration
-COPY buf.yaml .
-
-# Run code generation before building
-# This generates the Rust SDK from proto definitions
-RUN chmod +x scripts/code-gen/generate/all.sh && \
-    ./scripts/code-gen/generate/all.sh
 
 # Build the application in release mode
 # Use specific package name to build just the Solana API
@@ -46,7 +50,7 @@ RUN cargo build --release --package protochain-solana-api
 RUN ls -la target/release/
 
 ##############################################################################
-# Stage 2: Slim distroless runtime environment
+# Stage 3: Slim distroless runtime environment
 ##############################################################################
 FROM gcr.io/distroless/cc-debian12:latest
 
