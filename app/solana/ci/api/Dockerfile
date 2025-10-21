@@ -32,7 +32,6 @@ COPY scripts/ scripts/
 
 # Copy buf configuration
 COPY buf.yaml .
-COPY buf.lock .
 
 # Run code generation before building
 # This generates the Rust SDK from proto definitions
