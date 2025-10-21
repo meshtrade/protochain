@@ -1,14 +1,19 @@
 ##############################################################################
 # Stage 1: Code generation with buf
 ##############################################################################
-FROM bufbuild/buf:latest AS codegen
+FROM alpine:latest AS codegen
+
+# Install buf and required tools for code generation
+RUN apk add --no-cache buf bash
 
 # Set working directory
 WORKDIR /protochain
 
 # Copy proto files and configuration
 COPY lib/proto/ lib/proto/
+COPY lib/_code_gen/ lib/_code_gen/
 COPY buf.yaml .
+COPY buf.lock .
 COPY scripts/code-gen/ scripts/code-gen/
 
 # Run code generation
