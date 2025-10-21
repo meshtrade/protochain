@@ -40,8 +40,11 @@ WORKDIR /protochain
 COPY Cargo.toml .
 COPY Cargo.lock .
 
-# Copy generated lib directory from codegen stage
-COPY --from=codegen /protochain/lib/ lib/
+# Copy the Rust SDK structure (Cargo.toml and other source files)
+COPY lib/rust/ lib/rust/
+
+# Copy generated lib directory from codegen stage (overlays generated src files)
+COPY --from=codegen /protochain/lib/rust/src/ lib/rust/src/
 
 # Copy the specific app directory we're building
 COPY app/solana/cmd/api/ app/solana/cmd/api/
