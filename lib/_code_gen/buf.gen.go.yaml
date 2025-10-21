@@ -1,0 +1,17 @@
+version: v2
+
+plugins:
+  # Go generation
+  - remote: buf.build/protocolbuffers/go
+    out: ./lib/go
+    opt:
+      - module=github.com/BRBussy/protochain/lib/go
+  - remote: buf.build/grpc/go
+    out: ./lib/go
+    opt:
+      - module=github.com/BRBussy/protochain/lib/go
+
+  # Custom protochaingo plugin for interface generation
+  - local: ["go", "run", "./tool/protoc-gen/cmd/protochaingo"]
+    out: ./lib/go
+    strategy: all

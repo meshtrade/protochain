@@ -11,14 +11,14 @@ COPY lib/proto/ lib/proto/
 COPY lib/_code_gen/ lib/_code_gen/
 COPY buf.yaml .
 
-# Run code generation directly with buf
+# Run code generation for Rust only
 RUN echo "🔍 Validating protobuf definitions..." && \
     buf lint lib/proto && \
     echo "✅ Protobuf definitions validated" && \
     echo "" && \
-    echo "🏃 Generating code from protobuf definitions..." && \
-    buf generate lib/proto --template lib/_code_gen/buf.gen.yaml && \
-    echo "✅ Code generation complete!"
+    echo "🏃 Generating Rust code from protobuf definitions..." && \
+    buf generate lib/proto --template lib/_code_gen/buf.gen.rust.yaml && \
+    echo "✅ Rust code generation complete!"
 
 ##############################################################################
 # Stage 2: Heavy Rust build environment

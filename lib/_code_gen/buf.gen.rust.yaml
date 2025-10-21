@@ -1,0 +1,14 @@
+version: v2
+
+plugins:
+  # Rust generation only
+  - remote: buf.build/community/neoeinstein-prost:v0.4.0
+    out: ./lib/rust/src
+    opt:
+      - compile_well_known_types
+      - extern_path=.google.protobuf=::pbjson_types
+  - remote: buf.build/community/neoeinstein-tonic:v0.4.1
+    out: ./lib/rust/src
+    opt:
+      - compile_well_known_types
+      - extern_path=.google.protobuf=::pbjson_types
