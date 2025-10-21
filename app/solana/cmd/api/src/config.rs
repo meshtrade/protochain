@@ -174,7 +174,7 @@ mod tests {
         assert_eq!(config.solana.timeout_seconds, 30);
         assert_eq!(config.solana.retry_attempts, 3);
         assert!(config.solana.health_check_on_startup);
-        assert_eq!(config.server.host, "127.0.0.1");
+        assert_eq!(config.server.host, "localhost");
         assert_eq!(config.server.port, 50051);
     }
 
