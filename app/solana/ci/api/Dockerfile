@@ -98,6 +98,8 @@ LABEL org.opencontainers.image.vendor="Protochain"
 LABEL org.opencontainers.image.version="0.1.0"
 LABEL org.opencontainers.image.source="https://github.com/meshtrade/protochain"
 
+EXPOSE 8080
+
 # Default command
 ENTRYPOINT ["/usr/local/bin/protochain-solana-api"]
 
