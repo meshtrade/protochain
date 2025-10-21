@@ -3,9 +3,6 @@
 ##############################################################################
 FROM bufbuild/buf:latest AS codegen
 
-# Install bash for script execution
-RUN apk add --no-cache bash
-
 # Set working directory
 WORKDIR /protochain
 
@@ -13,11 +10,15 @@ WORKDIR /protochain
 COPY lib/proto/ lib/proto/
 COPY lib/_code_gen/ lib/_code_gen/
 COPY buf.yaml .
-COPY scripts/code-gen/ scripts/code-gen/
 
-# Run code generation
-RUN chmod +x scripts/code-gen/generate/all.sh && \
-    ./scripts/code-gen/generate/all.sh
+# Run code generation directly with buf
+RUN echo "🔍 Validating protobuf definitions..." && \
+    buf lint lib/proto && \
+    echo "✅ Protobuf definitions validated" && \
+    echo "" && \
+    echo "🏃 Generating code from protobuf definitions..." && \
+    buf generate lib/proto --template lib/_code_gen/buf.gen.yaml && \
+    echo "✅ Code generation complete!"
 
 ##############################################################################
 # Stage 2: Heavy Rust build environment
