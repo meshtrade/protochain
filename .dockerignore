@@ -41,7 +41,6 @@ CLAUDE.md
 *.swo
 
 # Development scripts (not needed in container)
-scripts/
 tool/
 
 # Test configurations (container uses env vars)
