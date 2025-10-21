@@ -74,6 +74,7 @@ EXPOSE 50051
 # Environment variable configuration with sensible defaults
 # Solana RPC Configuration
 ENV SOLANA_RPC_URL=http://host.docker.internal:8899
+ENV SOLANA_WEBSOCKET_URL=wss://host.docker.internal:8899
 ENV SOLANA_TIMEOUT_SECONDS=30
 ENV SOLANA_RETRY_ATTEMPTS=3
 ENV SOLANA_HEALTH_CHECK_ON_STARTUP=true
@@ -121,9 +122,10 @@ ENTRYPOINT ["/usr/local/bin/protochain-solana-api"]
 #   -e SOLANA_RETRY_ATTEMPTS=5 \
 #   protochain-solana-api
 #
-# Custom Configuration:
+# Custom Configuration with Separate WebSocket URL:
 # docker run -p 50051:50051 \
 #   -e SOLANA_RPC_URL=https://your-custom-rpc.com \
+#   -e SOLANA_WEBSOCKET_URL=wss://your-custom-ws.com \
 #   -e SERVER_PORT=8080 \
 #   -e RUST_LOG=debug \
 #   -e PROTOCHAIN_JSON_LOGS=false \

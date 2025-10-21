@@ -16,6 +16,9 @@ pub struct Config {
 pub struct SolanaConfig {
     /// Solana RPC endpoint URL
     pub rpc_url: String,
+    /// Solana WebSocket URL (optional, derived from RPC URL if not specified)
+    #[serde(default)]
+    pub websocket_url: Option<String>,
     /// Request timeout in seconds
     pub timeout_seconds: u64,
     /// Number of retry attempts for failed requests
@@ -37,6 +40,7 @@ impl Default for SolanaConfig {
     fn default() -> Self {
         Self {
             rpc_url: "http://localhost:8899".to_string(), // Local validator default
+            websocket_url: Some("wss://localhost:8899".to_string()), // Optional - will be derived from RPC URL if not specified
             timeout_seconds: 30,
             retry_attempts: 3,
             health_check_on_startup: true,
@@ -100,6 +104,11 @@ pub fn load_config() -> Result<Config, String> {
         println!("ℹ️  Override: SOLANA_RPC_URL = {}", config.solana.rpc_url);
     }
 
+    if let Ok(websocket_url) = std::env::var("SOLANA_WEBSOCKET_URL") {
+        println!("ℹ️  Override: SOLANA_WEBSOCKET_URL = {websocket_url}");
+        config.solana.websocket_url = Some(websocket_url);
+    }
+
     if let Ok(port) = std::env::var("SERVER_PORT") {
         config.server.port = port
             .parse()
@@ -161,6 +170,7 @@ mod tests {
         let config = Config::default();
 
         assert_eq!(config.solana.rpc_url, "http://localhost:8899");
+        assert_eq!(config.solana.websocket_url, None);
         assert_eq!(config.solana.timeout_seconds, 30);
         assert_eq!(config.solana.retry_attempts, 3);
         assert!(config.solana.health_check_on_startup);
