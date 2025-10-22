@@ -9,7 +9,11 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libudev-dev \
     build-essential \
+    curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Install buf for code generation
+RUN curl -sSL https://github.com/bufbuild/buf/releases/download/v1.32.0/buf-Linux-x86_64.tar.gz | tar -xz -C /usr/local/bin
 
 # Set working directory to match repo structure
 WORKDIR /protochain
@@ -18,14 +22,28 @@ WORKDIR /protochain
 COPY Cargo.toml .
 COPY Cargo.lock .
 
-# Copy the Rust SDK structure with pre-generated code
-COPY lib/rust/ lib/rust/
+# Copy build scripts early (needed for code generation)
+COPY scripts/ scripts/
+
+# Copy proto definitions for code generation
+COPY lib/proto/ lib/proto/
+COPY lib/_code_gen/ lib/_code_gen/
+COPY buf.yaml .
+
+# Copy the Rust SDK base structure (lib.rs only, will regenerate code)
+COPY lib/rust/Cargo.toml lib/rust/Cargo.toml
+COPY lib/rust/src/lib.rs lib/rust/src/lib.rs
 
 # Copy the specific app directory we're building
 COPY app/solana/cmd/api/ app/solana/cmd/api/
 
+# Generate the Rust code from proto definitions
+RUN echo "📝 Generating Rust code from proto definitions..." && \
+    ./scripts/code-gen/generate/all.sh && \
+    echo "✅ Code generation complete!"
+
 # Build the application in release mode
-# Uses pre-generated Rust code from buf code generation
+# Uses generated Rust code from buf code generation
 # Use specific package name to build just the Solana API
 RUN echo "🏃 Building Solana API..." && \
     cargo build --release --package protochain-solana-api && \
