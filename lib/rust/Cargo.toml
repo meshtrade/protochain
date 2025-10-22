@@ -12,10 +12,6 @@ license = "MIT"
 # workspace = true
 
 [dependencies]
-prost = "0.14"
+prost = "0.13"
 tonic = "0.14"
-tonic-prost = "0.14"
 tokio = { version = "1.41", features = ["macros", "rt-multi-thread"] }
-
-[build-dependencies]
-tonic-prost-build = "0.14"

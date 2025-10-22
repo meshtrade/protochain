@@ -1,22 +1,5 @@
 ##############################################################################
-# Stage 1: Code generation with buf (proto validation and Rust code gen via build.rs)
-##############################################################################
-FROM bufbuild/buf:latest AS codegen
-
-# Set working directory
-WORKDIR /protochain
-
-# Copy proto files and configuration
-COPY lib/proto/ lib/proto/
-COPY buf.yaml .
-
-# Validate protobuf definitions
-RUN echo "🔍 Validating protobuf definitions..." && \
-    buf lint lib/proto && \
-    echo "✅ Protobuf definitions validated"
-
-##############################################################################
-# Stage 2: Heavy Rust build environment
+# Stage 1: Heavy Rust build environment
 ##############################################################################
 FROM rust:latest AS builder
 
@@ -35,28 +18,24 @@ WORKDIR /protochain
 COPY Cargo.toml .
 COPY Cargo.lock .
 
-# Copy the Rust SDK structure (Cargo.toml and other source files)
+# Copy the Rust SDK structure with pre-generated code
 COPY lib/rust/ lib/rust/
-
-# Copy proto files for build.rs code generation
-COPY lib/proto/ lib/proto/
 
 # Copy the specific app directory we're building
 COPY app/solana/cmd/api/ app/solana/cmd/api/
 
 # Build the application in release mode
-# Note: Code generation for Rust is handled automatically by build.rs in lib/rust/
-# which uses tonic-prost-build to generate proto code from the proto files
+# Uses pre-generated Rust code from buf code generation
 # Use specific package name to build just the Solana API
-RUN echo "🏃 Building with Rust code generation via build.rs..." && \
+RUN echo "🏃 Building Solana API..." && \
     cargo build --release --package protochain-solana-api && \
     echo "✅ Build complete!"
 
 # Verify the binary was created where expected
-RUN ls -la target/release/
+RUN ls -la target/release/ | grep protochain-solana-api
 
 ##############################################################################
-# Stage 3: Slim distroless runtime environment
+# Stage 2: Slim distroless runtime environment
 ##############################################################################
 FROM gcr.io/distroless/cc-debian12:latest
 
@@ -64,7 +43,7 @@ FROM gcr.io/distroless/cc-debian12:latest
 # Note: distroless images come with a nonroot user (UID 65532)
 USER 65532:65532
 
-# Copy the compiled binary from builder stage (Stage 2)
+# Copy the compiled binary from builder stage (Stage 1)
 COPY --from=builder /protochain/target/release/protochain-solana-api /usr/local/bin/protochain-solana-api
 
 # Expose the default gRPC port
