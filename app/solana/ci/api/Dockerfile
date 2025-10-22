@@ -1,5 +1,27 @@
 ##############################################################################
-# Stage 1: Heavy Rust build environment
+# Stage 1: Code generation with buf
+##############################################################################
+FROM bufbuild/buf:latest AS codegen
+
+# Set working directory
+WORKDIR /protochain
+
+# Copy proto files and configuration
+COPY lib/proto/ lib/proto/
+COPY lib/_code_gen/ lib/_code_gen/
+COPY buf.yaml .
+
+# Run code generation for Rust only
+RUN echo "🔍 Validating protobuf definitions..." && \
+    buf lint lib/proto && \
+    echo "✅ Protobuf definitions validated" && \
+    echo "" && \
+    echo "🏃 Generating Rust code from protobuf definitions..." && \
+    buf generate lib/proto --template lib/_code_gen/buf.gen.rust.yaml && \
+    echo "✅ Rust code generation complete!"
+
+##############################################################################
+# Stage 2: Heavy Rust build environment
 ##############################################################################
 FROM rust:latest AS builder
 
@@ -9,11 +31,7 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libudev-dev \
     build-essential \
-    curl \
     && rm -rf /var/lib/apt/lists/*
-
-# Install buf for code generation
-RUN curl -sSL https://github.com/bufbuild/buf/releases/download/v1.32.0/buf-Linux-x86_64.tar.gz | tar -xz -C /usr/local/bin
 
 # Set working directory to match repo structure
 WORKDIR /protochain
@@ -22,38 +40,24 @@ WORKDIR /protochain
 COPY Cargo.toml .
 COPY Cargo.lock .
 
-# Copy build scripts early (needed for code generation)
-COPY scripts/ scripts/
+# Copy the Rust SDK structure (Cargo.toml and other source files)
+COPY lib/rust/ lib/rust/
 
-# Copy proto definitions for code generation
-COPY lib/proto/ lib/proto/
-COPY lib/_code_gen/ lib/_code_gen/
-COPY buf.yaml .
-
-# Copy the Rust SDK base structure (lib.rs only, will regenerate code)
-COPY lib/rust/Cargo.toml lib/rust/Cargo.toml
-COPY lib/rust/src/lib.rs lib/rust/src/lib.rs
+# Copy generated lib directory from codegen stage (overlays generated src files)
+COPY --from=codegen /protochain/lib/rust/src/ lib/rust/src/
 
 # Copy the specific app directory we're building
 COPY app/solana/cmd/api/ app/solana/cmd/api/
 
-# Generate the Rust code from proto definitions
-RUN echo "📝 Generating Rust code from proto definitions..." && \
-    ./scripts/code-gen/generate/all.sh && \
-    echo "✅ Code generation complete!"
-
 # Build the application in release mode
-# Uses generated Rust code from buf code generation
 # Use specific package name to build just the Solana API
-RUN echo "🏃 Building Solana API..." && \
-    cargo build --release --package protochain-solana-api && \
-    echo "✅ Build complete!"
+RUN cargo build --release --package protochain-solana-api
 
 # Verify the binary was created where expected
-RUN ls -la target/release/ | grep protochain-solana-api
+RUN ls -la target/release/
 
 ##############################################################################
-# Stage 2: Slim distroless runtime environment
+# Stage 3: Slim distroless runtime environment
 ##############################################################################
 FROM gcr.io/distroless/cc-debian12:latest
 
@@ -61,7 +65,7 @@ FROM gcr.io/distroless/cc-debian12:latest
 # Note: distroless images come with a nonroot user (UID 65532)
 USER 65532:65532
 
-# Copy the compiled binary from builder stage (Stage 1)
+# Copy the compiled binary from builder stage
 COPY --from=builder /protochain/target/release/protochain-solana-api /usr/local/bin/protochain-solana-api
 
 # Expose the default gRPC port
