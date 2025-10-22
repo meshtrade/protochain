@@ -37,9 +37,9 @@ todo = "warn"
 
 [workspace.dependencies]
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread", "full"] }
-tonic = "0.12"
-tonic-reflection = "0.12"
-tonic-health = "0.12"
+tonic = "0.14"
+tonic-reflection = "0.14"
+tonic-health = "0.14"
 prost = "0.13"
 async-trait = "0.1"
 solana-client = "1.18"

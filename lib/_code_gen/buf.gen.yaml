@@ -10,26 +10,17 @@ plugins:
     out: ./lib/go
     opt:
       - module=github.com/BRBussy/protochain/lib/go
-  
+
   # Custom protochaingo plugin for interface generation
   - local: ["go", "run", "./tool/protoc-gen/cmd/protochaingo"]
     out: ./lib/go
     strategy: all
-  
-  # Rust generation
-  - remote: buf.build/community/neoeinstein-prost:v0.4.0
-    out: ./lib/rust/src
-    opt:
-      - compile_well_known_types
-      - extern_path=.google.protobuf=::pbjson_types
-  - remote: buf.build/community/neoeinstein-tonic:v0.4.1
-    out: ./lib/rust/src
-    opt:
-      - compile_well_known_types
-      - extern_path=.google.protobuf=::pbjson_types
-  
+
   # TypeScript generation
   - remote: buf.build/bufbuild/es:v2.7.0
     out: ./lib/ts/src
     opt:
       - target=ts
+
+# Note: Rust code generation is now handled by tonic-build in lib/rust/build.rs
+# This allows us to use tonic 0.14+ without waiting for community generator updates

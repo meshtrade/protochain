@@ -1,5 +1,5 @@
 ##############################################################################
-# Stage 1: Code generation with buf
+# Stage 1: Code generation with buf (proto validation and Rust code gen via build.rs)
 ##############################################################################
 FROM bufbuild/buf:latest AS codegen
 
@@ -8,18 +8,12 @@ WORKDIR /protochain
 
 # Copy proto files and configuration
 COPY lib/proto/ lib/proto/
-COPY lib/_code_gen/ lib/_code_gen/
 COPY buf.yaml .
 
-# Run code generation for Rust only
+# Validate protobuf definitions
 RUN echo "🔍 Validating protobuf definitions..." && \
     buf lint lib/proto && \
-    echo "✅ Protobuf definitions validated" && \
-    echo "" && \
-    echo "🏃 Generating Rust code from protobuf definitions..." && \
-    cp lib/_code_gen/buf.gen.rust.yaml buf.gen.yaml && \
-    buf generate lib/proto && \
-    echo "✅ Rust code generation complete!"
+    echo "✅ Protobuf definitions validated"
 
 ##############################################################################
 # Stage 2: Heavy Rust build environment
@@ -44,15 +38,19 @@ COPY Cargo.lock .
 # Copy the Rust SDK structure (Cargo.toml and other source files)
 COPY lib/rust/ lib/rust/
 
-# Copy generated lib directory from codegen stage (overlays generated src files)
-COPY --from=codegen /protochain/lib/rust/src/ lib/rust/src/
+# Copy proto files for build.rs code generation
+COPY lib/proto/ lib/proto/
 
 # Copy the specific app directory we're building
 COPY app/solana/cmd/api/ app/solana/cmd/api/
 
 # Build the application in release mode
+# Note: Code generation for Rust is handled automatically by build.rs in lib/rust/
+# which uses tonic-prost-build to generate proto code from the proto files
 # Use specific package name to build just the Solana API
-RUN cargo build --release --package protochain-solana-api
+RUN echo "🏃 Building with Rust code generation via build.rs..." && \
+    cargo build --release --package protochain-solana-api && \
+    echo "✅ Build complete!"
 
 # Verify the binary was created where expected
 RUN ls -la target/release/
@@ -66,7 +64,7 @@ FROM gcr.io/distroless/cc-debian12:latest
 # Note: distroless images come with a nonroot user (UID 65532)
 USER 65532:65532
 
-# Copy the compiled binary from builder stage
+# Copy the compiled binary from builder stage (Stage 2)
 COPY --from=builder /protochain/target/release/protochain-solana-api /usr/local/bin/protochain-solana-api
 
 # Expose the default gRPC port
