@@ -138,7 +138,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api = Arc::new(Api::new(&service_providers));
 
     // Configure server address from config
-    let addr = format!("{}:{}", config.server.host, config.server.port).parse()?;
+    let addr = format!("{}:{}", "0.0.0.0", config.server.port).parse()?;
     info!(
         address = %addr,
         "🌟 Starting Solana gRPC server"
