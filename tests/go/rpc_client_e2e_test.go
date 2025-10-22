@@ -2,14 +2,17 @@ package apitest
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
 	rpc_client_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/rpc_client/v1"
 	type_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/type/v1"
+	"github.com/BRBussy/protochain/tests/go/config"
 )
 
 // RpcClientE2ETestSuite tests the RPC Client service functionality
@@ -24,16 +27,26 @@ type RpcClientE2ETestSuite struct {
 func (suite *RpcClientE2ETestSuite) SetupSuite() {
 	suite.ctx, suite.cancel = context.WithCancel(context.Background())
 
+	conf, err := config.GetConfig("config.json")
+	suite.Require().NoError(err, "Failed to connect to get config")
+
 	// Setup configuration
-	grpcEndpoint := "localhost:50051"
+	grpcEndpoint := fmt.Sprintf("%s:%d", conf.BackendGRPCEndpoint, conf.BackendGRPCPort)
 
 	// Connect to gRPC server
-	var err error
-	suite.grpcConn, err = grpc.NewClient(
-		grpcEndpoint,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	suite.Require().NoError(err, "Failed to connect to gRPC server")
+	if conf.BackendGRPCTLS {
+		suite.grpcConn, err = grpc.NewClient(
+			grpcEndpoint,
+			grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(nil, "")),
+		)
+		suite.Require().NoError(err, "Failed to connect to gRPC server TLS")
+	} else {
+		suite.grpcConn, err = grpc.NewClient(
+			grpcEndpoint,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		suite.Require().NoError(err, "Failed to connect to gRPC server")
+	}
 
 	// Initialize service client
 	suite.rpcClientService = rpc_client_v1.NewServiceClient(suite.grpcConn)

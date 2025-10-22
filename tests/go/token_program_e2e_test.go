@@ -5,12 +5,15 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"io"
+	"math"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
 	account_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/account/v1"
@@ -18,6 +21,7 @@ import (
 	token_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/program/token/v1"
 	transaction_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/transaction/v1"
 	type_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/type/v1"
+	"github.com/BRBussy/protochain/tests/go/config"
 )
 
 // TokenProgramE2ETestSuite tests the Token Program service functionality
@@ -35,15 +39,21 @@ type TokenProgramE2ETestSuite struct {
 func (suite *TokenProgramE2ETestSuite) SetupSuite() {
 	suite.ctx, suite.cancel = context.WithCancel(context.Background())
 
+	conf, err := config.GetConfig("config.json")
+	suite.Require().NoError(err, "Failed to get config")
+
 	// Setup configuration
-	grpcEndpoint := "localhost:50051"
+	grpcEndpoint := fmt.Sprintf("%s:%d", conf.BackendGRPCEndpoint, conf.BackendGRPCPort)
 
 	// Connect to gRPC server
-	var err error
-	suite.grpcConn, err = grpc.NewClient(
-		grpcEndpoint,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	var dialOpts []grpc.DialOption
+	if conf.BackendGRPCTLS {
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(nil, "")))
+	} else {
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	}
+
+	suite.grpcConn, err = grpc.NewClient(grpcEndpoint, dialOpts...)
 	suite.Require().NoError(err, "Failed to connect to gRPC server")
 
 	// Initialize service clients
@@ -321,8 +331,10 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	const systemInstructionHeaderBytes = 4
 	memoLamports := binary.LittleEndian.Uint64(instructionData[systemInstructionHeaderBytes : systemInstructionHeaderBytes+8])
 	suite.Require().EqualValues(holdingRentWithMemo.Lamports, memoLamports, "Lamports in create instruction should match memo rent")
-	memoAccountSpace := int(binary.LittleEndian.Uint64(instructionData[systemInstructionHeaderBytes+8 : systemInstructionHeaderBytes+16]))
-	suite.Require().Greater(memoAccountSpace, int(token_v1.HOLDING_ACCOUNT_LEN), "Memo-enabled account should allocate additional space")
+	memoAccountSpaceU64 := binary.LittleEndian.Uint64(instructionData[systemInstructionHeaderBytes+8 : systemInstructionHeaderBytes+16])
+	suite.Require().LessOrEqual(memoAccountSpaceU64, uint64(math.MaxInt64), "Account space value must fit in int64")
+	memoAccountSpace := int64(memoAccountSpaceU64) //nolint:gosec // overflow check performed above
+	suite.Require().Greater(memoAccountSpace, int64(token_v1.HOLDING_ACCOUNT_LEN), "Memo-enabled account should allocate additional space")
 	suite.T().Logf("  Memo-enabled holding account space: %d bytes", memoAccountSpace)
 
 	// Compose atomic transaction with mint + holding account instructions (including memo enable)
@@ -393,7 +405,7 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, holdingAccount.Owner, "Holding account should be owned by Token 2022 program")
 	suite.Require().NotEmpty(holdingAccount.Data, "Holding account should have data")
 	decodedData := decodeAccountDataBytes(suite, holdingAccount.Data)
-	suite.Assert().Equal(memoAccountSpace, len(decodedData), "Holding account data length should match memo-enabled space")
+	suite.Assert().Equal(int(memoAccountSpace), len(decodedData), "Holding account data length should match memo-enabled space")
 
 	// BUILD INSTRUCTION to mint tokens into the holding account
 	mintAmount := "1000000" // 1 token with 6 decimals

@@ -9,10 +9,20 @@ import (
 	"github.com/spf13/viper"
 )
 
+func init() {
+	viper.MustBindEnv("SolanaRPCURL", "SolanaRPCURL")
+	viper.MustBindEnv("BackendGRPCEndpoint", "BackendGRPCEndpoint")
+	viper.MustBindEnv("BackendGRPCTLS", "BackendGRPCTLS")
+	viper.MustBindEnv("TestAccountAddress", "TestAccountAddress")
+	viper.MustBindEnv("ValidatorStartTimeout", "ValidatorStartTimeout")
+	viper.MustBindEnv("BackendStartTimeout", "BackendStartTimeout")
+}
+
 type Config struct {
 	SolanaRPCURL          string
 	BackendGRPCEndpoint   string
 	BackendGRPCPort       int
+	BackendGRPCTLS        bool
 	TestAccountAddress    string
 	ValidatorStartTimeout int
 	BackendStartTimeout   int
@@ -25,6 +35,7 @@ func GetConfig(configFileName string) (*Config, error) {
 	v.SetDefault("SolanaRPCURL", "http://localhost:8899")
 	v.SetDefault("BackendGRPCEndpoint", "localhost")
 	v.SetDefault("BackendGRPCPort", 50051)
+	v.SetDefault("BackendGRPCTLS", false)
 	v.SetDefault("TestAccountAddress", "5MvYgrb6DDznpeqejPzkJSxj7cBCu4UjTRVb1saMsGPr")
 	v.SetDefault("ValidatorStartTimeout", 60) // seconds
 	v.SetDefault("BackendStartTimeout", 30)   // seconds
