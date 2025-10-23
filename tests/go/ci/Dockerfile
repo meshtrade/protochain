@@ -4,9 +4,12 @@
 ##############################################################################
 
 ##############################################################################
-# Stage 1: Code generation with buf
+# Stage 1: Code generation with buf and Go (for custom protoc plugin)
 ##############################################################################
 FROM bufbuild/buf:latest AS codegen
+
+# Install Go for the custom protoc plugin
+RUN apk add --no-cache go
 
 WORKDIR /protochain
 
@@ -15,13 +18,16 @@ COPY lib/proto/ lib/proto/
 COPY lib/_code_gen/ lib/_code_gen/
 COPY buf.yaml .
 
+# Copy tool directory for custom protoc plugin
+COPY tool/ tool/
+
 # Generate only Go code from protobuf definitions
 RUN echo "🔍 Validating protobuf definitions..." && \
     buf lint lib/proto && \
     echo "✅ Protobuf definitions validated" && \
     echo "" && \
     echo "🏃 Generating Go code only from protobuf definitions..." && \
-    buf generate lib/proto --template lib/_code_gen/buf.gen.go.docker.yaml && \
+    buf generate lib/proto --template lib/_code_gen/buf.gen.go.yaml && \
     echo "✅ Go code generation complete!"
 
 ##############################################################################
