@@ -17,8 +17,6 @@ WORKDIR /protochain
 COPY lib/proto/ lib/proto/
 COPY lib/_code_gen/ lib/_code_gen/
 COPY buf.yaml .
-
-# Copy tool directory for custom protoc plugin
 COPY tool/ tool/
 
 # Generate only Go code from protobuf definitions

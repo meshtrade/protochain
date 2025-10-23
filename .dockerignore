@@ -40,9 +40,6 @@ CLAUDE.md
 *.swp
 *.swo
 
-# Development scripts (not needed in container)
-tool/
-
 # Test configurations (container uses env vars)
 **/config.json
 local-config.json
