@@ -21,7 +21,7 @@ RUN echo "🔍 Validating protobuf definitions..." && \
     echo "✅ Protobuf definitions validated" && \
     echo "" && \
     echo "🏃 Generating Go code only from protobuf definitions..." && \
-    buf generate lib/proto --template lib/_code_gen/buf.gen.go.yaml && \
+    buf generate lib/proto --template lib/_code_gen/buf.gen.go.docker.yaml && \
     echo "✅ Go code generation complete!"
 
 ##############################################################################

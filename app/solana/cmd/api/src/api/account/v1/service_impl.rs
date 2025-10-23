@@ -4,7 +4,7 @@ use tonic::{Request, Response, Status};
 
 use protochain_api::protochain::solana::account::v1::{
     service_server::Service as AccountService, Account, FundNativeRequest, FundNativeResponse,
-    GenerateNewKeyPairRequest, GenerateNewKeyPairResponse, GetAccountRequest,
+    GenerateNewKeyPairRequest, GenerateNewKeyPairResponse, GetAccountRequest, GetAccountResponse,
 };
 use protochain_api::protochain::solana::r#type::v1::{CommitmentLevel, KeyPair};
 
@@ -50,7 +50,7 @@ impl AccountService for AccountServiceImpl {
     async fn get_account(
         &self,
         request: Request<GetAccountRequest>,
-    ) -> Result<Response<Account>, Status> {
+    ) -> Result<Response<GetAccountResponse>, Status> {
         println!("Received get account request: {request:?}");
 
         let req = request.into_inner();
@@ -101,7 +101,7 @@ impl AccountService for AccountServiceImpl {
                     println!("✅ RPC get_account_with_commitment succeeded for: {pubkey}");
                     println!("💰 Account balance: {} lamports", account.lamports);
                     // Convert Solana account to our Account type
-                    let account_response = Account {
+                    let account_proto = Account {
                         address: req.address.clone(),
                         lamports: account.lamports,
                         owner: account.owner.to_string(),
@@ -112,7 +112,9 @@ impl AccountService for AccountServiceImpl {
                     };
 
                     println!("Successfully fetched account: {}", req.address);
-                    Ok(Response::new(account_response))
+                    Ok(Response::new(GetAccountResponse {
+                        account: Some(account_proto),
+                    }))
                 } else {
                     println!("⚠️ get_account_with_commitment returned None for: {pubkey}");
                     Err(Status::not_found(format!("Account not found: {}", req.address)))

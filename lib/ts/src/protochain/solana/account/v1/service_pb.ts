@@ -4,7 +4,7 @@
 
 import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
-import type { AccountSchema } from "./account_pb";
+import type { Account } from "./account_pb";
 import { file_protochain_solana_account_v1_account } from "./account_pb";
 import type { KeyPair } from "../../type/v1/keypair_pb";
 import { file_protochain_solana_type_v1_keypair } from "../../type/v1/keypair_pb";
@@ -16,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file protochain/solana/account/v1/service.proto.
  */
 export const file_protochain_solana_account_v1_service: GenFile = /*@__PURE__*/
-  fileDesc("Cipwcm90b2NoYWluL3NvbGFuYS9hY2NvdW50L3YxL3NlcnZpY2UucHJvdG8SHHByb3RvY2hhaW4uc29sYW5hLmFjY291bnQudjEiagoRR2V0QWNjb3VudFJlcXVlc3QSDwoHYWRkcmVzcxgBIAEoCRJEChBjb21taXRtZW50X2xldmVsGAIgASgOMioucHJvdG9jaGFpbi5zb2xhbmEudHlwZS52MS5Db21taXRtZW50TGV2ZWwiKQoZR2VuZXJhdGVOZXdLZXlQYWlyUmVxdWVzdBIMCgRzZWVkGAEgASgJIlIKGkdlbmVyYXRlTmV3S2V5UGFpclJlc3BvbnNlEjQKCGtleV9wYWlyGAEgASgLMiIucHJvdG9jaGFpbi5zb2xhbmEudHlwZS52MS5LZXlQYWlyInoKEUZ1bmROYXRpdmVSZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkSDgoGYW1vdW50GAIgASgJEkQKEGNvbW1pdG1lbnRfbGV2ZWwYAyABKA4yKi5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLkNvbW1pdG1lbnRMZXZlbCInChJGdW5kTmF0aXZlUmVzcG9uc2USEQoJc2lnbmF0dXJlGAEgASgJMuoCCgdTZXJ2aWNlEmQKCkdldEFjY291bnQSLy5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkdldEFjY291bnRSZXF1ZXN0GiUucHJvdG9jaGFpbi5zb2xhbmEuYWNjb3VudC52MS5BY2NvdW50EocBChJHZW5lcmF0ZU5ld0tleVBhaXISNy5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkdlbmVyYXRlTmV3S2V5UGFpclJlcXVlc3QaOC5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkdlbmVyYXRlTmV3S2V5UGFpclJlc3BvbnNlEm8KCkZ1bmROYXRpdmUSLy5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkZ1bmROYXRpdmVSZXF1ZXN0GjAucHJvdG9jaGFpbi5zb2xhbmEuYWNjb3VudC52MS5GdW5kTmF0aXZlUmVzcG9uc2VCTlpMZ2l0aHViLmNvbS9CUkJ1c3N5L3Byb3RvY2hhaW4vbGliL2dvL3Byb3RvY2hhaW4vc29sYW5hL2FjY291bnQvdjE7YWNjb3VudF92MWIGcHJvdG8z", [file_protochain_solana_account_v1_account, file_protochain_solana_type_v1_keypair, file_protochain_solana_type_v1_commitment_level]);
+  fileDesc("Cipwcm90b2NoYWluL3NvbGFuYS9hY2NvdW50L3YxL3NlcnZpY2UucHJvdG8SHHByb3RvY2hhaW4uc29sYW5hLmFjY291bnQudjEiagoRR2V0QWNjb3VudFJlcXVlc3QSDwoHYWRkcmVzcxgBIAEoCRJEChBjb21taXRtZW50X2xldmVsGAIgASgOMioucHJvdG9jaGFpbi5zb2xhbmEudHlwZS52MS5Db21taXRtZW50TGV2ZWwiKQoZR2VuZXJhdGVOZXdLZXlQYWlyUmVxdWVzdBIMCgRzZWVkGAEgASgJIlIKGkdlbmVyYXRlTmV3S2V5UGFpclJlc3BvbnNlEjQKCGtleV9wYWlyGAEgASgLMiIucHJvdG9jaGFpbi5zb2xhbmEudHlwZS52MS5LZXlQYWlyInoKEUZ1bmROYXRpdmVSZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkSDgoGYW1vdW50GAIgASgJEkQKEGNvbW1pdG1lbnRfbGV2ZWwYAyABKA4yKi5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLkNvbW1pdG1lbnRMZXZlbCInChJGdW5kTmF0aXZlUmVzcG9uc2USEQoJc2lnbmF0dXJlGAEgASgJIkwKEkdldEFjY291bnRSZXNwb25zZRI2CgdhY2NvdW50GAEgASgLMiUucHJvdG9jaGFpbi5zb2xhbmEuYWNjb3VudC52MS5BY2NvdW50MvUCCgdTZXJ2aWNlEm8KCkdldEFjY291bnQSLy5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkdldEFjY291bnRSZXF1ZXN0GjAucHJvdG9jaGFpbi5zb2xhbmEuYWNjb3VudC52MS5HZXRBY2NvdW50UmVzcG9uc2UShwEKEkdlbmVyYXRlTmV3S2V5UGFpchI3LnByb3RvY2hhaW4uc29sYW5hLmFjY291bnQudjEuR2VuZXJhdGVOZXdLZXlQYWlyUmVxdWVzdBo4LnByb3RvY2hhaW4uc29sYW5hLmFjY291bnQudjEuR2VuZXJhdGVOZXdLZXlQYWlyUmVzcG9uc2USbwoKRnVuZE5hdGl2ZRIvLnByb3RvY2hhaW4uc29sYW5hLmFjY291bnQudjEuRnVuZE5hdGl2ZVJlcXVlc3QaMC5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkZ1bmROYXRpdmVSZXNwb25zZUJOWkxnaXRodWIuY29tL0JSQnVzc3kvcHJvdG9jaGFpbi9saWIvZ28vcHJvdG9jaGFpbi9zb2xhbmEvYWNjb3VudC92MTthY2NvdW50X3YxYgZwcm90bzM", [file_protochain_solana_account_v1_account, file_protochain_solana_type_v1_keypair, file_protochain_solana_type_v1_commitment_level]);
 
 /**
  * @generated from message protochain.solana.account.v1.GetAccountRequest
@@ -133,6 +133,23 @@ export const FundNativeResponseSchema: GenMessage<FundNativeResponse> = /*@__PUR
   messageDesc(file_protochain_solana_account_v1_service, 4);
 
 /**
+ * @generated from message protochain.solana.account.v1.GetAccountResponse
+ */
+export type GetAccountResponse = Message<"protochain.solana.account.v1.GetAccountResponse"> & {
+  /**
+   * @generated from field: protochain.solana.account.v1.Account account = 1;
+   */
+  account?: Account;
+};
+
+/**
+ * Describes the message protochain.solana.account.v1.GetAccountResponse.
+ * Use `create(GetAccountResponseSchema)` to create a new message.
+ */
+export const GetAccountResponseSchema: GenMessage<GetAccountResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_account_v1_service, 5);
+
+/**
  * @generated from service protochain.solana.account.v1.Service
  */
 export const Service: GenService<{
@@ -142,7 +159,7 @@ export const Service: GenService<{
   getAccount: {
     methodKind: "unary";
     input: typeof GetAccountRequestSchema;
-    output: typeof AccountSchema;
+    output: typeof GetAccountResponseSchema;
   },
   /**
    * @generated from rpc protochain.solana.account.v1.Service.GenerateNewKeyPair

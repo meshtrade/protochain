@@ -8,21 +8,21 @@ option go_package = "github.com/BRBussy/protochain/lib/go/protochain/solana/prog
 
 service Service {
   // Core system program operations - all return composable instructions
-  rpc Create(CreateRequest) returns (protochain.solana.transaction.v1.SolanaInstruction);
-  rpc Transfer(TransferRequest) returns (protochain.solana.transaction.v1.SolanaInstruction);
-  rpc Allocate(AllocateRequest) returns (protochain.solana.transaction.v1.SolanaInstruction);
-  rpc Assign(AssignRequest) returns (protochain.solana.transaction.v1.SolanaInstruction);
-  rpc CreateWithSeed(CreateWithSeedRequest) returns (protochain.solana.transaction.v1.SolanaInstruction);
-  
+  rpc Create(CreateRequest) returns (CreateResponse);
+  rpc Transfer(TransferRequest) returns (TransferResponse);
+  rpc Allocate(AllocateRequest) returns (AllocateResponse);
+  rpc Assign(AssignRequest) returns (AssignResponse);
+  rpc CreateWithSeed(CreateWithSeedRequest) returns (CreateWithSeedResponse);
+
   // Extended system program operations
-  rpc AllocateWithSeed(AllocateWithSeedRequest) returns (protochain.solana.transaction.v1.SolanaInstruction);
-  rpc AssignWithSeed(AssignWithSeedRequest) returns (protochain.solana.transaction.v1.SolanaInstruction);
-  rpc TransferWithSeed(TransferWithSeedRequest) returns (protochain.solana.transaction.v1.SolanaInstruction);
-  rpc InitializeNonceAccount(InitializeNonceAccountRequest) returns (protochain.solana.transaction.v1.SolanaInstruction);
-  rpc AuthorizeNonceAccount(AuthorizeNonceAccountRequest) returns (protochain.solana.transaction.v1.SolanaInstruction);
-  rpc WithdrawNonceAccount(WithdrawNonceAccountRequest) returns (protochain.solana.transaction.v1.SolanaInstruction);
-  rpc AdvanceNonceAccount(AdvanceNonceAccountRequest) returns (protochain.solana.transaction.v1.SolanaInstruction);
-  rpc UpgradeNonceAccount(UpgradeNonceAccountRequest) returns (protochain.solana.transaction.v1.SolanaInstruction);
+  rpc AllocateWithSeed(AllocateWithSeedRequest) returns (AllocateWithSeedResponse);
+  rpc AssignWithSeed(AssignWithSeedRequest) returns (AssignWithSeedResponse);
+  rpc TransferWithSeed(TransferWithSeedRequest) returns (TransferWithSeedResponse);
+  rpc InitializeNonceAccount(InitializeNonceAccountRequest) returns (InitializeNonceAccountResponse);
+  rpc AuthorizeNonceAccount(AuthorizeNonceAccountRequest) returns (AuthorizeNonceAccountResponse);
+  rpc WithdrawNonceAccount(WithdrawNonceAccountRequest) returns (WithdrawNonceAccountResponse);
+  rpc AdvanceNonceAccount(AdvanceNonceAccountRequest) returns (AdvanceNonceAccountResponse);
+  rpc UpgradeNonceAccount(UpgradeNonceAccountRequest) returns (UpgradeNonceAccountResponse);
 }
 
 // CreateRequest represents the parameters needed to create a new Solana account
@@ -143,4 +143,57 @@ message AdvanceNonceAccountRequest {
 
 message UpgradeNonceAccountRequest {
   string nonce_account = 1;
+}
+
+// Response messages - each RPC has its own response type containing the instruction
+message CreateResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
+message TransferResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
+message AllocateResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
+message AssignResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
+message CreateWithSeedResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
+message AllocateWithSeedResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
+message AssignWithSeedResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
+message TransferWithSeedResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
+message InitializeNonceAccountResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
+message AuthorizeNonceAccountResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
+message WithdrawNonceAccountResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
+message AdvanceNonceAccountResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
+message UpgradeNonceAccountResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
 }

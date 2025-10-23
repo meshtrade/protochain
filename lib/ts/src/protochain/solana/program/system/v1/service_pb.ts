@@ -4,7 +4,7 @@
 
 import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
-import type { SolanaInstructionSchema } from "../../../transaction/v1/instruction_pb";
+import type { SolanaInstruction } from "../../../transaction/v1/instruction_pb";
 import { file_protochain_solana_transaction_v1_instruction } from "../../../transaction/v1/instruction_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file protochain/solana/program/system/v1/service.proto.
  */
 export const file_protochain_solana_program_system_v1_service: GenFile = /*@__PURE__*/
-  fileDesc("CjFwcm90b2NoYWluL3NvbGFuYS9wcm9ncmFtL3N5c3RlbS92MS9zZXJ2aWNlLnByb3RvEiNwcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MSJjCg1DcmVhdGVSZXF1ZXN0Eg0KBXBheWVyGAEgASgJEhMKC25ld19hY2NvdW50GAIgASgJEg0KBW93bmVyGAMgASgJEhAKCGxhbXBvcnRzGAQgASgEEg0KBXNwYWNlGAUgASgEIj0KD1RyYW5zZmVyUmVxdWVzdBIMCgRmcm9tGAEgASgJEgoKAnRvGAIgASgJEhAKCGxhbXBvcnRzGAMgASgEIjEKD0FsbG9jYXRlUmVxdWVzdBIPCgdhY2NvdW50GAEgASgJEg0KBXNwYWNlGAIgASgEIjcKDUFzc2lnblJlcXVlc3QSDwoHYWNjb3VudBgBIAEoCRIVCg1vd25lcl9wcm9ncmFtGAIgASgJIngKFUNyZWF0ZVdpdGhTZWVkUmVxdWVzdBINCgVwYXllchgBIAEoCRITCgtuZXdfYWNjb3VudBgCIAEoCRIMCgRiYXNlGAMgASgJEgwKBHNlZWQYBCABKAkSEAoIbGFtcG9ydHMYBSABKAQSDQoFc3BhY2UYBiABKAQiVQoXQWxsb2NhdGVXaXRoU2VlZFJlcXVlc3QSDwoHYWNjb3VudBgBIAEoCRIMCgRiYXNlGAIgASgJEgwKBHNlZWQYAyABKAkSDQoFc3BhY2UYBCABKAQiWwoVQXNzaWduV2l0aFNlZWRSZXF1ZXN0Eg8KB2FjY291bnQYASABKAkSDAoEYmFzZRgCIAEoCRIMCgRzZWVkGAMgASgJEhUKDW93bmVyX3Byb2dyYW0YBCABKAkiawoXVHJhbnNmZXJXaXRoU2VlZFJlcXVlc3QSDAoEZnJvbRgBIAEoCRIRCglmcm9tX2Jhc2UYAiABKAkSEQoJZnJvbV9zZWVkGAMgASgJEgoKAnRvGAQgASgJEhAKCGxhbXBvcnRzGAUgASgEIkkKHUluaXRpYWxpemVOb25jZUFjY291bnRSZXF1ZXN0EhUKDW5vbmNlX2FjY291bnQYASABKAkSEQoJYXV0aG9yaXR5GAIgASgJImcKHEF1dGhvcml6ZU5vbmNlQWNjb3VudFJlcXVlc3QSFQoNbm9uY2VfYWNjb3VudBgBIAEoCRIZChFjdXJyZW50X2F1dGhvcml0eRgCIAEoCRIVCg1uZXdfYXV0aG9yaXR5GAMgASgJImUKG1dpdGhkcmF3Tm9uY2VBY2NvdW50UmVxdWVzdBIVCg1ub25jZV9hY2NvdW50GAEgASgJEhEKCWF1dGhvcml0eRgCIAEoCRIKCgJ0bxgDIAEoCRIQCghsYW1wb3J0cxgEIAEoBCJGChpBZHZhbmNlTm9uY2VBY2NvdW50UmVxdWVzdBIVCg1ub25jZV9hY2NvdW50GAEgASgJEhEKCWF1dGhvcml0eRgCIAEoCSIzChpVcGdyYWRlTm9uY2VBY2NvdW50UmVxdWVzdBIVCg1ub25jZV9hY2NvdW50GAEgASgJMscNCgdTZXJ2aWNlEnEKBkNyZWF0ZRIyLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLkNyZWF0ZVJlcXVlc3QaMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbhJ1CghUcmFuc2ZlchI0LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLlRyYW5zZmVyUmVxdWVzdBozLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uEnUKCEFsbG9jYXRlEjQucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuQWxsb2NhdGVSZXF1ZXN0GjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24ScQoGQXNzaWduEjIucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuQXNzaWduUmVxdWVzdBozLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uEoEBCg5DcmVhdGVXaXRoU2VlZBI6LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLkNyZWF0ZVdpdGhTZWVkUmVxdWVzdBozLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uEoUBChBBbGxvY2F0ZVdpdGhTZWVkEjwucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuQWxsb2NhdGVXaXRoU2VlZFJlcXVlc3QaMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbhKBAQoOQXNzaWduV2l0aFNlZWQSOi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5Bc3NpZ25XaXRoU2VlZFJlcXVlc3QaMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbhKFAQoQVHJhbnNmZXJXaXRoU2VlZBI8LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLlRyYW5zZmVyV2l0aFNlZWRSZXF1ZXN0GjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24SkQEKFkluaXRpYWxpemVOb25jZUFjY291bnQSQi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5Jbml0aWFsaXplTm9uY2VBY2NvdW50UmVxdWVzdBozLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uEo8BChVBdXRob3JpemVOb25jZUFjY291bnQSQS5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5BdXRob3JpemVOb25jZUFjY291bnRSZXF1ZXN0GjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24SjQEKFFdpdGhkcmF3Tm9uY2VBY2NvdW50EkAucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuV2l0aGRyYXdOb25jZUFjY291bnRSZXF1ZXN0GjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24SiwEKE0FkdmFuY2VOb25jZUFjY291bnQSPy5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5BZHZhbmNlTm9uY2VBY2NvdW50UmVxdWVzdBozLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uEosBChNVcGdyYWRlTm9uY2VBY2NvdW50Ej8ucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuVXBncmFkZU5vbmNlQWNjb3VudFJlcXVlc3QaMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbkJUWlJnaXRodWIuY29tL0JSQnVzc3kvcHJvdG9jaGFpbi9saWIvZ28vcHJvdG9jaGFpbi9zb2xhbmEvcHJvZ3JhbS9zeXN0ZW0vdjE7c3lzdGVtX3YxYgZwcm90bzM", [file_protochain_solana_transaction_v1_instruction]);
+  fileDesc("CjFwcm90b2NoYWluL3NvbGFuYS9wcm9ncmFtL3N5c3RlbS92MS9zZXJ2aWNlLnByb3RvEiNwcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MSJjCg1DcmVhdGVSZXF1ZXN0Eg0KBXBheWVyGAEgASgJEhMKC25ld19hY2NvdW50GAIgASgJEg0KBW93bmVyGAMgASgJEhAKCGxhbXBvcnRzGAQgASgEEg0KBXNwYWNlGAUgASgEIj0KD1RyYW5zZmVyUmVxdWVzdBIMCgRmcm9tGAEgASgJEgoKAnRvGAIgASgJEhAKCGxhbXBvcnRzGAMgASgEIjEKD0FsbG9jYXRlUmVxdWVzdBIPCgdhY2NvdW50GAEgASgJEg0KBXNwYWNlGAIgASgEIjcKDUFzc2lnblJlcXVlc3QSDwoHYWNjb3VudBgBIAEoCRIVCg1vd25lcl9wcm9ncmFtGAIgASgJIngKFUNyZWF0ZVdpdGhTZWVkUmVxdWVzdBINCgVwYXllchgBIAEoCRITCgtuZXdfYWNjb3VudBgCIAEoCRIMCgRiYXNlGAMgASgJEgwKBHNlZWQYBCABKAkSEAoIbGFtcG9ydHMYBSABKAQSDQoFc3BhY2UYBiABKAQiVQoXQWxsb2NhdGVXaXRoU2VlZFJlcXVlc3QSDwoHYWNjb3VudBgBIAEoCRIMCgRiYXNlGAIgASgJEgwKBHNlZWQYAyABKAkSDQoFc3BhY2UYBCABKAQiWwoVQXNzaWduV2l0aFNlZWRSZXF1ZXN0Eg8KB2FjY291bnQYASABKAkSDAoEYmFzZRgCIAEoCRIMCgRzZWVkGAMgASgJEhUKDW93bmVyX3Byb2dyYW0YBCABKAkiawoXVHJhbnNmZXJXaXRoU2VlZFJlcXVlc3QSDAoEZnJvbRgBIAEoCRIRCglmcm9tX2Jhc2UYAiABKAkSEQoJZnJvbV9zZWVkGAMgASgJEgoKAnRvGAQgASgJEhAKCGxhbXBvcnRzGAUgASgEIkkKHUluaXRpYWxpemVOb25jZUFjY291bnRSZXF1ZXN0EhUKDW5vbmNlX2FjY291bnQYASABKAkSEQoJYXV0aG9yaXR5GAIgASgJImcKHEF1dGhvcml6ZU5vbmNlQWNjb3VudFJlcXVlc3QSFQoNbm9uY2VfYWNjb3VudBgBIAEoCRIZChFjdXJyZW50X2F1dGhvcml0eRgCIAEoCRIVCg1uZXdfYXV0aG9yaXR5GAMgASgJImUKG1dpdGhkcmF3Tm9uY2VBY2NvdW50UmVxdWVzdBIVCg1ub25jZV9hY2NvdW50GAEgASgJEhEKCWF1dGhvcml0eRgCIAEoCRIKCgJ0bxgDIAEoCRIQCghsYW1wb3J0cxgEIAEoBCJGChpBZHZhbmNlTm9uY2VBY2NvdW50UmVxdWVzdBIVCg1ub25jZV9hY2NvdW50GAEgASgJEhEKCWF1dGhvcml0eRgCIAEoCSIzChpVcGdyYWRlTm9uY2VBY2NvdW50UmVxdWVzdBIVCg1ub25jZV9hY2NvdW50GAEgASgJIloKDkNyZWF0ZVJlc3BvbnNlEkgKC2luc3RydWN0aW9uGAEgASgLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24iXAoQVHJhbnNmZXJSZXNwb25zZRJICgtpbnN0cnVjdGlvbhgBIAEoCzIzLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uIlwKEEFsbG9jYXRlUmVzcG9uc2USSAoLaW5zdHJ1Y3Rpb24YASABKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbiJaCg5Bc3NpZ25SZXNwb25zZRJICgtpbnN0cnVjdGlvbhgBIAEoCzIzLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uImIKFkNyZWF0ZVdpdGhTZWVkUmVzcG9uc2USSAoLaW5zdHJ1Y3Rpb24YASABKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbiJkChhBbGxvY2F0ZVdpdGhTZWVkUmVzcG9uc2USSAoLaW5zdHJ1Y3Rpb24YASABKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbiJiChZBc3NpZ25XaXRoU2VlZFJlc3BvbnNlEkgKC2luc3RydWN0aW9uGAEgASgLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24iZAoYVHJhbnNmZXJXaXRoU2VlZFJlc3BvbnNlEkgKC2luc3RydWN0aW9uGAEgASgLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24iagoeSW5pdGlhbGl6ZU5vbmNlQWNjb3VudFJlc3BvbnNlEkgKC2luc3RydWN0aW9uGAEgASgLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24iaQodQXV0aG9yaXplTm9uY2VBY2NvdW50UmVzcG9uc2USSAoLaW5zdHJ1Y3Rpb24YASABKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbiJoChxXaXRoZHJhd05vbmNlQWNjb3VudFJlc3BvbnNlEkgKC2luc3RydWN0aW9uGAEgASgLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24iZwobQWR2YW5jZU5vbmNlQWNjb3VudFJlc3BvbnNlEkgKC2luc3RydWN0aW9uGAEgASgLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24iZwobVXBncmFkZU5vbmNlQWNjb3VudFJlc3BvbnNlEkgKC2luc3RydWN0aW9uGAEgASgLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24ytg4KB1NlcnZpY2UScQoGQ3JlYXRlEjIucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuQ3JlYXRlUmVxdWVzdBozLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLkNyZWF0ZVJlc3BvbnNlEncKCFRyYW5zZmVyEjQucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuVHJhbnNmZXJSZXF1ZXN0GjUucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuVHJhbnNmZXJSZXNwb25zZRJ3CghBbGxvY2F0ZRI0LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLkFsbG9jYXRlUmVxdWVzdBo1LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLkFsbG9jYXRlUmVzcG9uc2UScQoGQXNzaWduEjIucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuQXNzaWduUmVxdWVzdBozLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLkFzc2lnblJlc3BvbnNlEokBCg5DcmVhdGVXaXRoU2VlZBI6LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLkNyZWF0ZVdpdGhTZWVkUmVxdWVzdBo7LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLkNyZWF0ZVdpdGhTZWVkUmVzcG9uc2USjwEKEEFsbG9jYXRlV2l0aFNlZWQSPC5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5BbGxvY2F0ZVdpdGhTZWVkUmVxdWVzdBo9LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLkFsbG9jYXRlV2l0aFNlZWRSZXNwb25zZRKJAQoOQXNzaWduV2l0aFNlZWQSOi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5Bc3NpZ25XaXRoU2VlZFJlcXVlc3QaOy5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5Bc3NpZ25XaXRoU2VlZFJlc3BvbnNlEo8BChBUcmFuc2ZlcldpdGhTZWVkEjwucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuVHJhbnNmZXJXaXRoU2VlZFJlcXVlc3QaPS5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5UcmFuc2ZlcldpdGhTZWVkUmVzcG9uc2USoQEKFkluaXRpYWxpemVOb25jZUFjY291bnQSQi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5Jbml0aWFsaXplTm9uY2VBY2NvdW50UmVxdWVzdBpDLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLkluaXRpYWxpemVOb25jZUFjY291bnRSZXNwb25zZRKeAQoVQXV0aG9yaXplTm9uY2VBY2NvdW50EkEucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuQXV0aG9yaXplTm9uY2VBY2NvdW50UmVxdWVzdBpCLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLkF1dGhvcml6ZU5vbmNlQWNjb3VudFJlc3BvbnNlEpsBChRXaXRoZHJhd05vbmNlQWNjb3VudBJALnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLldpdGhkcmF3Tm9uY2VBY2NvdW50UmVxdWVzdBpBLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLldpdGhkcmF3Tm9uY2VBY2NvdW50UmVzcG9uc2USmAEKE0FkdmFuY2VOb25jZUFjY291bnQSPy5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnN5c3RlbS52MS5BZHZhbmNlTm9uY2VBY2NvdW50UmVxdWVzdBpALnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLkFkdmFuY2VOb25jZUFjY291bnRSZXNwb25zZRKYAQoTVXBncmFkZU5vbmNlQWNjb3VudBI/LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0uc3lzdGVtLnYxLlVwZ3JhZGVOb25jZUFjY291bnRSZXF1ZXN0GkAucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS5zeXN0ZW0udjEuVXBncmFkZU5vbmNlQWNjb3VudFJlc3BvbnNlQlRaUmdpdGh1Yi5jb20vQlJCdXNzeS9wcm90b2NoYWluL2xpYi9nby9wcm90b2NoYWluL3NvbGFuYS9wcm9ncmFtL3N5c3RlbS92MTtzeXN0ZW1fdjFiBnByb3RvMw", [file_protochain_solana_transaction_v1_instruction]);
 
 /**
  * CreateRequest represents the parameters needed to create a new Solana account
@@ -435,6 +435,229 @@ export const UpgradeNonceAccountRequestSchema: GenMessage<UpgradeNonceAccountReq
   messageDesc(file_protochain_solana_program_system_v1_service, 12);
 
 /**
+ * Response messages - each RPC has its own response type containing the instruction
+ *
+ * @generated from message protochain.solana.program.system.v1.CreateResponse
+ */
+export type CreateResponse = Message<"protochain.solana.program.system.v1.CreateResponse"> & {
+  /**
+   * @generated from field: protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+   */
+  instruction?: SolanaInstruction;
+};
+
+/**
+ * Describes the message protochain.solana.program.system.v1.CreateResponse.
+ * Use `create(CreateResponseSchema)` to create a new message.
+ */
+export const CreateResponseSchema: GenMessage<CreateResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_system_v1_service, 13);
+
+/**
+ * @generated from message protochain.solana.program.system.v1.TransferResponse
+ */
+export type TransferResponse = Message<"protochain.solana.program.system.v1.TransferResponse"> & {
+  /**
+   * @generated from field: protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+   */
+  instruction?: SolanaInstruction;
+};
+
+/**
+ * Describes the message protochain.solana.program.system.v1.TransferResponse.
+ * Use `create(TransferResponseSchema)` to create a new message.
+ */
+export const TransferResponseSchema: GenMessage<TransferResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_system_v1_service, 14);
+
+/**
+ * @generated from message protochain.solana.program.system.v1.AllocateResponse
+ */
+export type AllocateResponse = Message<"protochain.solana.program.system.v1.AllocateResponse"> & {
+  /**
+   * @generated from field: protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+   */
+  instruction?: SolanaInstruction;
+};
+
+/**
+ * Describes the message protochain.solana.program.system.v1.AllocateResponse.
+ * Use `create(AllocateResponseSchema)` to create a new message.
+ */
+export const AllocateResponseSchema: GenMessage<AllocateResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_system_v1_service, 15);
+
+/**
+ * @generated from message protochain.solana.program.system.v1.AssignResponse
+ */
+export type AssignResponse = Message<"protochain.solana.program.system.v1.AssignResponse"> & {
+  /**
+   * @generated from field: protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+   */
+  instruction?: SolanaInstruction;
+};
+
+/**
+ * Describes the message protochain.solana.program.system.v1.AssignResponse.
+ * Use `create(AssignResponseSchema)` to create a new message.
+ */
+export const AssignResponseSchema: GenMessage<AssignResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_system_v1_service, 16);
+
+/**
+ * @generated from message protochain.solana.program.system.v1.CreateWithSeedResponse
+ */
+export type CreateWithSeedResponse = Message<"protochain.solana.program.system.v1.CreateWithSeedResponse"> & {
+  /**
+   * @generated from field: protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+   */
+  instruction?: SolanaInstruction;
+};
+
+/**
+ * Describes the message protochain.solana.program.system.v1.CreateWithSeedResponse.
+ * Use `create(CreateWithSeedResponseSchema)` to create a new message.
+ */
+export const CreateWithSeedResponseSchema: GenMessage<CreateWithSeedResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_system_v1_service, 17);
+
+/**
+ * @generated from message protochain.solana.program.system.v1.AllocateWithSeedResponse
+ */
+export type AllocateWithSeedResponse = Message<"protochain.solana.program.system.v1.AllocateWithSeedResponse"> & {
+  /**
+   * @generated from field: protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+   */
+  instruction?: SolanaInstruction;
+};
+
+/**
+ * Describes the message protochain.solana.program.system.v1.AllocateWithSeedResponse.
+ * Use `create(AllocateWithSeedResponseSchema)` to create a new message.
+ */
+export const AllocateWithSeedResponseSchema: GenMessage<AllocateWithSeedResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_system_v1_service, 18);
+
+/**
+ * @generated from message protochain.solana.program.system.v1.AssignWithSeedResponse
+ */
+export type AssignWithSeedResponse = Message<"protochain.solana.program.system.v1.AssignWithSeedResponse"> & {
+  /**
+   * @generated from field: protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+   */
+  instruction?: SolanaInstruction;
+};
+
+/**
+ * Describes the message protochain.solana.program.system.v1.AssignWithSeedResponse.
+ * Use `create(AssignWithSeedResponseSchema)` to create a new message.
+ */
+export const AssignWithSeedResponseSchema: GenMessage<AssignWithSeedResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_system_v1_service, 19);
+
+/**
+ * @generated from message protochain.solana.program.system.v1.TransferWithSeedResponse
+ */
+export type TransferWithSeedResponse = Message<"protochain.solana.program.system.v1.TransferWithSeedResponse"> & {
+  /**
+   * @generated from field: protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+   */
+  instruction?: SolanaInstruction;
+};
+
+/**
+ * Describes the message protochain.solana.program.system.v1.TransferWithSeedResponse.
+ * Use `create(TransferWithSeedResponseSchema)` to create a new message.
+ */
+export const TransferWithSeedResponseSchema: GenMessage<TransferWithSeedResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_system_v1_service, 20);
+
+/**
+ * @generated from message protochain.solana.program.system.v1.InitializeNonceAccountResponse
+ */
+export type InitializeNonceAccountResponse = Message<"protochain.solana.program.system.v1.InitializeNonceAccountResponse"> & {
+  /**
+   * @generated from field: protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+   */
+  instruction?: SolanaInstruction;
+};
+
+/**
+ * Describes the message protochain.solana.program.system.v1.InitializeNonceAccountResponse.
+ * Use `create(InitializeNonceAccountResponseSchema)` to create a new message.
+ */
+export const InitializeNonceAccountResponseSchema: GenMessage<InitializeNonceAccountResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_system_v1_service, 21);
+
+/**
+ * @generated from message protochain.solana.program.system.v1.AuthorizeNonceAccountResponse
+ */
+export type AuthorizeNonceAccountResponse = Message<"protochain.solana.program.system.v1.AuthorizeNonceAccountResponse"> & {
+  /**
+   * @generated from field: protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+   */
+  instruction?: SolanaInstruction;
+};
+
+/**
+ * Describes the message protochain.solana.program.system.v1.AuthorizeNonceAccountResponse.
+ * Use `create(AuthorizeNonceAccountResponseSchema)` to create a new message.
+ */
+export const AuthorizeNonceAccountResponseSchema: GenMessage<AuthorizeNonceAccountResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_system_v1_service, 22);
+
+/**
+ * @generated from message protochain.solana.program.system.v1.WithdrawNonceAccountResponse
+ */
+export type WithdrawNonceAccountResponse = Message<"protochain.solana.program.system.v1.WithdrawNonceAccountResponse"> & {
+  /**
+   * @generated from field: protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+   */
+  instruction?: SolanaInstruction;
+};
+
+/**
+ * Describes the message protochain.solana.program.system.v1.WithdrawNonceAccountResponse.
+ * Use `create(WithdrawNonceAccountResponseSchema)` to create a new message.
+ */
+export const WithdrawNonceAccountResponseSchema: GenMessage<WithdrawNonceAccountResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_system_v1_service, 23);
+
+/**
+ * @generated from message protochain.solana.program.system.v1.AdvanceNonceAccountResponse
+ */
+export type AdvanceNonceAccountResponse = Message<"protochain.solana.program.system.v1.AdvanceNonceAccountResponse"> & {
+  /**
+   * @generated from field: protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+   */
+  instruction?: SolanaInstruction;
+};
+
+/**
+ * Describes the message protochain.solana.program.system.v1.AdvanceNonceAccountResponse.
+ * Use `create(AdvanceNonceAccountResponseSchema)` to create a new message.
+ */
+export const AdvanceNonceAccountResponseSchema: GenMessage<AdvanceNonceAccountResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_system_v1_service, 24);
+
+/**
+ * @generated from message protochain.solana.program.system.v1.UpgradeNonceAccountResponse
+ */
+export type UpgradeNonceAccountResponse = Message<"protochain.solana.program.system.v1.UpgradeNonceAccountResponse"> & {
+  /**
+   * @generated from field: protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+   */
+  instruction?: SolanaInstruction;
+};
+
+/**
+ * Describes the message protochain.solana.program.system.v1.UpgradeNonceAccountResponse.
+ * Use `create(UpgradeNonceAccountResponseSchema)` to create a new message.
+ */
+export const UpgradeNonceAccountResponseSchema: GenMessage<UpgradeNonceAccountResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_system_v1_service, 25);
+
+/**
  * @generated from service protochain.solana.program.system.v1.Service
  */
 export const Service: GenService<{
@@ -446,7 +669,7 @@ export const Service: GenService<{
   create: {
     methodKind: "unary";
     input: typeof CreateRequestSchema;
-    output: typeof SolanaInstructionSchema;
+    output: typeof CreateResponseSchema;
   },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.Transfer
@@ -454,7 +677,7 @@ export const Service: GenService<{
   transfer: {
     methodKind: "unary";
     input: typeof TransferRequestSchema;
-    output: typeof SolanaInstructionSchema;
+    output: typeof TransferResponseSchema;
   },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.Allocate
@@ -462,7 +685,7 @@ export const Service: GenService<{
   allocate: {
     methodKind: "unary";
     input: typeof AllocateRequestSchema;
-    output: typeof SolanaInstructionSchema;
+    output: typeof AllocateResponseSchema;
   },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.Assign
@@ -470,7 +693,7 @@ export const Service: GenService<{
   assign: {
     methodKind: "unary";
     input: typeof AssignRequestSchema;
-    output: typeof SolanaInstructionSchema;
+    output: typeof AssignResponseSchema;
   },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.CreateWithSeed
@@ -478,7 +701,7 @@ export const Service: GenService<{
   createWithSeed: {
     methodKind: "unary";
     input: typeof CreateWithSeedRequestSchema;
-    output: typeof SolanaInstructionSchema;
+    output: typeof CreateWithSeedResponseSchema;
   },
   /**
    * Extended system program operations
@@ -488,7 +711,7 @@ export const Service: GenService<{
   allocateWithSeed: {
     methodKind: "unary";
     input: typeof AllocateWithSeedRequestSchema;
-    output: typeof SolanaInstructionSchema;
+    output: typeof AllocateWithSeedResponseSchema;
   },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.AssignWithSeed
@@ -496,7 +719,7 @@ export const Service: GenService<{
   assignWithSeed: {
     methodKind: "unary";
     input: typeof AssignWithSeedRequestSchema;
-    output: typeof SolanaInstructionSchema;
+    output: typeof AssignWithSeedResponseSchema;
   },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.TransferWithSeed
@@ -504,7 +727,7 @@ export const Service: GenService<{
   transferWithSeed: {
     methodKind: "unary";
     input: typeof TransferWithSeedRequestSchema;
-    output: typeof SolanaInstructionSchema;
+    output: typeof TransferWithSeedResponseSchema;
   },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.InitializeNonceAccount
@@ -512,7 +735,7 @@ export const Service: GenService<{
   initializeNonceAccount: {
     methodKind: "unary";
     input: typeof InitializeNonceAccountRequestSchema;
-    output: typeof SolanaInstructionSchema;
+    output: typeof InitializeNonceAccountResponseSchema;
   },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.AuthorizeNonceAccount
@@ -520,7 +743,7 @@ export const Service: GenService<{
   authorizeNonceAccount: {
     methodKind: "unary";
     input: typeof AuthorizeNonceAccountRequestSchema;
-    output: typeof SolanaInstructionSchema;
+    output: typeof AuthorizeNonceAccountResponseSchema;
   },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.WithdrawNonceAccount
@@ -528,7 +751,7 @@ export const Service: GenService<{
   withdrawNonceAccount: {
     methodKind: "unary";
     input: typeof WithdrawNonceAccountRequestSchema;
-    output: typeof SolanaInstructionSchema;
+    output: typeof WithdrawNonceAccountResponseSchema;
   },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.AdvanceNonceAccount
@@ -536,7 +759,7 @@ export const Service: GenService<{
   advanceNonceAccount: {
     methodKind: "unary";
     input: typeof AdvanceNonceAccountRequestSchema;
-    output: typeof SolanaInstructionSchema;
+    output: typeof AdvanceNonceAccountResponseSchema;
   },
   /**
    * @generated from rpc protochain.solana.program.system.v1.Service.UpgradeNonceAccount
@@ -544,7 +767,7 @@ export const Service: GenService<{
   upgradeNonceAccount: {
     methodKind: "unary";
     input: typeof UpgradeNonceAccountRequestSchema;
-    output: typeof SolanaInstructionSchema;
+    output: typeof UpgradeNonceAccountResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_protochain_solana_program_system_v1_service, 0);

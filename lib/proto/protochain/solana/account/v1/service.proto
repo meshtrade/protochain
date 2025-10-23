@@ -9,7 +9,7 @@ import "protochain/solana/type/v1/keypair.proto";
 import "protochain/solana/type/v1/commitment_level.proto";
 
 service Service {
-  rpc GetAccount(GetAccountRequest) returns (protochain.solana.account.v1.Account);
+  rpc GetAccount(GetAccountRequest) returns (GetAccountResponse);
   rpc GenerateNewKeyPair(GenerateNewKeyPairRequest) returns (GenerateNewKeyPairResponse);
   rpc FundNative(FundNativeRequest) returns (FundNativeResponse);
 }
@@ -35,4 +35,8 @@ message FundNativeRequest {
 
 message FundNativeResponse {
   string signature = 1; // Transaction signature of airdrop
+}
+
+message GetAccountResponse {
+  protochain.solana.account.v1.Account account = 1;
 }

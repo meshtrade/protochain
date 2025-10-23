@@ -1,0 +1,14 @@
+version: v2
+
+plugins:
+  # Go generation - remote plugins only, no local custom plugin
+  # Note: This is used in Docker builds where Go is not available
+  # The custom protochaingo plugin is only needed for local development
+  - remote: buf.build/protocolbuffers/go
+    out: ./lib/go
+    opt:
+      - module=github.com/BRBussy/protochain/lib/go
+  - remote: buf.build/grpc/go
+    out: ./lib/go
+    opt:
+      - module=github.com/BRBussy/protochain/lib/go
