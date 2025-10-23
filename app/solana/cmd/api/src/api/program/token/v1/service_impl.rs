@@ -304,7 +304,9 @@ impl TokenProgramService for TokenProgramServiceImpl {
 
         // Step 4: Compose response with both instructions
         let mut instructions = Vec::new();
-        instructions.push(create_instruction);
+        if let Some(instr) = create_instruction.instruction {
+            instructions.push(instr);
+        }
         if let Some(init_instruction) = init_response.instruction {
             instructions.push(init_instruction);
         }
@@ -363,8 +365,10 @@ impl TokenProgramService for TokenProgramServiceImpl {
             .into_inner();
 
         // Step 4: Compose response with both instructions
-        let mut instructions = Vec::with_capacity(1 + init_response.instructions.len());
-        instructions.push(create_instruction);
+        let mut instructions = Vec::new();
+        if let Some(instr) = create_instruction.instruction {
+            instructions.push(instr);
+        }
         instructions.extend(init_response.instructions);
 
         Ok(Response::new(CreateHoldingAccountResponse { instructions }))

@@ -3,12 +3,16 @@ use std::str::FromStr;
 use tonic::{Request, Response, Status};
 
 use protochain_api::protochain::solana::program::system::v1::{
-    service_server::Service as SystemProgramService, AdvanceNonceAccountRequest, AllocateRequest,
-    AllocateWithSeedRequest, AssignRequest, AssignWithSeedRequest, AuthorizeNonceAccountRequest,
-    CreateRequest, CreateWithSeedRequest, InitializeNonceAccountRequest, TransferRequest,
-    TransferWithSeedRequest, UpgradeNonceAccountRequest, WithdrawNonceAccountRequest,
+    service_server::Service as SystemProgramService, AdvanceNonceAccountRequest,
+    AdvanceNonceAccountResponse, AllocateRequest, AllocateResponse, AllocateWithSeedRequest,
+    AllocateWithSeedResponse, AssignRequest, AssignResponse, AssignWithSeedRequest,
+    AssignWithSeedResponse, AuthorizeNonceAccountRequest, AuthorizeNonceAccountResponse,
+    CreateRequest, CreateResponse, CreateWithSeedRequest, CreateWithSeedResponse,
+    InitializeNonceAccountRequest, InitializeNonceAccountResponse, TransferRequest,
+    TransferResponse, TransferWithSeedRequest, TransferWithSeedResponse,
+    UpgradeNonceAccountRequest, UpgradeNonceAccountResponse, WithdrawNonceAccountRequest,
+    WithdrawNonceAccountResponse,
 };
-use protochain_api::protochain::solana::transaction::v1::SolanaInstruction;
 
 use crate::api::common::solana_conversions::sdk_instruction_to_proto;
 
@@ -40,7 +44,7 @@ impl SystemProgramService for SystemProgramServiceImpl {
     async fn create(
         &self,
         request: Request<CreateRequest>,
-    ) -> Result<Response<SolanaInstruction>, Status> {
+    ) -> Result<Response<CreateResponse>, Status> {
         let req = request.into_inner();
 
         // Validation
@@ -89,14 +93,16 @@ impl SystemProgramService for SystemProgramServiceImpl {
             req.new_account, req.payer, owner_display, req.lamports, req.space
         );
 
-        Ok(Response::new(proto_instruction))
+        Ok(Response::new(CreateResponse {
+            instruction: Some(proto_instruction),
+        }))
     }
 
     /// Creates a transfer instruction.
     async fn transfer(
         &self,
         request: Request<TransferRequest>,
-    ) -> Result<Response<SolanaInstruction>, Status> {
+    ) -> Result<Response<TransferResponse>, Status> {
         let req = request.into_inner();
 
         if req.from.is_empty() {
@@ -119,14 +125,16 @@ impl SystemProgramService for SystemProgramServiceImpl {
         proto_instruction.description =
             format!("Transfer {} lamports from {} to {}", req.lamports, req.from, req.to);
 
-        Ok(Response::new(proto_instruction))
+        Ok(Response::new(TransferResponse {
+            instruction: Some(proto_instruction),
+        }))
     }
 
     /// Creates an allocate instruction.
     async fn allocate(
         &self,
         request: Request<AllocateRequest>,
-    ) -> Result<Response<SolanaInstruction>, Status> {
+    ) -> Result<Response<AllocateResponse>, Status> {
         let req = request.into_inner();
 
         if req.account.is_empty() {
@@ -137,14 +145,16 @@ impl SystemProgramService for SystemProgramServiceImpl {
             .map_err(|e| Status::invalid_argument(format!("Invalid account address: {e}")))?;
 
         let instruction = system_instruction::allocate(&account, req.space);
-        Ok(Response::new(sdk_instruction_to_proto(instruction)))
+        Ok(Response::new(AllocateResponse {
+            instruction: Some(sdk_instruction_to_proto(instruction)),
+        }))
     }
 
     /// Creates an assign instruction.
     async fn assign(
         &self,
         request: Request<AssignRequest>,
-    ) -> Result<Response<SolanaInstruction>, Status> {
+    ) -> Result<Response<AssignResponse>, Status> {
         let req = request.into_inner();
 
         if req.account.is_empty() {
@@ -161,14 +171,16 @@ impl SystemProgramService for SystemProgramServiceImpl {
             .map_err(|e| Status::invalid_argument(format!("Invalid owner program: {e}")))?;
 
         let instruction = system_instruction::assign(&account, &owner_program);
-        Ok(Response::new(sdk_instruction_to_proto(instruction)))
+        Ok(Response::new(AssignResponse {
+            instruction: Some(sdk_instruction_to_proto(instruction)),
+        }))
     }
 
     /// Creates a create-with-seed instruction.
     async fn create_with_seed(
         &self,
         request: Request<CreateWithSeedRequest>,
-    ) -> Result<Response<SolanaInstruction>, Status> {
+    ) -> Result<Response<CreateWithSeedResponse>, Status> {
         let req = request.into_inner();
 
         if req.payer.is_empty() {
@@ -203,14 +215,16 @@ impl SystemProgramService for SystemProgramServiceImpl {
             &system_program::id(),
         );
 
-        Ok(Response::new(sdk_instruction_to_proto(instruction)))
+        Ok(Response::new(CreateWithSeedResponse {
+            instruction: Some(sdk_instruction_to_proto(instruction)),
+        }))
     }
 
     /// Creates an allocate-with-seed instruction.
     async fn allocate_with_seed(
         &self,
         request: Request<AllocateWithSeedRequest>,
-    ) -> Result<Response<SolanaInstruction>, Status> {
+    ) -> Result<Response<AllocateWithSeedResponse>, Status> {
         let req = request.into_inner();
 
         if req.account.is_empty() {
@@ -237,14 +251,16 @@ impl SystemProgramService for SystemProgramServiceImpl {
             &system_program::id(),
         );
 
-        Ok(Response::new(sdk_instruction_to_proto(instruction)))
+        Ok(Response::new(AllocateWithSeedResponse {
+            instruction: Some(sdk_instruction_to_proto(instruction)),
+        }))
     }
 
     /// Creates an assign-with-seed instruction.
     async fn assign_with_seed(
         &self,
         request: Request<AssignWithSeedRequest>,
-    ) -> Result<Response<SolanaInstruction>, Status> {
+    ) -> Result<Response<AssignWithSeedResponse>, Status> {
         let req = request.into_inner();
 
         if req.account.is_empty() {
@@ -272,14 +288,16 @@ impl SystemProgramService for SystemProgramServiceImpl {
         let instruction =
             system_instruction::assign_with_seed(&account, &base, &req.seed, &owner_program);
 
-        Ok(Response::new(sdk_instruction_to_proto(instruction)))
+        Ok(Response::new(AssignWithSeedResponse {
+            instruction: Some(sdk_instruction_to_proto(instruction)),
+        }))
     }
 
     /// Creates a transfer-with-seed instruction.
     async fn transfer_with_seed(
         &self,
         request: Request<TransferWithSeedRequest>,
-    ) -> Result<Response<SolanaInstruction>, Status> {
+    ) -> Result<Response<TransferWithSeedResponse>, Status> {
         let req = request.into_inner();
 
         if req.from.is_empty() {
@@ -313,14 +331,16 @@ impl SystemProgramService for SystemProgramServiceImpl {
             req.lamports,
         );
 
-        Ok(Response::new(sdk_instruction_to_proto(instruction)))
+        Ok(Response::new(TransferWithSeedResponse {
+            instruction: Some(sdk_instruction_to_proto(instruction)),
+        }))
     }
 
     /// Creates an initialize-nonce-account instruction.
     async fn initialize_nonce_account(
         &self,
         request: Request<InitializeNonceAccountRequest>,
-    ) -> Result<Response<SolanaInstruction>, Status> {
+    ) -> Result<Response<InitializeNonceAccountResponse>, Status> {
         let req = request.into_inner();
 
         if req.nonce_account.is_empty() {
@@ -350,14 +370,16 @@ impl SystemProgramService for SystemProgramServiceImpl {
             .nth(1)
             .ok_or_else(|| Status::internal("Failed to create initialize nonce instruction"))?;
 
-        Ok(Response::new(sdk_instruction_to_proto(instruction)))
+        Ok(Response::new(InitializeNonceAccountResponse {
+            instruction: Some(sdk_instruction_to_proto(instruction)),
+        }))
     }
 
     /// Creates an authorize-nonce-account instruction.
     async fn authorize_nonce_account(
         &self,
         request: Request<AuthorizeNonceAccountRequest>,
-    ) -> Result<Response<SolanaInstruction>, Status> {
+    ) -> Result<Response<AuthorizeNonceAccountResponse>, Status> {
         let req = request.into_inner();
 
         if req.nonce_account.is_empty() {
@@ -386,14 +408,16 @@ impl SystemProgramService for SystemProgramServiceImpl {
             &new_authority,
         );
 
-        Ok(Response::new(sdk_instruction_to_proto(instruction)))
+        Ok(Response::new(AuthorizeNonceAccountResponse {
+            instruction: Some(sdk_instruction_to_proto(instruction)),
+        }))
     }
 
     /// Creates a withdraw-nonce-account instruction.
     async fn withdraw_nonce_account(
         &self,
         request: Request<WithdrawNonceAccountRequest>,
-    ) -> Result<Response<SolanaInstruction>, Status> {
+    ) -> Result<Response<WithdrawNonceAccountResponse>, Status> {
         let req = request.into_inner();
 
         if req.nonce_account.is_empty() {
@@ -422,14 +446,16 @@ impl SystemProgramService for SystemProgramServiceImpl {
             req.lamports,
         );
 
-        Ok(Response::new(sdk_instruction_to_proto(instruction)))
+        Ok(Response::new(WithdrawNonceAccountResponse {
+            instruction: Some(sdk_instruction_to_proto(instruction)),
+        }))
     }
 
     /// Creates an advance-nonce-account instruction.
     async fn advance_nonce_account(
         &self,
         request: Request<AdvanceNonceAccountRequest>,
-    ) -> Result<Response<SolanaInstruction>, Status> {
+    ) -> Result<Response<AdvanceNonceAccountResponse>, Status> {
         let req = request.into_inner();
 
         if req.nonce_account.is_empty() {
@@ -447,14 +473,16 @@ impl SystemProgramService for SystemProgramServiceImpl {
 
         let instruction = system_instruction::advance_nonce_account(&nonce_account, &authority);
 
-        Ok(Response::new(sdk_instruction_to_proto(instruction)))
+        Ok(Response::new(AdvanceNonceAccountResponse {
+            instruction: Some(sdk_instruction_to_proto(instruction)),
+        }))
     }
 
     /// Creates an upgrade-nonce-account instruction.
     async fn upgrade_nonce_account(
         &self,
         request: Request<UpgradeNonceAccountRequest>,
-    ) -> Result<Response<SolanaInstruction>, Status> {
+    ) -> Result<Response<UpgradeNonceAccountResponse>, Status> {
         let req = request.into_inner();
 
         if req.nonce_account.is_empty() {
@@ -466,7 +494,9 @@ impl SystemProgramService for SystemProgramServiceImpl {
 
         let instruction = system_instruction::upgrade_nonce_account(nonce_account);
 
-        Ok(Response::new(sdk_instruction_to_proto(instruction)))
+        Ok(Response::new(UpgradeNonceAccountResponse {
+            instruction: Some(sdk_instruction_to_proto(instruction)),
+        }))
     }
 }
 
