@@ -4,12 +4,9 @@
 ##############################################################################
 
 ##############################################################################
-# Stage 1: Code generation with buf and Go (for custom protoc plugin)
+# Stage 1: Code generation with buf
 ##############################################################################
 FROM bufbuild/buf:latest AS codegen
-
-# Install Go for the custom protoc plugin
-RUN apk add --no-cache go
 
 WORKDIR /protochain
 
@@ -17,15 +14,17 @@ WORKDIR /protochain
 COPY lib/proto/ lib/proto/
 COPY lib/_code_gen/ lib/_code_gen/
 COPY buf.yaml .
-COPY tool/ tool/
 
 # Generate only Go code from protobuf definitions
+# Note: Using buf.gen.go.docker.yaml which only uses remote plugins (no local custom plugin)
+# The custom protochaingo plugin is not needed for Docker builds - the standard protoc-gen-go
+# and grpc-go plugins provide all the functionality needed for integration tests
 RUN echo "🔍 Validating protobuf definitions..." && \
     buf lint lib/proto && \
     echo "✅ Protobuf definitions validated" && \
     echo "" && \
     echo "🏃 Generating Go code only from protobuf definitions..." && \
-    buf generate lib/proto --template lib/_code_gen/buf.gen.go.yaml && \
+    buf generate lib/proto --template lib/_code_gen/buf.gen.go.docker.yaml && \
     echo "✅ Go code generation complete!"
 
 ##############################################################################
