@@ -10,6 +10,11 @@ FROM ubuntu:latest
 
 WORKDIR /protochain
 
+# Install curl
+RUN apt-get update && \
+    apt-get install -y \
+    curl
+
 # Install Go
 RUN curl -L https://go.dev/dl/go1.24.4.linux-amd64.tar.gz -o golang.tar.gz
 RUN tar -C /usr/local -xzf golang.tar.gz && \
