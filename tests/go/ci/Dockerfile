@@ -58,8 +58,8 @@ WORKDIR /protochain
 COPY go.work .
 COPY go.work.sum .
 
-# Copy lib/go directory structure
 COPY lib/go/ lib/go/
+COPY tool/protoc-gen/ tool/protoc-gen/
 
 # Copy generated Go SDK from codegen stage
 COPY --from=codegen /protochain/lib/go/ lib/go/
