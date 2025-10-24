@@ -29,16 +29,14 @@ type Config struct {
 }
 
 func GetConfig(configFileName string) (*Config, error) {
-	v := viper.New()
-
 	// Set defaults
-	v.SetDefault("SolanaRPCURL", "http://localhost:8899")
-	v.SetDefault("BackendGRPCEndpoint", "localhost")
-	v.SetDefault("BackendGRPCPort", 50051)
-	v.SetDefault("BackendGRPCTLS", false)
-	v.SetDefault("TestAccountAddress", "5MvYgrb6DDznpeqejPzkJSxj7cBCu4UjTRVb1saMsGPr")
-	v.SetDefault("ValidatorStartTimeout", 60) // seconds
-	v.SetDefault("BackendStartTimeout", 30)   // seconds
+	viper.SetDefault("SolanaRPCURL", "http://localhost:8899")
+	viper.SetDefault("BackendGRPCEndpoint", "localhost")
+	viper.SetDefault("BackendGRPCPort", 50051)
+	viper.SetDefault("BackendGRPCTLS", false)
+	viper.SetDefault("TestAccountAddress", "5MvYgrb6DDznpeqejPzkJSxj7cBCu4UjTRVb1saMsGPr")
+	viper.SetDefault("ValidatorStartTimeout", 60) // seconds
+	viper.SetDefault("BackendStartTimeout", 30)   // seconds
 
 	// Find api-test root by walking up the directory tree
 	configPath, err := findAPITestRoot()
@@ -51,20 +49,15 @@ func GetConfig(configFileName string) (*Config, error) {
 
 	// Only read config file if it exists (optional)
 	if _, err := os.Stat(configFile); err == nil {
-		v.SetConfigFile(configFile)
-		if err := v.ReadInConfig(); err != nil {
+		viper.SetConfigFile(configFile)
+		if err := viper.ReadInConfig(); err != nil {
 			return nil, fmt.Errorf("error reading config file %s: %w", configFile, err)
 		}
 	}
 
-	// Override with environment variables if set
-	if rpcURL := os.Getenv("SOLANA_RPC_URL"); rpcURL != "" {
-		v.Set("SolanaRPCURL", rpcURL)
-	}
-
 	// Unmarshal into struct
 	var config Config
-	if err := v.Unmarshal(&config); err != nil {
+	if err := viper.Unmarshal(&config); err != nil {
 		return nil, fmt.Errorf("error unmarshaling config: %w", err)
 	}
 

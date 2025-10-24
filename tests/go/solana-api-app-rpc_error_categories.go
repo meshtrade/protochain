@@ -2,17 +2,20 @@ package apitest
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
 	account_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/account/v1"
 	transaction_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/transaction/v1"
 	type_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/type/v1"
+	"github.com/BRBussy/protochain/tests/go/config"
 )
 
 // ErrorCategoriesTestSuite tests comprehensive transaction error classification
@@ -41,14 +44,21 @@ type ErrorCategoriesTestSuite struct {
 func (suite *ErrorCategoriesTestSuite) SetupSuite() {
 	suite.ctx, suite.cancel = context.WithCancel(context.Background())
 
-	// Setup gRPC connection
-	grpcEndpoint := "localhost:50051"
+	conf, err := config.GetConfig("config.json")
+	suite.Require().NoError(err, "Failed to get config")
 
-	var err error
-	suite.grpcConn, err = grpc.NewClient(
-		grpcEndpoint,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	// Setup configuration
+	grpcEndpoint := fmt.Sprintf("%s:%d", conf.BackendGRPCEndpoint, conf.BackendGRPCPort)
+
+	// Connect to gRPC server
+	var dialOpts []grpc.DialOption
+	if conf.BackendGRPCTLS {
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(nil, "")))
+	} else {
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	}
+
+	suite.grpcConn, err = grpc.NewClient(grpcEndpoint, dialOpts...)
 	suite.Require().NoError(err, "Failed to connect to gRPC server")
 
 	// Initialize service clients
