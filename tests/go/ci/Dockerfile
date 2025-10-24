@@ -6,7 +6,7 @@
 ##############################################################################
 # Stage 1: Code generation with buf
 ##############################################################################
-FROM bufbuild/buf:latest AS codegen
+FROM ubuntu:latest
 
 WORKDIR /protochain
 
@@ -16,6 +16,14 @@ RUN tar -C /usr/local -xzf golang.tar.gz && \
     rm golang.tar.gz
 ENV GOROOT=/usr/local/go
 ENV PATH=$GOROOT/bin:$PATH
+
+# Install Buf
+RUN BIN="/usr/local/bin" && \
+    VERSION="1.55.1" && \
+    curl -sSL \
+    "https://github.com/bufbuild/buf/releases/download/v${VERSION}/buf-$(uname -s)-$(uname -m)" \
+    -o "${BIN}/buf" && \
+    chmod +x "${BIN}/buf"
 
 # Copy proto files and configuration
 COPY lib/proto/ lib/proto/
