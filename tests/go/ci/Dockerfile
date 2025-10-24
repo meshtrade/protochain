@@ -58,7 +58,6 @@ WORKDIR /protochain
 COPY go.work .
 COPY go.work.sum .
 COPY go.mod .
-COPY go.sum . 
 
 COPY lib/go/ lib/go/
 COPY tool/protoc-gen/ tool/protoc-gen/
