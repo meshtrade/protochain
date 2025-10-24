@@ -12,6 +12,7 @@ import (
 func init() {
 	viper.MustBindEnv("SolanaRPCURL", "SolanaRPCURL")
 	viper.MustBindEnv("BackendGRPCEndpoint", "BackendGRPCEndpoint")
+	viper.MustBindEnv("BackendGRPCPort", "BackendGRPCPort")
 	viper.MustBindEnv("BackendGRPCTLS", "BackendGRPCTLS")
 	viper.MustBindEnv("TestAccountAddress", "TestAccountAddress")
 	viper.MustBindEnv("ValidatorStartTimeout", "ValidatorStartTimeout")
