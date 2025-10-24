@@ -105,7 +105,7 @@ func (suite *StreamingE2ETestSuite) Test_01_EnhancedSubmitTransactionResponse() 
 
 	// Create and compile transaction
 	transaction := &transaction_v1.Transaction{
-		Instructions: []*transaction_v1.SolanaInstruction{transferResp},
+		Instructions: []*transaction_v1.SolanaInstruction{transferResp.Instruction},
 		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 	}
 
@@ -302,7 +302,7 @@ func (suite *StreamingE2ETestSuite) Test_04_SubmitAndMonitorWorkflow() {
 
 	// Build, sign, and submit transaction
 	transaction := &transaction_v1.Transaction{
-		Instructions: []*transaction_v1.SolanaInstruction{transferResp},
+		Instructions: []*transaction_v1.SolanaInstruction{transferResp.Instruction},
 		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 	}
 
@@ -417,23 +417,23 @@ func (suite *StreamingE2ETestSuite) Test_05_SystemProgram_CreateInstruction() {
 	suite.T().Logf("   Lamports: %d", request.Lamports)
 
 	// System program service returns SolanaInstruction directly
-	instruction, err := suite.systemProgramService.Create(suite.ctx, request)
+	instructionResp, err := suite.systemProgramService.Create(suite.ctx, request)
 	suite.Require().NoError(err, "Create instruction should succeed")
-	suite.Require().NotNil(instruction, "Instruction should not be nil")
+	suite.Require().NotNil(instructionResp, "Instruction should not be nil")
 
 	// Validate instruction structure
-	suite.Assert().NotEmpty(instruction.ProgramId, "Instruction should have program ID")
-	suite.Assert().Equal("11111111111111111111111111111111", instruction.ProgramId, "Should be system program ID")
-	suite.Assert().NotEmpty(instruction.Accounts, "Instruction should have accounts")
-	suite.Assert().NotEmpty(instruction.Data, "Instruction should have data")
-	suite.Assert().NotEmpty(instruction.Description, "Instruction should have description")
+	suite.Assert().NotEmpty(instructionResp.Instruction.ProgramId, "Instruction should have program ID")
+	suite.Assert().Equal("11111111111111111111111111111111", instructionResp.Instruction.ProgramId, "Should be system program ID")
+	suite.Assert().NotEmpty(instructionResp.Instruction.Accounts, "Instruction should have accounts")
+	suite.Assert().NotEmpty(instructionResp.Instruction.Data, "Instruction should have data")
+	suite.Assert().NotEmpty(instructionResp.Instruction.Description, "Instruction should have description")
 
 	// Validate account metadata
-	suite.Assert().True(len(instruction.Accounts) >= 2, "Create instruction should have at least 2 accounts")
+	suite.Assert().True(len(instructionResp.Instruction.Accounts) >= 2, "Create instruction should have at least 2 accounts")
 
 	// Find payer and new account in the accounts list
 	var payerAccount, newAccountAccount *transaction_v1.SolanaAccountMeta
-	for _, acc := range instruction.Accounts {
+	for _, acc := range instructionResp.Instruction.Accounts {
 		if acc.Pubkey == request.Payer {
 			payerAccount = acc
 		}
@@ -451,10 +451,10 @@ func (suite *StreamingE2ETestSuite) Test_05_SystemProgram_CreateInstruction() {
 	suite.Assert().True(newAccountAccount.IsWritable, "New account should be writable")
 
 	suite.T().Logf("✅ System program create instruction generated:")
-	suite.T().Logf("   Program ID: %s", instruction.ProgramId)
-	suite.T().Logf("   Accounts: %d", len(instruction.Accounts))
-	suite.T().Logf("   Data Length: %d bytes", len(instruction.Data))
-	suite.T().Logf("   Description: %s", instruction.Description)
+	suite.T().Logf("   Program ID: %s", instructionResp.Instruction.ProgramId)
+	suite.T().Logf("   Accounts: %d", len(instructionResp.Instruction.Accounts))
+	suite.T().Logf("   Data Length: %d bytes", len(instructionResp.Instruction.Data))
+	suite.T().Logf("   Description: %s", instructionResp.Instruction.Description)
 }
 
 // Test_06_SystemProgram_TransferInstruction tests creating a transfer instruction
@@ -480,19 +480,19 @@ func (suite *StreamingE2ETestSuite) Test_06_SystemProgram_TransferInstruction() 
 	suite.T().Logf("   Lamports: %d (%.4f SOL)", request.Lamports, float64(request.Lamports)/1_000_000_000)
 
 	// System program service returns SolanaInstruction directly
-	instruction, err := suite.systemProgramService.Transfer(suite.ctx, request)
+	instructionResp, err := suite.systemProgramService.Transfer(suite.ctx, request)
 	suite.Require().NoError(err, "Transfer instruction should succeed")
-	suite.Require().NotNil(instruction, "Instruction should not be nil")
+	suite.Require().NotNil(instructionResp, "Instruction should not be nil")
 
 	// Validate instruction structure
-	suite.Assert().Equal("11111111111111111111111111111111", instruction.ProgramId, "Should be system program ID")
-	suite.Assert().Len(instruction.Accounts, 2, "Transfer should have exactly 2 accounts")
-	suite.Assert().NotEmpty(instruction.Data, "Instruction should have data")
-	suite.Assert().Contains(instruction.Description, "Transfer", "Description should mention transfer")
+	suite.Assert().Equal("11111111111111111111111111111111", instructionResp.Instruction.ProgramId, "Should be system program ID")
+	suite.Assert().Len(instructionResp.Instruction.Accounts, 2, "Transfer should have exactly 2 accounts")
+	suite.Assert().NotEmpty(instructionResp.Instruction.Data, "Instruction should have data")
+	suite.Assert().Contains(instructionResp.Instruction.Description, "Transfer", "Description should mention transfer")
 
 	// Validate account metadata for transfer
-	fromAccount := instruction.Accounts[0]
-	toAccount := instruction.Accounts[1]
+	fromAccount := instructionResp.Instruction.Accounts[0]
+	toAccount := instructionResp.Instruction.Accounts[1]
 
 	suite.Assert().Equal(request.From, fromAccount.Pubkey, "First account should be from address")
 	suite.Assert().Equal(request.To, toAccount.Pubkey, "Second account should be to address")
@@ -526,7 +526,7 @@ func (suite *StreamingE2ETestSuite) Test_07_TransactionLifecycle_EstimateSimulat
 
 	compileResp, err := suite.transactionService.CompileTransaction(suite.ctx, &transaction_v1.CompileTransactionRequest{
 		Transaction: &transaction_v1.Transaction{
-			Instructions: []*transaction_v1.SolanaInstruction{transferInstr},
+			Instructions: []*transaction_v1.SolanaInstruction{transferInstr.Instruction},
 			State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 		},
 		FeePayer: fromResp.KeyPair.PublicKey,
@@ -598,7 +598,7 @@ func (suite *StreamingE2ETestSuite) Test_08_TransactionLifecycle_SigningFlow() {
 
 	compileResp, err := suite.transactionService.CompileTransaction(suite.ctx, &transaction_v1.CompileTransactionRequest{
 		Transaction: &transaction_v1.Transaction{
-			Instructions: []*transaction_v1.SolanaInstruction{transferInstr},
+			Instructions: []*transaction_v1.SolanaInstruction{transferInstr.Instruction},
 			State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 		},
 		FeePayer: testAddress,
@@ -719,9 +719,9 @@ func (suite *StreamingE2ETestSuite) Test_09_ComprehensiveStreamingIntegration() 
 	suite.T().Log("📤 Step 5: Composing multi-instruction atomic transaction")
 	atomicTx := &transaction_v1.Transaction{
 		Instructions: []*transaction_v1.SolanaInstruction{
-			createSecondInstr, // Create second account with 2 SOL
-			createThirdInstr,  // Create third account with 1 SOL
-			transferInstr,     // Transfer 0.5 SOL from newly created second to third account
+			createSecondInstr.Instruction, // Create second account with 2 SOL
+			createThirdInstr.Instruction,  // Create third account with 1 SOL
+			transferInstr.Instruction,     // Transfer 0.5 SOL from newly created second to third account
 		},
 		State: transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 		Config: &transaction_v1.TransactionConfig{
@@ -833,7 +833,7 @@ func (suite *StreamingE2ETestSuite) Test_09_ComprehensiveStreamingIntegration() 
 
 	// Create, compile, sign and submit second transaction
 	secondTx := &transaction_v1.Transaction{
-		Instructions: []*transaction_v1.SolanaInstruction{createFourthInstr},
+		Instructions: []*transaction_v1.SolanaInstruction{createFourthInstr.Instruction},
 		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 	}
 
@@ -878,7 +878,7 @@ func (suite *StreamingE2ETestSuite) Test_09_ComprehensiveStreamingIntegration() 
 
 	// Create, compile, sign and submit transfer transaction
 	transferTx := &transaction_v1.Transaction{
-		Instructions: []*transaction_v1.SolanaInstruction{transferInstr2},
+		Instructions: []*transaction_v1.SolanaInstruction{transferInstr2.Instruction},
 		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 	}
 
@@ -1057,7 +1057,7 @@ func (suite *StreamingE2ETestSuite) Test_10_PreStreamingValidation() {
 
 	// Step 4: Compile transaction (but don't submit yet)
 	transaction := &transaction_v1.Transaction{
-		Instructions: []*transaction_v1.SolanaInstruction{transferResp},
+		Instructions: []*transaction_v1.SolanaInstruction{transferResp.Instruction},
 		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 	}
 

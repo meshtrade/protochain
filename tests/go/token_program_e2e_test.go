@@ -125,7 +125,7 @@ func (suite *TokenProgramE2ETestSuite) Test_01_InitialiseMint() {
 	// Compose atomic transaction
 	atomicTx := &transaction_v1.Transaction{
 		Instructions: []*transaction_v1.SolanaInstruction{
-			createMintInstr,
+			createMintInstr.Instruction,
 			initialiseMintInstr.Instruction,
 		},
 		State: transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
@@ -340,7 +340,7 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	// Compose atomic transaction with mint + holding account instructions (including memo enable)
 	atomicTx := &transaction_v1.Transaction{
 		Instructions: []*transaction_v1.SolanaInstruction{
-			createMintInstr,
+			createMintInstr.Instruction,
 			initialiseMintInstr.Instruction,
 		},
 		State: transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
@@ -396,15 +396,15 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	suite.Assert().True(parsedMint.Mint.IsInitialized, "Mint should be initialized")
 
 	// Verify holding account creation (ensure it exists and is owned by token program)
-	holdingAccount, err := suite.accountService.GetAccount(suite.ctx, &account_v1.GetAccountRequest{
+	holdingAccountResp, err := suite.accountService.GetAccount(suite.ctx, &account_v1.GetAccountRequest{
 		Address:         holdingAccKeyResp.KeyPair.PublicKey,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 	})
 	suite.Require().NoError(err, "Should get holding account")
-	suite.Require().NotNil(holdingAccount, "Holding account should exist")
-	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, holdingAccount.Owner, "Holding account should be owned by Token 2022 program")
-	suite.Require().NotEmpty(holdingAccount.Data, "Holding account should have data")
-	decodedData := decodeAccountDataBytes(suite, holdingAccount.Data)
+	suite.Require().NotNil(holdingAccountResp, "Holding account should exist")
+	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, holdingAccountResp.Account.Owner, "Holding account should be owned by Token 2022 program")
+	suite.Require().NotEmpty(holdingAccountResp.Account.Data, "Holding account should have data")
+	decodedData := decodeAccountDataBytes(suite, holdingAccountResp.Account.Data)
 	suite.Assert().Equal(int(memoAccountSpace), len(decodedData), "Holding account data length should match memo-enabled space")
 
 	// BUILD INSTRUCTION to mint tokens into the holding account
@@ -464,9 +464,9 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 	})
 	suite.Require().NoError(err, "Should get holding account after minting")
-	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, holdingAccountAfterMint.Owner, "Holding account should still be owned by Token 2022 program")
-	suite.Require().NotEmpty(holdingAccountAfterMint.Data, "Holding account should have updated data after minting")
-	memoDecodedData := decodeAccountDataBytes(suite, holdingAccountAfterMint.Data)
+	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, holdingAccountAfterMint.Account.Owner, "Holding account should still be owned by Token 2022 program")
+	suite.Require().NotEmpty(holdingAccountAfterMint.Account.Data, "Holding account should have updated data after minting")
+	memoDecodedData := decodeAccountDataBytes(suite, holdingAccountAfterMint.Account.Data)
 	suite.Assert().Equal(memoAccountSpace, len(memoDecodedData), "Holding account data length should remain memo-enabled size")
 
 	// Verify mint supply has increased
@@ -495,8 +495,8 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	suite.T().Logf("   Mint Authority: %s", parsedMint.Mint.MintAuthorityPubKey)
 	suite.T().Logf("   Mint Supply After Minting: %s", parsedMintAfterMinting.Mint.Supply)
 	suite.T().Logf("   Holding Account Address: %s", holdingAccKeyResp.KeyPair.PublicKey)
-	suite.T().Logf("   Holding Account Owner: %s", holdingAccount.Owner)
-	suite.T().Logf("   Holding Account Balance: %d lamports", holdingAccount.Lamports)
+	suite.T().Logf("   Holding Account Owner: %s", holdingAccountResp.Account.Owner)
+	suite.T().Logf("   Holding Account Balance: %d lamports", holdingAccountResp.Account.Lamports)
 	suite.T().Logf("   Minted Amount: %s tokens", mintAmount)
 
 	suite.T().Logf("🔍 Blockchain verification commands:")
