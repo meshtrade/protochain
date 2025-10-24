@@ -6,7 +6,7 @@
 ##############################################################################
 # Stage 1: Code generation with buf
 ##############################################################################
-FROM ubuntu:latest
+FROM ubuntu:latest AS codegen
 
 WORKDIR /protochain
 
