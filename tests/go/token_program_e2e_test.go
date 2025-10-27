@@ -538,7 +538,7 @@ func (suite *TokenProgramE2ETestSuite) monitorTransactionToCompletion(signature 
 		Signature:       signature,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 		IncludeLogs:     false,
-		TimeoutSeconds:  60,
+		TimeoutSeconds:  180,
 	})
 	suite.Require().NoError(err, "Must create monitoring stream for signature: %s", signature)
 

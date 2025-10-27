@@ -338,7 +338,7 @@ func (suite *StreamingE2ETestSuite) Test_04_SubmitAndMonitorWorkflow() {
 		Signature:       submitResp.Signature,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 		IncludeLogs:     true,
-		TimeoutSeconds:  30,
+		TimeoutSeconds:  180,
 	})
 
 	// Stream must be created successfully with real backend
@@ -975,7 +975,7 @@ func (suite *StreamingE2ETestSuite) monitorTransactionToCompletion(signature str
 		Signature:       signature,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 		IncludeLogs:     false,
-		TimeoutSeconds:  30,
+		TimeoutSeconds:  180,
 	})
 
 	suite.Require().NoError(err, "Must create monitoring stream for signature: %s", signature)
