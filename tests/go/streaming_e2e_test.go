@@ -974,7 +974,7 @@ func (suite *StreamingE2ETestSuite) monitorTransactionToCompletion(signature str
 	stream, err := suite.transactionService.MonitorTransaction(suite.ctx, &transaction_v1.MonitorTransactionRequest{
 		Signature:       signature,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
-		IncludeLogs:     false,
+		IncludeLogs:     true,
 		TimeoutSeconds:  180,
 	})
 

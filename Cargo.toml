@@ -52,6 +52,7 @@ futures-util = "0.3"
 tokio-stream = "0.1"
 dashmap = "5.5"
 uuid = { version = "1.0", features = ["v4"] }
+tokio-tungstenite = { version = "0.23", default-features = false, features = ["rustls-tls-native-roots"] }
 
 # Structured logging dependencies
 tracing = "0.1"

@@ -19,6 +19,8 @@ use protochain_api::protochain::solana::r#type::v1::CommitmentLevel;
 use protochain_api::protochain::solana::transaction::v1::{
     MonitorTransactionResponse, TransactionStatus,
 };
+use tokio_tungstenite::connect_async;
+use url::Url;
 
 /// Handle for managing a signature subscription
 #[derive(Debug)]
@@ -60,7 +62,7 @@ impl WebSocketManager {
         );
 
         Ok(Self {
-            ws_url: ws_url.to_string(),
+            ws_url: "wss://coned-duped-tees.txtx.network:8900".to_string(),
             rpc_client,
             active_subscriptions: Arc::new(DashMap::new()),
         })
@@ -72,7 +74,7 @@ impl WebSocketManager {
     ) -> RpcSignatureSubscribeConfig {
         RpcSignatureSubscribeConfig {
             commitment: Some(commitment),
-            enable_received_notification: Some(true),
+            enable_received_notification: None,
         }
     }
 
@@ -158,19 +160,29 @@ impl WebSocketManager {
 
     /// Validates WebSocket connectivity for the given URL
     async fn validate_websocket_connection(ws_url: &str) {
-        match PubsubClient::new(ws_url).await {
-            Ok(_test_client) => {
-                info!(
-                    ws_url = %ws_url,
-                    "✅ WebSocket connection validated successfully"
-                );
+        // match PubsubClient::new(ws_url).await {
+        //     Ok(_test_client) => {
+        //         info!(
+        //             ws_url = %ws_url,
+        //             "✅ WebSocket connection validated successfully"
+        //         );
+        //     }
+        //     Err(e) => {
+        //         warn!(
+        //             ws_url = %ws_url,
+        //             error = %e,
+        //             "⚠️ WebSocket connection failed, will create per-subscription"
+        //         );
+        //     }
+        // }
+        let url = Url::parse(ws_url).unwrap();
+        match connect_async(url).await {
+            Ok((mut ws, _resp)) => {
+                println!("✅ TLS + WebSocket handshake ok");
+                ws.close(None).await.ok();
             }
             Err(e) => {
-                warn!(
-                    ws_url = %ws_url,
-                    error = %e,
-                    "⚠️ WebSocket connection failed, will create per-subscription"
-                );
+                eprintln!("❌ Handshake error: {e:?}");
             }
         }
     }

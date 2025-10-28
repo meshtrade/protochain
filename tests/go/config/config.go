@@ -10,7 +10,6 @@ import (
 )
 
 func init() {
-	viper.MustBindEnv("SolanaRPCURL", "SolanaRPCURL")
 	viper.MustBindEnv("BackendGRPCEndpoint", "BackendGRPCEndpoint")
 	viper.MustBindEnv("BackendGRPCPort", "BackendGRPCPort")
 	viper.MustBindEnv("BackendGRPCTLS", "BackendGRPCTLS")
@@ -20,7 +19,6 @@ func init() {
 }
 
 type Config struct {
-	SolanaRPCURL          string
 	BackendGRPCEndpoint   string
 	BackendGRPCPort       int
 	BackendGRPCTLS        bool
@@ -31,7 +29,6 @@ type Config struct {
 
 func GetConfig(configFileName string) (*Config, error) {
 	// Set defaults
-	viper.SetDefault("SolanaRPCURL", "http://localhost:8899")
 	viper.SetDefault("BackendGRPCEndpoint", "localhost")
 	viper.SetDefault("BackendGRPCPort", 50051)
 	viper.SetDefault("BackendGRPCTLS", false)

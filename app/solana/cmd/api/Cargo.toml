@@ -41,5 +41,14 @@ bs58 = "0.5"
 hex = "0.4"
 spl-token-2022 = "3.0.0"
 
+# WebSocket support with native TLS for WSS (secure WebSocket) connections
+# Note: rustls via tokio-tungstenite does NOT work reliably for WSS in practice.
+# native-tls is required for proper certificate handling with WSS endpoints.
+# We must explicitly disable rustls and enable native-tls to override solana-pubsub-client's default
+tokio-tungstenite = { version = "0.20", default-features = false, features = ["connect", "handshake", "stream", "native-tls"] }
+tokio-native-tls = "0.3"
+native-tls = "0.2"
+
 # Reference the API crate within the workspace (updated path for new location)
 protochain-api = { path = "../../../../lib/rust" }
+url = "2.5.7"
