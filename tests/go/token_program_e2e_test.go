@@ -467,7 +467,7 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, holdingAccountAfterMint.Account.Owner, "Holding account should still be owned by Token 2022 program")
 	suite.Require().NotEmpty(holdingAccountAfterMint.Account.Data, "Holding account should have updated data after minting")
 	memoDecodedData := decodeAccountDataBytes(suite, holdingAccountAfterMint.Account.Data)
-	suite.Assert().Equal(memoAccountSpace, len(memoDecodedData), "Holding account data length should remain memo-enabled size")
+	suite.Assert().Equal(memoAccountSpace, int64(len(memoDecodedData)), "Holding account data length should remain memo-enabled size")
 
 	// Verify mint supply has increased
 	var parsedMintAfterMinting *token_v1.ParseMintResponse
