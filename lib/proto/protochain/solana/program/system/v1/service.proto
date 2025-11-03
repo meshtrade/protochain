@@ -4,7 +4,7 @@ package protochain.solana.program.system.v1;
 
 import "protochain/solana/transaction/v1/instruction.proto";
 
-option go_package = "github.com/BRBussy/protochain/lib/go/protochain/solana/program/system/v1;system_v1";
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/program/system/v1;system_v1";
 
 service Service {
   // Core system program operations - all return composable instructions

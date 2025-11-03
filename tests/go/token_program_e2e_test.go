@@ -16,12 +16,12 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
-	account_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/account/v1"
-	system_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/program/system/v1"
-	token_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/program/token/v1"
-	transaction_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/transaction/v1"
-	type_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/type/v1"
-	"github.com/BRBussy/protochain/tests/go/config"
+	account_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/account/v1"
+	system_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/program/system/v1"
+	token_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1"
+	transaction_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/transaction/v1"
+	type_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/type/v1"
+	"github.com/meshtrade/protochain/tests/go/config"
 )
 
 // TokenProgramE2ETestSuite tests the Token Program service functionality

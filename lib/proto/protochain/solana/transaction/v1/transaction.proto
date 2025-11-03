@@ -4,7 +4,7 @@ package protochain.solana.transaction.v1;
 
 import "protochain/solana/transaction/v1/instruction.proto";
 
-option go_package = "github.com/BRBussy/protochain/lib/go/protochain/solana/transaction/v1;transaction_v1";
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/transaction/v1;transaction_v1";
 
 // Transaction lifecycle states
 enum TransactionState {

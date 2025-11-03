@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "Protocol Buffer wrapper for Solana blockchain operations via gRPC (Solana API App)"
 license = "MIT"
-repository = "https://github.com/BRBussy/protochain"
+repository = "https://github.com/meshtrade/protochain"
 keywords = ["solana", "blockchain", "grpc", "protobuf", "crypto"]
 categories = ["api-bindings", "cryptography::cryptocurrencies"]
 

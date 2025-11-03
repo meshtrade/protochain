@@ -6,7 +6,7 @@ import "protochain/solana/transaction/v1/transaction.proto";
 import "protochain/solana/transaction/v1/error.proto";
 import "protochain/solana/type/v1/commitment_level.proto";
 
-option go_package = "github.com/BRBussy/protochain/lib/go/protochain/solana/transaction/v1;transaction_v1";
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/transaction/v1;transaction_v1";
 
 service Service {
   // Transaction composition workflow

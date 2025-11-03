@@ -14,11 +14,11 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
-	account_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/account/v1"
-	system_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/program/system/v1"
-	transaction_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/transaction/v1"
-	type_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/type/v1"
-	"github.com/BRBussy/protochain/tests/go/config"
+	account_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/account/v1"
+	system_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/program/system/v1"
+	transaction_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/transaction/v1"
+	type_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/type/v1"
+	"github.com/meshtrade/protochain/tests/go/config"
 )
 
 // StreamingE2ETestSuite tests the transaction monitoring streaming functionality
