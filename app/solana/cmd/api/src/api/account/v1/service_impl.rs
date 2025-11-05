@@ -1,5 +1,6 @@
 use std::str::FromStr;
 use std::sync::Arc;
+use protochain_api::protochain::solana::account::v1::{GetTokenAccountBalanceRequest, GetTokenAccountBalanceResponse};
 use tonic::{Request, Response, Status};
 
 use protochain_api::protochain::solana::account::v1::{
@@ -240,5 +241,24 @@ impl AccountService for AccountServiceImpl {
         Ok(Response::new(FundNativeResponse {
             signature: signature.to_string(),
         }))
+    }
+
+    async fn get_token_account_balance(
+        &self,
+        request: Request<GetTokenAccountBalanceRequest>,
+    ) -> Result<Response<GetTokenAccountBalanceResponse>, Status> {
+        let req = request.into_inner();
+
+        // Parse the address
+        let pubkey = Pubkey::from_str(&req.address)
+            .map_err(|e| Status::invalid_argument(format!("Invalid address format: {e}")))?;
+
+        // get balance of account
+        let balance = self.rpc_client.get_balance_with_commitment(
+            &pubkey, 
+            CommitmentConfig { commitment: solana_sdk::commitment_config::CommitmentLevel::Confirmed },
+        ).map_err(|e| Status::internal(format!("Get balance with commitment request failed: {e}")))?;
+
+        Ok(Response::new(GetTokenAccountBalanceResponse { amount: balance.value }))
     }
 }
