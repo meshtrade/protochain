@@ -52,3 +52,6 @@ native-tls = "0.2"
 # Reference the API crate within the workspace (updated path for new location)
 protochain-api = { path = "../../../../lib/rust" }
 url = "2.5.7"
+spl-token-interface = "2.0.0"
+spl-associated-token-account.workspace = true
+spl-token.workspace = true

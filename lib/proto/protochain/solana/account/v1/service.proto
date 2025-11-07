@@ -9,10 +9,20 @@ import "protochain/solana/type/v1/keypair.proto";
 option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/account/v1;account_v1";
 
 service Service {
+  // GetAccount will return a protochain Account entity representing an account on-chain
   rpc GetAccount(GetAccountRequest) returns (GetAccountResponse);
+
+  // GenerateKeyPair will generate a public+private keypair (optionally using seed if set)
   rpc GenerateNewKeyPair(GenerateNewKeyPairRequest) returns (GenerateNewKeyPairResponse);
+
+  // FundNative will fund the destination account with SOL
   rpc FundNative(FundNativeRequest) returns (FundNativeResponse);
+
+  // GetTokenAccountBalance will return the balance of the token held by a token account
   rpc GetTokenAccountBalance(GetTokenAccountBalanceRequest) returns (GetTokenAccountBalanceResponse);
+
+  // GetAssociatedTokenAddress is used to get the PDA address of an associated token account
+  rpc GetAssociatedTokenAddress(GetAssociatedTokenAddressRequest) returns (GetAssociatedTokenAddressResponse);
 }
 
 message GetAccountRequest {
@@ -48,6 +58,16 @@ message GetTokenAccountBalanceRequest {
 }
 
 message GetTokenAccountBalanceResponse {
-  uint64 amount = 1; // Balance of token
+  string amount = 1; // Balance of token
+  uint32 decimals = 2; // amount of decimals on mint
+}
+
+message GetAssociatedTokenAddressRequest {
+  string owner_address = 1; // Address of owner of the token account (Base58)
+  string mint_address = 2; // Address of the mint account that minted the token
+}
+
+message GetAssociatedTokenAddressResponse {
+  string address = 1; // Address of the token account (Base58)
 }
 ;

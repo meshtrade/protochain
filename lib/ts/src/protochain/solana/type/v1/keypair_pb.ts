@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file protochain/solana/type/v1/keypair.proto.
  */
 export const file_protochain_solana_type_v1_keypair: GenFile = /*@__PURE__*/
-  fileDesc("Cidwcm90b2NoYWluL3NvbGFuYS90eXBlL3YxL2tleXBhaXIucHJvdG8SGXByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEiMgoHS2V5UGFpchISCgpwdWJsaWNfa2V5GAEgASgJEhMKC3ByaXZhdGVfa2V5GAIgASgJQk9aTWdpdGh1Yi5jb20vQlJCdXNzeS9wcm90b2NoYWluL2xpYi9nby9wcm90b2NoYWluL3NvbGFuYS90eXBlL3YxO3NvbGFuYV90eXBlX3YxYgZwcm90bzM");
+  fileDesc("Cidwcm90b2NoYWluL3NvbGFuYS90eXBlL3YxL2tleXBhaXIucHJvdG8SGXByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEiMgoHS2V5UGFpchISCgpwdWJsaWNfa2V5GAEgASgJEhMKC3ByaXZhdGVfa2V5GAIgASgJQlFaT2dpdGh1Yi5jb20vbWVzaHRyYWRlL3Byb3RvY2hhaW4vbGliL2dvL3Byb3RvY2hhaW4vc29sYW5hL3R5cGUvdjE7c29sYW5hX3R5cGVfdjFiBnByb3RvMw");
 
 /**
  * KeyPair represents a Solana cryptographic key pair for transaction signing

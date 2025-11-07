@@ -1,25 +1,20 @@
-use std::sync::Arc;
+use std::{sync::Arc};
 use tonic::{Request, Response, Status};
 
 use protochain_api::protochain::solana::program::token::v1::{
-    service_server::Service as TokenProgramService, CreateHoldingAccountRequest,
-    CreateHoldingAccountResponse, CreateMintRequest, CreateMintResponse,
-    GetCurrentMinRentForHoldingAccountRequest, GetCurrentMinRentForHoldingAccountResponse,
-    GetCurrentMinRentForTokenAccountRequest, GetCurrentMinRentForTokenAccountResponse,
-    InitialiseHoldingAccountRequest, InitialiseHoldingAccountResponse, InitialiseMintRequest,
-    InitialiseMintResponse, MintInfo, MintRequest, MintResponse, ParseMintRequest,
-    ParseMintResponse,
+    CreateAssociatedTokenAccountRequest, CreateAssociatedTokenAccountResponse, CreateHoldingAccountRequest, CreateHoldingAccountResponse, CreateMintRequest, CreateMintResponse, GetCurrentMinRentForHoldingAccountRequest, GetCurrentMinRentForHoldingAccountResponse, GetCurrentMinRentForTokenAccountRequest, GetCurrentMinRentForTokenAccountResponse, InitialiseHoldingAccountRequest, InitialiseHoldingAccountResponse, InitialiseMintRequest, InitialiseMintResponse, MintInfo, MintRequest, MintResponse, ParseMintRequest, ParseMintResponse, service_server::Service as TokenProgramService
 };
 
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{commitment_config::CommitmentConfig, program_pack::Pack, pubkey::Pubkey};
 use spl_token_2022::{
-    extension::{memo_transfer::instruction::enable_required_transfer_memos, ExtensionType},
-    instruction::{initialize_account, initialize_mint2, mint_to_checked},
-    state::{Account, Mint},
-    ID as TOKEN_2022_PROGRAM_ID,
+    ID as TOKEN_2022_PROGRAM_ID, extension::{ExtensionType, memo_transfer::instruction::enable_required_transfer_memos}, instruction::{initialize_account, mint_to_checked, initialize_mint2}, state::{Account, Mint}
 };
 use std::str::FromStr;
+use spl_associated_token_account::{
+    instruction::create_associated_token_account as spl_create_associated_token_account,
+    id as token_program_id,
+};
 
 use crate::api::common::solana_conversions::sdk_instruction_to_proto;
 use crate::api::program::system::v1::service_impl::SystemProgramServiceImpl;
@@ -417,6 +412,33 @@ impl TokenProgramService for TokenProgramServiceImpl {
         let proto_instruction = sdk_instruction_to_proto(instruction);
         Ok(Response::new(MintResponse {
             instruction: Some(proto_instruction),
+        }))
+    }
+
+    async fn create_associated_token_account(
+        &self,
+        request: Request<CreateAssociatedTokenAccountRequest>,
+    ) -> Result<Response<CreateAssociatedTokenAccountResponse>, Status> {
+        let req = request.into_inner();
+
+        let payer_address = Pubkey::from_str(&req.payer_pub_key)
+            .map_err(|e| Status::invalid_argument(format!("Invalid payer public key: {e}")))?;
+
+        let owner_address = Pubkey::from_str(&req.owner_pub_key)
+            .map_err(|e| Status::invalid_argument(format!("Invalid payer public key: {e}")))?;
+
+        let mint_address = Pubkey::from_str(&req.mint_pub_key)
+            .map_err(|e| Status::invalid_argument(format!("Invalid payer public key: {e}")))?;
+        
+        let instruction = spl_create_associated_token_account(
+            &payer_address, 
+            &owner_address, 
+            &mint_address, 
+            &token_program_id(),
+        );
+
+        Ok(Response::new(CreateAssociatedTokenAccountResponse {
+            instruction: Some(sdk_instruction_to_proto(instruction)),
         }))
     }
 }

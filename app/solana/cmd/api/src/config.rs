@@ -52,7 +52,7 @@ impl Default for ServerConfig {
     fn default() -> Self {
         Self {
             host: "127.0.0.1".to_string(),
-            port: 50051,
+            port: 50054,
         }
     }
 }
