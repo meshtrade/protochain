@@ -53,8 +53,8 @@ tokio-stream = "0.1"
 dashmap = "5.5"
 uuid = { version = "1.0", features = ["v4"] }
 tokio-tungstenite = { version = "0.23", default-features = false, features = ["rustls-tls-native-roots"] }
-spl-associated-token-account = "=3.0.2"
-spl-token = "3"
+spl-associated-token-account = { version = "=3.0.2", default-features = false }
+spl-token = { version = "3", default-features = false }
 
 # Structured logging dependencies
 tracing = "0.1"

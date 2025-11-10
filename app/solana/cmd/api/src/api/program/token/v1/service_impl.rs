@@ -471,9 +471,7 @@ impl TokenProgramService for TokenProgramServiceImpl {
         let decimals = u8::try_from(req.decimals)
             .map_err(|_| Status::invalid_argument("decimals must be between 0 and 255"))?;
 
-        let token_program_id = get_token_program_id(
-            sdk_token_program_to_proto(&account.owner)
-        );
+        let token_program_id = get_token_program_id(sdk_token_program_to_proto(&account.owner));
 
         // Create the MintToChecked instruction (no additional signers for single authority)
         let instruction = mint_to_checked(
