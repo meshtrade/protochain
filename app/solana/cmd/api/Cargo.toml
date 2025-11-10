@@ -39,7 +39,8 @@ thiserror = "1.0"
 bincode = "1.3"
 bs58 = "0.5"
 hex = "0.4"
-spl-token-2022 = "3.0.0"
+# Exclude default features to avoid on-chain program entrypoint symbol conflicts
+spl-token-2022 = { version = "3.0.0", default-features = false, features = ["serde-traits"] }
 
 # WebSocket support with native TLS for WSS (secure WebSocket) connections
 # Note: rustls via tokio-tungstenite does NOT work reliably for WSS in practice.
@@ -52,6 +53,5 @@ native-tls = "0.2"
 # Reference the API crate within the workspace (updated path for new location)
 protochain-api = { path = "../../../../lib/rust" }
 url = "2.5.7"
-spl-token-interface = "2.0.0"
 spl-associated-token-account.workspace = true
 spl-token.workspace = true
