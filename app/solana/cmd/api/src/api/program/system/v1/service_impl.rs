@@ -89,8 +89,8 @@ impl SystemProgramService for SystemProgramServiceImpl {
             req.owner.clone()
         };
         proto_instruction.description = format!(
-            "Create account: {} (payer: {}, owner: {}, lamports: {}, space: {})",
-            req.new_account, req.payer, owner_display, req.lamports, req.space
+            "Create account: {} (payer: {}, owner: {}, lamports: {}, space: {}, owner: {})",
+            req.new_account, req.payer, owner_display, req.lamports, req.space, req.owner
         );
 
         Ok(Response::new(CreateResponse {

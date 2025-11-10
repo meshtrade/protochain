@@ -1,18 +1,15 @@
 use std::str::FromStr;
 use std::sync::Arc;
-use solana_sdk::program_pack::Pack;
 use tonic::{Request, Response, Status};
 
 use protochain_api::protochain::solana::account::v1::{
     service_server::Service as AccountService, Account, FundNativeRequest, FundNativeResponse,
     GenerateNewKeyPairRequest, GenerateNewKeyPairResponse, GetAccountRequest, GetAccountResponse,
-    GetTokenAccountBalanceRequest, GetTokenAccountBalanceResponse, 
     GetAssociatedTokenAddressRequest, GetAssociatedTokenAddressResponse,
+    GetTokenAccountBalanceRequest, GetTokenAccountBalanceResponse,
 };
 use protochain_api::protochain::solana::r#type::v1::{CommitmentLevel, KeyPair};
-use spl_associated_token_account::{
-    get_associated_token_address,
-};
+use spl_associated_token_account::get_associated_token_address;
 
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
@@ -20,9 +17,6 @@ use solana_sdk::{
     pubkey::Pubkey,
     signature::{Keypair, SeedDerivable, Signer},
 };
-use spl_token_2022::state::Account as SplAccount;
-use spl_token::state::Account as LegacyAccount;
-use spl_token as spl_legacy;
 
 use crate::api::common::transaction_monitoring::wait_for_transaction_success_by_string;
 
@@ -262,12 +256,16 @@ impl AccountService for AccountServiceImpl {
             .map_err(|e| Status::invalid_argument(format!("Invalid address format: {e}")))?;
 
         // get the balance on the given token account
-        let balance = self.rpc_client.get_token_account_balance(&pubkey)
-            .map_err(|e| Status::internal(format!("Could not retrieve token account balance: {e}")))?;
+        let balance = self
+            .rpc_client
+            .get_token_account_balance(&pubkey)
+            .map_err(|e| {
+                Status::internal(format!("Could not retrieve token account balance: {e}"))
+            })?;
 
         Ok(Response::new(GetTokenAccountBalanceResponse {
             amount: balance.amount,
-            decimals: balance.decimals.try_into().unwrap(), // just using unwrap here since we are casting u8 to u32 so panic should not happen 
+            decimals: balance.decimals.into(), // just using unwrap here since we are casting u8 to u32 so panic should not happen
         }))
     }
 
@@ -277,20 +275,16 @@ impl AccountService for AccountServiceImpl {
     ) -> Result<Response<GetAssociatedTokenAddressResponse>, Status> {
         let req = request.into_inner();
 
-        let owner_address_key = Pubkey::from_str(&req.owner_address.as_str())
+        let owner_address_key = Pubkey::from_str(req.owner_address.as_str())
             .map_err(|e| Status::invalid_argument(format!("Invalid address format: {e}")))?;
 
-        let mint_address_key = Pubkey::from_str(&req.owner_address.as_str())
+        let mint_address_key = Pubkey::from_str(req.owner_address.as_str())
             .map_err(|e| Status::invalid_argument(format!("Invalid address format: {e}")))?;
 
-        let address = get_associated_token_address(
-            &owner_address_key, 
-            &mint_address_key,
-        );
+        let address = get_associated_token_address(&owner_address_key, &mint_address_key);
 
         Ok(Response::new(GetAssociatedTokenAddressResponse {
-            address: address.to_string(), 
+            address: address.to_string(),
         }))
     }
-
 }
