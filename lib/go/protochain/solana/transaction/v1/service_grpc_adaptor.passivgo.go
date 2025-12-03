@@ -113,6 +113,23 @@ func (a *ServiceGRPCAdaptor) SignTransaction(ctx context.Context, request *SignT
 	return signTransactionResponse, nil
 }
 
+// CheckIfTransactionIsExpired exposes the CheckIfTransactionIsExpired method of the Service interface over gRPC
+func (a *ServiceGRPCAdaptor) CheckIfTransactionIsExpired(ctx context.Context, request *CheckIfTransactionIsExpiredRequest) (*CheckIfTransactionIsExpiredResponse, error) {
+	ctx, span := a.tracer.Start(
+		ctx,
+		ServiceServiceProviderName+"GRPCAdaptor.CheckIfTransactionIsExpired",
+	)
+	defer span.End()
+
+	// call the service interface implementation
+	checkIfTransactionIsExpiredResponse, err := a.service.CheckIfTransactionIsExpired(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return checkIfTransactionIsExpiredResponse, nil
+}
+
 // SubmitTransaction exposes the SubmitTransaction method of the Service interface over gRPC
 func (a *ServiceGRPCAdaptor) SubmitTransaction(ctx context.Context, request *SubmitTransactionRequest) (*SubmitTransactionResponse, error) {
 	ctx, span := a.tracer.Start(

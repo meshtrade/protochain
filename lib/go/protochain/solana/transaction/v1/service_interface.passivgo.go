@@ -17,6 +17,8 @@ type ServiceInterface interface {
 
 	SignTransaction(ctx context.Context, request *SignTransactionRequest) (*SignTransactionResponse, error)
 
+	CheckIfTransactionIsExpired(ctx context.Context, request *CheckIfTransactionIsExpiredRequest) (*CheckIfTransactionIsExpiredResponse, error)
+
 	// Asynchronously submits a signed transaction to the network
 	// Returns immediately after submission without waiting for confirmation
 	// Use MonitorTransaction to poll for confirmation status if needed

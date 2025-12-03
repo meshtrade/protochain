@@ -295,6 +295,13 @@ pub struct Transaction {
     /// Primary signature for compatibility with existing account service
     #[prost(string, tag="9")]
     pub signature: ::prost::alloc::string::String,
+    #[prost(uint64, tag="10")]
+    pub slot: u64,
+    /// Human-readable error message from transaction meta (if any)
+    #[prost(string, tag="11")]
+    pub meta_error_message: ::prost::alloc::string::String,
+    #[prost(string, tag="12")]
+    pub meta_logs: ::prost::alloc::string::String,
 }
 /// Transaction lifecycle states
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
@@ -451,6 +458,23 @@ pub struct KeySeed {
     pub seed: ::prost::alloc::string::String,
     #[prost(string, tag="2")]
     pub passphrase: ::prost::alloc::string::String,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CheckIfTransactionIsExpiredRequest {
+    /// Transaction to check
+    #[prost(message, optional, tag="1")]
+    pub transaction: ::core::option::Option<Transaction>,
+    /// Commitment level for transaction submission
+    #[prost(enumeration="super::super::r#type::v1::CommitmentLevel", tag="2")]
+    pub commitment_level: i32,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct CheckIfTransactionIsExpiredResponse {
+    /// True if transaction is expired
+    #[prost(bool, tag="1")]
+    pub is_expired: bool,
 }
 /// Request to asynchronously submit a transaction to the Solana network
 /// The method returns immediately after submission without waiting for confirmation

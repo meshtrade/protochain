@@ -142,6 +142,14 @@ func (s *serviceService) SignTransaction(ctx context.Context, request *SignTrans
 	})
 }
 
+// CheckIfTransactionIsExpired executes the CheckIfTransactionIsExpired RPC method with automatic
+// client-side validation, timeout handling, distributed tracing, and authentication.
+func (s *serviceService) CheckIfTransactionIsExpired(ctx context.Context, request *CheckIfTransactionIsExpiredRequest) (*CheckIfTransactionIsExpiredResponse, error) {
+	return common.Execute(s.Executor(), ctx, "CheckIfTransactionIsExpired", request, func(ctx context.Context) (*CheckIfTransactionIsExpiredResponse, error) {
+		return s.GrpcClient().CheckIfTransactionIsExpired(ctx, request)
+	})
+}
+
 // SubmitTransaction executes the SubmitTransaction RPC method with automatic
 // client-side validation, timeout handling, distributed tracing, and authentication.
 func (s *serviceService) SubmitTransaction(ctx context.Context, request *SubmitTransactionRequest) (*SubmitTransactionResponse, error) {

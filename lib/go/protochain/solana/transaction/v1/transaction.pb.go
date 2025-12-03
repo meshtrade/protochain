@@ -172,10 +172,13 @@ type Transaction struct {
 	RecentBlockhash string   `protobuf:"bytes,6,opt,name=recent_blockhash,json=recentBlockhash,proto3" json:"recent_blockhash,omitempty"`
 	Signatures      []string `protobuf:"bytes,7,rep,name=signatures,proto3" json:"signatures,omitempty"`
 	// Transaction hash (when submitted)
-	Hash          string `protobuf:"bytes,8,opt,name=hash,proto3" json:"hash,omitempty"`
-	Signature     string `protobuf:"bytes,9,opt,name=signature,proto3" json:"signature,omitempty"` // Primary signature for compatibility with existing account service
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Hash             string `protobuf:"bytes,8,opt,name=hash,proto3" json:"hash,omitempty"`
+	Signature        string `protobuf:"bytes,9,opt,name=signature,proto3" json:"signature,omitempty"` // Primary signature for compatibility with existing account service
+	Slot             uint64 `protobuf:"varint,10,opt,name=slot,proto3" json:"slot,omitempty"`
+	MetaErrorMessage string `protobuf:"bytes,11,opt,name=meta_error_message,json=metaErrorMessage,proto3" json:"meta_error_message,omitempty"` // Human-readable error message from transaction meta (if any)
+	MetaLogs         string `protobuf:"bytes,12,opt,name=meta_logs,json=metaLogs,proto3" json:"meta_logs,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *Transaction) Reset() {
@@ -271,6 +274,27 @@ func (x *Transaction) GetSignature() string {
 	return ""
 }
 
+func (x *Transaction) GetSlot() uint64 {
+	if x != nil {
+		return x.Slot
+	}
+	return 0
+}
+
+func (x *Transaction) GetMetaErrorMessage() string {
+	if x != nil {
+		return x.MetaErrorMessage
+	}
+	return ""
+}
+
+func (x *Transaction) GetMetaLogs() string {
+	if x != nil {
+		return x.MetaLogs
+	}
+	return ""
+}
+
 var File_protochain_solana_transaction_v1_transaction_proto protoreflect.FileDescriptor
 
 const file_protochain_solana_transaction_v1_transaction_proto_rawDesc = "" +
@@ -281,7 +305,7 @@ const file_protochain_solana_transaction_v1_transaction_proto_rawDesc = "" +
 	"\x12compute_unit_price\x18\x02 \x01(\x04R\x10computeUnitPrice\x12!\n" +
 	"\fpriority_fee\x18\x03 \x01(\x04R\vpriorityFee\x12%\n" +
 	"\x0eskip_preflight\x18\x04 \x01(\bR\rskipPreflight\x126\n" +
-	"\x17skip_account_validation\x18\x05 \x01(\bR\x15skipAccountValidation\"\xab\x03\n" +
+	"\x17skip_account_validation\x18\x05 \x01(\bR\x15skipAccountValidation\"\x8a\x04\n" +
 	"\vTransaction\x12W\n" +
 	"\finstructions\x18\x01 \x03(\v23.protochain.solana.transaction.v1.SolanaInstructionR\finstructions\x12H\n" +
 	"\x05state\x18\x02 \x01(\x0e22.protochain.solana.transaction.v1.TransactionStateR\x05state\x12K\n" +
@@ -293,7 +317,11 @@ const file_protochain_solana_transaction_v1_transaction_proto_rawDesc = "" +
 	"signatures\x18\a \x03(\tR\n" +
 	"signatures\x12\x12\n" +
 	"\x04hash\x18\b \x01(\tR\x04hash\x12\x1c\n" +
-	"\tsignature\x18\t \x01(\tR\tsignature*\xbe\x01\n" +
+	"\tsignature\x18\t \x01(\tR\tsignature\x12\x12\n" +
+	"\x04slot\x18\n" +
+	" \x01(\x04R\x04slot\x12,\n" +
+	"\x12meta_error_message\x18\v \x01(\tR\x10metaErrorMessage\x12\x1b\n" +
+	"\tmeta_logs\x18\f \x01(\tR\bmetaLogs*\xbe\x01\n" +
 	"\x10TransactionState\x12!\n" +
 	"\x1dTRANSACTION_STATE_UNSPECIFIED\x10\x00\x12\x1b\n" +
 	"\x17TRANSACTION_STATE_DRAFT\x10\x01\x12\x1e\n" +

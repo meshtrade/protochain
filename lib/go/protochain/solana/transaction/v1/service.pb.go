@@ -750,6 +750,102 @@ func (x *KeySeed) GetPassphrase() string {
 	return ""
 }
 
+type CheckIfTransactionIsExpiredRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Transaction     *Transaction           `protobuf:"bytes,1,opt,name=transaction,proto3" json:"transaction,omitempty"`                                                                                // Transaction to check
+	CommitmentLevel v1.CommitmentLevel     `protobuf:"varint,2,opt,name=commitment_level,json=commitmentLevel,proto3,enum=protochain.solana.type.v1.CommitmentLevel" json:"commitment_level,omitempty"` // Commitment level for transaction submission
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *CheckIfTransactionIsExpiredRequest) Reset() {
+	*x = CheckIfTransactionIsExpiredRequest{}
+	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckIfTransactionIsExpiredRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckIfTransactionIsExpiredRequest) ProtoMessage() {}
+
+func (x *CheckIfTransactionIsExpiredRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckIfTransactionIsExpiredRequest.ProtoReflect.Descriptor instead.
+func (*CheckIfTransactionIsExpiredRequest) Descriptor() ([]byte, []int) {
+	return file_protochain_solana_transaction_v1_service_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *CheckIfTransactionIsExpiredRequest) GetTransaction() *Transaction {
+	if x != nil {
+		return x.Transaction
+	}
+	return nil
+}
+
+func (x *CheckIfTransactionIsExpiredRequest) GetCommitmentLevel() v1.CommitmentLevel {
+	if x != nil {
+		return x.CommitmentLevel
+	}
+	return v1.CommitmentLevel(0)
+}
+
+type CheckIfTransactionIsExpiredResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	IsExpired     bool                   `protobuf:"varint,1,opt,name=is_expired,json=isExpired,proto3" json:"is_expired,omitempty"` // True if transaction is expired
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckIfTransactionIsExpiredResponse) Reset() {
+	*x = CheckIfTransactionIsExpiredResponse{}
+	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckIfTransactionIsExpiredResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckIfTransactionIsExpiredResponse) ProtoMessage() {}
+
+func (x *CheckIfTransactionIsExpiredResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckIfTransactionIsExpiredResponse.ProtoReflect.Descriptor instead.
+func (*CheckIfTransactionIsExpiredResponse) Descriptor() ([]byte, []int) {
+	return file_protochain_solana_transaction_v1_service_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *CheckIfTransactionIsExpiredResponse) GetIsExpired() bool {
+	if x != nil {
+		return x.IsExpired
+	}
+	return false
+}
+
 // Request to asynchronously submit a transaction to the Solana network
 // The method returns immediately after submission without waiting for confirmation
 type SubmitTransactionRequest struct {
@@ -762,7 +858,7 @@ type SubmitTransactionRequest struct {
 
 func (x *SubmitTransactionRequest) Reset() {
 	*x = SubmitTransactionRequest{}
-	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[11]
+	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -774,7 +870,7 @@ func (x *SubmitTransactionRequest) String() string {
 func (*SubmitTransactionRequest) ProtoMessage() {}
 
 func (x *SubmitTransactionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[11]
+	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -787,7 +883,7 @@ func (x *SubmitTransactionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitTransactionRequest.ProtoReflect.Descriptor instead.
 func (*SubmitTransactionRequest) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_transaction_v1_service_proto_rawDescGZIP(), []int{11}
+	return file_protochain_solana_transaction_v1_service_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *SubmitTransactionRequest) GetTransaction() *Transaction {
@@ -820,7 +916,7 @@ type SubmitTransactionResponse struct {
 
 func (x *SubmitTransactionResponse) Reset() {
 	*x = SubmitTransactionResponse{}
-	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[12]
+	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -832,7 +928,7 @@ func (x *SubmitTransactionResponse) String() string {
 func (*SubmitTransactionResponse) ProtoMessage() {}
 
 func (x *SubmitTransactionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[12]
+	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -845,7 +941,7 @@ func (x *SubmitTransactionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitTransactionResponse.ProtoReflect.Descriptor instead.
 func (*SubmitTransactionResponse) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_transaction_v1_service_proto_rawDescGZIP(), []int{12}
+	return file_protochain_solana_transaction_v1_service_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *SubmitTransactionResponse) GetSignature() string {
@@ -886,7 +982,7 @@ type GetTransactionRequest struct {
 
 func (x *GetTransactionRequest) Reset() {
 	*x = GetTransactionRequest{}
-	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[13]
+	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -898,7 +994,7 @@ func (x *GetTransactionRequest) String() string {
 func (*GetTransactionRequest) ProtoMessage() {}
 
 func (x *GetTransactionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[13]
+	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -911,7 +1007,7 @@ func (x *GetTransactionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTransactionRequest.ProtoReflect.Descriptor instead.
 func (*GetTransactionRequest) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_transaction_v1_service_proto_rawDescGZIP(), []int{13}
+	return file_protochain_solana_transaction_v1_service_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetTransactionRequest) GetSignature() string {
@@ -937,7 +1033,7 @@ type GetTransactionResponse struct {
 
 func (x *GetTransactionResponse) Reset() {
 	*x = GetTransactionResponse{}
-	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[14]
+	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -949,7 +1045,7 @@ func (x *GetTransactionResponse) String() string {
 func (*GetTransactionResponse) ProtoMessage() {}
 
 func (x *GetTransactionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[14]
+	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -962,7 +1058,7 @@ func (x *GetTransactionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTransactionResponse.ProtoReflect.Descriptor instead.
 func (*GetTransactionResponse) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_transaction_v1_service_proto_rawDescGZIP(), []int{14}
+	return file_protochain_solana_transaction_v1_service_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetTransactionResponse) GetTransaction() *Transaction {
@@ -985,7 +1081,7 @@ type MonitorTransactionRequest struct {
 
 func (x *MonitorTransactionRequest) Reset() {
 	*x = MonitorTransactionRequest{}
-	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[15]
+	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -997,7 +1093,7 @@ func (x *MonitorTransactionRequest) String() string {
 func (*MonitorTransactionRequest) ProtoMessage() {}
 
 func (x *MonitorTransactionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[15]
+	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1010,7 +1106,7 @@ func (x *MonitorTransactionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MonitorTransactionRequest.ProtoReflect.Descriptor instead.
 func (*MonitorTransactionRequest) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_transaction_v1_service_proto_rawDescGZIP(), []int{15}
+	return file_protochain_solana_transaction_v1_service_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *MonitorTransactionRequest) GetSignature() string {
@@ -1056,7 +1152,7 @@ type MonitorTransactionResponse struct {
 
 func (x *MonitorTransactionResponse) Reset() {
 	*x = MonitorTransactionResponse{}
-	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[16]
+	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1068,7 +1164,7 @@ func (x *MonitorTransactionResponse) String() string {
 func (*MonitorTransactionResponse) ProtoMessage() {}
 
 func (x *MonitorTransactionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[16]
+	mi := &file_protochain_solana_transaction_v1_service_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1081,7 +1177,7 @@ func (x *MonitorTransactionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MonitorTransactionResponse.ProtoReflect.Descriptor instead.
 func (*MonitorTransactionResponse) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_transaction_v1_service_proto_rawDescGZIP(), []int{16}
+	return file_protochain_solana_transaction_v1_service_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *MonitorTransactionResponse) GetSignature() string {
@@ -1137,7 +1233,7 @@ var File_protochain_solana_transaction_v1_service_proto protoreflect.FileDescrip
 
 const file_protochain_solana_transaction_v1_service_proto_rawDesc = "" +
 	"\n" +
-	".protochain/solana/transaction/v1/service.proto\x12 protochain.solana.transaction.v1\x1a2protochain/solana/transaction/v1/transaction.proto\x1a,protochain/solana/transaction/v1/error.proto\x1a0protochain/solana/type/v1/commitment_level.proto\"\xb4\x01\n" +
+	".protochain/solana/transaction/v1/service.proto\x12 protochain.solana.transaction.v1\x1a,protochain/solana/transaction/v1/error.proto\x1a2protochain/solana/transaction/v1/transaction.proto\x1a0protochain/solana/type/v1/commitment_level.proto\"\xb4\x01\n" +
 	"\x19CompileTransactionRequest\x12O\n" +
 	"\vtransaction\x18\x01 \x01(\v2-.protochain.solana.transaction.v1.TransactionR\vtransaction\x12\x1b\n" +
 	"\tfee_payer\x18\x02 \x01(\tR\bfeePayer\x12)\n" +
@@ -1173,7 +1269,13 @@ const file_protochain_solana_transaction_v1_service_proto_rawDesc = "" +
 	"\x04seed\x18\x01 \x01(\tR\x04seed\x12\x1e\n" +
 	"\n" +
 	"passphrase\x18\x02 \x01(\tR\n" +
-	"passphrase\"\xc2\x01\n" +
+	"passphrase\"\xcc\x01\n" +
+	"\"CheckIfTransactionIsExpiredRequest\x12O\n" +
+	"\vtransaction\x18\x01 \x01(\v2-.protochain.solana.transaction.v1.TransactionR\vtransaction\x12U\n" +
+	"\x10commitment_level\x18\x02 \x01(\x0e2*.protochain.solana.type.v1.CommitmentLevelR\x0fcommitmentLevel\"D\n" +
+	"#CheckIfTransactionIsExpiredResponse\x12\x1d\n" +
+	"\n" +
+	"is_expired\x18\x01 \x01(\bR\tisExpired\"\xc2\x01\n" +
 	"\x18SubmitTransactionRequest\x12O\n" +
 	"\vtransaction\x18\x01 \x01(\v2-.protochain.solana.transaction.v1.TransactionR\vtransaction\x12U\n" +
 	"\x10commitment_level\x18\x02 \x01(\x0e2*.protochain.solana.type.v1.CommitmentLevelR\x0fcommitmentLevel\"\x9e\x02\n" +
@@ -1216,12 +1318,13 @@ const file_protochain_solana_transaction_v1_service_proto_rawDesc = "" +
 	"\x1cTRANSACTION_STATUS_FINALIZED\x10\x04\x12\x1d\n" +
 	"\x19TRANSACTION_STATUS_FAILED\x10\x05\x12\x1e\n" +
 	"\x1aTRANSACTION_STATUS_DROPPED\x10\x06\x12\x1e\n" +
-	"\x1aTRANSACTION_STATUS_TIMEOUT\x10\a2\xf7\a\n" +
+	"\x1aTRANSACTION_STATUS_TIMEOUT\x10\a2\xa4\t\n" +
 	"\aService\x12\x8f\x01\n" +
 	"\x12CompileTransaction\x12;.protochain.solana.transaction.v1.CompileTransactionRequest\x1a<.protochain.solana.transaction.v1.CompileTransactionResponse\x12\x92\x01\n" +
 	"\x13EstimateTransaction\x12<.protochain.solana.transaction.v1.EstimateTransactionRequest\x1a=.protochain.solana.transaction.v1.EstimateTransactionResponse\x12\x92\x01\n" +
 	"\x13SimulateTransaction\x12<.protochain.solana.transaction.v1.SimulateTransactionRequest\x1a=.protochain.solana.transaction.v1.SimulateTransactionResponse\x12\x86\x01\n" +
-	"\x0fSignTransaction\x128.protochain.solana.transaction.v1.SignTransactionRequest\x1a9.protochain.solana.transaction.v1.SignTransactionResponse\x12\x8c\x01\n" +
+	"\x0fSignTransaction\x128.protochain.solana.transaction.v1.SignTransactionRequest\x1a9.protochain.solana.transaction.v1.SignTransactionResponse\x12\xaa\x01\n" +
+	"\x1bCheckIfTransactionIsExpired\x12D.protochain.solana.transaction.v1.CheckIfTransactionIsExpiredRequest\x1aE.protochain.solana.transaction.v1.CheckIfTransactionIsExpiredResponse\x12\x8c\x01\n" +
 	"\x11SubmitTransaction\x12:.protochain.solana.transaction.v1.SubmitTransactionRequest\x1a;.protochain.solana.transaction.v1.SubmitTransactionResponse\x12\x83\x01\n" +
 	"\x0eGetTransaction\x127.protochain.solana.transaction.v1.GetTransactionRequest\x1a8.protochain.solana.transaction.v1.GetTransactionResponse\x12\x91\x01\n" +
 	"\x12MonitorTransaction\x12;.protochain.solana.transaction.v1.MonitorTransactionRequest\x1a<.protochain.solana.transaction.v1.MonitorTransactionResponse0\x01BXZVgithub.com/meshtrade/protochain/lib/go/protochain/solana/transaction/v1;transaction_v1b\x06proto3"
@@ -1239,71 +1342,77 @@ func file_protochain_solana_transaction_v1_service_proto_rawDescGZIP() []byte {
 }
 
 var file_protochain_solana_transaction_v1_service_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_protochain_solana_transaction_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_protochain_solana_transaction_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_protochain_solana_transaction_v1_service_proto_goTypes = []any{
-	(SubmissionResult)(0),               // 0: protochain.solana.transaction.v1.SubmissionResult
-	(TransactionStatus)(0),              // 1: protochain.solana.transaction.v1.TransactionStatus
-	(*CompileTransactionRequest)(nil),   // 2: protochain.solana.transaction.v1.CompileTransactionRequest
-	(*CompileTransactionResponse)(nil),  // 3: protochain.solana.transaction.v1.CompileTransactionResponse
-	(*EstimateTransactionRequest)(nil),  // 4: protochain.solana.transaction.v1.EstimateTransactionRequest
-	(*EstimateTransactionResponse)(nil), // 5: protochain.solana.transaction.v1.EstimateTransactionResponse
-	(*SimulateTransactionRequest)(nil),  // 6: protochain.solana.transaction.v1.SimulateTransactionRequest
-	(*SimulateTransactionResponse)(nil), // 7: protochain.solana.transaction.v1.SimulateTransactionResponse
-	(*SignTransactionRequest)(nil),      // 8: protochain.solana.transaction.v1.SignTransactionRequest
-	(*SignTransactionResponse)(nil),     // 9: protochain.solana.transaction.v1.SignTransactionResponse
-	(*SignWithPrivateKeys)(nil),         // 10: protochain.solana.transaction.v1.SignWithPrivateKeys
-	(*SignWithSeeds)(nil),               // 11: protochain.solana.transaction.v1.SignWithSeeds
-	(*KeySeed)(nil),                     // 12: protochain.solana.transaction.v1.KeySeed
-	(*SubmitTransactionRequest)(nil),    // 13: protochain.solana.transaction.v1.SubmitTransactionRequest
-	(*SubmitTransactionResponse)(nil),   // 14: protochain.solana.transaction.v1.SubmitTransactionResponse
-	(*GetTransactionRequest)(nil),       // 15: protochain.solana.transaction.v1.GetTransactionRequest
-	(*GetTransactionResponse)(nil),      // 16: protochain.solana.transaction.v1.GetTransactionResponse
-	(*MonitorTransactionRequest)(nil),   // 17: protochain.solana.transaction.v1.MonitorTransactionRequest
-	(*MonitorTransactionResponse)(nil),  // 18: protochain.solana.transaction.v1.MonitorTransactionResponse
-	(*Transaction)(nil),                 // 19: protochain.solana.transaction.v1.Transaction
-	(v1.CommitmentLevel)(0),             // 20: protochain.solana.type.v1.CommitmentLevel
-	(*TransactionError)(nil),            // 21: protochain.solana.transaction.v1.TransactionError
+	(SubmissionResult)(0),                       // 0: protochain.solana.transaction.v1.SubmissionResult
+	(TransactionStatus)(0),                      // 1: protochain.solana.transaction.v1.TransactionStatus
+	(*CompileTransactionRequest)(nil),           // 2: protochain.solana.transaction.v1.CompileTransactionRequest
+	(*CompileTransactionResponse)(nil),          // 3: protochain.solana.transaction.v1.CompileTransactionResponse
+	(*EstimateTransactionRequest)(nil),          // 4: protochain.solana.transaction.v1.EstimateTransactionRequest
+	(*EstimateTransactionResponse)(nil),         // 5: protochain.solana.transaction.v1.EstimateTransactionResponse
+	(*SimulateTransactionRequest)(nil),          // 6: protochain.solana.transaction.v1.SimulateTransactionRequest
+	(*SimulateTransactionResponse)(nil),         // 7: protochain.solana.transaction.v1.SimulateTransactionResponse
+	(*SignTransactionRequest)(nil),              // 8: protochain.solana.transaction.v1.SignTransactionRequest
+	(*SignTransactionResponse)(nil),             // 9: protochain.solana.transaction.v1.SignTransactionResponse
+	(*SignWithPrivateKeys)(nil),                 // 10: protochain.solana.transaction.v1.SignWithPrivateKeys
+	(*SignWithSeeds)(nil),                       // 11: protochain.solana.transaction.v1.SignWithSeeds
+	(*KeySeed)(nil),                             // 12: protochain.solana.transaction.v1.KeySeed
+	(*CheckIfTransactionIsExpiredRequest)(nil),  // 13: protochain.solana.transaction.v1.CheckIfTransactionIsExpiredRequest
+	(*CheckIfTransactionIsExpiredResponse)(nil), // 14: protochain.solana.transaction.v1.CheckIfTransactionIsExpiredResponse
+	(*SubmitTransactionRequest)(nil),            // 15: protochain.solana.transaction.v1.SubmitTransactionRequest
+	(*SubmitTransactionResponse)(nil),           // 16: protochain.solana.transaction.v1.SubmitTransactionResponse
+	(*GetTransactionRequest)(nil),               // 17: protochain.solana.transaction.v1.GetTransactionRequest
+	(*GetTransactionResponse)(nil),              // 18: protochain.solana.transaction.v1.GetTransactionResponse
+	(*MonitorTransactionRequest)(nil),           // 19: protochain.solana.transaction.v1.MonitorTransactionRequest
+	(*MonitorTransactionResponse)(nil),          // 20: protochain.solana.transaction.v1.MonitorTransactionResponse
+	(*Transaction)(nil),                         // 21: protochain.solana.transaction.v1.Transaction
+	(v1.CommitmentLevel)(0),                     // 22: protochain.solana.type.v1.CommitmentLevel
+	(*TransactionError)(nil),                    // 23: protochain.solana.transaction.v1.TransactionError
 }
 var file_protochain_solana_transaction_v1_service_proto_depIdxs = []int32{
-	19, // 0: protochain.solana.transaction.v1.CompileTransactionRequest.transaction:type_name -> protochain.solana.transaction.v1.Transaction
-	19, // 1: protochain.solana.transaction.v1.CompileTransactionResponse.transaction:type_name -> protochain.solana.transaction.v1.Transaction
-	19, // 2: protochain.solana.transaction.v1.EstimateTransactionRequest.transaction:type_name -> protochain.solana.transaction.v1.Transaction
-	20, // 3: protochain.solana.transaction.v1.EstimateTransactionRequest.commitment_level:type_name -> protochain.solana.type.v1.CommitmentLevel
-	19, // 4: protochain.solana.transaction.v1.SimulateTransactionRequest.transaction:type_name -> protochain.solana.transaction.v1.Transaction
-	20, // 5: protochain.solana.transaction.v1.SimulateTransactionRequest.commitment_level:type_name -> protochain.solana.type.v1.CommitmentLevel
-	19, // 6: protochain.solana.transaction.v1.SignTransactionRequest.transaction:type_name -> protochain.solana.transaction.v1.Transaction
+	21, // 0: protochain.solana.transaction.v1.CompileTransactionRequest.transaction:type_name -> protochain.solana.transaction.v1.Transaction
+	21, // 1: protochain.solana.transaction.v1.CompileTransactionResponse.transaction:type_name -> protochain.solana.transaction.v1.Transaction
+	21, // 2: protochain.solana.transaction.v1.EstimateTransactionRequest.transaction:type_name -> protochain.solana.transaction.v1.Transaction
+	22, // 3: protochain.solana.transaction.v1.EstimateTransactionRequest.commitment_level:type_name -> protochain.solana.type.v1.CommitmentLevel
+	21, // 4: protochain.solana.transaction.v1.SimulateTransactionRequest.transaction:type_name -> protochain.solana.transaction.v1.Transaction
+	22, // 5: protochain.solana.transaction.v1.SimulateTransactionRequest.commitment_level:type_name -> protochain.solana.type.v1.CommitmentLevel
+	21, // 6: protochain.solana.transaction.v1.SignTransactionRequest.transaction:type_name -> protochain.solana.transaction.v1.Transaction
 	10, // 7: protochain.solana.transaction.v1.SignTransactionRequest.private_keys:type_name -> protochain.solana.transaction.v1.SignWithPrivateKeys
 	11, // 8: protochain.solana.transaction.v1.SignTransactionRequest.seeds:type_name -> protochain.solana.transaction.v1.SignWithSeeds
-	19, // 9: protochain.solana.transaction.v1.SignTransactionResponse.transaction:type_name -> protochain.solana.transaction.v1.Transaction
+	21, // 9: protochain.solana.transaction.v1.SignTransactionResponse.transaction:type_name -> protochain.solana.transaction.v1.Transaction
 	12, // 10: protochain.solana.transaction.v1.SignWithSeeds.seeds:type_name -> protochain.solana.transaction.v1.KeySeed
-	19, // 11: protochain.solana.transaction.v1.SubmitTransactionRequest.transaction:type_name -> protochain.solana.transaction.v1.Transaction
-	20, // 12: protochain.solana.transaction.v1.SubmitTransactionRequest.commitment_level:type_name -> protochain.solana.type.v1.CommitmentLevel
-	0,  // 13: protochain.solana.transaction.v1.SubmitTransactionResponse.submission_result:type_name -> protochain.solana.transaction.v1.SubmissionResult
-	21, // 14: protochain.solana.transaction.v1.SubmitTransactionResponse.structured_error:type_name -> protochain.solana.transaction.v1.TransactionError
-	20, // 15: protochain.solana.transaction.v1.GetTransactionRequest.commitment_level:type_name -> protochain.solana.type.v1.CommitmentLevel
-	19, // 16: protochain.solana.transaction.v1.GetTransactionResponse.transaction:type_name -> protochain.solana.transaction.v1.Transaction
-	20, // 17: protochain.solana.transaction.v1.MonitorTransactionRequest.commitment_level:type_name -> protochain.solana.type.v1.CommitmentLevel
-	1,  // 18: protochain.solana.transaction.v1.MonitorTransactionResponse.status:type_name -> protochain.solana.transaction.v1.TransactionStatus
-	20, // 19: protochain.solana.transaction.v1.MonitorTransactionResponse.current_commitment:type_name -> protochain.solana.type.v1.CommitmentLevel
-	2,  // 20: protochain.solana.transaction.v1.Service.CompileTransaction:input_type -> protochain.solana.transaction.v1.CompileTransactionRequest
-	4,  // 21: protochain.solana.transaction.v1.Service.EstimateTransaction:input_type -> protochain.solana.transaction.v1.EstimateTransactionRequest
-	6,  // 22: protochain.solana.transaction.v1.Service.SimulateTransaction:input_type -> protochain.solana.transaction.v1.SimulateTransactionRequest
-	8,  // 23: protochain.solana.transaction.v1.Service.SignTransaction:input_type -> protochain.solana.transaction.v1.SignTransactionRequest
-	13, // 24: protochain.solana.transaction.v1.Service.SubmitTransaction:input_type -> protochain.solana.transaction.v1.SubmitTransactionRequest
-	15, // 25: protochain.solana.transaction.v1.Service.GetTransaction:input_type -> protochain.solana.transaction.v1.GetTransactionRequest
-	17, // 26: protochain.solana.transaction.v1.Service.MonitorTransaction:input_type -> protochain.solana.transaction.v1.MonitorTransactionRequest
-	3,  // 27: protochain.solana.transaction.v1.Service.CompileTransaction:output_type -> protochain.solana.transaction.v1.CompileTransactionResponse
-	5,  // 28: protochain.solana.transaction.v1.Service.EstimateTransaction:output_type -> protochain.solana.transaction.v1.EstimateTransactionResponse
-	7,  // 29: protochain.solana.transaction.v1.Service.SimulateTransaction:output_type -> protochain.solana.transaction.v1.SimulateTransactionResponse
-	9,  // 30: protochain.solana.transaction.v1.Service.SignTransaction:output_type -> protochain.solana.transaction.v1.SignTransactionResponse
-	14, // 31: protochain.solana.transaction.v1.Service.SubmitTransaction:output_type -> protochain.solana.transaction.v1.SubmitTransactionResponse
-	16, // 32: protochain.solana.transaction.v1.Service.GetTransaction:output_type -> protochain.solana.transaction.v1.GetTransactionResponse
-	18, // 33: protochain.solana.transaction.v1.Service.MonitorTransaction:output_type -> protochain.solana.transaction.v1.MonitorTransactionResponse
-	27, // [27:34] is the sub-list for method output_type
-	20, // [20:27] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	21, // 11: protochain.solana.transaction.v1.CheckIfTransactionIsExpiredRequest.transaction:type_name -> protochain.solana.transaction.v1.Transaction
+	22, // 12: protochain.solana.transaction.v1.CheckIfTransactionIsExpiredRequest.commitment_level:type_name -> protochain.solana.type.v1.CommitmentLevel
+	21, // 13: protochain.solana.transaction.v1.SubmitTransactionRequest.transaction:type_name -> protochain.solana.transaction.v1.Transaction
+	22, // 14: protochain.solana.transaction.v1.SubmitTransactionRequest.commitment_level:type_name -> protochain.solana.type.v1.CommitmentLevel
+	0,  // 15: protochain.solana.transaction.v1.SubmitTransactionResponse.submission_result:type_name -> protochain.solana.transaction.v1.SubmissionResult
+	23, // 16: protochain.solana.transaction.v1.SubmitTransactionResponse.structured_error:type_name -> protochain.solana.transaction.v1.TransactionError
+	22, // 17: protochain.solana.transaction.v1.GetTransactionRequest.commitment_level:type_name -> protochain.solana.type.v1.CommitmentLevel
+	21, // 18: protochain.solana.transaction.v1.GetTransactionResponse.transaction:type_name -> protochain.solana.transaction.v1.Transaction
+	22, // 19: protochain.solana.transaction.v1.MonitorTransactionRequest.commitment_level:type_name -> protochain.solana.type.v1.CommitmentLevel
+	1,  // 20: protochain.solana.transaction.v1.MonitorTransactionResponse.status:type_name -> protochain.solana.transaction.v1.TransactionStatus
+	22, // 21: protochain.solana.transaction.v1.MonitorTransactionResponse.current_commitment:type_name -> protochain.solana.type.v1.CommitmentLevel
+	2,  // 22: protochain.solana.transaction.v1.Service.CompileTransaction:input_type -> protochain.solana.transaction.v1.CompileTransactionRequest
+	4,  // 23: protochain.solana.transaction.v1.Service.EstimateTransaction:input_type -> protochain.solana.transaction.v1.EstimateTransactionRequest
+	6,  // 24: protochain.solana.transaction.v1.Service.SimulateTransaction:input_type -> protochain.solana.transaction.v1.SimulateTransactionRequest
+	8,  // 25: protochain.solana.transaction.v1.Service.SignTransaction:input_type -> protochain.solana.transaction.v1.SignTransactionRequest
+	13, // 26: protochain.solana.transaction.v1.Service.CheckIfTransactionIsExpired:input_type -> protochain.solana.transaction.v1.CheckIfTransactionIsExpiredRequest
+	15, // 27: protochain.solana.transaction.v1.Service.SubmitTransaction:input_type -> protochain.solana.transaction.v1.SubmitTransactionRequest
+	17, // 28: protochain.solana.transaction.v1.Service.GetTransaction:input_type -> protochain.solana.transaction.v1.GetTransactionRequest
+	19, // 29: protochain.solana.transaction.v1.Service.MonitorTransaction:input_type -> protochain.solana.transaction.v1.MonitorTransactionRequest
+	3,  // 30: protochain.solana.transaction.v1.Service.CompileTransaction:output_type -> protochain.solana.transaction.v1.CompileTransactionResponse
+	5,  // 31: protochain.solana.transaction.v1.Service.EstimateTransaction:output_type -> protochain.solana.transaction.v1.EstimateTransactionResponse
+	7,  // 32: protochain.solana.transaction.v1.Service.SimulateTransaction:output_type -> protochain.solana.transaction.v1.SimulateTransactionResponse
+	9,  // 33: protochain.solana.transaction.v1.Service.SignTransaction:output_type -> protochain.solana.transaction.v1.SignTransactionResponse
+	14, // 34: protochain.solana.transaction.v1.Service.CheckIfTransactionIsExpired:output_type -> protochain.solana.transaction.v1.CheckIfTransactionIsExpiredResponse
+	16, // 35: protochain.solana.transaction.v1.Service.SubmitTransaction:output_type -> protochain.solana.transaction.v1.SubmitTransactionResponse
+	18, // 36: protochain.solana.transaction.v1.Service.GetTransaction:output_type -> protochain.solana.transaction.v1.GetTransactionResponse
+	20, // 37: protochain.solana.transaction.v1.Service.MonitorTransaction:output_type -> protochain.solana.transaction.v1.MonitorTransactionResponse
+	30, // [30:38] is the sub-list for method output_type
+	22, // [22:30] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_protochain_solana_transaction_v1_service_proto_init() }
@@ -1311,8 +1420,8 @@ func file_protochain_solana_transaction_v1_service_proto_init() {
 	if File_protochain_solana_transaction_v1_service_proto != nil {
 		return
 	}
-	file_protochain_solana_transaction_v1_transaction_proto_init()
 	file_protochain_solana_transaction_v1_error_proto_init()
+	file_protochain_solana_transaction_v1_transaction_proto_init()
 	file_protochain_solana_transaction_v1_service_proto_msgTypes[6].OneofWrappers = []any{
 		(*SignTransactionRequest_PrivateKeys)(nil),
 		(*SignTransactionRequest_Seeds)(nil),
@@ -1323,7 +1432,7 @@ func file_protochain_solana_transaction_v1_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_protochain_solana_transaction_v1_service_proto_rawDesc), len(file_protochain_solana_transaction_v1_service_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   17,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

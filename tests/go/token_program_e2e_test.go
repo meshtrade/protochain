@@ -221,30 +221,29 @@ func (suite *TokenProgramE2ETestSuite) Test_02_6_InitialiseHoldingAccountInstruc
 	testOwnerPubKey := "So11111111111111111111111111111111111111112" // Wrapped SOL
 
 	// Create holding account instruction using memo transfer configuration
-	resp, err := suite.tokenProgramService.InitialiseHoldingAccount(suite.ctx, &token_v1.InitialiseHoldingAccountRequest{
-		AccountPubKey:      testAccountPubKey,
+	resp, err := suite.tokenProgramService.CreateHoldingAccount(suite.ctx, &token_v1.CreateHoldingAccountRequest{
+		NewAccount:         testAccountPubKey,
 		MintPubKey:         testMintPubKey,
 		OwnerPubKey:        testOwnerPubKey,
 		MemoTransferConfig: &token_v1.MemoTransferConfig{RequireIncomingMemo: true},
 	})
 	suite.Require().NoError(err, "Should create holding account instruction successfully")
-	suite.Require().NotNil(resp.Instruction, "Instruction should not be nil")
+	suite.Require().NotNil(resp.Instructions, "Instruction should not be nil")
 	suite.Require().Len(resp.Instructions, 2, "Should include initialise and memo-enable instructions")
 
-	suite.Assert().Equal(resp.Instruction.ProgramId, resp.Instructions[0].ProgramId, "First instruction should match legacy field")
 	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, resp.Instructions[1].ProgramId, "Memo enable instruction should target Token 2022 program")
 	suite.Assert().Greater(len(resp.Instructions[1].Data), 0, "Memo enable instruction should have non-empty data")
 
 	suite.T().Logf("✅ InitialiseHoldingAccount returned %d instructions (memo enabled)", len(resp.Instructions))
 
 	// Validate default behaviour when memo config is omitted
-	defaultResp, err := suite.tokenProgramService.InitialiseHoldingAccount(suite.ctx, &token_v1.InitialiseHoldingAccountRequest{
-		AccountPubKey: testAccountPubKey,
-		MintPubKey:    testMintPubKey,
-		OwnerPubKey:   testOwnerPubKey,
+	defaultResp, err := suite.tokenProgramService.CreateHoldingAccount(suite.ctx, &token_v1.CreateHoldingAccountRequest{
+		NewAccount:  testAccountPubKey,
+		MintPubKey:  testMintPubKey,
+		OwnerPubKey: testOwnerPubKey,
 	})
 	suite.Require().NoError(err, "Should create holding account instruction without memo config")
-	suite.Require().NotNil(defaultResp.Instruction, "Instruction should not be nil for default response")
+	suite.Require().NotNil(defaultResp.Instructions, "Instruction should not be nil for default response")
 	suite.Require().Len(defaultResp.Instructions, 1, "Default response should only contain initialise instruction")
 }
 

@@ -39,8 +39,8 @@ pub struct ServerConfig {
 impl Default for SolanaConfig {
     fn default() -> Self {
         Self {
-            rpc_url: "http://localhost:8899".to_string(), // Local validator default
-            websocket_url: Some("wss://localhost:8899".to_string()), // Optional - will be derived from RPC URL if not specified
+            rpc_url: "https://coned-duped-tees.txtx.network:8899".to_string(), // Local validator default
+            websocket_url: Some("wss://coned-duped-tees.txtx.network:8900".to_string()), // Optional - will be derived from RPC URL if not specified
             timeout_seconds: 30,
             retry_attempts: 3,
             health_check_on_startup: true,
