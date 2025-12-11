@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package protochain.solana.transaction.v1;
 
-option go_package = "github.com/BRBussy/protochain/lib/go/protochain/solana/transaction/v1;transaction_v1";
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/transaction/v1;transaction_v1";
 
 // SolanaInstruction represents a single instruction for Solana execution
 message SolanaInstruction {

@@ -1,4 +1,4 @@
-module github.com/BRBussy/protochain/tool/protoc-gen/cmd/protochaingo
+module github.com/meshtrade/protochain/tool/protoc-gen/cmd/protochaingo
 
 go 1.24.3
 

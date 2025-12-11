@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package protochain.solana.type.v1;
 
-option go_package = "github.com/BRBussy/protochain/lib/go/protochain/solana/type/v1;solana_type_v1";
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/type/v1;solana_type_v1";
 
 // CommitmentLevel represents the different levels of transaction confirmation
 // available in the Solana blockchain network. These levels provide different

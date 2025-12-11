@@ -2,21 +2,32 @@ syntax = "proto3";
 
 package protochain.solana.account.v1;
 
-option go_package = "github.com/BRBussy/protochain/lib/go/protochain/solana/account/v1;account_v1";
-
 import "protochain/solana/account/v1/account.proto";
-import "protochain/solana/type/v1/keypair.proto";
 import "protochain/solana/type/v1/commitment_level.proto";
+import "protochain/solana/type/v1/keypair.proto";
+
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/account/v1;account_v1";
 
 service Service {
-  rpc GetAccount(GetAccountRequest) returns (protochain.solana.account.v1.Account);
+  // GetAccount will return a protochain Account entity representing an account on-chain
+  rpc GetAccount(GetAccountRequest) returns (GetAccountResponse);
+
+  // GenerateKeyPair will generate a public+private keypair (optionally using seed if set)
   rpc GenerateNewKeyPair(GenerateNewKeyPairRequest) returns (GenerateNewKeyPairResponse);
+
+  // FundNative will fund the destination account with SOL
   rpc FundNative(FundNativeRequest) returns (FundNativeResponse);
+
+  // GetTokenAccountBalance will return the balance of the token held by a token account
+  rpc GetTokenAccountBalance(GetTokenAccountBalanceRequest) returns (GetTokenAccountBalanceResponse);
+
+  // GetAssociatedTokenAddress is used to get the PDA address of an associated token account
+  rpc GetAssociatedTokenAddress(GetAssociatedTokenAddressRequest) returns (GetAssociatedTokenAddressResponse);
 }
 
 message GetAccountRequest {
-  string address = 1;  // Base58-encoded account address to fetch from Solana network
-  protochain.solana.type.v1.CommitmentLevel commitment_level = 2;  // Optional commitment level for account queries
+  string address = 1; // Base58-encoded account address to fetch from Solana network
+  protochain.solana.type.v1.CommitmentLevel commitment_level = 2; // Optional commitment level for account queries
 }
 
 message GenerateNewKeyPairRequest {
@@ -28,11 +39,35 @@ message GenerateNewKeyPairResponse {
 }
 
 message FundNativeRequest {
-  string address = 1;  // Target address for funding (Base58)
-  string amount = 2;   // Amount in lamports as string
-  protochain.solana.type.v1.CommitmentLevel commitment_level = 3;  // Optional commitment level for funding confirmation
+  string address = 1; // Target address for funding (Base58)
+  string amount = 2; // Amount in lamports as string
+  protochain.solana.type.v1.CommitmentLevel commitment_level = 3; // Optional commitment level for funding confirmation
 }
 
 message FundNativeResponse {
   string signature = 1; // Transaction signature of airdrop
 }
+
+message GetAccountResponse {
+  protochain.solana.account.v1.Account account = 1;
+}
+
+message GetTokenAccountBalanceRequest {
+  string address = 1; // Target address for balance lookup (Base58)
+  protochain.solana.type.v1.CommitmentLevel commitment_level = 2; // Optional commitment level for funding confirmation
+}
+
+message GetTokenAccountBalanceResponse {
+  string amount = 1; // Balance of token
+  uint32 decimals = 2; // amount of decimals on mint
+}
+
+message GetAssociatedTokenAddressRequest {
+  string owner_address = 1; // Address of owner of the token account (Base58)
+  string mint_address = 2; // Address of the mint account that minted the token
+}
+
+message GetAssociatedTokenAddressResponse {
+  string address = 1; // Address of the token account (Base58)
+}
+;

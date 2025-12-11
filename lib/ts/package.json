@@ -52,7 +52,7 @@
     "blockchain",
     "financial-services"
   ],
-  "author": "BRBussy",
+  "author": "meshtrade",
   "license": "MIT",
   "publishConfig": {
     "access": "public"

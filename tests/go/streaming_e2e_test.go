@@ -2,6 +2,7 @@ package apitest
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"testing"
 	"time"
@@ -9,13 +10,15 @@ import (
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
-	account_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/account/v1"
-	system_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/program/system/v1"
-	transaction_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/transaction/v1"
-	type_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/type/v1"
+	account_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/account/v1"
+	system_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/program/system/v1"
+	transaction_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/transaction/v1"
+	type_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/type/v1"
+	"github.com/meshtrade/protochain/tests/go/config"
 )
 
 // StreamingE2ETestSuite tests the transaction monitoring streaming functionality
@@ -34,15 +37,21 @@ func (suite *StreamingE2ETestSuite) SetupSuite() {
 	// Streaming tests MUST run with real backend - no simulation mode
 	suite.ctx, suite.cancel = context.WithCancel(context.Background())
 
+	conf, err := config.GetConfig("config.json")
+	suite.Require().NoError(err, "Failed to get config")
+
 	// Setup configuration
-	grpcEndpoint := "localhost:50051"
+	grpcEndpoint := fmt.Sprintf("%s:%d", conf.BackendGRPCEndpoint, conf.BackendGRPCPort)
 
 	// Connect to gRPC server
-	var err error
-	suite.grpcConn, err = grpc.NewClient(
-		grpcEndpoint,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	var dialOpts []grpc.DialOption
+	if conf.BackendGRPCTLS {
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(nil, "")))
+	} else {
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	}
+
+	suite.grpcConn, err = grpc.NewClient(grpcEndpoint, dialOpts...)
 	suite.Require().NoError(err, "Failed to connect to gRPC server")
 
 	// Initialize service clients
@@ -96,7 +105,7 @@ func (suite *StreamingE2ETestSuite) Test_01_EnhancedSubmitTransactionResponse() 
 
 	// Create and compile transaction
 	transaction := &transaction_v1.Transaction{
-		Instructions: []*transaction_v1.SolanaInstruction{transferResp},
+		Instructions: []*transaction_v1.SolanaInstruction{transferResp.Instruction},
 		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 	}
 
@@ -293,7 +302,7 @@ func (suite *StreamingE2ETestSuite) Test_04_SubmitAndMonitorWorkflow() {
 
 	// Build, sign, and submit transaction
 	transaction := &transaction_v1.Transaction{
-		Instructions: []*transaction_v1.SolanaInstruction{transferResp},
+		Instructions: []*transaction_v1.SolanaInstruction{transferResp.Instruction},
 		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 	}
 
@@ -329,7 +338,7 @@ func (suite *StreamingE2ETestSuite) Test_04_SubmitAndMonitorWorkflow() {
 		Signature:       submitResp.Signature,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 		IncludeLogs:     true,
-		TimeoutSeconds:  30,
+		TimeoutSeconds:  180,
 	})
 
 	// Stream must be created successfully with real backend
@@ -408,23 +417,23 @@ func (suite *StreamingE2ETestSuite) Test_05_SystemProgram_CreateInstruction() {
 	suite.T().Logf("   Lamports: %d", request.Lamports)
 
 	// System program service returns SolanaInstruction directly
-	instruction, err := suite.systemProgramService.Create(suite.ctx, request)
+	instructionResp, err := suite.systemProgramService.Create(suite.ctx, request)
 	suite.Require().NoError(err, "Create instruction should succeed")
-	suite.Require().NotNil(instruction, "Instruction should not be nil")
+	suite.Require().NotNil(instructionResp, "Instruction should not be nil")
 
 	// Validate instruction structure
-	suite.Assert().NotEmpty(instruction.ProgramId, "Instruction should have program ID")
-	suite.Assert().Equal("11111111111111111111111111111111", instruction.ProgramId, "Should be system program ID")
-	suite.Assert().NotEmpty(instruction.Accounts, "Instruction should have accounts")
-	suite.Assert().NotEmpty(instruction.Data, "Instruction should have data")
-	suite.Assert().NotEmpty(instruction.Description, "Instruction should have description")
+	suite.Assert().NotEmpty(instructionResp.Instruction.ProgramId, "Instruction should have program ID")
+	suite.Assert().Equal("11111111111111111111111111111111", instructionResp.Instruction.ProgramId, "Should be system program ID")
+	suite.Assert().NotEmpty(instructionResp.Instruction.Accounts, "Instruction should have accounts")
+	suite.Assert().NotEmpty(instructionResp.Instruction.Data, "Instruction should have data")
+	suite.Assert().NotEmpty(instructionResp.Instruction.Description, "Instruction should have description")
 
 	// Validate account metadata
-	suite.Assert().True(len(instruction.Accounts) >= 2, "Create instruction should have at least 2 accounts")
+	suite.Assert().True(len(instructionResp.Instruction.Accounts) >= 2, "Create instruction should have at least 2 accounts")
 
 	// Find payer and new account in the accounts list
 	var payerAccount, newAccountAccount *transaction_v1.SolanaAccountMeta
-	for _, acc := range instruction.Accounts {
+	for _, acc := range instructionResp.Instruction.Accounts {
 		if acc.Pubkey == request.Payer {
 			payerAccount = acc
 		}
@@ -442,10 +451,10 @@ func (suite *StreamingE2ETestSuite) Test_05_SystemProgram_CreateInstruction() {
 	suite.Assert().True(newAccountAccount.IsWritable, "New account should be writable")
 
 	suite.T().Logf("✅ System program create instruction generated:")
-	suite.T().Logf("   Program ID: %s", instruction.ProgramId)
-	suite.T().Logf("   Accounts: %d", len(instruction.Accounts))
-	suite.T().Logf("   Data Length: %d bytes", len(instruction.Data))
-	suite.T().Logf("   Description: %s", instruction.Description)
+	suite.T().Logf("   Program ID: %s", instructionResp.Instruction.ProgramId)
+	suite.T().Logf("   Accounts: %d", len(instructionResp.Instruction.Accounts))
+	suite.T().Logf("   Data Length: %d bytes", len(instructionResp.Instruction.Data))
+	suite.T().Logf("   Description: %s", instructionResp.Instruction.Description)
 }
 
 // Test_06_SystemProgram_TransferInstruction tests creating a transfer instruction
@@ -471,19 +480,19 @@ func (suite *StreamingE2ETestSuite) Test_06_SystemProgram_TransferInstruction() 
 	suite.T().Logf("   Lamports: %d (%.4f SOL)", request.Lamports, float64(request.Lamports)/1_000_000_000)
 
 	// System program service returns SolanaInstruction directly
-	instruction, err := suite.systemProgramService.Transfer(suite.ctx, request)
+	instructionResp, err := suite.systemProgramService.Transfer(suite.ctx, request)
 	suite.Require().NoError(err, "Transfer instruction should succeed")
-	suite.Require().NotNil(instruction, "Instruction should not be nil")
+	suite.Require().NotNil(instructionResp, "Instruction should not be nil")
 
 	// Validate instruction structure
-	suite.Assert().Equal("11111111111111111111111111111111", instruction.ProgramId, "Should be system program ID")
-	suite.Assert().Len(instruction.Accounts, 2, "Transfer should have exactly 2 accounts")
-	suite.Assert().NotEmpty(instruction.Data, "Instruction should have data")
-	suite.Assert().Contains(instruction.Description, "Transfer", "Description should mention transfer")
+	suite.Assert().Equal("11111111111111111111111111111111", instructionResp.Instruction.ProgramId, "Should be system program ID")
+	suite.Assert().Len(instructionResp.Instruction.Accounts, 2, "Transfer should have exactly 2 accounts")
+	suite.Assert().NotEmpty(instructionResp.Instruction.Data, "Instruction should have data")
+	suite.Assert().Contains(instructionResp.Instruction.Description, "Transfer", "Description should mention transfer")
 
 	// Validate account metadata for transfer
-	fromAccount := instruction.Accounts[0]
-	toAccount := instruction.Accounts[1]
+	fromAccount := instructionResp.Instruction.Accounts[0]
+	toAccount := instructionResp.Instruction.Accounts[1]
 
 	suite.Assert().Equal(request.From, fromAccount.Pubkey, "First account should be from address")
 	suite.Assert().Equal(request.To, toAccount.Pubkey, "Second account should be to address")
@@ -517,7 +526,7 @@ func (suite *StreamingE2ETestSuite) Test_07_TransactionLifecycle_EstimateSimulat
 
 	compileResp, err := suite.transactionService.CompileTransaction(suite.ctx, &transaction_v1.CompileTransactionRequest{
 		Transaction: &transaction_v1.Transaction{
-			Instructions: []*transaction_v1.SolanaInstruction{transferInstr},
+			Instructions: []*transaction_v1.SolanaInstruction{transferInstr.Instruction},
 			State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 		},
 		FeePayer: fromResp.KeyPair.PublicKey,
@@ -589,7 +598,7 @@ func (suite *StreamingE2ETestSuite) Test_08_TransactionLifecycle_SigningFlow() {
 
 	compileResp, err := suite.transactionService.CompileTransaction(suite.ctx, &transaction_v1.CompileTransactionRequest{
 		Transaction: &transaction_v1.Transaction{
-			Instructions: []*transaction_v1.SolanaInstruction{transferInstr},
+			Instructions: []*transaction_v1.SolanaInstruction{transferInstr.Instruction},
 			State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 		},
 		FeePayer: testAddress,
@@ -710,9 +719,9 @@ func (suite *StreamingE2ETestSuite) Test_09_ComprehensiveStreamingIntegration() 
 	suite.T().Log("📤 Step 5: Composing multi-instruction atomic transaction")
 	atomicTx := &transaction_v1.Transaction{
 		Instructions: []*transaction_v1.SolanaInstruction{
-			createSecondInstr, // Create second account with 2 SOL
-			createThirdInstr,  // Create third account with 1 SOL
-			transferInstr,     // Transfer 0.5 SOL from newly created second to third account
+			createSecondInstr.Instruction, // Create second account with 2 SOL
+			createThirdInstr.Instruction,  // Create third account with 1 SOL
+			transferInstr.Instruction,     // Transfer 0.5 SOL from newly created second to third account
 		},
 		State: transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 		Config: &transaction_v1.TransactionConfig{
@@ -824,7 +833,7 @@ func (suite *StreamingE2ETestSuite) Test_09_ComprehensiveStreamingIntegration() 
 
 	// Create, compile, sign and submit second transaction
 	secondTx := &transaction_v1.Transaction{
-		Instructions: []*transaction_v1.SolanaInstruction{createFourthInstr},
+		Instructions: []*transaction_v1.SolanaInstruction{createFourthInstr.Instruction},
 		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 	}
 
@@ -869,7 +878,7 @@ func (suite *StreamingE2ETestSuite) Test_09_ComprehensiveStreamingIntegration() 
 
 	// Create, compile, sign and submit transfer transaction
 	transferTx := &transaction_v1.Transaction{
-		Instructions: []*transaction_v1.SolanaInstruction{transferInstr2},
+		Instructions: []*transaction_v1.SolanaInstruction{transferInstr2.Instruction},
 		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 	}
 
@@ -965,8 +974,8 @@ func (suite *StreamingE2ETestSuite) monitorTransactionToCompletion(signature str
 	stream, err := suite.transactionService.MonitorTransaction(suite.ctx, &transaction_v1.MonitorTransactionRequest{
 		Signature:       signature,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
-		IncludeLogs:     false,
-		TimeoutSeconds:  30,
+		IncludeLogs:     true,
+		TimeoutSeconds:  180,
 	})
 
 	suite.Require().NoError(err, "Must create monitoring stream for signature: %s", signature)
@@ -1048,7 +1057,7 @@ func (suite *StreamingE2ETestSuite) Test_10_PreStreamingValidation() {
 
 	// Step 4: Compile transaction (but don't submit yet)
 	transaction := &transaction_v1.Transaction{
-		Instructions: []*transaction_v1.SolanaInstruction{transferResp},
+		Instructions: []*transaction_v1.SolanaInstruction{transferResp.Instruction},
 		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 	}
 

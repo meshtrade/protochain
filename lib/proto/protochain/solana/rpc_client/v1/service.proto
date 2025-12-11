@@ -4,7 +4,7 @@ package protochain.solana.rpc_client.v1;
 
 import "protochain/solana/type/v1/commitment_level.proto";
 
-option go_package = "github.com/BRBussy/protochain/lib/go/protochain/solana/rpc_client/v1;rpc_client_v1";
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/rpc_client/v1;rpc_client_v1";
 
 service Service {
   rpc GetMinimumBalanceForRentExemption(GetMinimumBalanceForRentExemptionRequest) returns (GetMinimumBalanceForRentExemptionResponse);

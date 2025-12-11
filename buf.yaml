@@ -1,7 +1,7 @@
 version: v2
 modules:
   - path: lib/proto
-    name: buf.build/brbussy/protochain
+    name: buf.build/meshtrade/protochain
 
 lint:
   use:
