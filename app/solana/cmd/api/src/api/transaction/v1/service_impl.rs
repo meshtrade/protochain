@@ -1095,7 +1095,7 @@ impl TransactionService for TransactionServiceImpl {
         match self.rpc_client.get_transaction_with_config(
             &signature,
             RpcTransactionConfig {
-                encoding: Some(UiTransactionEncoding::Base64),
+                encoding: Some(UiTransactionEncoding::Base58),
                 commitment: Some(commitment),
                 max_supported_transaction_version: Some(0),
             },
