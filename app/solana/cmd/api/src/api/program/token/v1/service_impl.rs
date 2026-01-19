@@ -14,8 +14,7 @@ use protochain_api::protochain::solana::program::token::v1::{
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{commitment_config::CommitmentConfig, program_pack::Pack, pubkey::Pubkey};
 use spl_associated_token_account::{
-    instruction::create_associated_token_account,
-    instruction::create_associated_token_account as spl_create_associated_token_account,
+    get_associated_token_address_with_program_id, instruction::create_associated_token_account, instruction::create_associated_token_account as spl_create_associated_token_account
 };
 use spl_token::{
     instruction::initialize_mint as initialize_mint_legacy, state::Mint, ID as LEGACY_PROGRAM_ID,
@@ -337,105 +336,73 @@ impl TokenProgramService for TokenProgramServiceImpl {
         if req.payer.is_empty() {
             return Err(Status::invalid_argument("Payer address is required"));
         }
-        if req.new_account.is_empty() {
-            return Err(Status::invalid_argument("New account address is required"));
+        if req.owner_pub_key.is_empty() {
+            return Err(Status::invalid_argument("Owner account address is required"));
         }
-        if req.holding_account_pub_key != req.new_account {
-            return Err(Status::invalid_argument("holding_account_pub_key must match new_account"));
+        // determine which token program to use (require token program be passed, so we can create owner and holding account within same transaction)
+        let token_program_enum = TokenProgram::try_from(req.token_program)
+            .map_err(|_| Status::invalid_argument("Invalid token program value"))?;
+        if req.memo_transfer_config.is_some() && token_program_enum == TokenProgram::Legacy {
+            return Err(Status::invalid_argument(
+                "Memo transfer config can only be enabled for Token2022 program",
+            ));
         }
 
-        // Parse public keys
-        let account_pubkey = Pubkey::from_str(&req.holding_account_pub_key)
-            .map_err(|e| Status::invalid_argument(format!("Invalid account_pub_key: {e}")))?;
+        // parse public keys
+        let payer_pubkey = Pubkey::from_str(&req.payer)
+            .map_err(|e| Status::invalid_argument(format!("Invalid payer_pub_key: {e}")))?;
+        let holding_account_pub_key = Pubkey::from_str(&req.owner_pub_key)
+            .map_err(|e| Status::invalid_argument(format!("Invalid owner_pub_key: {e}")))?;
         let mint_pubkey = Pubkey::from_str(&req.mint_pub_key)
             .map_err(|e| Status::invalid_argument(format!("Invalid mint_pub_key: {e}")))?;
-        let owner_pubkey = Pubkey::from_str(&req.owner_pub_key)
-            .map_err(|e| Status::invalid_argument(format!("Invalid owner_pub_key: {e}")))?;
-        let payer_pubkey = Pubkey::from_str(&req.owner_pub_key)
-            .map_err(|e| Status::invalid_argument(format!("Invalid payer_pub_key: {e}")))?;
 
         let require_memo = req
             .memo_transfer_config
             .as_ref()
             .is_some_and(|cfg| cfg.require_incoming_memo);
 
-        // Determine which token program to use
-        let token_program_enum = TokenProgram::try_from(req.token_program)
-            .map_err(|_| Status::invalid_argument("Invalid token program value"))?;
-
-        let instruction_list = match token_program_enum {
-            TokenProgram::Legacy => {
-                let create_ata_instruction = create_associated_token_account(
-                    &payer_pubkey,      // funding address
-                    &account_pubkey,    // wallet address
-                    &mint_pubkey,       // mint address
-                    &LEGACY_PROGRAM_ID, // program id
-                );
-
-                Ok(vec![sdk_instruction_to_proto(create_ata_instruction)])
-            }
-            TokenProgram::TokenProgram2022 => {
-                let mut inst_list = Vec::with_capacity(if require_memo { 3 } else { 2 });
-                let space = holding_account_space(require_memo)?;
-                let rent_lamports = memo_rent_lamports(&self.rpc_client, require_memo)?;
-
-                let system_service = SystemProgramServiceImpl::new();
-                let create_instruction = system_service
-                    .create(Request::new(SystemCreateRequest {
-                        payer: payer_pubkey.to_string(),
-                        new_account: account_pubkey.to_string(),
-                        owner: TOKEN_2022_PROGRAM_ID.to_string(),
-                        lamports: rent_lamports,
-                        space,
-                    }))
-                    .await?
-                    .into_inner();
-                if let Some(instr) = create_instruction.instruction {
-                    inst_list.push(instr);
-                }
-
-                // Create the InitializeAccount instruction
-                let init_instruction = initialize_account(
-                    &TOKEN_2022_PROGRAM_ID,
-                    &account_pubkey,
-                    &mint_pubkey,
-                    &owner_pubkey,
-                )
-                .map_err(|e| {
-                    Status::invalid_argument(format!(
-                        "Failed to create InitialiseHoldingAccount instruction: {e}"
-                    ))
-                })?;
-
-                inst_list.push(sdk_instruction_to_proto(init_instruction));
-
-                if require_memo {
-                    let memo_instruction = enable_required_transfer_memos(
-                        &TOKEN_2022_PROGRAM_ID,
-                        &account_pubkey,
-                        &owner_pubkey,
-                        &[],
-                    )
-                    .map_err(|e| {
-                        Status::invalid_argument(format!(
-                            "Failed to create memo transfer enable instruction: {e}"
-                        ))
-                    })?;
-                    inst_list.push(sdk_instruction_to_proto(memo_instruction));
-                }
-                Ok(inst_list)
-            }
-            _ => Err("Unknown token program"),
+        // get program id from token_program_enum
+        let token_program = match token_program_enum {
+            TokenProgram::Legacy => Ok(LEGACY_PROGRAM_ID),
+            TokenProgram::TokenProgram2022 => Ok(TOKEN_2022_PROGRAM_ID),
+            _ => Err(format!("unexpected token program id: {:?}", token_program_enum)),
         }
-        .map_err(|e| {
-            Status::internal(format!(
-                "Failed to create instructions for initialising holding account: {e}"
-            ))
-        })?;
+        .map_err(|e| Status::internal(e))?;
 
-        Ok(Response::new(CreateHoldingAccountResponse {
-            instructions: instruction_list,
-        }))
+        // prepare vector to hold instructions
+        let mut instructions: Vec<protochain_api::SolanaInstruction> = Vec::new();
+
+        // create instruction to create account with derived address (derived from holding account)
+        let create_ata_instruction = create_associated_token_account(
+            &payer_pubkey,            // funding address
+            &holding_account_pub_key, // wallet address
+            &mint_pubkey,             // mint address
+            &token_program,           // token program
+        );
+        instructions.push(sdk_instruction_to_proto(create_ata_instruction));
+
+        if require_memo {
+            let ata_pubkey = get_associated_token_address_with_program_id(
+                &holding_account_pub_key,
+                &mint_pubkey,
+                &token_program,
+            );
+
+            let memo_instruction = enable_required_transfer_memos(
+                &TOKEN_2022_PROGRAM_ID,
+                &ata_pubkey,
+                &holding_account_pub_key,
+                &[],
+            )
+            .map_err(|e| {
+                Status::invalid_argument(format!(
+                    "Failed to create memo transfer enable instruction: {e}"
+                ))
+            })?;
+            instructions.push(sdk_instruction_to_proto(memo_instruction));
+        }
+
+        Ok(Response::new(CreateHoldingAccountResponse { instructions }))
     }
 
     /// Creates a `MintToChecked` instruction for Token 2022 program
