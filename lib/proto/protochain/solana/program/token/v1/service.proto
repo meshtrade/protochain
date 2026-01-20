@@ -110,14 +110,13 @@ message CreateHoldingAccountResponse {
 message CreateMintRequest {
   // System program create fields
   string payer = 1; // Account paying for creation (signer)
-  string new_account = 2; // Mint account to create (signer)
 
   // Token program initialize mint fields
-  string mint_pub_key = 3; // Same as new_account for validation
-  string mint_authority_pub_key = 4; // Mint authority
-  string freeze_authority_pub_key = 5; // Freeze authority (optional)
-  uint32 decimals = 6; // Mint decimals
-  protochain.solana.type.v1.TokenProgram token_program = 7;
+  string mint_pub_key = 2; // Same as new_account for validation
+  string mint_authority_pub_key = 3; // Mint authority
+  string freeze_authority_pub_key = 4; // Freeze authority (optional)
+  uint32 decimals = 5; // Mint decimals
+  protochain.solana.type.v1.TokenProgram token_program = 6;
 }
 
 // Response containing both create and initialize instructions

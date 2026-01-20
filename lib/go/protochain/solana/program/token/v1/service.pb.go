@@ -655,14 +655,13 @@ func (x *CreateHoldingAccountResponse) GetInstructions() []*v11.SolanaInstructio
 type CreateMintRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// System program create fields
-	Payer      string `protobuf:"bytes,1,opt,name=payer,proto3" json:"payer,omitempty"`                             // Account paying for creation (signer)
-	NewAccount string `protobuf:"bytes,2,opt,name=new_account,json=newAccount,proto3" json:"new_account,omitempty"` // Mint account to create (signer)
+	Payer string `protobuf:"bytes,1,opt,name=payer,proto3" json:"payer,omitempty"` // Account paying for creation (signer)
 	// Token program initialize mint fields
-	MintPubKey            string          `protobuf:"bytes,3,opt,name=mint_pub_key,json=mintPubKey,proto3" json:"mint_pub_key,omitempty"`                                    // Same as new_account for validation
-	MintAuthorityPubKey   string          `protobuf:"bytes,4,opt,name=mint_authority_pub_key,json=mintAuthorityPubKey,proto3" json:"mint_authority_pub_key,omitempty"`       // Mint authority
-	FreezeAuthorityPubKey string          `protobuf:"bytes,5,opt,name=freeze_authority_pub_key,json=freezeAuthorityPubKey,proto3" json:"freeze_authority_pub_key,omitempty"` // Freeze authority (optional)
-	Decimals              uint32          `protobuf:"varint,6,opt,name=decimals,proto3" json:"decimals,omitempty"`                                                           // Mint decimals
-	TokenProgram          v1.TokenProgram `protobuf:"varint,7,opt,name=token_program,json=tokenProgram,proto3,enum=protochain.solana.type.v1.TokenProgram" json:"token_program,omitempty"`
+	MintPubKey            string          `protobuf:"bytes,2,opt,name=mint_pub_key,json=mintPubKey,proto3" json:"mint_pub_key,omitempty"`                                    // Same as new_account for validation
+	MintAuthorityPubKey   string          `protobuf:"bytes,3,opt,name=mint_authority_pub_key,json=mintAuthorityPubKey,proto3" json:"mint_authority_pub_key,omitempty"`       // Mint authority
+	FreezeAuthorityPubKey string          `protobuf:"bytes,4,opt,name=freeze_authority_pub_key,json=freezeAuthorityPubKey,proto3" json:"freeze_authority_pub_key,omitempty"` // Freeze authority (optional)
+	Decimals              uint32          `protobuf:"varint,5,opt,name=decimals,proto3" json:"decimals,omitempty"`                                                           // Mint decimals
+	TokenProgram          v1.TokenProgram `protobuf:"varint,6,opt,name=token_program,json=tokenProgram,proto3,enum=protochain.solana.type.v1.TokenProgram" json:"token_program,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -700,13 +699,6 @@ func (*CreateMintRequest) Descriptor() ([]byte, []int) {
 func (x *CreateMintRequest) GetPayer() string {
 	if x != nil {
 		return x.Payer
-	}
-	return ""
-}
-
-func (x *CreateMintRequest) GetNewAccount() string {
-	if x != nil {
-		return x.NewAccount
 	}
 	return ""
 }
@@ -1058,17 +1050,15 @@ const file_protochain_solana_program_token_v1_service_proto_rawDesc = "" +
 	"\rtoken_program\x18\x04 \x01(\x0e2'.protochain.solana.type.v1.TokenProgramR\ftokenProgram\x12h\n" +
 	"\x14memo_transfer_config\x18\x05 \x01(\v26.protochain.solana.program.token.v1.MemoTransferConfigR\x12memoTransferConfig\"w\n" +
 	"\x1cCreateHoldingAccountResponse\x12W\n" +
-	"\finstructions\x18\x01 \x03(\v23.protochain.solana.transaction.v1.SolanaInstructionR\finstructions\"\xc4\x02\n" +
+	"\finstructions\x18\x01 \x03(\v23.protochain.solana.transaction.v1.SolanaInstructionR\finstructions\"\xa3\x02\n" +
 	"\x11CreateMintRequest\x12\x14\n" +
-	"\x05payer\x18\x01 \x01(\tR\x05payer\x12\x1f\n" +
-	"\vnew_account\x18\x02 \x01(\tR\n" +
-	"newAccount\x12 \n" +
-	"\fmint_pub_key\x18\x03 \x01(\tR\n" +
+	"\x05payer\x18\x01 \x01(\tR\x05payer\x12 \n" +
+	"\fmint_pub_key\x18\x02 \x01(\tR\n" +
 	"mintPubKey\x123\n" +
-	"\x16mint_authority_pub_key\x18\x04 \x01(\tR\x13mintAuthorityPubKey\x127\n" +
-	"\x18freeze_authority_pub_key\x18\x05 \x01(\tR\x15freezeAuthorityPubKey\x12\x1a\n" +
-	"\bdecimals\x18\x06 \x01(\rR\bdecimals\x12L\n" +
-	"\rtoken_program\x18\a \x01(\x0e2'.protochain.solana.type.v1.TokenProgramR\ftokenProgram\"m\n" +
+	"\x16mint_authority_pub_key\x18\x03 \x01(\tR\x13mintAuthorityPubKey\x127\n" +
+	"\x18freeze_authority_pub_key\x18\x04 \x01(\tR\x15freezeAuthorityPubKey\x12\x1a\n" +
+	"\bdecimals\x18\x05 \x01(\rR\bdecimals\x12L\n" +
+	"\rtoken_program\x18\x06 \x01(\x0e2'.protochain.solana.type.v1.TokenProgramR\ftokenProgram\"m\n" +
 	"\x12CreateMintResponse\x12W\n" +
 	"\finstructions\x18\x01 \x03(\v23.protochain.solana.transaction.v1.SolanaInstructionR\finstructions\"\xd7\x01\n" +
 	"\vMintRequest\x12 \n" +

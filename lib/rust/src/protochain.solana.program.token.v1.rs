@@ -122,24 +122,21 @@ pub struct CreateMintRequest {
     /// Account paying for creation (signer)
     #[prost(string, tag="1")]
     pub payer: ::prost::alloc::string::String,
-    /// Mint account to create (signer)
-    #[prost(string, tag="2")]
-    pub new_account: ::prost::alloc::string::String,
     /// Token program initialize mint fields
     ///
     /// Same as new_account for validation
-    #[prost(string, tag="3")]
+    #[prost(string, tag="2")]
     pub mint_pub_key: ::prost::alloc::string::String,
     /// Mint authority
-    #[prost(string, tag="4")]
+    #[prost(string, tag="3")]
     pub mint_authority_pub_key: ::prost::alloc::string::String,
     /// Freeze authority (optional)
-    #[prost(string, tag="5")]
+    #[prost(string, tag="4")]
     pub freeze_authority_pub_key: ::prost::alloc::string::String,
     /// Mint decimals
-    #[prost(uint32, tag="6")]
+    #[prost(uint32, tag="5")]
     pub decimals: u32,
-    #[prost(enumeration="super::super::super::r#type::v1::TokenProgram", tag="7")]
+    #[prost(enumeration="super::super::super::r#type::v1::TokenProgram", tag="6")]
     pub token_program: i32,
 }
 /// Response containing both create and initialize instructions

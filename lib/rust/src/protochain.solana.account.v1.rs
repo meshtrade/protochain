@@ -102,6 +102,8 @@ pub struct GetAssociatedTokenAddressRequest {
     /// Address of the mint account that minted the token
     #[prost(string, tag="2")]
     pub mint_address: ::prost::alloc::string::String,
+    #[prost(enumeration="super::super::r#type::v1::TokenProgram", tag="3")]
+    pub token_program: i32,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
