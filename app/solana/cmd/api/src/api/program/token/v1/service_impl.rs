@@ -21,7 +21,7 @@ use spl_token::{
 };
 use spl_token_2022::{
     extension::{memo_transfer::instruction::enable_required_transfer_memos, ExtensionType},
-    instruction::{initialize_account, initialize_mint2, mint_to_checked},
+    instruction::{initialize_mint2, mint_to_checked},
     state::{Account, Mint as LegacyMint},
     ID as TOKEN_2022_PROGRAM_ID,
 };
@@ -266,12 +266,6 @@ impl TokenProgramService for TokenProgramServiceImpl {
         if req.payer.is_empty() {
             return Err(Status::invalid_argument("Payer address is required"));
         }
-        if req.new_account.is_empty() {
-            return Err(Status::invalid_argument("New account address is required"));
-        }
-        if req.mint_pub_key != req.new_account {
-            return Err(Status::invalid_argument("mint_pub_key must match new_account"));
-        }
 
         // Step 1: Get current rent for mint account
         let rent_response = self
@@ -293,7 +287,7 @@ impl TokenProgramService for TokenProgramServiceImpl {
         let create_instruction = system_service
             .create(Request::new(SystemCreateRequest {
                 payer: req.payer.clone(),
-                new_account: req.new_account.clone(),
+                new_account: req.mint_pub_key.clone(),
                 owner: owner_pubkey.to_string(),
                 lamports: rent_response.lamports,
                 space: Mint::LEN as u64,
@@ -351,9 +345,9 @@ impl TokenProgramService for TokenProgramServiceImpl {
         // parse public keys
         let payer_pubkey = Pubkey::from_str(&req.payer)
             .map_err(|e| Status::invalid_argument(format!("Invalid payer_pub_key: {e}")))?;
-        let holding_account_pub_key = Pubkey::from_str(&req.owner_pub_key)
+        let owner_pub_key = Pubkey::from_str(&req.owner_pub_key)
             .map_err(|e| Status::invalid_argument(format!("Invalid owner_pub_key: {e}")))?;
-        let mint_pubkey = Pubkey::from_str(&req.mint_pub_key)
+        let mint_pub_key = Pubkey::from_str(&req.mint_pub_key)
             .map_err(|e| Status::invalid_argument(format!("Invalid mint_pub_key: {e}")))?;
 
         let require_memo = req
@@ -375,23 +369,23 @@ impl TokenProgramService for TokenProgramServiceImpl {
         // create instruction to create account with derived address (derived from holding account)
         let create_ata_instruction = create_associated_token_account(
             &payer_pubkey,            // funding address
-            &holding_account_pub_key, // wallet address
-            &mint_pubkey,             // mint address
+            &owner_pub_key, // wallet address
+            &mint_pub_key,             // mint address
             &token_program,           // token program
         );
         instructions.push(sdk_instruction_to_proto(create_ata_instruction));
 
         if require_memo {
             let ata_pubkey = get_associated_token_address_with_program_id(
-                &holding_account_pub_key,
-                &mint_pubkey,
+                &owner_pub_key,
+                &mint_pub_key,
                 &token_program,
             );
 
             let memo_instruction = enable_required_transfer_memos(
                 &TOKEN_2022_PROGRAM_ID,
                 &ata_pubkey,
-                &holding_account_pub_key,
+                &owner_pub_key,
                 &[],
             )
             .map_err(|e| {
@@ -438,6 +432,7 @@ impl TokenProgramService for TokenProgramServiceImpl {
         let decimals = u8::try_from(req.decimals)
             .map_err(|_| Status::invalid_argument("decimals must be between 0 and 255"))?;
 
+        // Determine token program id from account owner
         let token_program_id = get_token_program_id(sdk_token_program_to_proto(&account.owner));
 
         // Create the MintToChecked instruction (no additional signers for single authority)
