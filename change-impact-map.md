@@ -5,7 +5,7 @@
 ### Namespace Confirmation ✅
 - **Actual namespace used**: `protochain.solana.x.v1` (NOT protosol)
 - **Package name**: `protochain-solana-api`
-- **Go package paths**: `github.com/BRBussy/protochain/lib/go/protochain/solana/`
+- **Go package paths**: `github.com/meshtrade/protochain/lib/go/protochain/solana/`
 
 ### Critical Dependencies Found
 

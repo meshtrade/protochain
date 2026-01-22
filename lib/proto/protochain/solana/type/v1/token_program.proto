@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package protochain.solana.type.v1;
+
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/type/v1;solana_type_v1";
+
+// TokenProgram is the possible token programs
+enum TokenProgram {
+  // UNSPECIFIED allows services to use their default commitment level.
+  // This provides backward compatibility and lets services choose appropriate defaults.
+  TOKEN_PROGRAM_UNSPECIFIED = 0;
+
+  // PROCESSED means the transaction has been processed by the leader and included
+  // in a block, but the block has not yet been confirmed by the cluster.
+  // This is the fastest option but least reliable for finality guarantees.
+  TOKEN_PROGRAM_LEGACY = 1;
+
+  // CONFIRMED means the transaction has been processed and the block containing
+  // the transaction has been confirmed by a supermajority of the cluster.
+  // This provides a good balance between speed and reliability.
+  TOKEN_PROGRAM_2022 = 2;
+}
+;

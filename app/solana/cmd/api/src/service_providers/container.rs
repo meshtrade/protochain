@@ -24,9 +24,13 @@ impl ServiceProviders {
 
         let solana_clients = Arc::new(SolanaClientsServiceProviders::new(&config.solana.rpc_url));
 
-        // Derive WebSocket URL and create WebSocket manager
-        let ws_url = derive_websocket_url_from_rpc(&config.solana.rpc_url)
-            .map_err(|e| anyhow::anyhow!("Failed to derive WebSocket URL: {}", e))?;
+        // Use configured WebSocket URL if available, otherwise derive from RPC URL
+        let ws_url = if let Some(ws_url) = config.solana.websocket_url.as_ref() {
+            ws_url.clone()
+        } else {
+            derive_websocket_url_from_rpc(&config.solana.rpc_url)
+                .map_err(|e| anyhow::anyhow!("Failed to derive WebSocket URL: {}", e))?
+        };
 
         // Create WebSocket manager with simulation mode
         println!("🔌 Initializing WebSocket manager...");

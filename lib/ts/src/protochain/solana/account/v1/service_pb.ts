@@ -4,19 +4,19 @@
 
 import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
-import type { AccountSchema } from "./account_pb";
+import type { Account } from "./account_pb";
 import { file_protochain_solana_account_v1_account } from "./account_pb";
-import type { KeyPair } from "../../type/v1/keypair_pb";
-import { file_protochain_solana_type_v1_keypair } from "../../type/v1/keypair_pb";
 import type { CommitmentLevel } from "../../type/v1/commitment_level_pb";
 import { file_protochain_solana_type_v1_commitment_level } from "../../type/v1/commitment_level_pb";
+import type { KeyPair } from "../../type/v1/keypair_pb";
+import { file_protochain_solana_type_v1_keypair } from "../../type/v1/keypair_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file protochain/solana/account/v1/service.proto.
  */
 export const file_protochain_solana_account_v1_service: GenFile = /*@__PURE__*/
-  fileDesc("Cipwcm90b2NoYWluL3NvbGFuYS9hY2NvdW50L3YxL3NlcnZpY2UucHJvdG8SHHByb3RvY2hhaW4uc29sYW5hLmFjY291bnQudjEiagoRR2V0QWNjb3VudFJlcXVlc3QSDwoHYWRkcmVzcxgBIAEoCRJEChBjb21taXRtZW50X2xldmVsGAIgASgOMioucHJvdG9jaGFpbi5zb2xhbmEudHlwZS52MS5Db21taXRtZW50TGV2ZWwiKQoZR2VuZXJhdGVOZXdLZXlQYWlyUmVxdWVzdBIMCgRzZWVkGAEgASgJIlIKGkdlbmVyYXRlTmV3S2V5UGFpclJlc3BvbnNlEjQKCGtleV9wYWlyGAEgASgLMiIucHJvdG9jaGFpbi5zb2xhbmEudHlwZS52MS5LZXlQYWlyInoKEUZ1bmROYXRpdmVSZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkSDgoGYW1vdW50GAIgASgJEkQKEGNvbW1pdG1lbnRfbGV2ZWwYAyABKA4yKi5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLkNvbW1pdG1lbnRMZXZlbCInChJGdW5kTmF0aXZlUmVzcG9uc2USEQoJc2lnbmF0dXJlGAEgASgJMuoCCgdTZXJ2aWNlEmQKCkdldEFjY291bnQSLy5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkdldEFjY291bnRSZXF1ZXN0GiUucHJvdG9jaGFpbi5zb2xhbmEuYWNjb3VudC52MS5BY2NvdW50EocBChJHZW5lcmF0ZU5ld0tleVBhaXISNy5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkdlbmVyYXRlTmV3S2V5UGFpclJlcXVlc3QaOC5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkdlbmVyYXRlTmV3S2V5UGFpclJlc3BvbnNlEm8KCkZ1bmROYXRpdmUSLy5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkZ1bmROYXRpdmVSZXF1ZXN0GjAucHJvdG9jaGFpbi5zb2xhbmEuYWNjb3VudC52MS5GdW5kTmF0aXZlUmVzcG9uc2VCTlpMZ2l0aHViLmNvbS9CUkJ1c3N5L3Byb3RvY2hhaW4vbGliL2dvL3Byb3RvY2hhaW4vc29sYW5hL2FjY291bnQvdjE7YWNjb3VudF92MWIGcHJvdG8z", [file_protochain_solana_account_v1_account, file_protochain_solana_type_v1_keypair, file_protochain_solana_type_v1_commitment_level]);
+  fileDesc("Cipwcm90b2NoYWluL3NvbGFuYS9hY2NvdW50L3YxL3NlcnZpY2UucHJvdG8SHHByb3RvY2hhaW4uc29sYW5hLmFjY291bnQudjEiagoRR2V0QWNjb3VudFJlcXVlc3QSDwoHYWRkcmVzcxgBIAEoCRJEChBjb21taXRtZW50X2xldmVsGAIgASgOMioucHJvdG9jaGFpbi5zb2xhbmEudHlwZS52MS5Db21taXRtZW50TGV2ZWwiKQoZR2VuZXJhdGVOZXdLZXlQYWlyUmVxdWVzdBIMCgRzZWVkGAEgASgJIlIKGkdlbmVyYXRlTmV3S2V5UGFpclJlc3BvbnNlEjQKCGtleV9wYWlyGAEgASgLMiIucHJvdG9jaGFpbi5zb2xhbmEudHlwZS52MS5LZXlQYWlyInoKEUZ1bmROYXRpdmVSZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkSDgoGYW1vdW50GAIgASgJEkQKEGNvbW1pdG1lbnRfbGV2ZWwYAyABKA4yKi5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLkNvbW1pdG1lbnRMZXZlbCInChJGdW5kTmF0aXZlUmVzcG9uc2USEQoJc2lnbmF0dXJlGAEgASgJIkwKEkdldEFjY291bnRSZXNwb25zZRI2CgdhY2NvdW50GAEgASgLMiUucHJvdG9jaGFpbi5zb2xhbmEuYWNjb3VudC52MS5BY2NvdW50InYKHUdldFRva2VuQWNjb3VudEJhbGFuY2VSZXF1ZXN0Eg8KB2FkZHJlc3MYASABKAkSRAoQY29tbWl0bWVudF9sZXZlbBgCIAEoDjIqLnByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEuQ29tbWl0bWVudExldmVsIkIKHkdldFRva2VuQWNjb3VudEJhbGFuY2VSZXNwb25zZRIOCgZhbW91bnQYASABKAkSEAoIZGVjaW1hbHMYAiABKA0iTwogR2V0QXNzb2NpYXRlZFRva2VuQWRkcmVzc1JlcXVlc3QSFQoNb3duZXJfYWRkcmVzcxgBIAEoCRIUCgxtaW50X2FkZHJlc3MYAiABKAkiNAohR2V0QXNzb2NpYXRlZFRva2VuQWRkcmVzc1Jlc3BvbnNlEg8KB2FkZHJlc3MYASABKAkyqgUKB1NlcnZpY2USbwoKR2V0QWNjb3VudBIvLnByb3RvY2hhaW4uc29sYW5hLmFjY291bnQudjEuR2V0QWNjb3VudFJlcXVlc3QaMC5wcm90b2NoYWluLnNvbGFuYS5hY2NvdW50LnYxLkdldEFjY291bnRSZXNwb25zZRKHAQoSR2VuZXJhdGVOZXdLZXlQYWlyEjcucHJvdG9jaGFpbi5zb2xhbmEuYWNjb3VudC52MS5HZW5lcmF0ZU5ld0tleVBhaXJSZXF1ZXN0GjgucHJvdG9jaGFpbi5zb2xhbmEuYWNjb3VudC52MS5HZW5lcmF0ZU5ld0tleVBhaXJSZXNwb25zZRJvCgpGdW5kTmF0aXZlEi8ucHJvdG9jaGFpbi5zb2xhbmEuYWNjb3VudC52MS5GdW5kTmF0aXZlUmVxdWVzdBowLnByb3RvY2hhaW4uc29sYW5hLmFjY291bnQudjEuRnVuZE5hdGl2ZVJlc3BvbnNlEpMBChZHZXRUb2tlbkFjY291bnRCYWxhbmNlEjsucHJvdG9jaGFpbi5zb2xhbmEuYWNjb3VudC52MS5HZXRUb2tlbkFjY291bnRCYWxhbmNlUmVxdWVzdBo8LnByb3RvY2hhaW4uc29sYW5hLmFjY291bnQudjEuR2V0VG9rZW5BY2NvdW50QmFsYW5jZVJlc3BvbnNlEpwBChlHZXRBc3NvY2lhdGVkVG9rZW5BZGRyZXNzEj4ucHJvdG9jaGFpbi5zb2xhbmEuYWNjb3VudC52MS5HZXRBc3NvY2lhdGVkVG9rZW5BZGRyZXNzUmVxdWVzdBo/LnByb3RvY2hhaW4uc29sYW5hLmFjY291bnQudjEuR2V0QXNzb2NpYXRlZFRva2VuQWRkcmVzc1Jlc3BvbnNlQlBaTmdpdGh1Yi5jb20vbWVzaHRyYWRlL3Byb3RvY2hhaW4vbGliL2dvL3Byb3RvY2hhaW4vc29sYW5hL2FjY291bnQvdjE7YWNjb3VudF92MWIGcHJvdG8z", [file_protochain_solana_account_v1_account, file_protochain_solana_type_v1_commitment_level, file_protochain_solana_type_v1_keypair]);
 
 /**
  * @generated from message protochain.solana.account.v1.GetAccountRequest
@@ -133,18 +133,136 @@ export const FundNativeResponseSchema: GenMessage<FundNativeResponse> = /*@__PUR
   messageDesc(file_protochain_solana_account_v1_service, 4);
 
 /**
+ * @generated from message protochain.solana.account.v1.GetAccountResponse
+ */
+export type GetAccountResponse = Message<"protochain.solana.account.v1.GetAccountResponse"> & {
+  /**
+   * @generated from field: protochain.solana.account.v1.Account account = 1;
+   */
+  account?: Account;
+};
+
+/**
+ * Describes the message protochain.solana.account.v1.GetAccountResponse.
+ * Use `create(GetAccountResponseSchema)` to create a new message.
+ */
+export const GetAccountResponseSchema: GenMessage<GetAccountResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_account_v1_service, 5);
+
+/**
+ * @generated from message protochain.solana.account.v1.GetTokenAccountBalanceRequest
+ */
+export type GetTokenAccountBalanceRequest = Message<"protochain.solana.account.v1.GetTokenAccountBalanceRequest"> & {
+  /**
+   * Target address for balance lookup (Base58)
+   *
+   * @generated from field: string address = 1;
+   */
+  address: string;
+
+  /**
+   * Optional commitment level for funding confirmation
+   *
+   * @generated from field: protochain.solana.type.v1.CommitmentLevel commitment_level = 2;
+   */
+  commitmentLevel: CommitmentLevel;
+};
+
+/**
+ * Describes the message protochain.solana.account.v1.GetTokenAccountBalanceRequest.
+ * Use `create(GetTokenAccountBalanceRequestSchema)` to create a new message.
+ */
+export const GetTokenAccountBalanceRequestSchema: GenMessage<GetTokenAccountBalanceRequest> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_account_v1_service, 6);
+
+/**
+ * @generated from message protochain.solana.account.v1.GetTokenAccountBalanceResponse
+ */
+export type GetTokenAccountBalanceResponse = Message<"protochain.solana.account.v1.GetTokenAccountBalanceResponse"> & {
+  /**
+   * Balance of token
+   *
+   * @generated from field: string amount = 1;
+   */
+  amount: string;
+
+  /**
+   * amount of decimals on mint
+   *
+   * @generated from field: uint32 decimals = 2;
+   */
+  decimals: number;
+};
+
+/**
+ * Describes the message protochain.solana.account.v1.GetTokenAccountBalanceResponse.
+ * Use `create(GetTokenAccountBalanceResponseSchema)` to create a new message.
+ */
+export const GetTokenAccountBalanceResponseSchema: GenMessage<GetTokenAccountBalanceResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_account_v1_service, 7);
+
+/**
+ * @generated from message protochain.solana.account.v1.GetAssociatedTokenAddressRequest
+ */
+export type GetAssociatedTokenAddressRequest = Message<"protochain.solana.account.v1.GetAssociatedTokenAddressRequest"> & {
+  /**
+   * Address of owner of the token account (Base58)
+   *
+   * @generated from field: string owner_address = 1;
+   */
+  ownerAddress: string;
+
+  /**
+   * Address of the mint account that minted the token
+   *
+   * @generated from field: string mint_address = 2;
+   */
+  mintAddress: string;
+};
+
+/**
+ * Describes the message protochain.solana.account.v1.GetAssociatedTokenAddressRequest.
+ * Use `create(GetAssociatedTokenAddressRequestSchema)` to create a new message.
+ */
+export const GetAssociatedTokenAddressRequestSchema: GenMessage<GetAssociatedTokenAddressRequest> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_account_v1_service, 8);
+
+/**
+ * @generated from message protochain.solana.account.v1.GetAssociatedTokenAddressResponse
+ */
+export type GetAssociatedTokenAddressResponse = Message<"protochain.solana.account.v1.GetAssociatedTokenAddressResponse"> & {
+  /**
+   * Address of the token account (Base58)
+   *
+   * @generated from field: string address = 1;
+   */
+  address: string;
+};
+
+/**
+ * Describes the message protochain.solana.account.v1.GetAssociatedTokenAddressResponse.
+ * Use `create(GetAssociatedTokenAddressResponseSchema)` to create a new message.
+ */
+export const GetAssociatedTokenAddressResponseSchema: GenMessage<GetAssociatedTokenAddressResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_account_v1_service, 9);
+
+/**
  * @generated from service protochain.solana.account.v1.Service
  */
 export const Service: GenService<{
   /**
+   * GetAccount will return a protochain Account entity representing an account on-chain
+   *
    * @generated from rpc protochain.solana.account.v1.Service.GetAccount
    */
   getAccount: {
     methodKind: "unary";
     input: typeof GetAccountRequestSchema;
-    output: typeof AccountSchema;
+    output: typeof GetAccountResponseSchema;
   },
   /**
+   * GenerateKeyPair will generate a public+private keypair (optionally using seed if set)
+   *
    * @generated from rpc protochain.solana.account.v1.Service.GenerateNewKeyPair
    */
   generateNewKeyPair: {
@@ -153,12 +271,34 @@ export const Service: GenService<{
     output: typeof GenerateNewKeyPairResponseSchema;
   },
   /**
+   * FundNative will fund the destination account with SOL
+   *
    * @generated from rpc protochain.solana.account.v1.Service.FundNative
    */
   fundNative: {
     methodKind: "unary";
     input: typeof FundNativeRequestSchema;
     output: typeof FundNativeResponseSchema;
+  },
+  /**
+   * GetTokenAccountBalance will return the balance of the token held by a token account
+   *
+   * @generated from rpc protochain.solana.account.v1.Service.GetTokenAccountBalance
+   */
+  getTokenAccountBalance: {
+    methodKind: "unary";
+    input: typeof GetTokenAccountBalanceRequestSchema;
+    output: typeof GetTokenAccountBalanceResponseSchema;
+  },
+  /**
+   * GetAssociatedTokenAddress is used to get the PDA address of an associated token account
+   *
+   * @generated from rpc protochain.solana.account.v1.Service.GetAssociatedTokenAddress
+   */
+  getAssociatedTokenAddress: {
+    methodKind: "unary";
+    input: typeof GetAssociatedTokenAddressRequestSchema;
+    output: typeof GetAssociatedTokenAddressResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_protochain_solana_account_v1_service, 0);

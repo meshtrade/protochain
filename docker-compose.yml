@@ -41,6 +41,7 @@ services:
     environment:
       # Solana Configuration
       SOLANA_RPC_URL: http://solana-validator:8899
+      SOLANA_WEBSOCKET_URL: ws://solana-validator:8900
       SOLANA_TIMEOUT_SECONDS: 30
       SOLANA_RETRY_ATTEMPTS: 3
       SOLANA_HEALTH_CHECK_ON_STARTUP: "true"

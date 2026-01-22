@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "Protocol Buffer wrapper for Solana blockchain operations via gRPC (Solana API App)"
 license = "MIT"
-repository = "https://github.com/BRBussy/protochain"
+repository = "https://github.com/meshtrade/protochain"
 keywords = ["solana", "blockchain", "grpc", "protobuf", "crypto"]
 categories = ["api-bindings", "cryptography::cryptocurrencies"]
 
@@ -15,6 +15,7 @@ workspace = true
 # Use workspace dependencies
 tokio.workspace = true
 tonic.workspace = true
+tonic-health.workspace = true
 solana-client.workspace = true
 solana-sdk.workspace = true
 solana-transaction-status.workspace = true
@@ -38,7 +39,20 @@ thiserror = "1.0"
 bincode = "1.3"
 bs58 = "0.5"
 hex = "0.4"
-spl-token-2022 = "3.0.0"
+# Exclude default features to avoid on-chain program entrypoint symbol conflicts
+# Note: Use versions that are compatible and exclude default features which include the entrypoint
+spl-token-2022 = { version = "3.0.5", default-features = false, features = ["serde-traits"] }
+spl-token = { version = "4", default-features = false }
+spl-associated-token-account = { version = "=3.0.2", default-features = false }
+
+# WebSocket support with native TLS for WSS (secure WebSocket) connections
+# Note: rustls via tokio-tungstenite does NOT work reliably for WSS in practice.
+# native-tls is required for proper certificate handling with WSS endpoints.
+# We must explicitly disable rustls and enable native-tls to override solana-pubsub-client's default
+tokio-tungstenite = { version = "0.20", default-features = false, features = ["connect", "handshake", "stream", "native-tls"] }
+tokio-native-tls = "0.3"
+native-tls = "0.2"
 
 # Reference the API crate within the workspace (updated path for new location)
 protochain-api = { path = "../../../../lib/rust" }
+url = "2.5.7"

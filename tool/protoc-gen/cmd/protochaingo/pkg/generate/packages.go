@@ -14,5 +14,5 @@ const (
 	GRPCPkg    = protogen.GoImportPath("google.golang.org/grpc")
 
 	// Protochain packages
-	APIPkg = protogen.GoImportPath("github.com/BRBussy/protochain/lib/go/common")
+	APIPkg = protogen.GoImportPath("github.com/meshtrade/protochain/lib/go/common")
 )

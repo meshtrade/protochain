@@ -4,9 +4,12 @@ use tonic::{Request, Response, Status};
 
 use protochain_api::protochain::solana::account::v1::{
     service_server::Service as AccountService, Account, FundNativeRequest, FundNativeResponse,
-    GenerateNewKeyPairRequest, GenerateNewKeyPairResponse, GetAccountRequest,
+    GenerateNewKeyPairRequest, GenerateNewKeyPairResponse, GetAccountRequest, GetAccountResponse,
+    GetAssociatedTokenAddressRequest, GetAssociatedTokenAddressResponse,
+    GetTokenAccountBalanceRequest, GetTokenAccountBalanceResponse,
 };
 use protochain_api::protochain::solana::r#type::v1::{CommitmentLevel, KeyPair};
+use spl_associated_token_account::get_associated_token_address;
 
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
@@ -50,7 +53,7 @@ impl AccountService for AccountServiceImpl {
     async fn get_account(
         &self,
         request: Request<GetAccountRequest>,
-    ) -> Result<Response<Account>, Status> {
+    ) -> Result<Response<GetAccountResponse>, Status> {
         println!("Received get account request: {request:?}");
 
         let req = request.into_inner();
@@ -101,7 +104,7 @@ impl AccountService for AccountServiceImpl {
                     println!("✅ RPC get_account_with_commitment succeeded for: {pubkey}");
                     println!("💰 Account balance: {} lamports", account.lamports);
                     // Convert Solana account to our Account type
-                    let account_response = Account {
+                    let account_proto = Account {
                         address: req.address.clone(),
                         lamports: account.lamports,
                         owner: account.owner.to_string(),
@@ -112,7 +115,9 @@ impl AccountService for AccountServiceImpl {
                     };
 
                     println!("Successfully fetched account: {}", req.address);
-                    Ok(Response::new(account_response))
+                    Ok(Response::new(GetAccountResponse {
+                        account: Some(account_proto),
+                    }))
                 } else {
                     println!("⚠️ get_account_with_commitment returned None for: {pubkey}");
                     Err(Status::not_found(format!("Account not found: {}", req.address)))
@@ -237,6 +242,49 @@ impl AccountService for AccountServiceImpl {
 
         Ok(Response::new(FundNativeResponse {
             signature: signature.to_string(),
+        }))
+    }
+
+    async fn get_token_account_balance(
+        &self,
+        request: Request<GetTokenAccountBalanceRequest>,
+    ) -> Result<Response<GetTokenAccountBalanceResponse>, Status> {
+        let req = request.into_inner();
+
+        // parse the address
+        let pubkey = Pubkey::from_str(&req.address)
+            .map_err(|e| Status::invalid_argument(format!("Invalid address format: {e}")))?;
+
+        // get the balance on the given token account
+        let balance = self
+            .rpc_client
+            .get_token_account_balance(&pubkey)
+            .map_err(|e| {
+                Status::internal(format!("Could not retrieve token account balance: {e}"))
+            })?;
+
+        Ok(Response::new(GetTokenAccountBalanceResponse {
+            amount: balance.amount,
+            decimals: balance.decimals.into(), // just using unwrap here since we are casting u8 to u32 so panic should not happen
+        }))
+    }
+
+    async fn get_associated_token_address(
+        &self,
+        request: Request<GetAssociatedTokenAddressRequest>,
+    ) -> Result<Response<GetAssociatedTokenAddressResponse>, Status> {
+        let req = request.into_inner();
+
+        let owner_address_key = Pubkey::from_str(req.owner_address.as_str())
+            .map_err(|e| Status::invalid_argument(format!("Invalid address format: {e}")))?;
+
+        let mint_address_key = Pubkey::from_str(req.owner_address.as_str())
+            .map_err(|e| Status::invalid_argument(format!("Invalid address format: {e}")))?;
+
+        let address = get_associated_token_address(&owner_address_key, &mint_address_key);
+
+        Ok(Response::new(GetAssociatedTokenAddressResponse {
+            address: address.to_string(),
         }))
     }
 }

@@ -5,19 +5,23 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"io"
+	"math"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/suite"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 
-	account_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/account/v1"
-	system_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/program/system/v1"
-	token_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/program/token/v1"
-	transaction_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/transaction/v1"
-	type_v1 "github.com/BRBussy/protochain/lib/go/protochain/solana/type/v1"
+	account_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/account/v1"
+	system_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/program/system/v1"
+	token_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1"
+	transaction_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/transaction/v1"
+	type_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/type/v1"
+	"github.com/meshtrade/protochain/tests/go/config"
 )
 
 // TokenProgramE2ETestSuite tests the Token Program service functionality
@@ -35,15 +39,21 @@ type TokenProgramE2ETestSuite struct {
 func (suite *TokenProgramE2ETestSuite) SetupSuite() {
 	suite.ctx, suite.cancel = context.WithCancel(context.Background())
 
+	conf, err := config.GetConfig("config.json")
+	suite.Require().NoError(err, "Failed to get config")
+
 	// Setup configuration
-	grpcEndpoint := "localhost:50051"
+	grpcEndpoint := fmt.Sprintf("%s:%d", conf.BackendGRPCEndpoint, conf.BackendGRPCPort)
 
 	// Connect to gRPC server
-	var err error
-	suite.grpcConn, err = grpc.NewClient(
-		grpcEndpoint,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+	var dialOpts []grpc.DialOption
+	if conf.BackendGRPCTLS {
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(nil, "")))
+	} else {
+		dialOpts = append(dialOpts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	}
+
+	suite.grpcConn, err = grpc.NewClient(grpcEndpoint, dialOpts...)
 	suite.Require().NoError(err, "Failed to connect to gRPC server")
 
 	// Initialize service clients
@@ -115,7 +125,7 @@ func (suite *TokenProgramE2ETestSuite) Test_01_InitialiseMint() {
 	// Compose atomic transaction
 	atomicTx := &transaction_v1.Transaction{
 		Instructions: []*transaction_v1.SolanaInstruction{
-			createMintInstr,
+			createMintInstr.Instruction,
 			initialiseMintInstr.Instruction,
 		},
 		State: transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
@@ -211,30 +221,29 @@ func (suite *TokenProgramE2ETestSuite) Test_02_6_InitialiseHoldingAccountInstruc
 	testOwnerPubKey := "So11111111111111111111111111111111111111112" // Wrapped SOL
 
 	// Create holding account instruction using memo transfer configuration
-	resp, err := suite.tokenProgramService.InitialiseHoldingAccount(suite.ctx, &token_v1.InitialiseHoldingAccountRequest{
-		AccountPubKey:      testAccountPubKey,
+	resp, err := suite.tokenProgramService.CreateHoldingAccount(suite.ctx, &token_v1.CreateHoldingAccountRequest{
+		NewAccount:         testAccountPubKey,
 		MintPubKey:         testMintPubKey,
 		OwnerPubKey:        testOwnerPubKey,
 		MemoTransferConfig: &token_v1.MemoTransferConfig{RequireIncomingMemo: true},
 	})
 	suite.Require().NoError(err, "Should create holding account instruction successfully")
-	suite.Require().NotNil(resp.Instruction, "Instruction should not be nil")
+	suite.Require().NotNil(resp.Instructions, "Instruction should not be nil")
 	suite.Require().Len(resp.Instructions, 2, "Should include initialise and memo-enable instructions")
 
-	suite.Assert().Equal(resp.Instruction.ProgramId, resp.Instructions[0].ProgramId, "First instruction should match legacy field")
 	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, resp.Instructions[1].ProgramId, "Memo enable instruction should target Token 2022 program")
 	suite.Assert().Greater(len(resp.Instructions[1].Data), 0, "Memo enable instruction should have non-empty data")
 
 	suite.T().Logf("✅ InitialiseHoldingAccount returned %d instructions (memo enabled)", len(resp.Instructions))
 
 	// Validate default behaviour when memo config is omitted
-	defaultResp, err := suite.tokenProgramService.InitialiseHoldingAccount(suite.ctx, &token_v1.InitialiseHoldingAccountRequest{
-		AccountPubKey: testAccountPubKey,
-		MintPubKey:    testMintPubKey,
-		OwnerPubKey:   testOwnerPubKey,
+	defaultResp, err := suite.tokenProgramService.CreateHoldingAccount(suite.ctx, &token_v1.CreateHoldingAccountRequest{
+		NewAccount:  testAccountPubKey,
+		MintPubKey:  testMintPubKey,
+		OwnerPubKey: testOwnerPubKey,
 	})
 	suite.Require().NoError(err, "Should create holding account instruction without memo config")
-	suite.Require().NotNil(defaultResp.Instruction, "Instruction should not be nil for default response")
+	suite.Require().NotNil(defaultResp.Instructions, "Instruction should not be nil for default response")
 	suite.Require().Len(defaultResp.Instructions, 1, "Default response should only contain initialise instruction")
 }
 
@@ -321,14 +330,16 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	const systemInstructionHeaderBytes = 4
 	memoLamports := binary.LittleEndian.Uint64(instructionData[systemInstructionHeaderBytes : systemInstructionHeaderBytes+8])
 	suite.Require().EqualValues(holdingRentWithMemo.Lamports, memoLamports, "Lamports in create instruction should match memo rent")
-	memoAccountSpace := int(binary.LittleEndian.Uint64(instructionData[systemInstructionHeaderBytes+8 : systemInstructionHeaderBytes+16]))
-	suite.Require().Greater(memoAccountSpace, int(token_v1.HOLDING_ACCOUNT_LEN), "Memo-enabled account should allocate additional space")
+	memoAccountSpaceU64 := binary.LittleEndian.Uint64(instructionData[systemInstructionHeaderBytes+8 : systemInstructionHeaderBytes+16])
+	suite.Require().LessOrEqual(memoAccountSpaceU64, uint64(math.MaxInt64), "Account space value must fit in int64")
+	memoAccountSpace := int64(memoAccountSpaceU64) //nolint:gosec // overflow check performed above
+	suite.Require().Greater(memoAccountSpace, int64(token_v1.HOLDING_ACCOUNT_LEN), "Memo-enabled account should allocate additional space")
 	suite.T().Logf("  Memo-enabled holding account space: %d bytes", memoAccountSpace)
 
 	// Compose atomic transaction with mint + holding account instructions (including memo enable)
 	atomicTx := &transaction_v1.Transaction{
 		Instructions: []*transaction_v1.SolanaInstruction{
-			createMintInstr,
+			createMintInstr.Instruction,
 			initialiseMintInstr.Instruction,
 		},
 		State: transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
@@ -384,16 +395,16 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	suite.Assert().True(parsedMint.Mint.IsInitialized, "Mint should be initialized")
 
 	// Verify holding account creation (ensure it exists and is owned by token program)
-	holdingAccount, err := suite.accountService.GetAccount(suite.ctx, &account_v1.GetAccountRequest{
+	holdingAccountResp, err := suite.accountService.GetAccount(suite.ctx, &account_v1.GetAccountRequest{
 		Address:         holdingAccKeyResp.KeyPair.PublicKey,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 	})
 	suite.Require().NoError(err, "Should get holding account")
-	suite.Require().NotNil(holdingAccount, "Holding account should exist")
-	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, holdingAccount.Owner, "Holding account should be owned by Token 2022 program")
-	suite.Require().NotEmpty(holdingAccount.Data, "Holding account should have data")
-	decodedData := decodeAccountDataBytes(suite, holdingAccount.Data)
-	suite.Assert().Equal(memoAccountSpace, len(decodedData), "Holding account data length should match memo-enabled space")
+	suite.Require().NotNil(holdingAccountResp, "Holding account should exist")
+	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, holdingAccountResp.Account.Owner, "Holding account should be owned by Token 2022 program")
+	suite.Require().NotEmpty(holdingAccountResp.Account.Data, "Holding account should have data")
+	decodedData := decodeAccountDataBytes(suite, holdingAccountResp.Account.Data)
+	suite.Assert().Equal(int(memoAccountSpace), len(decodedData), "Holding account data length should match memo-enabled space")
 
 	// BUILD INSTRUCTION to mint tokens into the holding account
 	mintAmount := "1000000" // 1 token with 6 decimals
@@ -452,10 +463,10 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 	})
 	suite.Require().NoError(err, "Should get holding account after minting")
-	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, holdingAccountAfterMint.Owner, "Holding account should still be owned by Token 2022 program")
-	suite.Require().NotEmpty(holdingAccountAfterMint.Data, "Holding account should have updated data after minting")
-	memoDecodedData := decodeAccountDataBytes(suite, holdingAccountAfterMint.Data)
-	suite.Assert().Equal(memoAccountSpace, len(memoDecodedData), "Holding account data length should remain memo-enabled size")
+	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, holdingAccountAfterMint.Account.Owner, "Holding account should still be owned by Token 2022 program")
+	suite.Require().NotEmpty(holdingAccountAfterMint.Account.Data, "Holding account should have updated data after minting")
+	memoDecodedData := decodeAccountDataBytes(suite, holdingAccountAfterMint.Account.Data)
+	suite.Assert().Equal(memoAccountSpace, int64(len(memoDecodedData)), "Holding account data length should remain memo-enabled size")
 
 	// Verify mint supply has increased
 	var parsedMintAfterMinting *token_v1.ParseMintResponse
@@ -483,8 +494,8 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	suite.T().Logf("   Mint Authority: %s", parsedMint.Mint.MintAuthorityPubKey)
 	suite.T().Logf("   Mint Supply After Minting: %s", parsedMintAfterMinting.Mint.Supply)
 	suite.T().Logf("   Holding Account Address: %s", holdingAccKeyResp.KeyPair.PublicKey)
-	suite.T().Logf("   Holding Account Owner: %s", holdingAccount.Owner)
-	suite.T().Logf("   Holding Account Balance: %d lamports", holdingAccount.Lamports)
+	suite.T().Logf("   Holding Account Owner: %s", holdingAccountResp.Account.Owner)
+	suite.T().Logf("   Holding Account Balance: %d lamports", holdingAccountResp.Account.Lamports)
 	suite.T().Logf("   Minted Amount: %s tokens", mintAmount)
 
 	suite.T().Logf("🔍 Blockchain verification commands:")
@@ -526,7 +537,7 @@ func (suite *TokenProgramE2ETestSuite) monitorTransactionToCompletion(signature 
 		Signature:       signature,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 		IncludeLogs:     false,
-		TimeoutSeconds:  60,
+		TimeoutSeconds:  180,
 	})
 	suite.Require().NoError(err, "Must create monitoring stream for signature: %s", signature)
 

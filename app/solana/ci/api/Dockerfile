@@ -1,10 +1,29 @@
-# Protochain Solana API - Multi-stage Docker build
-# Builds the protochain-solana-api package for containerized deployment
+##############################################################################
+# Stage 1: Code generation with buf
+##############################################################################
+FROM bufbuild/buf:latest AS codegen
+
+# Set working directory
+WORKDIR /protochain
+
+# Copy proto files and configuration
+COPY lib/proto/ lib/proto/
+COPY lib/_code_gen/ lib/_code_gen/
+COPY buf.yaml .
+
+# Run code generation for Rust only
+RUN echo "🔍 Validating protobuf definitions..." && \
+    buf lint lib/proto && \
+    echo "✅ Protobuf definitions validated" && \
+    echo "" && \
+    echo "🏃 Generating Rust code from protobuf definitions..." && \
+    buf generate lib/proto --template lib/_code_gen/buf.gen.rust.yaml && \
+    echo "✅ Rust code generation complete!"
 
 ##############################################################################
-# Stage 1: Heavy Rust build environment
+# Stage 2: Heavy Rust build environment
 ##############################################################################
-FROM rust:1.80-bullseye AS builder
+FROM rust:latest AS builder
 
 # Install system dependencies for Solana and crypto libraries
 RUN apt-get update && apt-get install -y \
@@ -21,8 +40,11 @@ WORKDIR /protochain
 COPY Cargo.toml .
 COPY Cargo.lock .
 
-# Copy the entire lib directory since it contains workspace dependencies
-COPY lib/ lib/
+# Copy the Rust SDK structure (Cargo.toml and other source files)
+COPY lib/rust/ lib/rust/
+
+# Copy generated lib directory from codegen stage (overlays generated src files)
+COPY --from=codegen /protochain/lib/rust/src/ lib/rust/src/
 
 # Copy the specific app directory we're building
 COPY app/solana/cmd/api/ app/solana/cmd/api/
@@ -35,7 +57,7 @@ RUN cargo build --release --package protochain-solana-api
 RUN ls -la target/release/
 
 ##############################################################################
-# Stage 2: Slim distroless runtime environment
+# Stage 3: Slim distroless runtime environment
 ##############################################################################
 FROM gcr.io/distroless/cc-debian12:latest
 
@@ -52,6 +74,7 @@ EXPOSE 50051
 # Environment variable configuration with sensible defaults
 # Solana RPC Configuration
 ENV SOLANA_RPC_URL=http://host.docker.internal:8899
+ENV SOLANA_WEBSOCKET_URL=wss://host.docker.internal:8899
 ENV SOLANA_TIMEOUT_SECONDS=30
 ENV SOLANA_RETRY_ATTEMPTS=3
 ENV SOLANA_HEALTH_CHECK_ON_STARTUP=true
@@ -74,6 +97,8 @@ LABEL org.opencontainers.image.description="Protocol Buffer wrapper for Solana b
 LABEL org.opencontainers.image.vendor="Protochain"
 LABEL org.opencontainers.image.version="0.1.0"
 LABEL org.opencontainers.image.source="https://github.com/meshtrade/protochain"
+
+EXPOSE 8080
 
 # Default command
 ENTRYPOINT ["/usr/local/bin/protochain-solana-api"]
@@ -99,9 +124,10 @@ ENTRYPOINT ["/usr/local/bin/protochain-solana-api"]
 #   -e SOLANA_RETRY_ATTEMPTS=5 \
 #   protochain-solana-api
 #
-# Custom Configuration:
+# Custom Configuration with Separate WebSocket URL:
 # docker run -p 50051:50051 \
 #   -e SOLANA_RPC_URL=https://your-custom-rpc.com \
+#   -e SOLANA_WEBSOCKET_URL=wss://your-custom-ws.com \
 #   -e SERVER_PORT=8080 \
 #   -e RUST_LOG=debug \
 #   -e PROTOCHAIN_JSON_LOGS=false \

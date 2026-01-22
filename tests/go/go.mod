@@ -1,4 +1,4 @@
-module github.com/BRBussy/protochain/tests/go
+module github.com/meshtrade/protochain/tests/go
 
 go 1.24.3
 
