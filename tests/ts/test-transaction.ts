@@ -46,9 +46,9 @@ async function testTransactionService() {
     
     console.log("\n🧪 TransactionService connectivity test");
     console.log("✅ System instruction created successfully");
-    console.log(`   Instruction has program ID: ${!!transferInstruction.programId}`);
-    console.log(`   Instruction has accounts: ${!!transferInstruction.accounts && transferInstruction.accounts.length > 0}`);
-    console.log(`   Instruction has data: ${!!transferInstruction.data && transferInstruction.data.length > 0}`);
+    console.log(`   Instruction has program ID: ${!!transferInstruction.instruction?.programId}`);
+    console.log(`   Instruction has accounts: ${!!transferInstruction.instruction?.accounts && transferInstruction.instruction.accounts.length > 0}`);
+    console.log(`   Instruction has data: ${!!transferInstruction.instruction?.data && transferInstruction.instruction.data.length > 0}`);
     
     console.log("\n🎯 Note: Transaction service API requires Transaction objects, not individual instructions");
     console.log("This would require building a complete Transaction workflow, which is beyond this connectivity test scope.");

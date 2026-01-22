@@ -1,7 +1,6 @@
 #!/usr/bin/env tsx
 
 import { AccountService, createClient, createGrpcTransport } from "@protochain/api";
-import { GenerateNewKeyPairRequest, GetAccountRequest } from "@protochain/api";
 
 const BACKEND_ENDPOINT = "http://localhost:50051";
 
@@ -34,8 +33,8 @@ async function testAccountService() {
           commitmentLevel: 3 // FINALIZED
         });
         console.log("✅ GetAccount successful:");
-        console.log(`   Owner: ${accountResp.owner}`);
-        console.log(`   Lamports: ${accountResp.lamports}`);
+        console.log(`   Owner: ${accountResp.account?.owner}`);
+        console.log(`   Lamports: ${accountResp.account?.lamports}`);
       } catch (error: any) {
         // Expected for new accounts that don't exist yet
         console.log("ℹ️  GetAccount returned error (expected for new account):", error.message);
