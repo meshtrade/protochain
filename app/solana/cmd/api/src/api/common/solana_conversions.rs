@@ -6,15 +6,16 @@
 
 use protochain_api::protochain::solana::transaction::v1::{SolanaAccountMeta, SolanaInstruction};
 use solana_sdk::{instruction::AccountMeta, instruction::Instruction};
+use solana_instruction::{Instruction as SolanaInstructionInstruction, AccountMeta as SolanaInstructionAccountMeta};
 use std::str::FromStr;
 
 /// Converts a Solana SDK Instruction to protobuf `SolanaInstruction`
 ///
-/// This function transforms an instruction from the native Solana SDK format
+/// This function transforms an instruction from the native SolanaInstruction format
 /// to the protobuf format used in gRPC APIs.
 ///
 /// # Arguments
-/// * `instruction` - The Solana SDK instruction to convert
+/// * `instruction` - The Solana Instruction instruction to convert
 ///
 /// # Returns
 /// A protobuf `SolanaInstruction` with all fields mapped appropriately
@@ -31,6 +32,47 @@ pub fn sdk_instruction_to_proto(instruction: Instruction) -> SolanaInstruction {
     }
 }
 
+/// Converts a Solana Instruction Instruction to protobuf `SolanaInstruction`
+///
+/// This function transforms an instruction from the native Solana SDK format
+/// to the protobuf format used in gRPC APIs.
+///
+/// # Arguments
+/// * `instruction` - The Solana SDK instruction to convert
+///
+/// # Returns
+/// A protobuf `SolanaInstruction` with all fields mapped appropriately
+pub fn solana_instruction_to_proto(instruction: SolanaInstructionInstruction) -> SolanaInstruction {
+    SolanaInstruction {
+        program_id: instruction.program_id.to_string(),
+        accounts: instruction
+            .accounts
+            .iter()
+            .map(solana_instruction_account_meta_to_proto)
+            .collect(),
+        data: instruction.data,
+        description: String::new(),
+    }
+}
+
+/// Converts a Solana Instruction `AccountMeta` to protobuf `SolanaAccountMeta`
+///
+/// This function transforms account metadata from the native Solana Instruction format
+/// to the protobuf representation used in gRPC APIs.
+///
+/// # Arguments
+/// * `account_meta` - The Solana Instruction account metadata to convert
+///
+/// # Returns
+/// A protobuf `SolanaAccountMeta` with all fields mapped appropriately
+pub fn sdk_account_meta_to_proto(account_meta: &AccountMeta) -> SolanaAccountMeta {
+    SolanaAccountMeta {
+        pubkey: account_meta.pubkey.to_string(),
+        is_signer: account_meta.is_signer,
+        is_writable: account_meta.is_writable,
+    }
+}
+
 /// Converts a Solana SDK `AccountMeta` to protobuf `SolanaAccountMeta`
 ///
 /// This function transforms account metadata from the native Solana SDK format
@@ -41,7 +83,7 @@ pub fn sdk_instruction_to_proto(instruction: Instruction) -> SolanaInstruction {
 ///
 /// # Returns
 /// A protobuf `SolanaAccountMeta` with all fields mapped appropriately
-pub fn sdk_account_meta_to_proto(account_meta: &AccountMeta) -> SolanaAccountMeta {
+pub fn solana_instruction_account_meta_to_proto(account_meta: &SolanaInstructionAccountMeta) -> SolanaAccountMeta {
     SolanaAccountMeta {
         pubkey: account_meta.pubkey.to_string(),
         is_signer: account_meta.is_signer,

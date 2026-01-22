@@ -1,7 +1,7 @@
-use std::str::FromStr;
-use std::sync::Arc;
 use spl_token::ID as LEGACY_PROGRAM_ID;
 use spl_token_2022::ID as TOKEN_2022_PROGRAM_ID;
+use std::str::FromStr;
+use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
 use protochain_api::protochain::solana::account::v1::{
@@ -11,7 +11,7 @@ use protochain_api::protochain::solana::account::v1::{
     GetTokenAccountBalanceRequest, GetTokenAccountBalanceResponse,
 };
 use protochain_api::protochain::solana::r#type::v1::{CommitmentLevel, KeyPair, TokenProgram};
-use spl_associated_token_account::{get_associated_token_address_with_program_id};
+use spl_associated_token_account::get_associated_token_address_with_program_id;
 
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
@@ -290,12 +290,12 @@ impl AccountService for AccountServiceImpl {
         let token_program = match token_program_enum {
             TokenProgram::Legacy => Ok(LEGACY_PROGRAM_ID),
             TokenProgram::TokenProgram2022 => Ok(TOKEN_2022_PROGRAM_ID),
-            _ => Err(format!("unexpected token program id: {:?}", token_program_enum)),
+            _ => Err(format!("unexpected token program id: {token_program_enum:?}")),
         }
-        .map_err(|e| Status::internal(e))?;
+        .map_err(Status::internal)?;
 
         let address = get_associated_token_address_with_program_id(
-            &owner_pub_key, 
+            &owner_pub_key,
             &mint_pub_key,
             &token_program,
         );

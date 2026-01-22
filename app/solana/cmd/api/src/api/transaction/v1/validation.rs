@@ -240,9 +240,9 @@ mod tests {
             signatures: vec![], // No signatures
             hash: String::new(),
             signature: String::new(),
-            slot: todo!(),
-            meta_error_message: todo!(),
-            meta_logs: todo!(),
+            slot: 0,
+            meta_error_message: String::new(),
+            meta_logs: String::new(),
         };
         assert!(validate_transaction_state_consistency(&valid_draft).is_ok());
 
@@ -257,9 +257,9 @@ mod tests {
             signatures: vec![],
             hash: String::new(),
             signature: String::new(),
-            slot: todo!(),
-            meta_error_message: todo!(),
-            meta_logs: todo!(),
+            slot: 0,
+            meta_error_message: String::new(),
+            meta_logs: String::new(),
         };
         assert!(validate_transaction_state_consistency(&invalid_draft_no_instructions).is_err());
 
@@ -274,9 +274,9 @@ mod tests {
             signatures: vec![],
             hash: String::new(),
             signature: String::new(),
-            slot: todo!(),
-            meta_error_message: todo!(),
-            meta_logs: todo!(),
+            slot: 0,
+            meta_error_message: String::new(),
+            meta_logs: String::new(),
         };
         assert!(validate_transaction_state_consistency(&invalid_draft_has_data).is_err());
     }
@@ -294,9 +294,9 @@ mod tests {
             signatures: vec![], // No signatures yet
             hash: String::new(),
             signature: String::new(),
-            slot: todo!(),
-            meta_error_message: todo!(),
-            meta_logs: todo!(),
+            slot: 0,
+            meta_error_message: String::new(),
+            meta_logs: String::new(),
         };
         assert!(validate_transaction_state_consistency(&valid_compiled).is_ok());
 
@@ -311,9 +311,9 @@ mod tests {
             signatures: vec![],
             hash: String::new(),
             signature: String::new(),
-            slot: todo!(),
-            meta_error_message: todo!(),
-            meta_logs: todo!(),
+            slot: 0,
+            meta_error_message: String::new(),
+            meta_logs: String::new(),
         };
         assert!(validate_transaction_state_consistency(&invalid_compiled_no_data).is_err());
     }
