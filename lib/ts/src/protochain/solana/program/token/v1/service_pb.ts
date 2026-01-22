@@ -8,6 +8,8 @@ import type { SolanaInstruction } from "../../../transaction/v1/instruction_pb";
 import { file_protochain_solana_transaction_v1_instruction } from "../../../transaction/v1/instruction_pb";
 import type { TokenProgram } from "../../../type/v1/token_program_pb";
 import { file_protochain_solana_type_v1_token_program } from "../../../type/v1/token_program_pb";
+import type { TokenProgram } from "../../../type/v1/token_program_pb";
+import { file_protochain_solana_type_v1_token_program } from "../../../type/v1/token_program_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
@@ -41,6 +43,11 @@ export type InitialiseMintRequest = Message<"protochain.solana.program.token.v1.
    * @generated from field: uint32 decimals = 4;
    */
   decimals: number;
+
+  /**
+   * @generated from field: protochain.solana.type.v1.TokenProgram token_program = 5;
+   */
+  tokenProgram: TokenProgram;
 
   /**
    * @generated from field: protochain.solana.type.v1.TokenProgram token_program = 5;
@@ -226,6 +233,7 @@ export type GetCurrentMinRentForHoldingAccountRequest = Message<"protochain.sola
  */
 export const GetCurrentMinRentForHoldingAccountRequestSchema: GenMessage<GetCurrentMinRentForHoldingAccountRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_token_v1_service, 8);
+  messageDesc(file_protochain_solana_program_token_v1_service, 8);
 
 /**
  * Response with current rent amount for holding account
@@ -245,8 +253,10 @@ export type GetCurrentMinRentForHoldingAccountResponse = Message<"protochain.sol
  */
 export const GetCurrentMinRentForHoldingAccountResponseSchema: GenMessage<GetCurrentMinRentForHoldingAccountResponse> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_token_v1_service, 9);
+  messageDesc(file_protochain_solana_program_token_v1_service, 9);
 
 /**
+ * Request to create and initialize a holding account in one call
  * Request to create and initialize a holding account in one call
  *
  * @generated from message protochain.solana.program.token.v1.CreateHoldingAccountRequest
@@ -284,6 +294,11 @@ export type CreateHoldingAccountRequest = Message<"protochain.solana.program.tok
    * @generated from field: protochain.solana.program.token.v1.MemoTransferConfig memo_transfer_config = 5;
    */
   memoTransferConfig?: MemoTransferConfig;
+
+  /**
+   * @generated from field: protochain.solana.type.v1.TokenProgram token_program = 7;
+   */
+  tokenProgram: TokenProgram;
 };
 
 /**
@@ -291,6 +306,7 @@ export type CreateHoldingAccountRequest = Message<"protochain.solana.program.tok
  * Use `create(CreateHoldingAccountRequestSchema)` to create a new message.
  */
 export const CreateHoldingAccountRequestSchema: GenMessage<CreateHoldingAccountRequest> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_token_v1_service, 10);
   messageDesc(file_protochain_solana_program_token_v1_service, 10);
 
 /**
@@ -311,6 +327,7 @@ export type CreateHoldingAccountResponse = Message<"protochain.solana.program.to
  */
 export const CreateHoldingAccountResponseSchema: GenMessage<CreateHoldingAccountResponse> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_token_v1_service, 11);
+  messageDesc(file_protochain_solana_program_token_v1_service, 11);
 
 /**
  * Request to create and initialize a mint account in one call
@@ -329,6 +346,7 @@ export type CreateMintRequest = Message<"protochain.solana.program.token.v1.Crea
 
   /**
    * Token program initialize mint fields
+   * Token program initialize mint fields
    *
    * Same as new_account for validation
    *
@@ -337,6 +355,7 @@ export type CreateMintRequest = Message<"protochain.solana.program.token.v1.Crea
   mintPubKey: string;
 
   /**
+   * Mint authority
    * Mint authority
    *
    * @generated from field: string mint_authority_pub_key = 3;
@@ -369,6 +388,7 @@ export type CreateMintRequest = Message<"protochain.solana.program.token.v1.Crea
  */
 export const CreateMintRequestSchema: GenMessage<CreateMintRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_token_v1_service, 12);
+  messageDesc(file_protochain_solana_program_token_v1_service, 12);
 
 /**
  * Response containing both create and initialize instructions
@@ -387,6 +407,7 @@ export type CreateMintResponse = Message<"protochain.solana.program.token.v1.Cre
  * Use `create(CreateMintResponseSchema)` to create a new message.
  */
 export const CreateMintResponseSchema: GenMessage<CreateMintResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_token_v1_service, 13);
   messageDesc(file_protochain_solana_program_token_v1_service, 13);
 
 /**
@@ -437,6 +458,7 @@ export type MintRequest = Message<"protochain.solana.program.token.v1.MintReques
  */
 export const MintRequestSchema: GenMessage<MintRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_token_v1_service, 14);
+  messageDesc(file_protochain_solana_program_token_v1_service, 14);
 
 /**
  * Response containing Mint instruction
@@ -455,6 +477,56 @@ export type MintResponse = Message<"protochain.solana.program.token.v1.MintRespo
  * Use `create(MintResponseSchema)` to create a new message.
  */
 export const MintResponseSchema: GenMessage<MintResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_token_v1_service, 15);
+
+/**
+ * @generated from message protochain.solana.program.token.v1.CreateAssociatedTokenAccountRequest
+ */
+export type CreateAssociatedTokenAccountRequest = Message<"protochain.solana.program.token.v1.CreateAssociatedTokenAccountRequest"> & {
+  /**
+   * public key of the account paying for creation
+   *
+   * @generated from field: string payer_pub_key = 1;
+   */
+  payerPubKey: string;
+
+  /**
+   * public key for the owner of the token account to be created
+   *
+   * @generated from field: string owner_pub_key = 2;
+   */
+  ownerPubKey: string;
+
+  /**
+   * public key of the mint token account
+   *
+   * @generated from field: string mint_pub_key = 3;
+   */
+  mintPubKey: string;
+};
+
+/**
+ * Describes the message protochain.solana.program.token.v1.CreateAssociatedTokenAccountRequest.
+ * Use `create(CreateAssociatedTokenAccountRequestSchema)` to create a new message.
+ */
+export const CreateAssociatedTokenAccountRequestSchema: GenMessage<CreateAssociatedTokenAccountRequest> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_token_v1_service, 16);
+
+/**
+ * @generated from message protochain.solana.program.token.v1.CreateAssociatedTokenAccountResponse
+ */
+export type CreateAssociatedTokenAccountResponse = Message<"protochain.solana.program.token.v1.CreateAssociatedTokenAccountResponse"> & {
+  /**
+   * @generated from field: protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+   */
+  instruction?: SolanaInstruction;
+};
+
+/**
+ * Describes the message protochain.solana.program.token.v1.CreateAssociatedTokenAccountResponse.
+ * Use `create(CreateAssociatedTokenAccountResponseSchema)` to create a new message.
+ */
+export const CreateAssociatedTokenAccountResponseSchema: GenMessage<CreateAssociatedTokenAccountResponse> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_token_v1_service, 15);
 
 /**
@@ -582,6 +654,16 @@ export const Service: GenService<{
     methodKind: "unary";
     input: typeof MintRequestSchema;
     output: typeof MintResponseSchema;
+  },
+  /**
+   * Create a token account using create_associated_token_account instruction
+   *
+   * @generated from rpc protochain.solana.program.token.v1.Service.CreateAssociatedTokenAccount
+   */
+  createAssociatedTokenAccount: {
+    methodKind: "unary";
+    input: typeof CreateAssociatedTokenAccountRequestSchema;
+    output: typeof CreateAssociatedTokenAccountResponseSchema;
   },
   /**
    * Create a token account using create_associated_token_account instruction

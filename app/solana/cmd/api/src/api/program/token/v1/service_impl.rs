@@ -4,9 +4,13 @@ use tonic::{Request, Response, Status};
 use protochain_api::protochain::solana::program::token::v1::{
     service_server::Service as TokenProgramService, CreateAssociatedTokenAccountRequest,
     CreateAssociatedTokenAccountResponse, CreateHoldingAccountRequest,
+    service_server::Service as TokenProgramService, CreateAssociatedTokenAccountRequest,
+    CreateAssociatedTokenAccountResponse, CreateHoldingAccountRequest,
     CreateHoldingAccountResponse, CreateMintRequest, CreateMintResponse,
     GetCurrentMinRentForHoldingAccountRequest, GetCurrentMinRentForHoldingAccountResponse,
     GetCurrentMinRentForTokenAccountRequest, GetCurrentMinRentForTokenAccountResponse,
+    InitialiseMintRequest, InitialiseMintResponse, MintInfo, MintRequest, MintResponse,
+    ParseMintRequest, ParseMintResponse,
     InitialiseMintRequest, InitialiseMintResponse, MintInfo, MintRequest, MintResponse,
     ParseMintRequest, ParseMintResponse,
 };
@@ -33,9 +37,15 @@ use crate::api::{
     common::solana_conversions::sdk_instruction_to_proto,
     program::token::v1::token_program::sdk_token_program_to_proto,
 };
+use crate::api::program::token::v1::token_program::get_token_program_id;
+use crate::api::{
+    common::solana_conversions::sdk_instruction_to_proto,
+    program::token::v1::token_program::sdk_token_program_to_proto,
+};
 use protochain_api::protochain::solana::program::system::v1::{
     service_server::Service as SystemProgramService, CreateRequest as SystemCreateRequest,
 };
+use protochain_api::protochain::solana::r#type::v1::TokenProgram;
 use protochain_api::protochain::solana::r#type::v1::TokenProgram;
 
 /// Token Program service implementation for Token 2022 operations
@@ -79,6 +89,7 @@ fn memo_rent_lamports(rpc: &RpcClient, require_memo: bool) -> Result<u64, Status
 #[tonic::async_trait]
 impl TokenProgramService for TokenProgramServiceImpl {
     /// Creates an `InitialiseMint` instruction for SPL or SPL 2022 token
+    /// Creates an `InitialiseMint` instruction for SPL or SPL 2022 token
     async fn initialise_mint(
         &self,
         request: Request<InitialiseMintRequest>,
@@ -101,6 +112,42 @@ impl TokenProgramService for TokenProgramServiceImpl {
             })?)
         };
 
+        // Determine which token program to use
+        let token_program_enum = TokenProgram::try_from(req.token_program)
+            .map_err(|_| Status::invalid_argument("Invalid token program value"))?;
+
+        let decimals = u8::try_from(req.decimals)
+            .map_err(|_| Status::invalid_argument("decimals must be between 0 and 255"))?;
+
+        let instruction = match token_program_enum {
+            TokenProgram::Legacy => initialize_mint_legacy(
+                &LEGACY_PROGRAM_ID,
+                &mint_pubkey,
+                &mint_authority,
+                freeze_authority.as_ref(),
+                decimals,
+            )
+            .map_err(|e| {
+                Status::internal(format!(
+                    "could not create initialise mint legacy token instruction: {e}"
+                ))
+            }),
+            TokenProgram::TokenProgram2022 => initialize_mint2(
+                &TOKEN_2022_PROGRAM_ID,
+                &mint_pubkey,
+                &mint_authority,
+                freeze_authority.as_ref(),
+                decimals,
+            )
+            .map_err(|e| {
+                Status::internal(format!(
+                    "could not create initialise mint token 2022 instruction: {e}"
+                ))
+            }),
+            TokenProgram::Unspecified => {
+                Err(Status::invalid_argument("token_program must be specified"))
+            }
+        }?;
         // Determine which token program to use
         let token_program_enum = TokenProgram::try_from(req.token_program)
             .map_err(|_| Status::invalid_argument("Invalid token program value"))?;
@@ -214,7 +261,55 @@ impl TokenProgramService for TokenProgramServiceImpl {
                 let mint = Mint::unpack(&account.data).map_err(|e| {
                     Status::invalid_argument(format!("Failed to parse mint account: {e}"))
                 })?;
+        // Determine token program from account owner
+        let token_program = sdk_token_program_to_proto(&account.owner);
 
+        let mint_info = match token_program {
+            TokenProgram::Legacy => {
+                // Unpack the mint account data
+                let mint = LegacyMint::unpack(&account.data).map_err(|e| {
+                    Status::invalid_argument(format!("Failed to parse mint account: {e}"))
+                })?;
+
+                // Convert to proto format
+                Ok(MintInfo {
+                    mint_authority_pub_key: mint
+                        .mint_authority
+                        .map(|key| key.to_string())
+                        .unwrap_or_default(),
+                    freeze_authority_pub_key: mint
+                        .freeze_authority
+                        .map(|key| key.to_string())
+                        .unwrap_or_default(),
+                    decimals: u32::from(mint.decimals),
+                    supply: mint.supply.to_string(),
+                    is_initialized: mint.is_initialized,
+                })
+            }
+            TokenProgram::TokenProgram2022 => {
+                // Unpack the mint account data
+                let mint = Mint::unpack(&account.data).map_err(|e| {
+                    Status::invalid_argument(format!("Failed to parse mint account: {e}"))
+                })?;
+
+                // Convert to proto format
+                Ok(MintInfo {
+                    mint_authority_pub_key: mint
+                        .mint_authority
+                        .map(|key| key.to_string())
+                        .unwrap_or_default(),
+                    freeze_authority_pub_key: mint
+                        .freeze_authority
+                        .map(|key| key.to_string())
+                        .unwrap_or_default(),
+                    decimals: u32::from(mint.decimals),
+                    supply: mint.supply.to_string(),
+                    is_initialized: mint.is_initialized,
+                })
+            }
+            _ => Err("unknown token program"),
+        }
+        .map_err(|e| Status::invalid_argument(format!("Could not get mint info: {e}")))?;
                 // Convert to proto format
                 Ok(MintInfo {
                     mint_authority_pub_key: mint
@@ -284,6 +379,13 @@ impl TokenProgramService for TokenProgramServiceImpl {
         // Get the program ID pubkey and convert to string for the system program
         let owner_pubkey = get_token_program_id(token_program_enum);
 
+
+        let token_program_enum = TokenProgram::try_from(req.token_program)
+            .map_err(|_| Status::invalid_argument("Invalid token program value"))?;
+
+        // Get the program ID pubkey and convert to string for the system program
+        let owner_pubkey = get_token_program_id(token_program_enum);
+
         let create_instruction = system_service
             .create(Request::new(SystemCreateRequest {
                 payer: req.payer.clone(),
@@ -303,12 +405,16 @@ impl TokenProgramService for TokenProgramServiceImpl {
                 freeze_authority_pub_key: req.freeze_authority_pub_key,
                 decimals: req.decimals,
                 token_program: req.token_program,
+                token_program: req.token_program,
             }))
             .await?
             .into_inner();
 
         // Step 4: Compose response with both instructions
         let mut instructions = Vec::new();
+        if let Some(instr) = create_instruction.instruction {
+            instructions.push(instr);
+        }
         if let Some(instr) = create_instruction.instruction {
             instructions.push(instr);
         }
@@ -396,7 +502,9 @@ impl TokenProgramService for TokenProgramServiceImpl {
             instructions.push(sdk_instruction_to_proto(memo_instruction));
         }
 
-        Ok(Response::new(CreateHoldingAccountResponse { instructions }))
+        Ok(Response::new(CreateHoldingAccountResponse {
+            instructions: instruction_list,
+        }))
     }
 
     /// Creates a `MintToChecked` instruction for Token 2022 program
@@ -413,6 +521,14 @@ impl TokenProgramService for TokenProgramServiceImpl {
         let mint_authority_pubkey = Pubkey::from_str(&req.mint_authority_pub_key).map_err(|e| {
             Status::invalid_argument(format!("Invalid mint_authority_pub_key: {e}"))
         })?;
+
+        // Get the mint account data
+        let account = self
+            .rpc_client
+            .get_account_with_commitment(&mint_pubkey, CommitmentConfig::confirmed())
+            .map_err(|e| Status::internal(format!("Failed to get account: {e}")))?
+            .value
+            .ok_or_else(|| Status::not_found("Account not found"))?;
 
         // Get the mint account data
         let account = self
@@ -453,6 +569,33 @@ impl TokenProgramService for TokenProgramServiceImpl {
         let proto_instruction = sdk_instruction_to_proto(instruction);
         Ok(Response::new(MintResponse {
             instruction: Some(proto_instruction),
+        }))
+    }
+
+    async fn create_associated_token_account(
+        &self,
+        request: Request<CreateAssociatedTokenAccountRequest>,
+    ) -> Result<Response<CreateAssociatedTokenAccountResponse>, Status> {
+        let req = request.into_inner();
+
+        let payer_address = Pubkey::from_str(&req.payer_pub_key)
+            .map_err(|e| Status::invalid_argument(format!("Invalid payer public key: {e}")))?;
+
+        let owner_address = Pubkey::from_str(&req.owner_pub_key)
+            .map_err(|e| Status::invalid_argument(format!("Invalid payer public key: {e}")))?;
+
+        let mint_address = Pubkey::from_str(&req.mint_pub_key)
+            .map_err(|e| Status::invalid_argument(format!("Invalid payer public key: {e}")))?;
+
+        let instruction = spl_create_associated_token_account(
+            &payer_address,
+            &owner_address,
+            &mint_address,
+            &LEGACY_PROGRAM_ID,
+        );
+
+        Ok(Response::new(CreateAssociatedTokenAccountResponse {
+            instruction: Some(sdk_instruction_to_proto(instruction)),
         }))
     }
 

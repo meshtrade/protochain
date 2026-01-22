@@ -5,6 +5,7 @@
 import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import type { Account } from "./account_pb";
+import type { Account } from "./account_pb";
 import { file_protochain_solana_account_v1_account } from "./account_pb";
 import type { CommitmentLevel } from "../../type/v1/commitment_level_pb";
 import { file_protochain_solana_type_v1_commitment_level } from "../../type/v1/commitment_level_pb";
@@ -260,14 +261,19 @@ export const Service: GenService<{
   /**
    * GetAccount will return a protochain Account entity representing an account on-chain
    *
+   * GetAccount will return a protochain Account entity representing an account on-chain
+   *
    * @generated from rpc protochain.solana.account.v1.Service.GetAccount
    */
   getAccount: {
     methodKind: "unary";
     input: typeof GetAccountRequestSchema;
     output: typeof GetAccountResponseSchema;
+    output: typeof GetAccountResponseSchema;
   },
   /**
+   * GenerateKeyPair will generate a public+private keypair (optionally using seed if set)
+   *
    * GenerateKeyPair will generate a public+private keypair (optionally using seed if set)
    *
    * @generated from rpc protochain.solana.account.v1.Service.GenerateNewKeyPair
@@ -280,12 +286,34 @@ export const Service: GenService<{
   /**
    * FundNative will fund the destination account with SOL
    *
+   * FundNative will fund the destination account with SOL
+   *
    * @generated from rpc protochain.solana.account.v1.Service.FundNative
    */
   fundNative: {
     methodKind: "unary";
     input: typeof FundNativeRequestSchema;
     output: typeof FundNativeResponseSchema;
+  },
+  /**
+   * GetTokenAccountBalance will return the balance of the token held by a token account
+   *
+   * @generated from rpc protochain.solana.account.v1.Service.GetTokenAccountBalance
+   */
+  getTokenAccountBalance: {
+    methodKind: "unary";
+    input: typeof GetTokenAccountBalanceRequestSchema;
+    output: typeof GetTokenAccountBalanceResponseSchema;
+  },
+  /**
+   * GetAssociatedTokenAddress is used to get the PDA address of an associated token account
+   *
+   * @generated from rpc protochain.solana.account.v1.Service.GetAssociatedTokenAddress
+   */
+  getAssociatedTokenAddress: {
+    methodKind: "unary";
+    input: typeof GetAssociatedTokenAddressRequestSchema;
+    output: typeof GetAssociatedTokenAddressResponseSchema;
   },
   /**
    * GetTokenAccountBalance will return the balance of the token held by a token account
