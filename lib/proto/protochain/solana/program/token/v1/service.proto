@@ -24,14 +24,11 @@ service Service {
   // Creates both system account creation and mint initialization instructions. Memo transfer is not applicable to mint accounts.
   rpc CreateMint(CreateMintRequest) returns (CreateMintResponse);
 
-  // Creates both system account creation and holding account initialization instructions. Adds memo-enable instruction when requested.
+  // Creates holding account initialization instructions. Adds memo-enable instruction when requested.
   rpc CreateHoldingAccount(CreateHoldingAccountRequest) returns (CreateHoldingAccountResponse);
 
   // Mint tokens to an existing token account using MintToChecked instruction
   rpc Mint(MintRequest) returns (MintResponse);
-
-  // Create a token account using create_associated_token_account instruction
-  rpc CreateAssociatedTokenAccount(CreateAssociatedTokenAccountRequest) returns (CreateAssociatedTokenAccountResponse);
 }
 
 // Request to create InitialiseMint instruction
@@ -142,6 +139,7 @@ message CreateAssociatedTokenAccountRequest {
   string payer_pub_key = 1; // public key of the account paying for creation
   string owner_pub_key = 2; // public key for the owner of the token account to be created
   string mint_pub_key = 3; // public key of the mint token account
+  protochain.solana.type.v1.TokenProgram token_program = 4;
 }
 
 message CreateAssociatedTokenAccountResponse {
