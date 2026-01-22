@@ -26,7 +26,6 @@ const (
 	Service_CreateMint_FullMethodName                         = "/protochain.solana.program.token.v1.Service/CreateMint"
 	Service_CreateHoldingAccount_FullMethodName               = "/protochain.solana.program.token.v1.Service/CreateHoldingAccount"
 	Service_Mint_FullMethodName                               = "/protochain.solana.program.token.v1.Service/Mint"
-	Service_CreateAssociatedTokenAccount_FullMethodName       = "/protochain.solana.program.token.v1.Service/CreateAssociatedTokenAccount"
 )
 
 // ServiceClient is the client API for Service service.
@@ -45,12 +44,10 @@ type ServiceClient interface {
 	GetCurrentMinRentForHoldingAccount(ctx context.Context, in *GetCurrentMinRentForHoldingAccountRequest, opts ...grpc.CallOption) (*GetCurrentMinRentForHoldingAccountResponse, error)
 	// Creates both system account creation and mint initialization instructions. Memo transfer is not applicable to mint accounts.
 	CreateMint(ctx context.Context, in *CreateMintRequest, opts ...grpc.CallOption) (*CreateMintResponse, error)
-	// Creates both system account creation and holding account initialization instructions. Adds memo-enable instruction when requested.
+	// Creates holding account initialization instructions. Adds memo-enable instruction when requested.
 	CreateHoldingAccount(ctx context.Context, in *CreateHoldingAccountRequest, opts ...grpc.CallOption) (*CreateHoldingAccountResponse, error)
 	// Mint tokens to an existing token account using MintToChecked instruction
 	Mint(ctx context.Context, in *MintRequest, opts ...grpc.CallOption) (*MintResponse, error)
-	// Create a token account using create_associated_token_account instruction
-	CreateAssociatedTokenAccount(ctx context.Context, in *CreateAssociatedTokenAccountRequest, opts ...grpc.CallOption) (*CreateAssociatedTokenAccountResponse, error)
 }
 
 type serviceClient struct {
@@ -131,16 +128,6 @@ func (c *serviceClient) Mint(ctx context.Context, in *MintRequest, opts ...grpc.
 	return out, nil
 }
 
-func (c *serviceClient) CreateAssociatedTokenAccount(ctx context.Context, in *CreateAssociatedTokenAccountRequest, opts ...grpc.CallOption) (*CreateAssociatedTokenAccountResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateAssociatedTokenAccountResponse)
-	err := c.cc.Invoke(ctx, Service_CreateAssociatedTokenAccount_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // ServiceServer is the server API for Service service.
 // All implementations must embed UnimplementedServiceServer
 // for forward compatibility.
@@ -157,12 +144,10 @@ type ServiceServer interface {
 	GetCurrentMinRentForHoldingAccount(context.Context, *GetCurrentMinRentForHoldingAccountRequest) (*GetCurrentMinRentForHoldingAccountResponse, error)
 	// Creates both system account creation and mint initialization instructions. Memo transfer is not applicable to mint accounts.
 	CreateMint(context.Context, *CreateMintRequest) (*CreateMintResponse, error)
-	// Creates both system account creation and holding account initialization instructions. Adds memo-enable instruction when requested.
+	// Creates holding account initialization instructions. Adds memo-enable instruction when requested.
 	CreateHoldingAccount(context.Context, *CreateHoldingAccountRequest) (*CreateHoldingAccountResponse, error)
 	// Mint tokens to an existing token account using MintToChecked instruction
 	Mint(context.Context, *MintRequest) (*MintResponse, error)
-	// Create a token account using create_associated_token_account instruction
-	CreateAssociatedTokenAccount(context.Context, *CreateAssociatedTokenAccountRequest) (*CreateAssociatedTokenAccountResponse, error)
 	mustEmbedUnimplementedServiceServer()
 }
 
@@ -193,9 +178,6 @@ func (UnimplementedServiceServer) CreateHoldingAccount(context.Context, *CreateH
 }
 func (UnimplementedServiceServer) Mint(context.Context, *MintRequest) (*MintResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Mint not implemented")
-}
-func (UnimplementedServiceServer) CreateAssociatedTokenAccount(context.Context, *CreateAssociatedTokenAccountRequest) (*CreateAssociatedTokenAccountResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateAssociatedTokenAccount not implemented")
 }
 func (UnimplementedServiceServer) mustEmbedUnimplementedServiceServer() {}
 func (UnimplementedServiceServer) testEmbeddedByValue()                 {}
@@ -344,24 +326,6 @@ func _Service_Mint_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Service_CreateAssociatedTokenAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateAssociatedTokenAccountRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ServiceServer).CreateAssociatedTokenAccount(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Service_CreateAssociatedTokenAccount_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceServer).CreateAssociatedTokenAccount(ctx, req.(*CreateAssociatedTokenAccountRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Service_ServiceDesc is the grpc.ServiceDesc for Service service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -396,10 +360,6 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Mint",
 			Handler:    _Service_Mint_Handler,
-		},
-		{
-			MethodName: "CreateAssociatedTokenAccount",
-			Handler:    _Service_CreateAssociatedTokenAccount_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

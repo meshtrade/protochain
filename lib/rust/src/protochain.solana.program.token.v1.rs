@@ -185,6 +185,8 @@ pub struct CreateAssociatedTokenAccountRequest {
     /// public key of the mint token account
     #[prost(string, tag="3")]
     pub mint_pub_key: ::prost::alloc::string::String,
+    #[prost(enumeration="super::super::super::r#type::v1::TokenProgram", tag="4")]
+    pub token_program: i32,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]

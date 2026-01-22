@@ -163,11 +163,3 @@ func (s *serviceService) Mint(ctx context.Context, request *MintRequest) (*MintR
 		return s.GrpcClient().Mint(ctx, request)
 	})
 }
-
-// CreateAssociatedTokenAccount executes the CreateAssociatedTokenAccount RPC method with automatic
-// client-side validation, timeout handling, distributed tracing, and authentication.
-func (s *serviceService) CreateAssociatedTokenAccount(ctx context.Context, request *CreateAssociatedTokenAccountRequest) (*CreateAssociatedTokenAccountResponse, error) {
-	return common.Execute(s.Executor(), ctx, "CreateAssociatedTokenAccount", request, func(ctx context.Context) (*CreateAssociatedTokenAccountResponse, error) {
-		return s.GrpcClient().CreateAssociatedTokenAccount(ctx, request)
-	})
-}
