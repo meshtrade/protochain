@@ -786,6 +786,8 @@ impl TransactionService for TransactionServiceImpl {
             solana_transaction.message.header.num_required_signatures as usize;
         let provided_signatures = transaction.signatures.len();
 
+        info!("required signatures: {:?}", required_signatures);
+        info!("provided signatures: {:?}", provided_signatures);
         let new_state = if provided_signatures >= required_signatures {
             TransactionState::FullySigned
         } else {

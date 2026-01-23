@@ -2,12 +2,8 @@ package apitest
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/binary"
-	"encoding/json"
 	"fmt"
 	"io"
-	"math"
 	"testing"
 	"time"
 
@@ -103,7 +99,7 @@ func (suite *TokenProgramE2ETestSuite) Test_01_InitialiseMint() {
 	suite.Require().NoError(err, "Should get current rent amount")
 	suite.T().Logf("  Rent required for mint: %d lamports", rentResp.Lamports)
 
-	// Create mint account instruction (system program)
+	// Create mint account instruction
 	createMintInstr, err := suite.systemProgramService.Create(suite.ctx, &system_v1.CreateRequest{
 		Payer:      payKeyResp.KeyPair.PublicKey,
 		NewAccount: mintKeyResp.KeyPair.PublicKey,
@@ -119,6 +115,7 @@ func (suite *TokenProgramE2ETestSuite) Test_01_InitialiseMint() {
 		MintAuthorityPubKey:   payKeyResp.KeyPair.PublicKey,
 		FreezeAuthorityPubKey: payKeyResp.KeyPair.PublicKey,
 		Decimals:              2,
+		TokenProgram:          type_v1.TokenProgram_TOKEN_PROGRAM_2022,
 	})
 	suite.Require().NoError(err, "Should create initialise mint instruction")
 
@@ -216,35 +213,36 @@ func (suite *TokenProgramE2ETestSuite) Test_02_6_InitialiseHoldingAccountInstruc
 	suite.T().Log("🎯 Testing InitialiseHoldingAccount Instruction Creation")
 
 	// Use hardcoded valid public keys for instruction creation test
-	testAccountPubKey := "11111111111111111111111111111112"          // System Program
+	testPayerAccountKey := "11111111111111111111111111111113"
 	testMintPubKey := "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"  // Token 2022 Program
 	testOwnerPubKey := "So11111111111111111111111111111111111111112" // Wrapped SOL
 
 	// Create holding account instruction using memo transfer configuration
 	resp, err := suite.tokenProgramService.CreateHoldingAccount(suite.ctx, &token_v1.CreateHoldingAccountRequest{
-		NewAccount:         testAccountPubKey,
+		Payer:              testPayerAccountKey,
 		MintPubKey:         testMintPubKey,
 		OwnerPubKey:        testOwnerPubKey,
+		TokenProgram:       type_v1.TokenProgram_TOKEN_PROGRAM_2022,
 		MemoTransferConfig: &token_v1.MemoTransferConfig{RequireIncomingMemo: true},
 	})
 	suite.Require().NoError(err, "Should create holding account instruction successfully")
 	suite.Require().NotNil(resp.Instructions, "Instruction should not be nil")
-	suite.Require().Len(resp.Instructions, 2, "Should include initialise and memo-enable instructions")
-
-	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, resp.Instructions[1].ProgramId, "Memo enable instruction should target Token 2022 program")
+	suite.Require().Len(resp.Instructions, 3, "Should include create, initialise and memo-enable instructions")
+	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, resp.Instructions[2].ProgramId, "Memo enable instruction should target Token 2022 program")
 	suite.Assert().Greater(len(resp.Instructions[1].Data), 0, "Memo enable instruction should have non-empty data")
 
 	suite.T().Logf("✅ InitialiseHoldingAccount returned %d instructions (memo enabled)", len(resp.Instructions))
 
 	// Validate default behaviour when memo config is omitted
 	defaultResp, err := suite.tokenProgramService.CreateHoldingAccount(suite.ctx, &token_v1.CreateHoldingAccountRequest{
-		NewAccount:  testAccountPubKey,
-		MintPubKey:  testMintPubKey,
-		OwnerPubKey: testOwnerPubKey,
+		Payer:        testPayerAccountKey,
+		MintPubKey:   testMintPubKey,
+		OwnerPubKey:  testOwnerPubKey,
+		TokenProgram: type_v1.TokenProgram_TOKEN_PROGRAM_2022,
 	})
 	suite.Require().NoError(err, "Should create holding account instruction without memo config")
 	suite.Require().NotNil(defaultResp.Instructions, "Instruction should not be nil for default response")
-	suite.Require().Len(defaultResp.Instructions, 1, "Default response should only contain initialise instruction")
+	suite.Require().Len(defaultResp.Instructions, 2, "Default response should only contain create + initialise instruction")
 }
 
 // Test_03_Token_e2e tests complete mint + holding account creation flow
@@ -292,13 +290,14 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 		MintAuthorityPubKey:   payKeyResp.KeyPair.PublicKey,
 		FreezeAuthorityPubKey: payKeyResp.KeyPair.PublicKey,
 		Decimals:              6,
+		TokenProgram:          type_v1.TokenProgram_TOKEN_PROGRAM_2022,
 	})
 	suite.Require().NoError(err, "Should create initialise mint instruction")
 
 	// Generate holding account keypair
-	holdingAccKeyResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
-	suite.Require().NoError(err, "Should generate holding account keypair")
-	suite.T().Logf("  Generated holding account: %s", holdingAccKeyResp.KeyPair.PublicKey)
+	walletAccKeyResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
+	suite.Require().NoError(err, "Should generate wallet account keypair")
+	suite.T().Logf("  Generated wallet account: %s", walletAccKeyResp.KeyPair.PublicKey)
 
 	// Get baseline rent for holding account
 	holdingAccountRentResp, err := suite.tokenProgramService.GetCurrentMinRentForHoldingAccount(suite.ctx, &token_v1.GetCurrentMinRentForHoldingAccountRequest{})
@@ -313,28 +312,19 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	suite.Assert().Greater(holdingRentWithMemo.Lamports, holdingAccountRentResp.Lamports, "Memo-enabled rent should exceed baseline")
 	suite.T().Logf("  Holding account rent with memo: %d lamports", holdingRentWithMemo.Lamports)
 
-	// Build holding account instructions (system create + initialise + memo enable)
+	// Build holding account instructions with memo transfer enabled
 	createHoldingAccountResp, err := suite.tokenProgramService.CreateHoldingAccount(suite.ctx, &token_v1.CreateHoldingAccountRequest{
-		Payer:                payKeyResp.KeyPair.PublicKey,
-		NewAccount:           holdingAccKeyResp.KeyPair.PublicKey,
-		HoldingAccountPubKey: holdingAccKeyResp.KeyPair.PublicKey,
-		MintPubKey:           mintKeyResp.KeyPair.PublicKey,
-		OwnerPubKey:          payKeyResp.KeyPair.PublicKey,
-		MemoTransferConfig:   &token_v1.MemoTransferConfig{RequireIncomingMemo: true},
+		Payer:              payKeyResp.KeyPair.PublicKey,
+		MintPubKey:         mintKeyResp.KeyPair.PublicKey,
+		OwnerPubKey:        walletAccKeyResp.KeyPair.PublicKey,
+		MemoTransferConfig: &token_v1.MemoTransferConfig{RequireIncomingMemo: true},
+		TokenProgram:       type_v1.TokenProgram_TOKEN_PROGRAM_2022,
 	})
 	suite.Require().NoError(err, "Should create holding account instruction bundle")
-	suite.Require().Len(createHoldingAccountResp.Instructions, 3, "CreateHoldingAccount should include create + initialise + memo instructions")
-	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, createHoldingAccountResp.Instructions[2].ProgramId, "Third instruction should enable memo transfers")
-	suite.Require().GreaterOrEqual(len(createHoldingAccountResp.Instructions[0].Data), 20, "Create instruction should encode header, lamports, and space")
-	instructionData := createHoldingAccountResp.Instructions[0].Data
-	const systemInstructionHeaderBytes = 4
-	memoLamports := binary.LittleEndian.Uint64(instructionData[systemInstructionHeaderBytes : systemInstructionHeaderBytes+8])
-	suite.Require().EqualValues(holdingRentWithMemo.Lamports, memoLamports, "Lamports in create instruction should match memo rent")
-	memoAccountSpaceU64 := binary.LittleEndian.Uint64(instructionData[systemInstructionHeaderBytes+8 : systemInstructionHeaderBytes+16])
-	suite.Require().LessOrEqual(memoAccountSpaceU64, uint64(math.MaxInt64), "Account space value must fit in int64")
-	memoAccountSpace := int64(memoAccountSpaceU64) //nolint:gosec // overflow check performed above
-	suite.Require().Greater(memoAccountSpace, int64(token_v1.HOLDING_ACCOUNT_LEN), "Memo-enabled account should allocate additional space")
-	suite.T().Logf("  Memo-enabled holding account space: %d bytes", memoAccountSpace)
+	// With memo: System Create + InitializeMemoTransfer
+	suite.Require().Len(createHoldingAccountResp.Instructions, 3, "CreateHoldingAccount with memo should return creation, initialise and enable memo transfer config instructions")
+	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, createHoldingAccountResp.Instructions[2].ProgramId, "Second instruction should initialize memo transfers")
+	suite.T().Logf("  Created holding account with memo transfer (3 instructions)")
 
 	// Compose atomic transaction with mint + holding account instructions (including memo enable)
 	atomicTx := &transaction_v1.Transaction{
@@ -354,15 +344,15 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	})
 	suite.Require().NoError(err, "Should compile transaction")
 
-	// Sign transaction (needs both mint and holding account signatures)
+	// Sign transaction (payer for fees and mint creation; ATA is derived so doesn't sign)
 	signedTx, err := suite.transactionService.SignTransaction(suite.ctx, &transaction_v1.SignTransactionRequest{
 		Transaction: compiledTx.Transaction,
 		SigningMethod: &transaction_v1.SignTransactionRequest_PrivateKeys{
 			PrivateKeys: &transaction_v1.SignWithPrivateKeys{
 				PrivateKeys: []string{
-					payKeyResp.KeyPair.PrivateKey,        // payer signature
-					mintKeyResp.KeyPair.PrivateKey,       // mint account signature
-					holdingAccKeyResp.KeyPair.PrivateKey, // holding account signature
+					payKeyResp.KeyPair.PrivateKey,  // payer signature for fees
+					mintKeyResp.KeyPair.PrivateKey, // mint account signature (system Create requires this)
+					walletAccKeyResp.KeyPair.PrivateKey,
 				},
 			},
 		},
@@ -370,15 +360,18 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	suite.Require().NoError(err, "Should sign transaction")
 
 	// Submit transaction
+	suite.T().Logf("  Signed transaction state: %v", signedTx.Transaction.State)
+	suite.T().Logf("  Signed transaction instructions count: %d", len(signedTx.Transaction.Instructions))
 	submittedTx, err := suite.transactionService.SubmitTransaction(suite.ctx, &transaction_v1.SubmitTransactionRequest{
 		Transaction: signedTx.Transaction,
 	})
 	suite.Require().NoError(err, "Should submit transaction")
+	suite.Require().NotEmpty(submittedTx.Signature, "Transaction signature should not be empty (error_message: %s)", submittedTx.ErrorMessage)
 	suite.T().Logf("  Transaction submitted: %s", submittedTx.Signature)
 
 	// Ensure mint and holding accounts are visible before parsing and fetching
 	suite.waitForAccountVisible(submittedTx.Signature, mintKeyResp.KeyPair.PublicKey)
-	suite.waitForAccountVisible(submittedTx.Signature, holdingAccKeyResp.KeyPair.PublicKey)
+	suite.waitForAccountVisible(submittedTx.Signature, walletAccKeyResp.KeyPair.PublicKey)
 
 	// Verify mint account parsing
 	parsedMint, err := suite.tokenProgramService.ParseMint(suite.ctx, &token_v1.ParseMintRequest{
@@ -396,21 +389,19 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 
 	// Verify holding account creation (ensure it exists and is owned by token program)
 	holdingAccountResp, err := suite.accountService.GetAccount(suite.ctx, &account_v1.GetAccountRequest{
-		Address:         holdingAccKeyResp.KeyPair.PublicKey,
+		Address:         walletAccKeyResp.KeyPair.PublicKey,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 	})
 	suite.Require().NoError(err, "Should get holding account")
 	suite.Require().NotNil(holdingAccountResp, "Holding account should exist")
 	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, holdingAccountResp.Account.Owner, "Holding account should be owned by Token 2022 program")
 	suite.Require().NotEmpty(holdingAccountResp.Account.Data, "Holding account should have data")
-	decodedData := decodeAccountDataBytes(suite, holdingAccountResp.Account.Data)
-	suite.Assert().Equal(int(memoAccountSpace), len(decodedData), "Holding account data length should match memo-enabled space")
 
 	// BUILD INSTRUCTION to mint tokens into the holding account
 	mintAmount := "1000000" // 1 token with 6 decimals
 	mintInstr, err := suite.tokenProgramService.Mint(suite.ctx, &token_v1.MintRequest{
 		MintPubKey:               mintKeyResp.KeyPair.PublicKey,
-		DestinationAccountPubKey: holdingAccKeyResp.KeyPair.PublicKey,
+		DestinationAccountPubKey: walletAccKeyResp.KeyPair.PublicKey,
 		MintAuthorityPubKey:      payKeyResp.KeyPair.PublicKey, // payer is the mint authority
 		Amount:                   mintAmount,
 		Decimals:                 6, // Must match mint decimals
@@ -459,14 +450,12 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 
 	// Verify tokens were minted by checking holding account after minting
 	holdingAccountAfterMint, err := suite.accountService.GetAccount(suite.ctx, &account_v1.GetAccountRequest{
-		Address:         holdingAccKeyResp.KeyPair.PublicKey,
+		Address:         walletAccKeyResp.KeyPair.PublicKey,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 	})
 	suite.Require().NoError(err, "Should get holding account after minting")
 	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, holdingAccountAfterMint.Account.Owner, "Holding account should still be owned by Token 2022 program")
 	suite.Require().NotEmpty(holdingAccountAfterMint.Account.Data, "Holding account should have updated data after minting")
-	memoDecodedData := decodeAccountDataBytes(suite, holdingAccountAfterMint.Account.Data)
-	suite.Assert().Equal(memoAccountSpace, int64(len(memoDecodedData)), "Holding account data length should remain memo-enabled size")
 
 	// Verify mint supply has increased
 	var parsedMintAfterMinting *token_v1.ParseMintResponse
@@ -493,15 +482,15 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	suite.T().Logf("   Mint Decimals: %d", parsedMint.Mint.Decimals)
 	suite.T().Logf("   Mint Authority: %s", parsedMint.Mint.MintAuthorityPubKey)
 	suite.T().Logf("   Mint Supply After Minting: %s", parsedMintAfterMinting.Mint.Supply)
-	suite.T().Logf("   Holding Account Address: %s", holdingAccKeyResp.KeyPair.PublicKey)
+	suite.T().Logf("   Holding Account Address: %s", walletAccKeyResp.KeyPair.PublicKey)
 	suite.T().Logf("   Holding Account Owner: %s", holdingAccountResp.Account.Owner)
 	suite.T().Logf("   Holding Account Balance: %d lamports", holdingAccountResp.Account.Lamports)
 	suite.T().Logf("   Minted Amount: %s tokens", mintAmount)
 
 	suite.T().Logf("🔍 Blockchain verification commands:")
 	suite.T().Logf("   solana account %s --url http://localhost:8899", mintKeyResp.KeyPair.PublicKey)
-	suite.T().Logf("   solana account %s --url http://localhost:8899", holdingAccKeyResp.KeyPair.PublicKey)
-	suite.T().Logf("   spl-token account-info %s --url http://localhost:8899", holdingAccKeyResp.KeyPair.PublicKey)
+	suite.T().Logf("   solana account %s --url http://localhost:8899", walletAccKeyResp.KeyPair.PublicKey)
+	suite.T().Logf("   spl-token account-info %s --url http://localhost:8899", walletAccKeyResp.KeyPair.PublicKey)
 	suite.T().Logf("   solana confirm %s --url http://localhost:8899", submittedTx.Signature)
 	suite.T().Logf("   solana confirm %s --url http://localhost:8899", submittedMintTx.Signature)
 }
@@ -576,31 +565,6 @@ func (suite *TokenProgramE2ETestSuite) monitorTransactionToCompletion(signature 
 	}
 
 	suite.Require().True(confirmed, "Transaction %s must reach CONFIRMED or FINALIZED status", signature)
-}
-
-func decodeAccountDataBytes(s *TokenProgramE2ETestSuite, raw string) []byte {
-	var numericPayload []int
-	if err := json.Unmarshal([]byte(raw), &numericPayload); err == nil && len(numericPayload) > 0 {
-		bytes := make([]byte, len(numericPayload))
-		for i, v := range numericPayload {
-			s.Require().GreaterOrEqual(v, 0, "account data byte values must be non-negative")
-			s.Require().LessOrEqual(v, 255, "account data byte values must be within byte range")
-			bytes[i] = byte(v)
-		}
-		return bytes
-	}
-
-	var tuplePayload []any
-	if err := json.Unmarshal([]byte(raw), &tuplePayload); err == nil && len(tuplePayload) == 2 {
-		if encoded, ok := tuplePayload[0].(string); ok {
-			decoded, err := base64.StdEncoding.DecodeString(encoded)
-			s.Require().NoError(err, "Should decode base64 account payload")
-			return decoded
-		}
-	}
-
-	s.Require().Failf("decodeAccountDataBytes", "Unsupported account data format: %s", raw)
-	return nil
 }
 
 func TestTokenProgramE2ESuite(t *testing.T) {

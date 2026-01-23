@@ -29,7 +29,7 @@ use solana_address::Address;
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{commitment_config::CommitmentConfig, program_pack::Pack, pubkey::Pubkey};
 use solana_system_interface::instruction::create_account;
-use spl_associated_token_account::get_associated_token_address_with_program_id;
+use spl_associated_token_account::{get_associated_token_address_with_program_id};
 use spl_token::ID as LEGACY_PROGRAM_ID;
 use spl_token_2022::{
     extension::ExtensionType,
@@ -136,10 +136,7 @@ impl TokenProgramService for TokenProgramServiceImpl {
         _request: Request<GetCurrentMinRentForTokenAccountRequest>,
     ) -> Result<Response<GetCurrentMinRentForTokenAccountResponse>, Status> {
         // Get minimum balance for rent exemption using Mint::LEN
-        match self
-            .rpc_client
-            .get_minimum_balance_for_rent_exemption(0)
-        {
+        match self.rpc_client.get_minimum_balance_for_rent_exemption(Mint::LEN) {
             Ok(lamports) => {
                 let response = GetCurrentMinRentForTokenAccountResponse { lamports };
                 Ok(Response::new(response))

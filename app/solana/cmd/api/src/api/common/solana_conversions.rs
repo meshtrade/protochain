@@ -5,13 +5,15 @@
 //! multiple Solana program API implementations.
 
 use protochain_api::protochain::solana::transaction::v1::{SolanaAccountMeta, SolanaInstruction};
+use solana_instruction::{
+    AccountMeta as SolanaInstructionAccountMeta, Instruction as SolanaInstructionInstruction,
+};
 use solana_sdk::{instruction::AccountMeta, instruction::Instruction};
-use solana_instruction::{Instruction as SolanaInstructionInstruction, AccountMeta as SolanaInstructionAccountMeta};
 use std::str::FromStr;
 
 /// Converts a Solana SDK Instruction to protobuf `SolanaInstruction`
 ///
-/// This function transforms an instruction from the native SolanaInstruction format
+/// This function transforms an instruction from the native `SolanaInstruction` format
 /// to the protobuf format used in gRPC APIs.
 ///
 /// # Arguments
@@ -83,7 +85,9 @@ pub fn sdk_account_meta_to_proto(account_meta: &AccountMeta) -> SolanaAccountMet
 ///
 /// # Returns
 /// A protobuf `SolanaAccountMeta` with all fields mapped appropriately
-pub fn solana_instruction_account_meta_to_proto(account_meta: &SolanaInstructionAccountMeta) -> SolanaAccountMeta {
+pub fn solana_instruction_account_meta_to_proto(
+    account_meta: &SolanaInstructionAccountMeta,
+) -> SolanaAccountMeta {
     SolanaAccountMeta {
         pubkey: account_meta.pubkey.to_string(),
         is_signer: account_meta.is_signer,
