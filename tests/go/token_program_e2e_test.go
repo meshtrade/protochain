@@ -515,12 +515,23 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	suite.Require().NotEmpty(submittedTx.Signature, "Transaction signature should not be empty (error_message: %s)", submittedTx.ErrorMessage)
 	suite.T().Logf("  Transaction submitted: %s", submittedTx.Signature)
 
-	// Ensure mint and holding accounts are visible before parsing and fetching
-	suite.waitForAccountVisible(submittedTx.Signature, walletAccKeyResp.KeyPair.PublicKey)
+	// determine the derived address
+	ataAddressResp, err := suite.accountService.GetAssociatedTokenAddress(
+		suite.ctx,
+		&account_v1.GetAssociatedTokenAddressRequest{
+			OwnerAddress: walletAccKeyResp.KeyPair.PublicKey,
+			MintAddress:  mintKeyResp.KeyPair.PublicKey,
+			TokenProgram: type_v1.TokenProgram_TOKEN_PROGRAM_2022,
+		},
+	)
+	suite.Require().NoError(err, "Should get associated token account")
+
+	// Ensure holding accounts are visible before parsing and fetching
+	suite.waitForAccountVisible(submittedTx.Signature, ataAddressResp.Address)
 
 	// Verify holding account creation (ensure it exists and is owned by token program)
 	holdingAccountResp, err := suite.accountService.GetAccount(suite.ctx, &account_v1.GetAccountRequest{
-		Address:         walletAccKeyResp.KeyPair.PublicKey,
+		Address:         ataAddressResp.Address,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 	})
 	suite.Require().NoError(err, "Should get holding account")
@@ -532,7 +543,7 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	mintAmount := "1000000" // 1 token with 6 decimals
 	mintInstr, err := suite.tokenProgramService.Mint(suite.ctx, &token_v1.MintRequest{
 		MintPubKey:               mintKeyResp.KeyPair.PublicKey,
-		DestinationAccountPubKey: walletAccKeyResp.KeyPair.PublicKey,
+		DestinationAccountPubKey: ataAddressResp.Address,       // mint into the token account
 		MintAuthorityPubKey:      payKeyResp.KeyPair.PublicKey, // payer is the mint authority
 		Amount:                   mintAmount,
 		Decimals:                 6, // Must match mint decimals
@@ -581,7 +592,7 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 
 	// Verify tokens were minted by checking holding account after minting
 	holdingAccountAfterMint, err := suite.accountService.GetAccount(suite.ctx, &account_v1.GetAccountRequest{
-		Address:         walletAccKeyResp.KeyPair.PublicKey,
+		Address:         ataAddressResp.Address,
 		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
 	})
 	suite.Require().NoError(err, "Should get holding account after minting")
@@ -634,7 +645,7 @@ func (suite *TokenProgramE2ETestSuite) waitForAccountVisible(signature, address 
 	for attempt := 1; attempt <= 10; attempt++ {
 		_, err := suite.accountService.GetAccount(suite.ctx, &account_v1.GetAccountRequest{
 			Address:         address,
-			CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
+			CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_FINALIZED,
 		})
 		if err == nil {
 			suite.T().Logf("  Account visible after %d attempts", attempt)
@@ -653,7 +664,7 @@ func (suite *TokenProgramE2ETestSuite) monitorTransactionToCompletion(signature 
 
 	stream, err := suite.transactionService.MonitorTransaction(suite.ctx, &transaction_v1.MonitorTransactionRequest{
 		Signature:       signature,
-		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_CONFIRMED,
+		CommitmentLevel: type_v1.CommitmentLevel_COMMITMENT_LEVEL_FINALIZED,
 		IncludeLogs:     false,
 		TimeoutSeconds:  180,
 	})
