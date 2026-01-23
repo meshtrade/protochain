@@ -245,6 +245,113 @@ func (suite *TokenProgramE2ETestSuite) Test_02_6_InitialiseHoldingAccountInstruc
 	suite.Require().Len(defaultResp.Instructions, 2, "Default response should only contain create + initialise instruction")
 }
 
+func (suite *TokenProgramE2ETestSuite) Test_03_Mint_e2e() {
+	suite.T().Log("🎯 Testing Token 2022 Mint Creation")
+
+	// Generate and fund payer account
+	payKeyResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
+	suite.Require().NoError(err, "Should generate payer keypair")
+
+	// Fund payer account
+	fundResp, err := suite.accountService.FundNative(suite.ctx, &account_v1.FundNativeRequest{
+		Address: payKeyResp.KeyPair.PublicKey,
+		Amount:  "5000000000", // 5 SOL
+	})
+	suite.Require().NoError(err, "Should fund payer account")
+	suite.T().Logf("  Funded payer account: %s", payKeyResp.KeyPair.PublicKey)
+
+	// Wait for payer account to be funded
+	suite.waitForAccountVisible(fundResp.GetSignature(), payKeyResp.KeyPair.PublicKey)
+
+	// Generate mint account keypair
+	mintKeyResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
+	suite.Require().NoError(err, "Should generate mint keypair")
+	suite.T().Logf("  Generated mint account: %s", mintKeyResp.KeyPair.PublicKey)
+
+	// Get current rent for token account
+	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForTokenAccount(suite.ctx, &token_v1.GetCurrentMinRentForTokenAccountRequest{})
+	suite.Require().NoError(err, "Should get current rent amount")
+	suite.T().Logf("  Rent required for mint: %d lamports", rentResp.Lamports)
+
+	// Create mint account instruction (system program)
+	createMintInstr, err := suite.systemProgramService.Create(suite.ctx, &system_v1.CreateRequest{
+		Payer:      payKeyResp.KeyPair.PublicKey,
+		NewAccount: mintKeyResp.KeyPair.PublicKey,
+		Owner:      token_v1.TOKEN_2022_PROGRAM_ID, // Token 2022 program as owner
+		Lamports:   rentResp.Lamports,
+		Space:      token_v1.MINT_ACCOUNT_LEN,
+	})
+	suite.Require().NoError(err, "Should create mint account instruction")
+
+	// Initialize mint instruction (token program)
+	initialiseMintInstr, err := suite.tokenProgramService.InitialiseMint(suite.ctx, &token_v1.InitialiseMintRequest{
+		MintPubKey:            mintKeyResp.KeyPair.PublicKey,
+		MintAuthorityPubKey:   payKeyResp.KeyPair.PublicKey,
+		FreezeAuthorityPubKey: payKeyResp.KeyPair.PublicKey,
+		Decimals:              6,
+		TokenProgram:          type_v1.TokenProgram_TOKEN_PROGRAM_2022,
+	})
+	suite.Require().NoError(err, "Should create initialise mint instruction")
+
+	// Compose atomic transaction with mint + holding account instructions (including memo enable)
+	atomicTx := &transaction_v1.Transaction{
+		Instructions: []*transaction_v1.SolanaInstruction{
+			createMintInstr.Instruction,
+			initialiseMintInstr.Instruction,
+		},
+		State: transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
+	}
+	suite.T().Logf("  Composed atomic transaction with %d instructions", len(atomicTx.Instructions))
+
+	// Execute transaction lifecycle (compile, sign, submit)
+	compiledTx, err := suite.transactionService.CompileTransaction(suite.ctx, &transaction_v1.CompileTransactionRequest{
+		Transaction: atomicTx,
+		FeePayer:    payKeyResp.KeyPair.PublicKey,
+	})
+	suite.Require().NoError(err, "Should compile transaction")
+
+	// Sign transaction (payer for fees and mint creation; ATA is derived so doesn't sign)
+	signedTx, err := suite.transactionService.SignTransaction(suite.ctx, &transaction_v1.SignTransactionRequest{
+		Transaction: compiledTx.Transaction,
+		SigningMethod: &transaction_v1.SignTransactionRequest_PrivateKeys{
+			PrivateKeys: &transaction_v1.SignWithPrivateKeys{
+				PrivateKeys: []string{
+					payKeyResp.KeyPair.PrivateKey,  // payer signature for fees
+					mintKeyResp.KeyPair.PrivateKey, // mint account signature (system Create requires this)
+				},
+			},
+		},
+	})
+	suite.Require().NoError(err, "Should sign transaction")
+
+	// Submit transaction
+	suite.T().Logf("  Signed transaction state: %v", signedTx.Transaction.State)
+	suite.T().Logf("  Signed transaction instructions count: %d", len(signedTx.Transaction.Instructions))
+	submittedTx, err := suite.transactionService.SubmitTransaction(suite.ctx, &transaction_v1.SubmitTransactionRequest{
+		Transaction: signedTx.Transaction,
+	})
+	suite.Require().NoError(err, "Should submit transaction")
+	suite.Require().NotEmpty(submittedTx.Signature, "Transaction signature should not be empty (error_message: %s)", submittedTx.ErrorMessage)
+	suite.T().Logf("  Transaction submitted: %s", submittedTx.Signature)
+
+	// Ensure mint and holding accounts are visible before parsing and fetching
+	suite.waitForAccountVisible(submittedTx.Signature, mintKeyResp.KeyPair.PublicKey)
+
+	// Verify mint account parsing
+	parsedMint, err := suite.tokenProgramService.ParseMint(suite.ctx, &token_v1.ParseMintRequest{
+		AccountAddress: mintKeyResp.KeyPair.PublicKey,
+	})
+	suite.Require().NoError(err, "Should parse mint account")
+	suite.Require().NotNil(parsedMint.Mint, "Parsed mint should not be nil")
+
+	// Validate mint properties
+	suite.Assert().Equal(uint32(6), parsedMint.Mint.Decimals, "Mint should have 6 decimals")
+	suite.Assert().Equal(payKeyResp.KeyPair.PublicKey, parsedMint.Mint.MintAuthorityPubKey, "Mint authority should match")
+	suite.Assert().Equal(payKeyResp.KeyPair.PublicKey, parsedMint.Mint.FreezeAuthorityPubKey, "Freeze authority should match")
+	suite.Assert().Equal("0", parsedMint.Mint.Supply, "Initial supply should be zero")
+	suite.Assert().True(parsedMint.Mint.IsInitialized, "Mint should be initialized")
+}
+
 // Test_03_Token_e2e tests complete mint + holding account creation flow
 func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	suite.T().Log("🎯 Testing Token 2022 Mint Creation and Holding Account Initialization")
