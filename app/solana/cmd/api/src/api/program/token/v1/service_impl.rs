@@ -4,7 +4,6 @@ use crate::api::{
     program::token::v1::token_program::sdk_token_program_to_proto,
 };
 use crate::api::{
-    common::solana_conversions::solana_instruction_to_proto,
     program::system::v1::service_impl::SystemProgramServiceImpl,
 };
 use protochain_api::protochain::solana::program::system::v1::{
@@ -19,21 +18,20 @@ use protochain_api::protochain::solana::program::token::v1::{
     ParseMintRequest, ParseMintResponse,
 };
 use protochain_api::protochain::solana::r#type::v1::TokenProgram;
+use spl_associated_token_account::instruction::create_associated_token_account;
 use spl_token_2022::extension::memo_transfer::instruction::enable_required_transfer_memos;
 
 use std::str::FromStr;
 use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
-use solana_address::Address;
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{commitment_config::CommitmentConfig, program_pack::Pack, pubkey::Pubkey};
-use solana_system_interface::instruction::create_account;
-use spl_associated_token_account::{get_associated_token_address_with_program_id};
+use spl_associated_token_account::get_associated_token_address_with_program_id;
 use spl_token::ID as LEGACY_PROGRAM_ID;
 use spl_token_2022::{
     extension::ExtensionType,
-    instruction::{initialize_account, initialize_mint, mint_to_checked},
+    instruction::{initialize_mint, mint_to_checked, reallocate},
     state::{Account, Mint},
     ID as TOKEN_2022_PROGRAM_ID,
 };
@@ -136,7 +134,10 @@ impl TokenProgramService for TokenProgramServiceImpl {
         _request: Request<GetCurrentMinRentForTokenAccountRequest>,
     ) -> Result<Response<GetCurrentMinRentForTokenAccountResponse>, Status> {
         // Get minimum balance for rent exemption using Mint::LEN
-        match self.rpc_client.get_minimum_balance_for_rent_exemption(Mint::LEN) {
+        match self
+            .rpc_client
+            .get_minimum_balance_for_rent_exemption(Mint::LEN)
+        {
             Ok(lamports) => {
                 let response = GetCurrentMinRentForTokenAccountResponse { lamports };
                 Ok(Response::new(response))
@@ -319,6 +320,14 @@ impl TokenProgramService for TokenProgramServiceImpl {
         // prepare vector to hold instructions
         let mut instructions: Vec<protochain_api::SolanaInstruction> = Vec::new();
 
+        let create_account_instruction = create_associated_token_account(
+            &payer_pubkey,
+            &owner_pub_key,
+            &mint_pub_key,
+            &token_program_id,
+        );
+        instructions.push(sdk_instruction_to_proto(create_account_instruction));
+
         // derive associated token account address
         let ata_address = get_associated_token_address_with_program_id(
             &owner_pub_key,    // wallet
@@ -326,51 +335,28 @@ impl TokenProgramService for TokenProgramServiceImpl {
             &token_program_id, // token program id
         );
 
-        // determine amount of account space to allocate
-        let holding_account_allocation_space =
-            holding_account_space(require_memo).map_err(|e| {
-                Status::internal(format!(
-                    "could not determine holding account allocation space: {e}"
-                ))
-            })?;
-
-        // determine rent exemption amount
-        let rent = self
-            .rpc_client
-            .get_minimum_balance_for_rent_exemption(holding_account_allocation_space)
-            .map_err(|e| {
-                Status::internal(format!(
-                    "could not get minimum rent balance for rent exemption: {e}"
-                ))
-            })?;
-
-        // construct the create account instruction
-        let create_account_instruction = create_account(
-            &Address::from(payer_pubkey.to_bytes()),
-            &Address::from(ata_address.to_bytes()),
-            rent,
-            holding_account_space as u64,
-            &Address::from(token_program_id.to_bytes()),
-        );
-        instructions.push(solana_instruction_to_proto(create_account_instruction));
-
-        // initialise the token account
-        let initalize_account_instruction =
-            initialize_account(&token_program_id, &ata_address, &mint_pub_key, &owner_pub_key)
-                .map_err(|e| {
-                    Status::internal(format!(
-                        "could not create initialize account instruction: {e}"
-                    ))
-                })?;
-        instructions.push(sdk_instruction_to_proto(initalize_account_instruction));
-
         // add enable memo instruction if required
         if require_memo {
+            let reallocate_instruction = reallocate(
+                &token_program_id,
+                &ata_address,
+                &payer_pubkey,
+                &owner_pub_key,
+                &[&owner_pub_key],
+                &[ExtensionType::MemoTransfer],
+            )
+            .map_err(|e| {
+                Status::internal(format!(
+                    "could not create reallocation instruction to allow for memo extension: {e}"
+                ))
+            })?;
+            instructions.push(sdk_instruction_to_proto(reallocate_instruction));
+
             let enable_required_transfer_memos_instruction = enable_required_transfer_memos(
                 &token_program_id,
                 &ata_address,
                 &owner_pub_key,
-                &[&owner_pub_key],
+                &[&payer_pubkey],
             )
             .map_err(|e| {
                 Status::internal(format!(
