@@ -37,8 +37,17 @@ OVERALL_SUCCESS=true
 # Process each TypeScript workspace
 for TS_DIR in "${TS_WORKSPACES[@]}"; do
     WORKSPACE_NAME=$(basename "${TS_DIR}")
+    # Differentiate between lib/ts and tests/ts by checking the full path
+    IS_LIB_TS=false
+    if [[ "${TS_DIR}" == */lib/ts ]]; then
+        IS_LIB_TS=true
+        WORKSPACE_NAME="lib/ts"
+    elif [[ "${TS_DIR}" == */tests/ts ]]; then
+        WORKSPACE_NAME="tests/ts"
+    fi
+
     echo -e "${BLUE}[TypeScript - ${WORKSPACE_NAME}]${NC}"
-    
+
     # Check if workspace exists
     if [ ! -d "${TS_DIR}" ]; then
         echo -e "${YELLOW}${WORKSPACE_NAME} workspace not found, skipping...${NC}"
@@ -53,10 +62,9 @@ for TS_DIR in "${TS_WORKSPACES[@]}"; do
         yarn install
     fi
 
-    # Run ESLint with auto-fix (skip generated files for lib/ts only)
-    echo -e "${YELLOW}Running ESLint with auto-fix on ${WORKSPACE_NAME}...${NC}"
-    
-    if [ "${WORKSPACE_NAME}" = "ts" ]; then
+    # Run ESLint with auto-fix (only for lib/ts which has the script)
+    if [ "${IS_LIB_TS}" = true ]; then
+        echo -e "${YELLOW}Running ESLint with auto-fix on ${WORKSPACE_NAME}...${NC}"
         # lib/ts - skip generated protochain files
         if find src -name "*.ts" -o -name "*.tsx" | grep -v "src/protochain/" | head -1 > /dev/null 2>&1; then
             if yarn lint:fix; then
@@ -68,22 +76,10 @@ for TS_DIR in "${TS_WORKSPACES[@]}"; do
         else
             echo -e "${YELLOW}No non-generated TypeScript files found in ${WORKSPACE_NAME}, skipping ESLint${NC}"
         fi
-    else
-        # tests/ts and other workspaces - lint all files 
-        if find . -name "*.ts" -o -name "*.tsx" | grep -v "node_modules" | head -1 > /dev/null 2>&1; then
-            if yarn lint 2>/dev/null || yarn typecheck; then
-                echo -e "${GREEN}✓ TypeScript check passed for ${WORKSPACE_NAME}${NC}"
-            else
-                echo -e "${RED}✗ TypeScript check failed for ${WORKSPACE_NAME}${NC}"
-                OVERALL_SUCCESS=false
-            fi
-        else
-            echo -e "${YELLOW}No TypeScript files found in ${WORKSPACE_NAME}, skipping${NC}"
-        fi
     fi
 
     # Run Prettier with auto-fix (only for lib/ts which has the script)
-    if [ "${WORKSPACE_NAME}" = "ts" ]; then
+    if [ "${IS_LIB_TS}" = true ]; then
         echo -e "${YELLOW}Running Prettier with auto-fix on ${WORKSPACE_NAME}...${NC}"
         if yarn format; then
             echo -e "${GREEN}✓ Prettier passed for ${WORKSPACE_NAME}${NC}"

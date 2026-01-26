@@ -23,14 +23,11 @@ type ServiceInterface interface {
 	// Creates both system account creation and mint initialization instructions. Memo transfer is not applicable to mint accounts.
 	CreateMint(ctx context.Context, request *CreateMintRequest) (*CreateMintResponse, error)
 
-	// Creates both system account creation and holding account initialization instructions. Adds memo-enable instruction when requested.
+	// Creates holding account initialization instructions. Adds memo-enable instruction when requested.
 	CreateHoldingAccount(ctx context.Context, request *CreateHoldingAccountRequest) (*CreateHoldingAccountResponse, error)
 
 	// Mint tokens to an existing token account using MintToChecked instruction
 	Mint(ctx context.Context, request *MintRequest) (*MintResponse, error)
-
-	// Create a token account using create_associated_token_account instruction
-	CreateAssociatedTokenAccount(ctx context.Context, request *CreateAssociatedTokenAccountRequest) (*CreateAssociatedTokenAccountResponse, error)
 }
 
 const ServiceServiceProviderName = "protochain-solana-program-token-v1-Service"

@@ -175,7 +175,13 @@ impl WebSocketManager {
         //         );
         //     }
         // }
-        let url = Url::parse(ws_url).unwrap();
+        let url = match Url::parse(ws_url) {
+            Ok(parsed_url) => parsed_url,
+            Err(e) => {
+                eprintln!("❌ Invalid WebSocket URL: {e}");
+                return;
+            }
+        };
         match connect_async(url).await {
             Ok((mut ws, _resp)) => {
                 println!("✅ TLS + WebSocket handshake ok");

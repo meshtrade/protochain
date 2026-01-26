@@ -54,20 +54,14 @@ pub fn sdk_token_program_to_proto(program_id: &Pubkey) -> TokenProgram {
 
 /// Gets the Solana SDK token program ID for a protobuf `TokenProgram` enum value
 ///
-/// A convenience wrapper around `proto_token_program_to_sdk` that unwraps the result.
-/// This is useful when you need to directly obtain the program ID without error handling.
-///
 /// # Arguments
 /// * `token_program` - The protobuf `TokenProgram` enum value
 ///
 /// # Returns
-/// The corresponding Solana token program ID
-///
-/// # Panics
-/// Panics if the token program is UNSPECIFIED
-pub fn get_token_program_id(token_program: TokenProgram) -> Pubkey {
+/// * `Ok(Pubkey)` - The corresponding Solana token program ID
+/// * `Err(String)` - Error if the token program is UNSPECIFIED
+pub fn get_token_program_id(token_program: TokenProgram) -> Result<Pubkey, String> {
     proto_token_program_to_sdk(token_program)
-        .unwrap_or_else(|e| panic!("Failed to get token program ID: {e}"))
 }
 
 #[cfg(test)]
@@ -78,23 +72,30 @@ mod tests {
     fn test_proto_to_sdk_legacy() {
         let result = proto_token_program_to_sdk(TokenProgram::Legacy);
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), spl_token_id());
+        let Ok(v) = result else {
+            unreachable!("Already asserted Ok")
+        };
+        assert_eq!(v, spl_token_id());
     }
 
     #[test]
     fn test_proto_to_sdk_token_2022() {
         let result = proto_token_program_to_sdk(TokenProgram::TokenProgram2022);
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), spl_token_2022_id());
+        let Ok(v) = result else {
+            unreachable!("Already asserted Ok")
+        };
+        assert_eq!(v, spl_token_2022_id());
     }
 
     #[test]
     fn test_proto_to_sdk_unspecified() {
         let result = proto_token_program_to_sdk(TokenProgram::Unspecified);
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .contains("TokenProgram must be specified"));
+        let Err(err) = result else {
+            unreachable!("Already asserted Err")
+        };
+        assert!(err.contains("TokenProgram must be specified"));
     }
 
     #[test]
@@ -119,7 +120,9 @@ mod tests {
     #[test]
     fn test_roundtrip_legacy() {
         let original = TokenProgram::Legacy;
-        let program_id = proto_token_program_to_sdk(original).unwrap();
+        let Ok(program_id) = proto_token_program_to_sdk(original) else {
+            unreachable!("Legacy should convert successfully")
+        };
         let converted = sdk_token_program_to_proto(&program_id);
         assert_eq!(original, converted);
     }
@@ -127,26 +130,36 @@ mod tests {
     #[test]
     fn test_roundtrip_token_2022() {
         let original = TokenProgram::TokenProgram2022;
-        let program_id = proto_token_program_to_sdk(original).unwrap();
+        let Ok(program_id) = proto_token_program_to_sdk(original) else {
+            unreachable!("TokenProgram2022 should convert successfully")
+        };
         let converted = sdk_token_program_to_proto(&program_id);
         assert_eq!(original, converted);
     }
 
     #[test]
     fn test_get_token_program_id_legacy() {
-        let program_id = get_token_program_id(TokenProgram::Legacy);
+        let Ok(program_id) = get_token_program_id(TokenProgram::Legacy) else {
+            unreachable!("Legacy should convert successfully")
+        };
         assert_eq!(program_id, spl_token_id());
     }
 
     #[test]
     fn test_get_token_program_id_token_2022() {
-        let program_id = get_token_program_id(TokenProgram::TokenProgram2022);
+        let Ok(program_id) = get_token_program_id(TokenProgram::TokenProgram2022) else {
+            unreachable!("TokenProgram2022 should convert successfully")
+        };
         assert_eq!(program_id, spl_token_2022_id());
     }
 
     #[test]
-    #[should_panic(expected = "Failed to get token program ID")]
-    fn test_get_token_program_id_unspecified_panics() {
-        let _ = get_token_program_id(TokenProgram::Unspecified);
+    fn test_get_token_program_id_unspecified_returns_error() {
+        let result = get_token_program_id(TokenProgram::Unspecified);
+        assert!(result.is_err());
+        let Err(err) = result else {
+            unreachable!("Already asserted Err")
+        };
+        assert!(err.contains("TokenProgram must be specified"));
     }
 }

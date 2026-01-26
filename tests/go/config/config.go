@@ -30,7 +30,7 @@ type Config struct {
 func GetConfig(configFileName string) (*Config, error) {
 	// Set defaults
 	viper.SetDefault("BackendGRPCEndpoint", "localhost")
-	viper.SetDefault("BackendGRPCPort", 50051)
+	viper.SetDefault("BackendGRPCPort", 50064)
 	viper.SetDefault("BackendGRPCTLS", false)
 	viper.SetDefault("TestAccountAddress", "5MvYgrb6DDznpeqejPzkJSxj7cBCu4UjTRVb1saMsGPr")
 	viper.SetDefault("ValidatorStartTimeout", 60) // seconds
