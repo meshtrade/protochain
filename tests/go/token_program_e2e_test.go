@@ -242,7 +242,7 @@ func (suite *TokenProgramE2ETestSuite) Test_02_6_InitialiseHoldingAccountInstruc
 	})
 	suite.Require().NoError(err, "Should create holding account instruction without memo config")
 	suite.Require().NotNil(defaultResp.Instructions, "Instruction should not be nil for default response")
-	suite.Require().Len(defaultResp.Instructions, 2, "Default response should only contain create + initialise instruction")
+	suite.Require().Len(defaultResp.Instructions, 1, "Default response should only contain create instruction")
 }
 
 func (suite *TokenProgramE2ETestSuite) Test_03_Mint_e2e() {
