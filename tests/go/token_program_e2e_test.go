@@ -214,7 +214,7 @@ func (suite *TokenProgramE2ETestSuite) Test_02_6_InitialiseHoldingAccountInstruc
 
 	// Use hardcoded valid public keys for instruction creation test
 	testPayerAccountKey := "11111111111111111111111111111113"
-	testMintPubKey := "11111111111111111111111111111114"             // Token 2022 Program
+	testMintPubKey := "11111111111111111111111111111114"
 	testOwnerPubKey := "So11111111111111111111111111111111111111112" // Wrapped SOL
 
 	// Create holding account instruction using memo transfer configuration
