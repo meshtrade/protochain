@@ -173,26 +173,5 @@ pub struct MintResponse {
     #[prost(message, optional, tag="1")]
     pub instruction: ::core::option::Option<super::super::super::transaction::v1::SolanaInstruction>,
 }
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CreateAssociatedTokenAccountRequest {
-    /// public key of the account paying for creation
-    #[prost(string, tag="1")]
-    pub payer_pub_key: ::prost::alloc::string::String,
-    /// public key for the owner of the token account to be created
-    #[prost(string, tag="2")]
-    pub owner_pub_key: ::prost::alloc::string::String,
-    /// public key of the mint token account
-    #[prost(string, tag="3")]
-    pub mint_pub_key: ::prost::alloc::string::String,
-    #[prost(enumeration="super::super::super::r#type::v1::TokenProgram", tag="4")]
-    pub token_program: i32,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CreateAssociatedTokenAccountResponse {
-    #[prost(message, optional, tag="1")]
-    pub instruction: ::core::option::Option<super::super::super::transaction::v1::SolanaInstruction>,
-}
 include!("protochain.solana.program.token.v1.tonic.rs");
 // @@protoc_insertion_point(module)

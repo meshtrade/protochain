@@ -905,118 +905,6 @@ func (x *MintResponse) GetInstruction() *v11.SolanaInstruction {
 	return nil
 }
 
-type CreateAssociatedTokenAccountRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	PayerPubKey   string                 `protobuf:"bytes,1,opt,name=payer_pub_key,json=payerPubKey,proto3" json:"payer_pub_key,omitempty"` // public key of the account paying for creation
-	OwnerPubKey   string                 `protobuf:"bytes,2,opt,name=owner_pub_key,json=ownerPubKey,proto3" json:"owner_pub_key,omitempty"` // public key for the owner of the token account to be created
-	MintPubKey    string                 `protobuf:"bytes,3,opt,name=mint_pub_key,json=mintPubKey,proto3" json:"mint_pub_key,omitempty"`    // public key of the mint token account
-	TokenProgram  v1.TokenProgram        `protobuf:"varint,4,opt,name=token_program,json=tokenProgram,proto3,enum=protochain.solana.type.v1.TokenProgram" json:"token_program,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CreateAssociatedTokenAccountRequest) Reset() {
-	*x = CreateAssociatedTokenAccountRequest{}
-	mi := &file_protochain_solana_program_token_v1_service_proto_msgTypes[16]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CreateAssociatedTokenAccountRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CreateAssociatedTokenAccountRequest) ProtoMessage() {}
-
-func (x *CreateAssociatedTokenAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_token_v1_service_proto_msgTypes[16]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CreateAssociatedTokenAccountRequest.ProtoReflect.Descriptor instead.
-func (*CreateAssociatedTokenAccountRequest) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_token_v1_service_proto_rawDescGZIP(), []int{16}
-}
-
-func (x *CreateAssociatedTokenAccountRequest) GetPayerPubKey() string {
-	if x != nil {
-		return x.PayerPubKey
-	}
-	return ""
-}
-
-func (x *CreateAssociatedTokenAccountRequest) GetOwnerPubKey() string {
-	if x != nil {
-		return x.OwnerPubKey
-	}
-	return ""
-}
-
-func (x *CreateAssociatedTokenAccountRequest) GetMintPubKey() string {
-	if x != nil {
-		return x.MintPubKey
-	}
-	return ""
-}
-
-func (x *CreateAssociatedTokenAccountRequest) GetTokenProgram() v1.TokenProgram {
-	if x != nil {
-		return x.TokenProgram
-	}
-	return v1.TokenProgram(0)
-}
-
-type CreateAssociatedTokenAccountResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Instruction   *v11.SolanaInstruction `protobuf:"bytes,1,opt,name=instruction,proto3" json:"instruction,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CreateAssociatedTokenAccountResponse) Reset() {
-	*x = CreateAssociatedTokenAccountResponse{}
-	mi := &file_protochain_solana_program_token_v1_service_proto_msgTypes[17]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CreateAssociatedTokenAccountResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CreateAssociatedTokenAccountResponse) ProtoMessage() {}
-
-func (x *CreateAssociatedTokenAccountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_token_v1_service_proto_msgTypes[17]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CreateAssociatedTokenAccountResponse.ProtoReflect.Descriptor instead.
-func (*CreateAssociatedTokenAccountResponse) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_token_v1_service_proto_rawDescGZIP(), []int{17}
-}
-
-func (x *CreateAssociatedTokenAccountResponse) GetInstruction() *v11.SolanaInstruction {
-	if x != nil {
-		return x.Instruction
-	}
-	return nil
-}
-
 var File_protochain_solana_program_token_v1_service_proto protoreflect.FileDescriptor
 
 const file_protochain_solana_program_token_v1_service_proto_rawDesc = "" +
@@ -1077,14 +965,6 @@ const file_protochain_solana_program_token_v1_service_proto_rawDesc = "" +
 	"\x06amount\x18\x04 \x01(\tR\x06amount\x12\x1a\n" +
 	"\bdecimals\x18\x05 \x01(\rR\bdecimals\"e\n" +
 	"\fMintResponse\x12U\n" +
-	"\vinstruction\x18\x01 \x01(\v23.protochain.solana.transaction.v1.SolanaInstructionR\vinstruction\"\xdd\x01\n" +
-	"#CreateAssociatedTokenAccountRequest\x12\"\n" +
-	"\rpayer_pub_key\x18\x01 \x01(\tR\vpayerPubKey\x12\"\n" +
-	"\rowner_pub_key\x18\x02 \x01(\tR\vownerPubKey\x12 \n" +
-	"\fmint_pub_key\x18\x03 \x01(\tR\n" +
-	"mintPubKey\x12L\n" +
-	"\rtoken_program\x18\x04 \x01(\x0e2'.protochain.solana.type.v1.TokenProgramR\ftokenProgram\"}\n" +
-	"$CreateAssociatedTokenAccountResponse\x12U\n" +
 	"\vinstruction\x18\x01 \x01(\v23.protochain.solana.transaction.v1.SolanaInstructionR\vinstruction2\x97\b\n" +
 	"\aService\x12\x87\x01\n" +
 	"\x0eInitialiseMint\x129.protochain.solana.program.token.v1.InitialiseMintRequest\x1a:.protochain.solana.program.token.v1.InitialiseMintResponse\x12\xbd\x01\n" +
@@ -1108,7 +988,7 @@ func file_protochain_solana_program_token_v1_service_proto_rawDescGZIP() []byte 
 	return file_protochain_solana_program_token_v1_service_proto_rawDescData
 }
 
-var file_protochain_solana_program_token_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 18)
+var file_protochain_solana_program_token_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_protochain_solana_program_token_v1_service_proto_goTypes = []any{
 	(*InitialiseMintRequest)(nil),                      // 0: protochain.solana.program.token.v1.InitialiseMintRequest
 	(*InitialiseMintResponse)(nil),                     // 1: protochain.solana.program.token.v1.InitialiseMintResponse
@@ -1126,43 +1006,39 @@ var file_protochain_solana_program_token_v1_service_proto_goTypes = []any{
 	(*CreateMintResponse)(nil),                         // 13: protochain.solana.program.token.v1.CreateMintResponse
 	(*MintRequest)(nil),                                // 14: protochain.solana.program.token.v1.MintRequest
 	(*MintResponse)(nil),                               // 15: protochain.solana.program.token.v1.MintResponse
-	(*CreateAssociatedTokenAccountRequest)(nil),        // 16: protochain.solana.program.token.v1.CreateAssociatedTokenAccountRequest
-	(*CreateAssociatedTokenAccountResponse)(nil),       // 17: protochain.solana.program.token.v1.CreateAssociatedTokenAccountResponse
-	(v1.TokenProgram)(0),                               // 18: protochain.solana.type.v1.TokenProgram
-	(*v11.SolanaInstruction)(nil),                      // 19: protochain.solana.transaction.v1.SolanaInstruction
+	(v1.TokenProgram)(0),                               // 16: protochain.solana.type.v1.TokenProgram
+	(*v11.SolanaInstruction)(nil),                      // 17: protochain.solana.transaction.v1.SolanaInstruction
 }
 var file_protochain_solana_program_token_v1_service_proto_depIdxs = []int32{
-	18, // 0: protochain.solana.program.token.v1.InitialiseMintRequest.token_program:type_name -> protochain.solana.type.v1.TokenProgram
-	19, // 1: protochain.solana.program.token.v1.InitialiseMintResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	16, // 0: protochain.solana.program.token.v1.InitialiseMintRequest.token_program:type_name -> protochain.solana.type.v1.TokenProgram
+	17, // 1: protochain.solana.program.token.v1.InitialiseMintResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
 	6,  // 2: protochain.solana.program.token.v1.ParseMintResponse.mint:type_name -> protochain.solana.program.token.v1.MintInfo
 	7,  // 3: protochain.solana.program.token.v1.GetCurrentMinRentForHoldingAccountRequest.memo_transfer_config:type_name -> protochain.solana.program.token.v1.MemoTransferConfig
-	18, // 4: protochain.solana.program.token.v1.CreateHoldingAccountRequest.token_program:type_name -> protochain.solana.type.v1.TokenProgram
+	16, // 4: protochain.solana.program.token.v1.CreateHoldingAccountRequest.token_program:type_name -> protochain.solana.type.v1.TokenProgram
 	7,  // 5: protochain.solana.program.token.v1.CreateHoldingAccountRequest.memo_transfer_config:type_name -> protochain.solana.program.token.v1.MemoTransferConfig
-	19, // 6: protochain.solana.program.token.v1.CreateHoldingAccountResponse.instructions:type_name -> protochain.solana.transaction.v1.SolanaInstruction
-	18, // 7: protochain.solana.program.token.v1.CreateMintRequest.token_program:type_name -> protochain.solana.type.v1.TokenProgram
-	19, // 8: protochain.solana.program.token.v1.CreateMintResponse.instructions:type_name -> protochain.solana.transaction.v1.SolanaInstruction
-	19, // 9: protochain.solana.program.token.v1.MintResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
-	18, // 10: protochain.solana.program.token.v1.CreateAssociatedTokenAccountRequest.token_program:type_name -> protochain.solana.type.v1.TokenProgram
-	19, // 11: protochain.solana.program.token.v1.CreateAssociatedTokenAccountResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
-	0,  // 12: protochain.solana.program.token.v1.Service.InitialiseMint:input_type -> protochain.solana.program.token.v1.InitialiseMintRequest
-	2,  // 13: protochain.solana.program.token.v1.Service.GetCurrentMinRentForTokenAccount:input_type -> protochain.solana.program.token.v1.GetCurrentMinRentForTokenAccountRequest
-	4,  // 14: protochain.solana.program.token.v1.Service.ParseMint:input_type -> protochain.solana.program.token.v1.ParseMintRequest
-	8,  // 15: protochain.solana.program.token.v1.Service.GetCurrentMinRentForHoldingAccount:input_type -> protochain.solana.program.token.v1.GetCurrentMinRentForHoldingAccountRequest
-	12, // 16: protochain.solana.program.token.v1.Service.CreateMint:input_type -> protochain.solana.program.token.v1.CreateMintRequest
-	10, // 17: protochain.solana.program.token.v1.Service.CreateHoldingAccount:input_type -> protochain.solana.program.token.v1.CreateHoldingAccountRequest
-	14, // 18: protochain.solana.program.token.v1.Service.Mint:input_type -> protochain.solana.program.token.v1.MintRequest
-	1,  // 19: protochain.solana.program.token.v1.Service.InitialiseMint:output_type -> protochain.solana.program.token.v1.InitialiseMintResponse
-	3,  // 20: protochain.solana.program.token.v1.Service.GetCurrentMinRentForTokenAccount:output_type -> protochain.solana.program.token.v1.GetCurrentMinRentForTokenAccountResponse
-	5,  // 21: protochain.solana.program.token.v1.Service.ParseMint:output_type -> protochain.solana.program.token.v1.ParseMintResponse
-	9,  // 22: protochain.solana.program.token.v1.Service.GetCurrentMinRentForHoldingAccount:output_type -> protochain.solana.program.token.v1.GetCurrentMinRentForHoldingAccountResponse
-	13, // 23: protochain.solana.program.token.v1.Service.CreateMint:output_type -> protochain.solana.program.token.v1.CreateMintResponse
-	11, // 24: protochain.solana.program.token.v1.Service.CreateHoldingAccount:output_type -> protochain.solana.program.token.v1.CreateHoldingAccountResponse
-	15, // 25: protochain.solana.program.token.v1.Service.Mint:output_type -> protochain.solana.program.token.v1.MintResponse
-	19, // [19:26] is the sub-list for method output_type
-	12, // [12:19] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	17, // 6: protochain.solana.program.token.v1.CreateHoldingAccountResponse.instructions:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	16, // 7: protochain.solana.program.token.v1.CreateMintRequest.token_program:type_name -> protochain.solana.type.v1.TokenProgram
+	17, // 8: protochain.solana.program.token.v1.CreateMintResponse.instructions:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	17, // 9: protochain.solana.program.token.v1.MintResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	0,  // 10: protochain.solana.program.token.v1.Service.InitialiseMint:input_type -> protochain.solana.program.token.v1.InitialiseMintRequest
+	2,  // 11: protochain.solana.program.token.v1.Service.GetCurrentMinRentForTokenAccount:input_type -> protochain.solana.program.token.v1.GetCurrentMinRentForTokenAccountRequest
+	4,  // 12: protochain.solana.program.token.v1.Service.ParseMint:input_type -> protochain.solana.program.token.v1.ParseMintRequest
+	8,  // 13: protochain.solana.program.token.v1.Service.GetCurrentMinRentForHoldingAccount:input_type -> protochain.solana.program.token.v1.GetCurrentMinRentForHoldingAccountRequest
+	12, // 14: protochain.solana.program.token.v1.Service.CreateMint:input_type -> protochain.solana.program.token.v1.CreateMintRequest
+	10, // 15: protochain.solana.program.token.v1.Service.CreateHoldingAccount:input_type -> protochain.solana.program.token.v1.CreateHoldingAccountRequest
+	14, // 16: protochain.solana.program.token.v1.Service.Mint:input_type -> protochain.solana.program.token.v1.MintRequest
+	1,  // 17: protochain.solana.program.token.v1.Service.InitialiseMint:output_type -> protochain.solana.program.token.v1.InitialiseMintResponse
+	3,  // 18: protochain.solana.program.token.v1.Service.GetCurrentMinRentForTokenAccount:output_type -> protochain.solana.program.token.v1.GetCurrentMinRentForTokenAccountResponse
+	5,  // 19: protochain.solana.program.token.v1.Service.ParseMint:output_type -> protochain.solana.program.token.v1.ParseMintResponse
+	9,  // 20: protochain.solana.program.token.v1.Service.GetCurrentMinRentForHoldingAccount:output_type -> protochain.solana.program.token.v1.GetCurrentMinRentForHoldingAccountResponse
+	13, // 21: protochain.solana.program.token.v1.Service.CreateMint:output_type -> protochain.solana.program.token.v1.CreateMintResponse
+	11, // 22: protochain.solana.program.token.v1.Service.CreateHoldingAccount:output_type -> protochain.solana.program.token.v1.CreateHoldingAccountResponse
+	15, // 23: protochain.solana.program.token.v1.Service.Mint:output_type -> protochain.solana.program.token.v1.MintResponse
+	17, // [17:24] is the sub-list for method output_type
+	10, // [10:17] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_protochain_solana_program_token_v1_service_proto_init() }
@@ -1176,7 +1052,7 @@ func file_protochain_solana_program_token_v1_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_protochain_solana_program_token_v1_service_proto_rawDesc), len(file_protochain_solana_program_token_v1_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   18,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

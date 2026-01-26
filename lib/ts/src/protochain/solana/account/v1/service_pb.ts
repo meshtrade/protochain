@@ -222,6 +222,8 @@ export type GetAssociatedTokenAddressRequest = Message<"protochain.solana.accoun
   mintAddress: string;
 
   /**
+   * Token Program on token account
+   *
    * @generated from field: protochain.solana.type.v1.TokenProgram token_program = 3;
    */
   tokenProgram: TokenProgram;

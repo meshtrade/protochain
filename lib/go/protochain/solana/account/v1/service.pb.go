@@ -416,9 +416,9 @@ func (x *GetTokenAccountBalanceResponse) GetDecimals() uint32 {
 
 type GetAssociatedTokenAddressRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	OwnerAddress  string                 `protobuf:"bytes,1,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"` // Address of owner of the token account (Base58)
-	MintAddress   string                 `protobuf:"bytes,2,opt,name=mint_address,json=mintAddress,proto3" json:"mint_address,omitempty"`    // Address of the mint account that minted the token
-	TokenProgram  v1.TokenProgram        `protobuf:"varint,3,opt,name=token_program,json=tokenProgram,proto3,enum=protochain.solana.type.v1.TokenProgram" json:"token_program,omitempty"`
+	OwnerAddress  string                 `protobuf:"bytes,1,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`                                              // Address of owner of the token account (Base58)
+	MintAddress   string                 `protobuf:"bytes,2,opt,name=mint_address,json=mintAddress,proto3" json:"mint_address,omitempty"`                                                 // Address of the mint account that minted the token
+	TokenProgram  v1.TokenProgram        `protobuf:"varint,3,opt,name=token_program,json=tokenProgram,proto3,enum=protochain.solana.type.v1.TokenProgram" json:"token_program,omitempty"` // Token Program on token account
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
