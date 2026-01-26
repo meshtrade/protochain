@@ -169,13 +169,13 @@ mod tests {
     fn test_default_config() {
         let config = Config::default();
 
-        assert_eq!(config.solana.rpc_url, "http://localhost:8899");
-        assert_eq!(config.solana.websocket_url, None);
+        assert_eq!(config.solana.rpc_url, "https://coned-duped-tees.txtx.network:8899");
+        assert_eq!(config.solana.websocket_url, Some("wss://coned-duped-tees.txtx.network:8900".to_string()));
         assert_eq!(config.solana.timeout_seconds, 30);
         assert_eq!(config.solana.retry_attempts, 3);
         assert!(config.solana.health_check_on_startup);
-        assert_eq!(config.server.host, "0.0.0.0");
-        assert_eq!(config.server.port, 50051);
+        assert_eq!(config.server.host, "127.0.0.1");
+        assert_eq!(config.server.port, 50064);
     }
 
     #[test]

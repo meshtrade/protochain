@@ -1,10 +1,8 @@
+use crate::api::program::system::v1::service_impl::SystemProgramServiceImpl;
 use crate::api::program::token::v1::token_program::get_token_program_id;
 use crate::api::{
     common::solana_conversions::sdk_instruction_to_proto,
     program::token::v1::token_program::sdk_token_program_to_proto,
-};
-use crate::api::{
-    program::system::v1::service_impl::SystemProgramServiceImpl,
 };
 use protochain_api::protochain::solana::program::system::v1::{
     service_server::Service as SystemProgramService, CreateRequest as SystemCreateRequest,
@@ -67,16 +65,13 @@ fn holding_account_space(require_memo: bool) -> Result<usize, Status> {
 #[allow(clippy::result_large_err)]
 fn memo_rent_lamports(rpc: &RpcClient, require_memo: bool) -> Result<u64, Status> {
     let space = holding_account_space(require_memo)?;
-    let space_usize = usize::try_from(space)
-        .map_err(|_| Status::internal("memo-transfer account length overflow"))?;
 
-    rpc.get_minimum_balance_for_rent_exemption(space_usize)
+    rpc.get_minimum_balance_for_rent_exemption(space)
         .map_err(|e| Status::internal(format!("failed to fetch memo-aware rent: {e}")))
 }
 
 #[tonic::async_trait]
 impl TokenProgramService for TokenProgramServiceImpl {
-    /// Creates an `InitialiseMint` instruction for SPL or SPL 2022 token
     /// Creates an `InitialiseMint` instruction for SPL or SPL 2022 token
     async fn initialise_mint(
         &self,
@@ -105,7 +100,8 @@ impl TokenProgramService for TokenProgramServiceImpl {
             .map_err(|_| Status::invalid_argument("Invalid token program value"))?;
 
         // get the program ID pubkey and convert to string for the system program
-        let token_program_id = get_token_program_id(token_program_enum);
+        let token_program_id = get_token_program_id(token_program_enum)
+            .map_err(|e| Status::invalid_argument(format!("Invalid token program: {e}")))?;
 
         let decimals = u8::try_from(req.decimals)
             .map_err(|_| Status::invalid_argument("decimals must be between 0 and 255"))?;
@@ -231,7 +227,8 @@ impl TokenProgramService for TokenProgramServiceImpl {
             .map_err(|_| Status::invalid_argument("Invalid token program value"))?;
 
         // Get the program ID pubkey and convert to string for the system program
-        let owner_pubkey = get_token_program_id(token_program_enum);
+        let owner_pubkey = get_token_program_id(token_program_enum)
+            .map_err(|e| Status::invalid_argument(format!("Invalid token program: {e}")))?;
 
         let create_instruction = system_service
             .create(Request::new(SystemCreateRequest {
@@ -313,7 +310,9 @@ impl TokenProgramService for TokenProgramServiceImpl {
         let token_program_id = match token_program_enum {
             TokenProgram::Legacy => Ok(LEGACY_PROGRAM_ID),
             TokenProgram::TokenProgram2022 => Ok(TOKEN_2022_PROGRAM_ID),
-            _ => Err(format!("unexpected token program id: {token_program_enum:?}")),
+            TokenProgram::Unspecified => {
+                Err(format!("unexpected token program id: {token_program_enum:?}"))
+            }
         }
         .map_err(Status::internal)?;
 
@@ -403,7 +402,8 @@ impl TokenProgramService for TokenProgramServiceImpl {
             .map_err(|_| Status::invalid_argument("decimals must be between 0 and 255"))?;
 
         // Determine token program id from account owner
-        let token_program_id = get_token_program_id(sdk_token_program_to_proto(&account.owner));
+        let token_program_id = get_token_program_id(sdk_token_program_to_proto(&account.owner))
+            .map_err(|e| Status::internal(format!("Failed to determine token program: {e}")))?;
 
         // Create the MintToChecked instruction (no additional signers for single authority)
         let instruction = mint_to_checked(

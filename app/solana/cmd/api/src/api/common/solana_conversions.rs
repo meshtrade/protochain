@@ -5,9 +5,6 @@
 //! multiple Solana program API implementations.
 
 use protochain_api::protochain::solana::transaction::v1::{SolanaAccountMeta, SolanaInstruction};
-use solana_instruction::{
-    AccountMeta as SolanaInstructionAccountMeta, Instruction as SolanaInstructionInstruction,
-};
 use solana_sdk::{instruction::AccountMeta, instruction::Instruction};
 use std::str::FromStr;
 
@@ -34,29 +31,6 @@ pub fn sdk_instruction_to_proto(instruction: Instruction) -> SolanaInstruction {
     }
 }
 
-/// Converts a Solana Instruction Instruction to protobuf `SolanaInstruction`
-///
-/// This function transforms an instruction from the native Solana SDK format
-/// to the protobuf format used in gRPC APIs.
-///
-/// # Arguments
-/// * `instruction` - The Solana SDK instruction to convert
-///
-/// # Returns
-/// A protobuf `SolanaInstruction` with all fields mapped appropriately
-pub fn solana_instruction_to_proto(instruction: SolanaInstructionInstruction) -> SolanaInstruction {
-    SolanaInstruction {
-        program_id: instruction.program_id.to_string(),
-        accounts: instruction
-            .accounts
-            .iter()
-            .map(solana_instruction_account_meta_to_proto)
-            .collect(),
-        data: instruction.data,
-        description: String::new(),
-    }
-}
-
 /// Converts a Solana Instruction `AccountMeta` to protobuf `SolanaAccountMeta`
 ///
 /// This function transforms account metadata from the native Solana Instruction format
@@ -68,26 +42,6 @@ pub fn solana_instruction_to_proto(instruction: SolanaInstructionInstruction) ->
 /// # Returns
 /// A protobuf `SolanaAccountMeta` with all fields mapped appropriately
 pub fn sdk_account_meta_to_proto(account_meta: &AccountMeta) -> SolanaAccountMeta {
-    SolanaAccountMeta {
-        pubkey: account_meta.pubkey.to_string(),
-        is_signer: account_meta.is_signer,
-        is_writable: account_meta.is_writable,
-    }
-}
-
-/// Converts a Solana SDK `AccountMeta` to protobuf `SolanaAccountMeta`
-///
-/// This function transforms account metadata from the native Solana SDK format
-/// to the protobuf representation used in gRPC APIs.
-///
-/// # Arguments
-/// * `account_meta` - The Solana SDK account metadata to convert
-///
-/// # Returns
-/// A protobuf `SolanaAccountMeta` with all fields mapped appropriately
-pub fn solana_instruction_account_meta_to_proto(
-    account_meta: &SolanaInstructionAccountMeta,
-) -> SolanaAccountMeta {
     SolanaAccountMeta {
         pubkey: account_meta.pubkey.to_string(),
         is_signer: account_meta.is_signer,

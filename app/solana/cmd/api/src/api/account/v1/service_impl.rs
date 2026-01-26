@@ -290,7 +290,9 @@ impl AccountService for AccountServiceImpl {
         let token_program = match token_program_enum {
             TokenProgram::Legacy => Ok(LEGACY_PROGRAM_ID),
             TokenProgram::TokenProgram2022 => Ok(TOKEN_2022_PROGRAM_ID),
-            _ => Err(format!("unexpected token program id: {token_program_enum:?}")),
+            TokenProgram::Unspecified => {
+                Err(format!("unexpected token program id: {token_program_enum:?}"))
+            }
         }
         .map_err(Status::internal)?;
 

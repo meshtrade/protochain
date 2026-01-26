@@ -1124,28 +1124,24 @@ impl TransactionService for TransactionServiceImpl {
                     })?;
 
                 // Check for program logs
-                let logs = match &confirmed_transaction.transaction.meta {
-                    Some(meta) => {
+                let logs = confirmed_transaction.transaction.meta.as_ref().map_or_else(
+                    String::new,
+                    |meta| {
                         if let OptionSerializer::Some(logs) = &meta.log_messages {
                             logs.iter().cloned().collect()
                         } else {
                             String::new()
                         }
-                    }
-                    _ => String::new(),
-                };
+                    },
+                );
 
                 // Check for program error
-                let program_err = match confirmed_transaction.transaction.meta {
-                    Some(meta) => {
-                        if let Some(err) = meta.err {
-                            format!("{err:?}")
-                        } else {
-                            String::new()
-                        }
-                    }
-                    _ => String::new(),
-                };
+                let program_err = confirmed_transaction
+                    .transaction
+                    .meta
+                    .map_or_else(String::new, |meta| {
+                        meta.err.map_or_else(String::new, |err| format!("{err:?}"))
+                    });
 
                 // Convert to our proto format
                 let proto_transaction = Transaction {

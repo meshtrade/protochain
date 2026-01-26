@@ -134,15 +134,3 @@ message MintRequest {
 message MintResponse {
   protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
 }
-
-message CreateAssociatedTokenAccountRequest {
-  string payer_pub_key = 1; // public key of the account paying for creation
-  string owner_pub_key = 2; // public key for the owner of the token account to be created
-  string mint_pub_key = 3; // public key of the mint token account
-  protochain.solana.type.v1.TokenProgram token_program = 4;
-}
-
-message CreateAssociatedTokenAccountResponse {
-  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
-}
-;
