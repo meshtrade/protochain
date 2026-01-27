@@ -1,33 +1,3 @@
-use std::sync::Arc;
-use tonic::{Request, Response, Status};
-
-use protochain_api::protochain::solana::program::token::v1::{
-    service_server::Service as TokenProgramService, CreateAssociatedTokenAccountRequest,
-    CreateAssociatedTokenAccountResponse, CreateHoldingAccountRequest,
-    CreateHoldingAccountResponse, CreateMintRequest, CreateMintResponse,
-    GetCurrentMinRentForHoldingAccountRequest, GetCurrentMinRentForHoldingAccountResponse,
-    GetCurrentMinRentForTokenAccountRequest, GetCurrentMinRentForTokenAccountResponse,
-    InitialiseMintRequest, InitialiseMintResponse, MintInfo, MintRequest, MintResponse,
-    ParseMintRequest, ParseMintResponse,
-};
-
-use solana_client::rpc_client::RpcClient;
-use solana_sdk::{commitment_config::CommitmentConfig, program_pack::Pack, pubkey::Pubkey};
-use spl_associated_token_account::{
-    instruction::create_associated_token_account,
-    instruction::create_associated_token_account as spl_create_associated_token_account,
-};
-use spl_token::{
-    instruction::initialize_mint as initialize_mint_legacy, state::Mint, ID as LEGACY_PROGRAM_ID,
-};
-use spl_token_2022::{
-    extension::{memo_transfer::instruction::enable_required_transfer_memos, ExtensionType},
-    instruction::{initialize_account, initialize_mint2, mint_to_checked},
-    state::{Account, Mint as LegacyMint},
-    ID as TOKEN_2022_PROGRAM_ID,
-};
-use std::str::FromStr;
-
 use crate::api::program::system::v1::service_impl::SystemProgramServiceImpl;
 use crate::api::program::token::v1::token_program::get_token_program_id;
 use crate::api::{
@@ -37,7 +7,32 @@ use crate::api::{
 use protochain_api::protochain::solana::program::system::v1::{
     service_server::Service as SystemProgramService, CreateRequest as SystemCreateRequest,
 };
+use protochain_api::protochain::solana::program::token::v1::{
+    service_server::Service as TokenProgramService, CreateHoldingAccountRequest,
+    CreateHoldingAccountResponse, CreateMintRequest, CreateMintResponse,
+    GetCurrentMinRentForHoldingAccountRequest, GetCurrentMinRentForHoldingAccountResponse,
+    GetCurrentMinRentForTokenAccountRequest, GetCurrentMinRentForTokenAccountResponse,
+    InitialiseMintRequest, InitialiseMintResponse, MintInfo, MintRequest, MintResponse,
+    ParseMintRequest, ParseMintResponse,
+};
 use protochain_api::protochain::solana::r#type::v1::TokenProgram;
+use spl_associated_token_account::instruction::create_associated_token_account;
+use spl_token_2022::extension::memo_transfer::instruction::enable_required_transfer_memos;
+
+use std::str::FromStr;
+use std::sync::Arc;
+use tonic::{Request, Response, Status};
+
+use solana_client::rpc_client::RpcClient;
+use solana_sdk::{commitment_config::CommitmentConfig, program_pack::Pack, pubkey::Pubkey};
+use spl_associated_token_account::get_associated_token_address_with_program_id;
+use spl_token::ID as LEGACY_PROGRAM_ID;
+use spl_token_2022::{
+    extension::ExtensionType,
+    instruction::{initialize_mint, mint_to_checked, reallocate},
+    state::{Account, Mint},
+    ID as TOKEN_2022_PROGRAM_ID,
+};
 
 /// Token Program service implementation for Token 2022 operations
 #[derive(Clone)]
@@ -54,9 +49,9 @@ impl TokenProgramServiceImpl {
 }
 
 #[allow(clippy::result_large_err)]
-fn holding_account_space(require_memo: bool) -> Result<u64, Status> {
+fn holding_account_space(require_memo: bool) -> Result<usize, Status> {
     if !require_memo {
-        return Ok(Account::LEN as u64);
+        return Ok(Account::LEN);
     }
 
     let len = ExtensionType::try_calculate_account_len::<Account>(&[ExtensionType::MemoTransfer])
@@ -64,16 +59,14 @@ fn holding_account_space(require_memo: bool) -> Result<u64, Status> {
         Status::internal(format!("failed to calculate memo-transfer account length: {e}"))
     })?;
 
-    u64::try_from(len).map_err(|_| Status::internal("memo-transfer account length overflow"))
+    Ok(len)
 }
 
 #[allow(clippy::result_large_err)]
 fn memo_rent_lamports(rpc: &RpcClient, require_memo: bool) -> Result<u64, Status> {
     let space = holding_account_space(require_memo)?;
-    let space_usize = usize::try_from(space)
-        .map_err(|_| Status::internal("memo-transfer account length overflow"))?;
 
-    rpc.get_minimum_balance_for_rent_exemption(space_usize)
+    rpc.get_minimum_balance_for_rent_exemption(space)
         .map_err(|e| Status::internal(format!("failed to fetch memo-aware rent: {e}")))
 }
 
@@ -86,14 +79,14 @@ impl TokenProgramService for TokenProgramServiceImpl {
     ) -> Result<Response<InitialiseMintResponse>, Status> {
         let req = request.into_inner();
 
-        // Parse public keys
+        // parse public keys
         let mint_pubkey = Pubkey::from_str(&req.mint_pub_key)
             .map_err(|e| Status::invalid_argument(format!("Invalid mint_pub_key: {e}")))?;
         let mint_authority = Pubkey::from_str(&req.mint_authority_pub_key).map_err(|e| {
             Status::invalid_argument(format!("Invalid mint_authority_pub_key: {e}"))
         })?;
 
-        // Parse optional freeze authority
+        // parse optional freeze authority
         let freeze_authority = if req.freeze_authority_pub_key.is_empty() {
             None
         } else {
@@ -102,42 +95,27 @@ impl TokenProgramService for TokenProgramServiceImpl {
             })?)
         };
 
-        // Determine which token program to use
+        // determine which token program to use
         let token_program_enum = TokenProgram::try_from(req.token_program)
             .map_err(|_| Status::invalid_argument("Invalid token program value"))?;
+
+        // get the program ID pubkey and convert to string for the system program
+        let token_program_id = get_token_program_id(token_program_enum)
+            .map_err(|e| Status::invalid_argument(format!("Invalid token program: {e}")))?;
 
         let decimals = u8::try_from(req.decimals)
             .map_err(|_| Status::invalid_argument("decimals must be between 0 and 255"))?;
 
-        let instruction = match token_program_enum {
-            TokenProgram::Legacy => initialize_mint_legacy(
-                &LEGACY_PROGRAM_ID,
-                &mint_pubkey,
-                &mint_authority,
-                freeze_authority.as_ref(),
-                decimals,
-            )
-            .map_err(|e| {
-                Status::internal(format!(
-                    "could not create initialise mint legacy token instruction: {e}"
-                ))
-            }),
-            TokenProgram::TokenProgram2022 => initialize_mint2(
-                &TOKEN_2022_PROGRAM_ID,
-                &mint_pubkey,
-                &mint_authority,
-                freeze_authority.as_ref(),
-                decimals,
-            )
-            .map_err(|e| {
-                Status::internal(format!(
-                    "could not create initialise mint token 2022 instruction: {e}"
-                ))
-            }),
-            TokenProgram::Unspecified => {
-                Err(Status::invalid_argument("token_program must be specified"))
-            }
-        }?;
+        let instruction = initialize_mint(
+            &token_program_id,
+            &mint_pubkey,
+            &mint_authority,
+            freeze_authority.as_ref(),
+            decimals,
+        )
+        .map_err(|e| {
+            Status::internal(format!("could not create initialise mint token instruction: {e}"))
+        })?;
 
         // Convert to proto and return
         let proto_instruction = sdk_instruction_to_proto(instruction);
@@ -185,58 +163,24 @@ impl TokenProgramService for TokenProgramServiceImpl {
             .value
             .ok_or_else(|| Status::not_found("Account not found"))?;
 
-        // Determine token program from account owner
-        let token_program = sdk_token_program_to_proto(&account.owner);
-
-        let mint_info = match token_program {
-            TokenProgram::Legacy => {
-                // Unpack the mint account data
-                let mint = LegacyMint::unpack(&account.data).map_err(|e| {
-                    Status::invalid_argument(format!("Failed to parse mint account: {e}"))
-                })?;
-
-                // Convert to proto format
-                Ok(MintInfo {
-                    mint_authority_pub_key: mint
-                        .mint_authority
-                        .map(|key| key.to_string())
-                        .unwrap_or_default(),
-                    freeze_authority_pub_key: mint
-                        .freeze_authority
-                        .map(|key| key.to_string())
-                        .unwrap_or_default(),
-                    decimals: u32::from(mint.decimals),
-                    supply: mint.supply.to_string(),
-                    is_initialized: mint.is_initialized,
-                })
-            }
-            TokenProgram::TokenProgram2022 => {
-                // Unpack the mint account data
-                let mint = Mint::unpack(&account.data).map_err(|e| {
-                    Status::invalid_argument(format!("Failed to parse mint account: {e}"))
-                })?;
-
-                // Convert to proto format
-                Ok(MintInfo {
-                    mint_authority_pub_key: mint
-                        .mint_authority
-                        .map(|key| key.to_string())
-                        .unwrap_or_default(),
-                    freeze_authority_pub_key: mint
-                        .freeze_authority
-                        .map(|key| key.to_string())
-                        .unwrap_or_default(),
-                    decimals: u32::from(mint.decimals),
-                    supply: mint.supply.to_string(),
-                    is_initialized: mint.is_initialized,
-                })
-            }
-            _ => Err("unknown token program"),
-        }
-        .map_err(|e| Status::invalid_argument(format!("Could not get mint info: {e}")))?;
+        // Unpack the mint account data
+        let mint = Mint::unpack(&account.data)
+            .map_err(|e| Status::invalid_argument(format!("Failed to parse mint account: {e}")))?;
 
         Ok(Response::new(ParseMintResponse {
-            mint: Some(mint_info),
+            mint: Some(MintInfo {
+                mint_authority_pub_key: mint
+                    .mint_authority
+                    .map(|key| key.to_string())
+                    .unwrap_or_default(),
+                freeze_authority_pub_key: mint
+                    .freeze_authority
+                    .map(|key| key.to_string())
+                    .unwrap_or_default(),
+                decimals: u32::from(mint.decimals),
+                supply: mint.supply.to_string(),
+                is_initialized: mint.is_initialized,
+            }),
         }))
     }
 
@@ -267,12 +211,6 @@ impl TokenProgramService for TokenProgramServiceImpl {
         if req.payer.is_empty() {
             return Err(Status::invalid_argument("Payer address is required"));
         }
-        if req.new_account.is_empty() {
-            return Err(Status::invalid_argument("New account address is required"));
-        }
-        if req.mint_pub_key != req.new_account {
-            return Err(Status::invalid_argument("mint_pub_key must match new_account"));
-        }
 
         // Step 1: Get current rent for mint account
         let rent_response = self
@@ -289,12 +227,13 @@ impl TokenProgramService for TokenProgramServiceImpl {
             .map_err(|_| Status::invalid_argument("Invalid token program value"))?;
 
         // Get the program ID pubkey and convert to string for the system program
-        let owner_pubkey = get_token_program_id(token_program_enum);
+        let owner_pubkey = get_token_program_id(token_program_enum)
+            .map_err(|e| Status::invalid_argument(format!("Invalid token program: {e}")))?;
 
         let create_instruction = system_service
             .create(Request::new(SystemCreateRequest {
                 payer: req.payer.clone(),
-                new_account: req.new_account.clone(),
+                new_account: req.mint_pub_key.clone(),
                 owner: owner_pubkey.to_string(),
                 lamports: rent_response.lamports,
                 space: Mint::LEN as u64,
@@ -326,7 +265,11 @@ impl TokenProgramService for TokenProgramServiceImpl {
         Ok(Response::new(CreateMintResponse { instructions }))
     }
 
-    /// Creates both system account creation and holding account initialization instructions
+    /// Creates holding account instructions with optional memo transfer support
+    ///
+    /// For Legacy token program: Uses simple ATA creation
+    /// For Token 2022 with memo: Creates account with extended space, initializes as token account,
+    /// then initializes the memo transfer extension
     async fn create_holding_account(
         &self,
         request: Request<CreateHoldingAccountRequest>,
@@ -337,105 +280,92 @@ impl TokenProgramService for TokenProgramServiceImpl {
         if req.payer.is_empty() {
             return Err(Status::invalid_argument("Payer address is required"));
         }
-        if req.new_account.is_empty() {
-            return Err(Status::invalid_argument("New account address is required"));
+        if req.owner_pub_key.is_empty() {
+            return Err(Status::invalid_argument("Owner account address is required"));
         }
-        if req.holding_account_pub_key != req.new_account {
-            return Err(Status::invalid_argument("holding_account_pub_key must match new_account"));
+        // determine which token program to use (require token program be passed, so we can create owner and holding account within same transaction)
+        let token_program_enum = TokenProgram::try_from(req.token_program)
+            .map_err(|_| Status::invalid_argument("Invalid token program value"))?;
+        if req.memo_transfer_config.is_some() && token_program_enum == TokenProgram::Legacy {
+            return Err(Status::invalid_argument(
+                "Memo transfer config can only be enabled for Token2022 program",
+            ));
         }
 
-        // Parse public keys
-        let account_pubkey = Pubkey::from_str(&req.holding_account_pub_key)
-            .map_err(|e| Status::invalid_argument(format!("Invalid account_pub_key: {e}")))?;
-        let mint_pubkey = Pubkey::from_str(&req.mint_pub_key)
-            .map_err(|e| Status::invalid_argument(format!("Invalid mint_pub_key: {e}")))?;
-        let owner_pubkey = Pubkey::from_str(&req.owner_pub_key)
-            .map_err(|e| Status::invalid_argument(format!("Invalid owner_pub_key: {e}")))?;
-        let payer_pubkey = Pubkey::from_str(&req.owner_pub_key)
+        // parse public keys
+        let payer_pubkey = Pubkey::from_str(&req.payer)
             .map_err(|e| Status::invalid_argument(format!("Invalid payer_pub_key: {e}")))?;
+        let owner_pub_key = Pubkey::from_str(&req.owner_pub_key)
+            .map_err(|e| Status::invalid_argument(format!("Invalid owner_pub_key: {e}")))?;
+        let mint_pub_key = Pubkey::from_str(&req.mint_pub_key)
+            .map_err(|e| Status::invalid_argument(format!("Invalid mint_pub_key: {e}")))?;
 
+        // check if memo extension should be added
         let require_memo = req
             .memo_transfer_config
             .as_ref()
             .is_some_and(|cfg| cfg.require_incoming_memo);
 
-        // Determine which token program to use
-        let token_program_enum = TokenProgram::try_from(req.token_program)
-            .map_err(|_| Status::invalid_argument("Invalid token program value"))?;
-
-        let instruction_list = match token_program_enum {
-            TokenProgram::Legacy => {
-                let create_ata_instruction = create_associated_token_account(
-                    &payer_pubkey,      // funding address
-                    &account_pubkey,    // wallet address
-                    &mint_pubkey,       // mint address
-                    &LEGACY_PROGRAM_ID, // program id
-                );
-
-                Ok(vec![sdk_instruction_to_proto(create_ata_instruction)])
+        // get program id from token_program_enum
+        let token_program_id = match token_program_enum {
+            TokenProgram::Legacy => Ok(LEGACY_PROGRAM_ID),
+            TokenProgram::TokenProgram2022 => Ok(TOKEN_2022_PROGRAM_ID),
+            TokenProgram::Unspecified => {
+                Err(format!("unexpected token program id: {token_program_enum:?}"))
             }
-            TokenProgram::TokenProgram2022 => {
-                let mut inst_list = Vec::with_capacity(if require_memo { 3 } else { 2 });
-                let space = holding_account_space(require_memo)?;
-                let rent_lamports = memo_rent_lamports(&self.rpc_client, require_memo)?;
-
-                let system_service = SystemProgramServiceImpl::new();
-                let create_instruction = system_service
-                    .create(Request::new(SystemCreateRequest {
-                        payer: payer_pubkey.to_string(),
-                        new_account: account_pubkey.to_string(),
-                        owner: TOKEN_2022_PROGRAM_ID.to_string(),
-                        lamports: rent_lamports,
-                        space,
-                    }))
-                    .await?
-                    .into_inner();
-                if let Some(instr) = create_instruction.instruction {
-                    inst_list.push(instr);
-                }
-
-                // Create the InitializeAccount instruction
-                let init_instruction = initialize_account(
-                    &TOKEN_2022_PROGRAM_ID,
-                    &account_pubkey,
-                    &mint_pubkey,
-                    &owner_pubkey,
-                )
-                .map_err(|e| {
-                    Status::invalid_argument(format!(
-                        "Failed to create InitialiseHoldingAccount instruction: {e}"
-                    ))
-                })?;
-
-                inst_list.push(sdk_instruction_to_proto(init_instruction));
-
-                if require_memo {
-                    let memo_instruction = enable_required_transfer_memos(
-                        &TOKEN_2022_PROGRAM_ID,
-                        &account_pubkey,
-                        &owner_pubkey,
-                        &[],
-                    )
-                    .map_err(|e| {
-                        Status::invalid_argument(format!(
-                            "Failed to create memo transfer enable instruction: {e}"
-                        ))
-                    })?;
-                    inst_list.push(sdk_instruction_to_proto(memo_instruction));
-                }
-                Ok(inst_list)
-            }
-            _ => Err("Unknown token program"),
         }
-        .map_err(|e| {
-            Status::internal(format!(
-                "Failed to create instructions for initialising holding account: {e}"
-            ))
-        })?;
+        .map_err(Status::internal)?;
 
-        Ok(Response::new(CreateHoldingAccountResponse {
-            instructions: instruction_list,
-        }))
+        // prepare vector to hold instructions
+        let mut instructions: Vec<protochain_api::SolanaInstruction> = Vec::new();
+
+        let create_account_instruction = create_associated_token_account(
+            &payer_pubkey,
+            &owner_pub_key,
+            &mint_pub_key,
+            &token_program_id,
+        );
+        instructions.push(sdk_instruction_to_proto(create_account_instruction));
+
+        // derive associated token account address
+        let ata_address = get_associated_token_address_with_program_id(
+            &owner_pub_key,    // wallet
+            &mint_pub_key,     // mint
+            &token_program_id, // token program id
+        );
+
+        // add enable memo instruction if required
+        if require_memo {
+            let reallocate_instruction = reallocate(
+                &token_program_id,
+                &ata_address,
+                &payer_pubkey,
+                &owner_pub_key,
+                &[&owner_pub_key],
+                &[ExtensionType::MemoTransfer],
+            )
+            .map_err(|e| {
+                Status::internal(format!(
+                    "could not create reallocation instruction to allow for memo extension: {e}"
+                ))
+            })?;
+            instructions.push(sdk_instruction_to_proto(reallocate_instruction));
+
+            let enable_required_transfer_memos_instruction = enable_required_transfer_memos(
+                &token_program_id,
+                &ata_address,
+                &owner_pub_key,
+                &[&payer_pubkey],
+            )
+            .map_err(|e| {
+                Status::internal(format!(
+                    "could not create required transfer memos instruction: {e}"
+                ))
+            })?;
+            instructions.push(sdk_instruction_to_proto(enable_required_transfer_memos_instruction));
+        }
+
+        Ok(Response::new(CreateHoldingAccountResponse { instructions }))
     }
 
     /// Creates a `MintToChecked` instruction for Token 2022 program
@@ -471,7 +401,9 @@ impl TokenProgramService for TokenProgramServiceImpl {
         let decimals = u8::try_from(req.decimals)
             .map_err(|_| Status::invalid_argument("decimals must be between 0 and 255"))?;
 
-        let token_program_id = get_token_program_id(sdk_token_program_to_proto(&account.owner));
+        // Determine token program id from account owner
+        let token_program_id = get_token_program_id(sdk_token_program_to_proto(&account.owner))
+            .map_err(|e| Status::internal(format!("Failed to determine token program: {e}")))?;
 
         // Create the MintToChecked instruction (no additional signers for single authority)
         let instruction = mint_to_checked(
@@ -491,33 +423,6 @@ impl TokenProgramService for TokenProgramServiceImpl {
         let proto_instruction = sdk_instruction_to_proto(instruction);
         Ok(Response::new(MintResponse {
             instruction: Some(proto_instruction),
-        }))
-    }
-
-    async fn create_associated_token_account(
-        &self,
-        request: Request<CreateAssociatedTokenAccountRequest>,
-    ) -> Result<Response<CreateAssociatedTokenAccountResponse>, Status> {
-        let req = request.into_inner();
-
-        let payer_address = Pubkey::from_str(&req.payer_pub_key)
-            .map_err(|e| Status::invalid_argument(format!("Invalid payer public key: {e}")))?;
-
-        let owner_address = Pubkey::from_str(&req.owner_pub_key)
-            .map_err(|e| Status::invalid_argument(format!("Invalid payer public key: {e}")))?;
-
-        let mint_address = Pubkey::from_str(&req.mint_pub_key)
-            .map_err(|e| Status::invalid_argument(format!("Invalid payer public key: {e}")))?;
-
-        let instruction = spl_create_associated_token_account(
-            &payer_address,
-            &owner_address,
-            &mint_address,
-            &LEGACY_PROGRAM_ID,
-        );
-
-        Ok(Response::new(CreateAssociatedTokenAccountResponse {
-            instruction: Some(sdk_instruction_to_proto(instruction)),
         }))
     }
 }

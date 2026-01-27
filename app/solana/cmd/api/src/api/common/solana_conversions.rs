@@ -10,11 +10,11 @@ use std::str::FromStr;
 
 /// Converts a Solana SDK Instruction to protobuf `SolanaInstruction`
 ///
-/// This function transforms an instruction from the native Solana SDK format
+/// This function transforms an instruction from the native `SolanaInstruction` format
 /// to the protobuf format used in gRPC APIs.
 ///
 /// # Arguments
-/// * `instruction` - The Solana SDK instruction to convert
+/// * `instruction` - The Solana Instruction instruction to convert
 ///
 /// # Returns
 /// A protobuf `SolanaInstruction` with all fields mapped appropriately
@@ -31,13 +31,13 @@ pub fn sdk_instruction_to_proto(instruction: Instruction) -> SolanaInstruction {
     }
 }
 
-/// Converts a Solana SDK `AccountMeta` to protobuf `SolanaAccountMeta`
+/// Converts a Solana Instruction `AccountMeta` to protobuf `SolanaAccountMeta`
 ///
-/// This function transforms account metadata from the native Solana SDK format
+/// This function transforms account metadata from the native Solana Instruction format
 /// to the protobuf representation used in gRPC APIs.
 ///
 /// # Arguments
-/// * `account_meta` - The Solana SDK account metadata to convert
+/// * `account_meta` - The Solana Instruction account metadata to convert
 ///
 /// # Returns
 /// A protobuf `SolanaAccountMeta` with all fields mapped appropriately

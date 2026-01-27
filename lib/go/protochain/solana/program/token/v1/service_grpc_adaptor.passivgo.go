@@ -163,20 +163,3 @@ func (a *ServiceGRPCAdaptor) Mint(ctx context.Context, request *MintRequest) (*M
 
 	return mintResponse, nil
 }
-
-// CreateAssociatedTokenAccount exposes the CreateAssociatedTokenAccount method of the Service interface over gRPC
-func (a *ServiceGRPCAdaptor) CreateAssociatedTokenAccount(ctx context.Context, request *CreateAssociatedTokenAccountRequest) (*CreateAssociatedTokenAccountResponse, error) {
-	ctx, span := a.tracer.Start(
-		ctx,
-		ServiceServiceProviderName+"GRPCAdaptor.CreateAssociatedTokenAccount",
-	)
-	defer span.End()
-
-	// call the service interface implementation
-	createAssociatedTokenAccountResponse, err := a.service.CreateAssociatedTokenAccount(ctx, request)
-	if err != nil {
-		return nil, err
-	}
-
-	return createAssociatedTokenAccountResponse, nil
-}

@@ -5,6 +5,65 @@ use protochain_api::protochain::solana::program::system::v1::{
 };
 use tonic::{Request, Status};
 
+// Test constants
+const VALID_PUBKEY: &str = "11111111111111111111111111111112"; // System Program
+const ANOTHER_VALID_PUBKEY: &str = "SysvarS1otHashes111111111111111111111111111"; // Slot Hashes Sysvar
+const INVALID_PUBKEY: &str = "invalid_not_base58!!!";
+const THIRD_VALID_PUBKEY: &str = "SysvarC1ock11111111111111111111111111111111"; // Clock Sysvar
+
+// Test case structs defined at module level to avoid "items after statements" warnings
+#[derive(Clone)]
+struct CreateTestCase {
+    name: &'static str,
+    payer: &'static str,
+    new_account: &'static str,
+    lamports: u64,
+    space: u64,
+    expect_validation_error: bool,
+    error_contains: &'static str,
+}
+
+#[derive(Clone)]
+struct TransferTestCase {
+    name: &'static str,
+    from: &'static str,
+    to: &'static str,
+    lamports: u64,
+    expect_validation_error: bool,
+    error_contains: &'static str,
+}
+
+#[derive(Clone)]
+struct AllocateTestCase {
+    name: &'static str,
+    account: &'static str,
+    space: u64,
+    expect_validation_error: bool,
+    error_contains: &'static str,
+}
+
+#[derive(Clone)]
+struct AssignTestCase {
+    name: &'static str,
+    account: &'static str,
+    owner_program: &'static str,
+    expect_validation_error: bool,
+    error_contains: &'static str,
+}
+
+#[derive(Clone)]
+struct CreateWithSeedTestCase {
+    name: &'static str,
+    payer: &'static str,
+    new_account: &'static str,
+    base: &'static str,
+    seed: &'static str,
+    lamports: u64,
+    space: u64,
+    expect_validation_error: bool,
+    error_contains: &'static str,
+}
+
 /// Creates a test service instance
 /// Note: Tests focus on validation logic - RPC calls will fail in test environment
 fn create_test_service() -> SystemProgramServiceImpl {
@@ -20,68 +79,53 @@ fn is_validation_error(status: &Status) -> bool {
 async fn test_create_request_validation() {
     let service = create_test_service();
 
-    // Valid test pubkey constants (actual Solana public keys)
-    const VALID_PUBKEY: &str = "11111111111111111111111111111112"; // System Program
-    const ANOTHER_VALID_PUBKEY: &str = "SysvarS1otHashes111111111111111111111111111"; // Slot Hashes Sysvar
-    const INVALID_PUBKEY: &str = "invalid_not_base58!!!";
-
-    struct TestCase {
-        name: &'static str,
-        payer: &'static str,
-        new_account: &'static str,
-        lamports: u64,
-        space: u64,
-        expect_validation_error: bool,
-        error_contains: &'static str,
-    }
-
-    let test_cases = vec![
-        TestCase {
+    let test_cases: Vec<CreateTestCase> = vec![
+        CreateTestCase {
             name: "valid request - will fail on RPC but pass validation",
             payer: VALID_PUBKEY,
             new_account: ANOTHER_VALID_PUBKEY,
-            lamports: 1000000,
+            lamports: 1_000_000,
             space: 100,
             expect_validation_error: false,
             error_contains: "",
         },
-        TestCase {
+        CreateTestCase {
             name: "empty payer",
             payer: "",
             new_account: VALID_PUBKEY,
-            lamports: 1000000,
+            lamports: 1_000_000,
             space: 100,
             expect_validation_error: true,
             error_contains: "Payer address is required",
         },
-        TestCase {
+        CreateTestCase {
             name: "empty new_account",
             payer: VALID_PUBKEY,
             new_account: "",
-            lamports: 1000000,
+            lamports: 1_000_000,
             space: 100,
             expect_validation_error: true,
             error_contains: "New account address is required",
         },
-        TestCase {
+        CreateTestCase {
             name: "invalid payer pubkey",
             payer: INVALID_PUBKEY,
             new_account: VALID_PUBKEY,
-            lamports: 1000000,
+            lamports: 1_000_000,
             space: 100,
             expect_validation_error: true,
             error_contains: "Invalid payer address",
         },
-        TestCase {
+        CreateTestCase {
             name: "invalid new_account pubkey",
             payer: VALID_PUBKEY,
             new_account: INVALID_PUBKEY,
-            lamports: 1000000,
+            lamports: 1_000_000,
             space: 100,
             expect_validation_error: true,
             error_contains: "Invalid new account address",
         },
-        TestCase {
+        CreateTestCase {
             name: "zero lamports allowed",
             payer: VALID_PUBKEY,
             new_account: ANOTHER_VALID_PUBKEY,
@@ -90,11 +134,11 @@ async fn test_create_request_validation() {
             expect_validation_error: false,
             error_contains: "",
         },
-        TestCase {
+        CreateTestCase {
             name: "zero space allowed",
             payer: VALID_PUBKEY,
             new_account: ANOTHER_VALID_PUBKEY,
-            lamports: 1000000,
+            lamports: 1_000_000,
             space: 0,
             expect_validation_error: false,
             error_contains: "",
@@ -119,7 +163,9 @@ async fn test_create_request_validation() {
                 "Test '{}' expected validation error but got success",
                 test_case.name
             );
-            let error = result.unwrap_err();
+            let Err(error) = result else {
+                unreachable!("Already asserted result is Err")
+            };
             assert!(
                 is_validation_error(&error),
                 "Test '{}' expected validation error but got different error type: {:?}",
@@ -136,7 +182,9 @@ async fn test_create_request_validation() {
         } else {
             // Should pass validation but may fail on RPC (which is expected in test environment)
             if result.is_err() {
-                let error = result.unwrap_err();
+                let Err(error) = result else {
+                    unreachable!("Already checked result is Err")
+                };
                 assert!(
                     !is_validation_error(&error),
                     "Test '{}' should pass validation but got validation error: {}",
@@ -154,61 +202,48 @@ async fn test_create_request_validation() {
 async fn test_transfer_request_validation() {
     let service = create_test_service();
 
-    const VALID_PUBKEY: &str = "11111111111111111111111111111112"; // System Program
-    const ANOTHER_VALID_PUBKEY: &str = "SysvarS1otHashes111111111111111111111111111"; // Slot Hashes Sysvar
-    const INVALID_PUBKEY: &str = "invalid_not_base58!!!";
-
-    struct TestCase {
-        name: &'static str,
-        from: &'static str,
-        to: &'static str,
-        lamports: u64,
-        expect_validation_error: bool,
-        error_contains: &'static str,
-    }
-
-    let test_cases = vec![
-        TestCase {
+    let test_cases: Vec<TransferTestCase> = vec![
+        TransferTestCase {
             name: "valid request - will fail on RPC but pass validation",
             from: VALID_PUBKEY,
             to: ANOTHER_VALID_PUBKEY,
-            lamports: 1000000,
+            lamports: 1_000_000,
             expect_validation_error: false,
             error_contains: "",
         },
-        TestCase {
+        TransferTestCase {
             name: "empty from",
             from: "",
             to: VALID_PUBKEY,
-            lamports: 1000000,
+            lamports: 1_000_000,
             expect_validation_error: true,
             error_contains: "From address is required",
         },
-        TestCase {
+        TransferTestCase {
             name: "empty to",
             from: VALID_PUBKEY,
             to: "",
-            lamports: 1000000,
+            lamports: 1_000_000,
             expect_validation_error: true,
             error_contains: "To address is required",
         },
-        TestCase {
+        TransferTestCase {
             name: "invalid from pubkey",
             from: INVALID_PUBKEY,
             to: VALID_PUBKEY,
-            lamports: 1000000,
+            lamports: 1_000_000,
             expect_validation_error: true,
             error_contains: "Invalid from address",
         },
-        TestCase {
+        TransferTestCase {
             name: "invalid to pubkey",
             from: VALID_PUBKEY,
             to: INVALID_PUBKEY,
-            lamports: 1000000,
+            lamports: 1_000_000,
             expect_validation_error: true,
             error_contains: "Invalid to address",
         },
-        TestCase {
+        TransferTestCase {
             name: "zero lamports allowed",
             from: VALID_PUBKEY,
             to: ANOTHER_VALID_PUBKEY,
@@ -216,11 +251,11 @@ async fn test_transfer_request_validation() {
             expect_validation_error: false,
             error_contains: "",
         },
-        TestCase {
+        TransferTestCase {
             name: "same from and to allowed",
             from: VALID_PUBKEY,
             to: VALID_PUBKEY,
-            lamports: 1000000,
+            lamports: 1_000_000,
             expect_validation_error: false,
             error_contains: "",
         },
@@ -242,7 +277,9 @@ async fn test_transfer_request_validation() {
                 "Test '{}' expected validation error but got success",
                 test_case.name
             );
-            let error = result.unwrap_err();
+            let Err(error) = result else {
+                unreachable!("Already asserted result is Err")
+            };
             assert!(
                 is_validation_error(&error),
                 "Test '{}' expected validation error but got different error type: {:?}",
@@ -259,7 +296,9 @@ async fn test_transfer_request_validation() {
         } else {
             // Should pass validation but may fail on RPC (which is expected in test environment)
             if result.is_err() {
-                let error = result.unwrap_err();
+                let Err(error) = result else {
+                    unreachable!("Already checked result is Err")
+                };
                 assert!(
                     !is_validation_error(&error),
                     "Test '{}' should pass validation but got validation error: {}",
@@ -276,47 +315,36 @@ async fn test_transfer_request_validation() {
 async fn test_allocate_request_validation() {
     let service = create_test_service();
 
-    const VALID_PUBKEY: &str = "11111111111111111111111111111112"; // System Program
-    const INVALID_PUBKEY: &str = "invalid_not_base58!!!";
-
-    struct TestCase {
-        name: &'static str,
-        account: &'static str,
-        space: u64,
-        expect_validation_error: bool,
-        error_contains: &'static str,
-    }
-
-    let test_cases = vec![
-        TestCase {
+    let test_cases: Vec<AllocateTestCase> = vec![
+        AllocateTestCase {
             name: "valid request - will fail on RPC but pass validation",
             account: VALID_PUBKEY,
             space: 100,
             expect_validation_error: false,
             error_contains: "",
         },
-        TestCase {
+        AllocateTestCase {
             name: "empty account",
             account: "",
             space: 100,
             expect_validation_error: true,
             error_contains: "Account address is required",
         },
-        TestCase {
+        AllocateTestCase {
             name: "invalid account pubkey",
             account: INVALID_PUBKEY,
             space: 100,
             expect_validation_error: true,
             error_contains: "Invalid account address",
         },
-        TestCase {
+        AllocateTestCase {
             name: "zero space allowed",
             account: VALID_PUBKEY,
             space: 0,
             expect_validation_error: false,
             error_contains: "",
         },
-        TestCase {
+        AllocateTestCase {
             name: "large space allowed",
             account: VALID_PUBKEY,
             space: 1_000_000,
@@ -340,7 +368,9 @@ async fn test_allocate_request_validation() {
                 "Test '{}' expected validation error but got success",
                 test_case.name
             );
-            let error = result.unwrap_err();
+            let Err(error) = result else {
+                unreachable!("Already asserted result is Err")
+            };
             assert!(
                 is_validation_error(&error),
                 "Test '{}' expected validation error but got different error type: {:?}",
@@ -357,7 +387,9 @@ async fn test_allocate_request_validation() {
         } else {
             // Should pass validation but may fail on RPC (which is expected in test environment)
             if result.is_err() {
-                let error = result.unwrap_err();
+                let Err(error) = result else {
+                    unreachable!("Already checked result is Err")
+                };
                 assert!(
                     !is_validation_error(&error),
                     "Test '{}' should pass validation but got validation error: {}",
@@ -374,55 +406,43 @@ async fn test_allocate_request_validation() {
 async fn test_assign_request_validation() {
     let service = create_test_service();
 
-    const VALID_PUBKEY: &str = "11111111111111111111111111111112"; // System Program
-    const ANOTHER_VALID_PUBKEY: &str = "SysvarS1otHashes111111111111111111111111111"; // Slot Hashes Sysvar
-    const INVALID_PUBKEY: &str = "invalid_not_base58!!!";
-
-    struct TestCase {
-        name: &'static str,
-        account: &'static str,
-        owner_program: &'static str,
-        expect_validation_error: bool,
-        error_contains: &'static str,
-    }
-
-    let test_cases = vec![
-        TestCase {
+    let test_cases: Vec<AssignTestCase> = vec![
+        AssignTestCase {
             name: "valid request - will fail on RPC but pass validation",
             account: VALID_PUBKEY,
             owner_program: ANOTHER_VALID_PUBKEY,
             expect_validation_error: false,
             error_contains: "",
         },
-        TestCase {
+        AssignTestCase {
             name: "empty account",
             account: "",
             owner_program: VALID_PUBKEY,
             expect_validation_error: true,
             error_contains: "Account address is required",
         },
-        TestCase {
+        AssignTestCase {
             name: "empty owner_program",
             account: VALID_PUBKEY,
             owner_program: "",
             expect_validation_error: true,
             error_contains: "Owner program is required",
         },
-        TestCase {
+        AssignTestCase {
             name: "invalid account pubkey",
             account: INVALID_PUBKEY,
             owner_program: VALID_PUBKEY,
             expect_validation_error: true,
             error_contains: "Invalid account address",
         },
-        TestCase {
+        AssignTestCase {
             name: "invalid owner_program pubkey",
             account: VALID_PUBKEY,
             owner_program: INVALID_PUBKEY,
             expect_validation_error: true,
             error_contains: "Invalid owner program",
         },
-        TestCase {
+        AssignTestCase {
             name: "same account and owner allowed",
             account: VALID_PUBKEY,
             owner_program: VALID_PUBKEY,
@@ -446,7 +466,9 @@ async fn test_assign_request_validation() {
                 "Test '{}' expected validation error but got success",
                 test_case.name
             );
-            let error = result.unwrap_err();
+            let Err(error) = result else {
+                unreachable!("Already asserted result is Err")
+            };
             assert!(
                 is_validation_error(&error),
                 "Test '{}' expected validation error but got different error type: {:?}",
@@ -463,7 +485,9 @@ async fn test_assign_request_validation() {
         } else {
             // Should pass validation but may fail on RPC (which is expected in test environment)
             if result.is_err() {
-                let error = result.unwrap_err();
+                let Err(error) = result else {
+                    unreachable!("Already checked result is Err")
+                };
                 assert!(
                     !is_validation_error(&error),
                     "Test '{}' should pass validation but got validation error: {}",
@@ -480,113 +504,96 @@ async fn test_assign_request_validation() {
 async fn test_create_with_seed_request_validation() {
     let service = create_test_service();
 
-    const VALID_PUBKEY: &str = "11111111111111111111111111111112"; // System Program
-    const ANOTHER_VALID_PUBKEY: &str = "SysvarS1otHashes111111111111111111111111111"; // Slot Hashes Sysvar
-    const THIRD_VALID_PUBKEY: &str = "SysvarC1ock11111111111111111111111111111111"; // Clock Sysvar
-    const INVALID_PUBKEY: &str = "invalid_not_base58!!!";
-
-    struct TestCase {
-        name: &'static str,
-        payer: &'static str,
-        new_account: &'static str,
-        base: &'static str,
-        seed: &'static str,
-        lamports: u64,
-        space: u64,
-        expect_validation_error: bool,
-        error_contains: &'static str,
-    }
-
-    let test_cases = vec![
-        TestCase {
+    let test_cases: Vec<CreateWithSeedTestCase> = vec![
+        CreateWithSeedTestCase {
             name: "valid request - will fail on RPC but pass validation",
             payer: VALID_PUBKEY,
             new_account: ANOTHER_VALID_PUBKEY,
             base: THIRD_VALID_PUBKEY,
             seed: "my-seed",
-            lamports: 1000000,
+            lamports: 1_000_000,
             space: 100,
             expect_validation_error: false,
             error_contains: "",
         },
-        TestCase {
+        CreateWithSeedTestCase {
             name: "empty payer",
             payer: "",
             new_account: VALID_PUBKEY,
             base: ANOTHER_VALID_PUBKEY,
             seed: "my-seed",
-            lamports: 1000000,
+            lamports: 1_000_000,
             space: 100,
             expect_validation_error: true,
             error_contains: "Payer address is required",
         },
-        TestCase {
+        CreateWithSeedTestCase {
             name: "empty new_account",
             payer: VALID_PUBKEY,
             new_account: "",
             base: ANOTHER_VALID_PUBKEY,
             seed: "my-seed",
-            lamports: 1000000,
+            lamports: 1_000_000,
             space: 100,
             expect_validation_error: true,
             error_contains: "New account address is required",
         },
-        TestCase {
+        CreateWithSeedTestCase {
             name: "empty base",
             payer: VALID_PUBKEY,
             new_account: ANOTHER_VALID_PUBKEY,
             base: "",
             seed: "my-seed",
-            lamports: 1000000,
+            lamports: 1_000_000,
             space: 100,
             expect_validation_error: true,
             error_contains: "Base address is required",
         },
-        TestCase {
+        CreateWithSeedTestCase {
             name: "empty seed",
             payer: VALID_PUBKEY,
             new_account: ANOTHER_VALID_PUBKEY,
             base: THIRD_VALID_PUBKEY,
             seed: "",
-            lamports: 1000000,
+            lamports: 1_000_000,
             space: 100,
             expect_validation_error: true,
             error_contains: "Seed is required",
         },
-        TestCase {
+        CreateWithSeedTestCase {
             name: "invalid payer pubkey",
             payer: INVALID_PUBKEY,
             new_account: VALID_PUBKEY,
             base: ANOTHER_VALID_PUBKEY,
             seed: "my-seed",
-            lamports: 1000000,
+            lamports: 1_000_000,
             space: 100,
             expect_validation_error: true,
             error_contains: "Invalid payer address",
         },
-        TestCase {
+        CreateWithSeedTestCase {
             name: "invalid new_account pubkey",
             payer: VALID_PUBKEY,
             new_account: INVALID_PUBKEY,
             base: ANOTHER_VALID_PUBKEY,
             seed: "my-seed",
-            lamports: 1000000,
+            lamports: 1_000_000,
             space: 100,
             expect_validation_error: true,
             error_contains: "Invalid new account address",
         },
-        TestCase {
+        CreateWithSeedTestCase {
             name: "invalid base pubkey",
             payer: VALID_PUBKEY,
             new_account: ANOTHER_VALID_PUBKEY,
             base: INVALID_PUBKEY,
             seed: "my-seed",
-            lamports: 1000000,
+            lamports: 1_000_000,
             space: 100,
             expect_validation_error: true,
             error_contains: "Invalid base address",
         },
-        TestCase {
+        CreateWithSeedTestCase {
             name: "zero lamports allowed",
             payer: VALID_PUBKEY,
             new_account: ANOTHER_VALID_PUBKEY,
@@ -597,24 +604,24 @@ async fn test_create_with_seed_request_validation() {
             expect_validation_error: false,
             error_contains: "",
         },
-        TestCase {
+        CreateWithSeedTestCase {
             name: "zero space allowed",
             payer: VALID_PUBKEY,
             new_account: ANOTHER_VALID_PUBKEY,
             base: THIRD_VALID_PUBKEY,
             seed: "my-seed",
-            lamports: 1000000,
+            lamports: 1_000_000,
             space: 0,
             expect_validation_error: false,
             error_contains: "",
         },
-        TestCase {
+        CreateWithSeedTestCase {
             name: "long seed allowed",
             payer: VALID_PUBKEY,
             new_account: ANOTHER_VALID_PUBKEY,
             base: THIRD_VALID_PUBKEY,
             seed: "this-is-a-very-long-seed-string-that-should-still-be-valid",
-            lamports: 1000000,
+            lamports: 1_000_000,
             space: 100,
             expect_validation_error: false,
             error_contains: "",
@@ -640,7 +647,9 @@ async fn test_create_with_seed_request_validation() {
                 "Test '{}' expected validation error but got success",
                 test_case.name
             );
-            let error = result.unwrap_err();
+            let Err(error) = result else {
+                unreachable!("Already asserted result is Err")
+            };
             assert!(
                 is_validation_error(&error),
                 "Test '{}' expected validation error but got different error type: {:?}",
@@ -657,7 +666,9 @@ async fn test_create_with_seed_request_validation() {
         } else {
             // Should pass validation but may fail on RPC (which is expected in test environment)
             if result.is_err() {
-                let error = result.unwrap_err();
+                let Err(error) = result else {
+                    unreachable!("Already checked result is Err")
+                };
                 assert!(
                     !is_validation_error(&error),
                     "Test '{}' should pass validation but got validation error: {}",

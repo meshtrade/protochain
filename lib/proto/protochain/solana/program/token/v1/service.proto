@@ -24,14 +24,11 @@ service Service {
   // Creates both system account creation and mint initialization instructions. Memo transfer is not applicable to mint accounts.
   rpc CreateMint(CreateMintRequest) returns (CreateMintResponse);
 
-  // Creates both system account creation and holding account initialization instructions. Adds memo-enable instruction when requested.
+  // Creates holding account initialization instructions. Adds memo-enable instruction when requested.
   rpc CreateHoldingAccount(CreateHoldingAccountRequest) returns (CreateHoldingAccountResponse);
 
   // Mint tokens to an existing token account using MintToChecked instruction
   rpc Mint(MintRequest) returns (MintResponse);
-
-  // Create a token account using create_associated_token_account instruction
-  rpc CreateAssociatedTokenAccount(CreateAssociatedTokenAccountRequest) returns (CreateAssociatedTokenAccountResponse);
 }
 
 // Request to create InitialiseMint instruction
@@ -94,16 +91,11 @@ message GetCurrentMinRentForHoldingAccountResponse {
 
 // Request to create and initialize a holding account in one call
 message CreateHoldingAccountRequest {
-  // System program create fields
   string payer = 1; // Account paying for creation (signer)
-  string new_account = 2; // Holding account to create (signer)
-
-  // Token program initialize holding account fields
-  string holding_account_pub_key = 3; // Same as new_account for validation
-  string mint_pub_key = 4; // Mint this account will hold
-  string owner_pub_key = 5; // Owner of the holding account
-  MemoTransferConfig memo_transfer_config = 6; // optional, defaults to false
-  protochain.solana.type.v1.TokenProgram token_program = 7;
+  string owner_pub_key = 2; // Owner of the holding account
+  string mint_pub_key = 3; // Mint this account will hold
+  protochain.solana.type.v1.TokenProgram token_program = 4;
+  MemoTransferConfig memo_transfer_config = 5; // optional, defaults to false
 }
 
 // Response containing both create and initialize instructions
@@ -115,14 +107,13 @@ message CreateHoldingAccountResponse {
 message CreateMintRequest {
   // System program create fields
   string payer = 1; // Account paying for creation (signer)
-  string new_account = 2; // Mint account to create (signer)
 
   // Token program initialize mint fields
-  string mint_pub_key = 3; // Same as new_account for validation
-  string mint_authority_pub_key = 4; // Mint authority
-  string freeze_authority_pub_key = 5; // Freeze authority (optional)
-  uint32 decimals = 6; // Mint decimals
-  protochain.solana.type.v1.TokenProgram token_program = 7;
+  string mint_pub_key = 2; // Same as new_account for validation
+  string mint_authority_pub_key = 3; // Mint authority
+  string freeze_authority_pub_key = 4; // Freeze authority (optional)
+  uint32 decimals = 5; // Mint decimals
+  protochain.solana.type.v1.TokenProgram token_program = 6;
 }
 
 // Response containing both create and initialize instructions
@@ -143,14 +134,3 @@ message MintRequest {
 message MintResponse {
   protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
 }
-
-message CreateAssociatedTokenAccountRequest {
-  string payer_pub_key = 1; // public key of the account paying for creation
-  string owner_pub_key = 2; // public key for the owner of the token account to be created
-  string mint_pub_key = 3; // public key of the mint token account
-}
-
-message CreateAssociatedTokenAccountResponse {
-  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
-}
-;

@@ -91,30 +91,20 @@ pub struct GetCurrentMinRentForHoldingAccountResponse {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateHoldingAccountRequest {
-    /// System program create fields
-    ///
     /// Account paying for creation (signer)
     #[prost(string, tag="1")]
     pub payer: ::prost::alloc::string::String,
-    /// Holding account to create (signer)
-    #[prost(string, tag="2")]
-    pub new_account: ::prost::alloc::string::String,
-    /// Token program initialize holding account fields
-    ///
-    /// Same as new_account for validation
-    #[prost(string, tag="3")]
-    pub holding_account_pub_key: ::prost::alloc::string::String,
-    /// Mint this account will hold
-    #[prost(string, tag="4")]
-    pub mint_pub_key: ::prost::alloc::string::String,
     /// Owner of the holding account
-    #[prost(string, tag="5")]
+    #[prost(string, tag="2")]
     pub owner_pub_key: ::prost::alloc::string::String,
-    /// optional, defaults to false
-    #[prost(message, optional, tag="6")]
-    pub memo_transfer_config: ::core::option::Option<MemoTransferConfig>,
-    #[prost(enumeration="super::super::super::r#type::v1::TokenProgram", tag="7")]
+    /// Mint this account will hold
+    #[prost(string, tag="3")]
+    pub mint_pub_key: ::prost::alloc::string::String,
+    #[prost(enumeration="super::super::super::r#type::v1::TokenProgram", tag="4")]
     pub token_program: i32,
+    /// optional, defaults to false
+    #[prost(message, optional, tag="5")]
+    pub memo_transfer_config: ::core::option::Option<MemoTransferConfig>,
 }
 /// Response containing both create and initialize instructions
 #[allow(clippy::derive_partial_eq_without_eq)]
@@ -132,24 +122,21 @@ pub struct CreateMintRequest {
     /// Account paying for creation (signer)
     #[prost(string, tag="1")]
     pub payer: ::prost::alloc::string::String,
-    /// Mint account to create (signer)
-    #[prost(string, tag="2")]
-    pub new_account: ::prost::alloc::string::String,
     /// Token program initialize mint fields
     ///
     /// Same as new_account for validation
-    #[prost(string, tag="3")]
+    #[prost(string, tag="2")]
     pub mint_pub_key: ::prost::alloc::string::String,
     /// Mint authority
-    #[prost(string, tag="4")]
+    #[prost(string, tag="3")]
     pub mint_authority_pub_key: ::prost::alloc::string::String,
     /// Freeze authority (optional)
-    #[prost(string, tag="5")]
+    #[prost(string, tag="4")]
     pub freeze_authority_pub_key: ::prost::alloc::string::String,
     /// Mint decimals
-    #[prost(uint32, tag="6")]
+    #[prost(uint32, tag="5")]
     pub decimals: u32,
-    #[prost(enumeration="super::super::super::r#type::v1::TokenProgram", tag="7")]
+    #[prost(enumeration="super::super::super::r#type::v1::TokenProgram", tag="6")]
     pub token_program: i32,
 }
 /// Response containing both create and initialize instructions
@@ -183,25 +170,6 @@ pub struct MintRequest {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MintResponse {
-    #[prost(message, optional, tag="1")]
-    pub instruction: ::core::option::Option<super::super::super::transaction::v1::SolanaInstruction>,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CreateAssociatedTokenAccountRequest {
-    /// public key of the account paying for creation
-    #[prost(string, tag="1")]
-    pub payer_pub_key: ::prost::alloc::string::String,
-    /// public key for the owner of the token account to be created
-    #[prost(string, tag="2")]
-    pub owner_pub_key: ::prost::alloc::string::String,
-    /// public key of the mint token account
-    #[prost(string, tag="3")]
-    pub mint_pub_key: ::prost::alloc::string::String,
-}
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct CreateAssociatedTokenAccountResponse {
     #[prost(message, optional, tag="1")]
     pub instruction: ::core::option::Option<super::super::super::transaction::v1::SolanaInstruction>,
 }

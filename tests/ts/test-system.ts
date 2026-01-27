@@ -42,9 +42,9 @@ async function testSystemService() {
     });
     
     console.log("✅ Create instruction successful:");
-    console.log(`   Instruction Program ID: ${createResp.programId}`);
-    console.log(`   Accounts Length: ${createResp.accounts?.length}`);
-    console.log(`   Data Length: ${createResp.data?.length}`);
+    console.log(`   Instruction Program ID: ${createResp.instruction?.programId}`);
+    console.log(`   Accounts Length: ${createResp.instruction?.accounts?.length}`);
+    console.log(`   Data Length: ${createResp.instruction?.data?.length}`);
     
     // Test 2: Transfer
     console.log("\n🧪 Test 2: Transfer Instruction");
@@ -55,22 +55,22 @@ async function testSystemService() {
     });
     
     console.log("✅ Transfer instruction successful:");
-    console.log(`   Instruction Program ID: ${transferResp.programId}`);
-    console.log(`   Accounts Length: ${transferResp.accounts?.length}`);
-    console.log(`   Data Length: ${transferResp.data?.length}`);
+    console.log(`   Instruction Program ID: ${transferResp.instruction?.programId}`);
+    console.log(`   Accounts Length: ${transferResp.instruction?.accounts?.length}`);
+    console.log(`   Data Length: ${transferResp.instruction?.data?.length}`);
     
     // Validate instruction structures
     console.log("\n✅ Instruction validation:");
     if (createResp) {
-      console.log(`   Create - Program ID: ${!!createResp.programId}`);
-      console.log(`   Create - Accounts: ${createResp.accounts?.length || 0}`);
-      console.log(`   Create - Data: ${createResp.data?.length || 0} bytes`);
+      console.log(`   Create - Program ID: ${!!createResp.instruction?.programId}`);
+      console.log(`   Create - Accounts: ${createResp.instruction?.accounts?.length || 0}`);
+      console.log(`   Create - Data: ${createResp.instruction?.data?.length || 0} bytes`);
     }
-    
+
     if (transferResp) {
-      console.log(`   Transfer - Program ID: ${!!transferResp.programId}`);
-      console.log(`   Transfer - Accounts: ${transferResp.accounts?.length || 0}`);
-      console.log(`   Transfer - Data: ${transferResp.data?.length || 0} bytes`);
+      console.log(`   Transfer - Program ID: ${!!transferResp.instruction?.programId}`);
+      console.log(`   Transfer - Accounts: ${transferResp.instruction?.accounts?.length || 0}`);
+      console.log(`   Transfer - Data: ${transferResp.instruction?.data?.length || 0} bytes`);
     }
     
     console.log("\n🎉 SystemProgramService tests completed successfully!");

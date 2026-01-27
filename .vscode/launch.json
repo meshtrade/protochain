@@ -33,18 +33,41 @@
             "logOutput": "rpc"
         },
         {
-            "name": "Debug Backend (Rust)",
+            "name": "solana-api (local validator)",
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/target/debug/protochain-solana-api",
-            "cwd": "${workspaceFolder}/api",
+            "cwd": "${workspaceFolder}",
             "stopOnEntry": false,
             "args": [],
             "env": {
                 "RUST_LOG": "debug",
                 "SOLANA_RPC_URL": "http://localhost:8899"
             },
-            "preLaunchTask": "cargo: build --bin protochain-solana-api"
+            "preLaunchTask": "cargo build protochain-solana-api",
+            "sourceLanguages": ["rust"],
+            "initCommands": [
+                "breakpoint set -E c++ -d"
+            ]
+        },
+        {
+            "name": "solana-api (remote testing validator)",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/target/debug/protochain-solana-api",
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": false,
+            "args": [],
+            "env": {
+                "RUST_LOG": "debug",
+                "SOLANA_RPC_URL": "https://coned-duped-tees.txtx.network:8899",
+                "SOLANA_WEBSOCKET_URL": "wss://coned-duped-tees.txtx.network:8900"
+            },
+            "preLaunchTask": "cargo build protochain-solana-api",
+            "sourceLanguages": ["rust"],
+            "initCommands": [
+                "breakpoint set -E c++ -d"
+            ]
         }
     ],
     "inputs": [

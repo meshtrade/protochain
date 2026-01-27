@@ -15,7 +15,9 @@ use solana_sdk::{
     signature::{Keypair, Signature, Signer},
     transaction::Transaction as SolanaTransaction,
 };
-use solana_transaction_status::{EncodedTransaction, UiTransactionEncoding, option_serializer::OptionSerializer};
+use solana_transaction_status::{
+    option_serializer::OptionSerializer, EncodedTransaction, UiTransactionEncoding,
+};
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -784,6 +786,8 @@ impl TransactionService for TransactionServiceImpl {
             solana_transaction.message.header.num_required_signatures as usize;
         let provided_signatures = transaction.signatures.len();
 
+        info!("required signatures: {:?}", required_signatures);
+        info!("provided signatures: {:?}", provided_signatures);
         let new_state = if provided_signatures >= required_signatures {
             TransactionState::FullySigned
         } else {
@@ -1118,31 +1122,27 @@ impl TransactionService for TransactionServiceImpl {
                     .map_err(|e| {
                         Status::internal(format!("Failed to deserialize transaction: {e}"))
                     })?;
-                
+
                 // Check for program logs
-                let logs = match &confirmed_transaction.transaction.meta {
-                    Some(meta) => {
+                let logs = confirmed_transaction.transaction.meta.as_ref().map_or_else(
+                    String::new,
+                    |meta| {
                         if let OptionSerializer::Some(logs) = &meta.log_messages {
                             logs.iter().cloned().collect()
-                        } else { 
-                            "".to_string()
+                        } else {
+                            String::new()
                         }
                     },
-                    _ => "".to_string(),
-                };
+                );
 
                 // Check for program error
-                let program_err = match confirmed_transaction.transaction.meta {
-                    Some(meta) => {
-                        if let Some(err) = meta.err {
-                            format!("{err:?}")
-                        } else {
-                            "".to_string()
-                        }
-                    },
-                    _ => "".to_string(),
-                };
-                
+                let program_err = confirmed_transaction
+                    .transaction
+                    .meta
+                    .map_or_else(String::new, |meta| {
+                        meta.err.map_or_else(String::new, |err| format!("{err:?}"))
+                    });
+
                 // Convert to our proto format
                 let proto_transaction = Transaction {
                     instructions: vec![], // Instructions are not preserved in network storage

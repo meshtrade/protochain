@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file protochain/solana/program/token/v1/service.proto.
  */
 export const file_protochain_solana_program_token_v1_service: GenFile = /*@__PURE__*/
-  fileDesc("CjBwcm90b2NoYWluL3NvbGFuYS9wcm9ncmFtL3Rva2VuL3YxL3NlcnZpY2UucHJvdG8SInByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEiwQEKFUluaXRpYWxpc2VNaW50UmVxdWVzdBIUCgxtaW50X3B1Yl9rZXkYASABKAkSHgoWbWludF9hdXRob3JpdHlfcHViX2tleRgCIAEoCRIgChhmcmVlemVfYXV0aG9yaXR5X3B1Yl9rZXkYAyABKAkSEAoIZGVjaW1hbHMYBCABKA0SPgoNdG9rZW5fcHJvZ3JhbRgFIAEoDjInLnByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEuVG9rZW5Qcm9ncmFtImIKFkluaXRpYWxpc2VNaW50UmVzcG9uc2USSAoLaW5zdHJ1Y3Rpb24YASABKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbiIpCidHZXRDdXJyZW50TWluUmVudEZvclRva2VuQWNjb3VudFJlcXVlc3QiPAooR2V0Q3VycmVudE1pblJlbnRGb3JUb2tlbkFjY291bnRSZXNwb25zZRIQCghsYW1wb3J0cxgBIAEoBCIrChBQYXJzZU1pbnRSZXF1ZXN0EhcKD2FjY291bnRfYWRkcmVzcxgBIAEoCSJPChFQYXJzZU1pbnRSZXNwb25zZRI6CgRtaW50GAEgASgLMiwucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5NaW50SW5mbyKGAQoITWludEluZm8SHgoWbWludF9hdXRob3JpdHlfcHViX2tleRgBIAEoCRIgChhmcmVlemVfYXV0aG9yaXR5X3B1Yl9rZXkYAiABKAkSEAoIZGVjaW1hbHMYAyABKA0SDgoGc3VwcGx5GAQgASgJEhYKDmlzX2luaXRpYWxpemVkGAUgASgIIjMKEk1lbW9UcmFuc2ZlckNvbmZpZxIdChVyZXF1aXJlX2luY29taW5nX21lbW8YASABKAgigQEKKUdldEN1cnJlbnRNaW5SZW50Rm9ySG9sZGluZ0FjY291bnRSZXF1ZXN0ElQKFG1lbW9fdHJhbnNmZXJfY29uZmlnGAEgASgLMjYucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5NZW1vVHJhbnNmZXJDb25maWciPgoqR2V0Q3VycmVudE1pblJlbnRGb3JIb2xkaW5nQWNjb3VudFJlc3BvbnNlEhAKCGxhbXBvcnRzGAEgASgEIqUCChtDcmVhdGVIb2xkaW5nQWNjb3VudFJlcXVlc3QSDQoFcGF5ZXIYASABKAkSEwoLbmV3X2FjY291bnQYAiABKAkSHwoXaG9sZGluZ19hY2NvdW50X3B1Yl9rZXkYAyABKAkSFAoMbWludF9wdWJfa2V5GAQgASgJEhUKDW93bmVyX3B1Yl9rZXkYBSABKAkSVAoUbWVtb190cmFuc2Zlcl9jb25maWcYBiABKAsyNi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLk1lbW9UcmFuc2ZlckNvbmZpZxI+Cg10b2tlbl9wcm9ncmFtGAcgASgOMicucHJvdG9jaGFpbi5zb2xhbmEudHlwZS52MS5Ub2tlblByb2dyYW0iaQocQ3JlYXRlSG9sZGluZ0FjY291bnRSZXNwb25zZRJJCgxpbnN0cnVjdGlvbnMYASADKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbiLhAQoRQ3JlYXRlTWludFJlcXVlc3QSDQoFcGF5ZXIYASABKAkSEwoLbmV3X2FjY291bnQYAiABKAkSFAoMbWludF9wdWJfa2V5GAMgASgJEh4KFm1pbnRfYXV0aG9yaXR5X3B1Yl9rZXkYBCABKAkSIAoYZnJlZXplX2F1dGhvcml0eV9wdWJfa2V5GAUgASgJEhAKCGRlY2ltYWxzGAYgASgNEj4KDXRva2VuX3Byb2dyYW0YByABKA4yJy5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLlRva2VuUHJvZ3JhbSJfChJDcmVhdGVNaW50UmVzcG9uc2USSQoMaW5zdHJ1Y3Rpb25zGAEgAygLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24iigEKC01pbnRSZXF1ZXN0EhQKDG1pbnRfcHViX2tleRgBIAEoCRIjChtkZXN0aW5hdGlvbl9hY2NvdW50X3B1Yl9rZXkYAiABKAkSHgoWbWludF9hdXRob3JpdHlfcHViX2tleRgDIAEoCRIOCgZhbW91bnQYBCABKAkSEAoIZGVjaW1hbHMYBSABKA0iWAoMTWludFJlc3BvbnNlEkgKC2luc3RydWN0aW9uGAEgASgLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24iaQojQ3JlYXRlQXNzb2NpYXRlZFRva2VuQWNjb3VudFJlcXVlc3QSFQoNcGF5ZXJfcHViX2tleRgBIAEoCRIVCg1vd25lcl9wdWJfa2V5GAIgASgJEhQKDG1pbnRfcHViX2tleRgDIAEoCSJwCiRDcmVhdGVBc3NvY2lhdGVkVG9rZW5BY2NvdW50UmVzcG9uc2USSAoLaW5zdHJ1Y3Rpb24YASABKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbjLLCQoHU2VydmljZRKHAQoOSW5pdGlhbGlzZU1pbnQSOS5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkluaXRpYWxpc2VNaW50UmVxdWVzdBo6LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuSW5pdGlhbGlzZU1pbnRSZXNwb25zZRK9AQogR2V0Q3VycmVudE1pblJlbnRGb3JUb2tlbkFjY291bnQSSy5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkdldEN1cnJlbnRNaW5SZW50Rm9yVG9rZW5BY2NvdW50UmVxdWVzdBpMLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuR2V0Q3VycmVudE1pblJlbnRGb3JUb2tlbkFjY291bnRSZXNwb25zZRJ4CglQYXJzZU1pbnQSNC5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLlBhcnNlTWludFJlcXVlc3QaNS5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLlBhcnNlTWludFJlc3BvbnNlEsMBCiJHZXRDdXJyZW50TWluUmVudEZvckhvbGRpbmdBY2NvdW50Ek0ucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5HZXRDdXJyZW50TWluUmVudEZvckhvbGRpbmdBY2NvdW50UmVxdWVzdBpOLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuR2V0Q3VycmVudE1pblJlbnRGb3JIb2xkaW5nQWNjb3VudFJlc3BvbnNlEnsKCkNyZWF0ZU1pbnQSNS5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkNyZWF0ZU1pbnRSZXF1ZXN0GjYucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5DcmVhdGVNaW50UmVzcG9uc2USmQEKFENyZWF0ZUhvbGRpbmdBY2NvdW50Ej8ucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5DcmVhdGVIb2xkaW5nQWNjb3VudFJlcXVlc3QaQC5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkNyZWF0ZUhvbGRpbmdBY2NvdW50UmVzcG9uc2USaQoETWludBIvLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuTWludFJlcXVlc3QaMC5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLk1pbnRSZXNwb25zZRKxAQocQ3JlYXRlQXNzb2NpYXRlZFRva2VuQWNjb3VudBJHLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuQ3JlYXRlQXNzb2NpYXRlZFRva2VuQWNjb3VudFJlcXVlc3QaSC5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkNyZWF0ZUFzc29jaWF0ZWRUb2tlbkFjY291bnRSZXNwb25zZUJUWlJnaXRodWIuY29tL21lc2h0cmFkZS9wcm90b2NoYWluL2xpYi9nby9wcm90b2NoYWluL3NvbGFuYS9wcm9ncmFtL3Rva2VuL3YxO3Rva2VuX3YxYgZwcm90bzM", [file_protochain_solana_transaction_v1_instruction, file_protochain_solana_type_v1_token_program]);
+  fileDesc("CjBwcm90b2NoYWluL3NvbGFuYS9wcm9ncmFtL3Rva2VuL3YxL3NlcnZpY2UucHJvdG8SInByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEiwQEKFUluaXRpYWxpc2VNaW50UmVxdWVzdBIUCgxtaW50X3B1Yl9rZXkYASABKAkSHgoWbWludF9hdXRob3JpdHlfcHViX2tleRgCIAEoCRIgChhmcmVlemVfYXV0aG9yaXR5X3B1Yl9rZXkYAyABKAkSEAoIZGVjaW1hbHMYBCABKA0SPgoNdG9rZW5fcHJvZ3JhbRgFIAEoDjInLnByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEuVG9rZW5Qcm9ncmFtImIKFkluaXRpYWxpc2VNaW50UmVzcG9uc2USSAoLaW5zdHJ1Y3Rpb24YASABKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbiIpCidHZXRDdXJyZW50TWluUmVudEZvclRva2VuQWNjb3VudFJlcXVlc3QiPAooR2V0Q3VycmVudE1pblJlbnRGb3JUb2tlbkFjY291bnRSZXNwb25zZRIQCghsYW1wb3J0cxgBIAEoBCIrChBQYXJzZU1pbnRSZXF1ZXN0EhcKD2FjY291bnRfYWRkcmVzcxgBIAEoCSJPChFQYXJzZU1pbnRSZXNwb25zZRI6CgRtaW50GAEgASgLMiwucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5NaW50SW5mbyKGAQoITWludEluZm8SHgoWbWludF9hdXRob3JpdHlfcHViX2tleRgBIAEoCRIgChhmcmVlemVfYXV0aG9yaXR5X3B1Yl9rZXkYAiABKAkSEAoIZGVjaW1hbHMYAyABKA0SDgoGc3VwcGx5GAQgASgJEhYKDmlzX2luaXRpYWxpemVkGAUgASgIIjMKEk1lbW9UcmFuc2ZlckNvbmZpZxIdChVyZXF1aXJlX2luY29taW5nX21lbW8YASABKAgigQEKKUdldEN1cnJlbnRNaW5SZW50Rm9ySG9sZGluZ0FjY291bnRSZXF1ZXN0ElQKFG1lbW9fdHJhbnNmZXJfY29uZmlnGAEgASgLMjYucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5NZW1vVHJhbnNmZXJDb25maWciPgoqR2V0Q3VycmVudE1pblJlbnRGb3JIb2xkaW5nQWNjb3VudFJlc3BvbnNlEhAKCGxhbXBvcnRzGAEgASgEIu8BChtDcmVhdGVIb2xkaW5nQWNjb3VudFJlcXVlc3QSDQoFcGF5ZXIYASABKAkSFQoNb3duZXJfcHViX2tleRgCIAEoCRIUCgxtaW50X3B1Yl9rZXkYAyABKAkSPgoNdG9rZW5fcHJvZ3JhbRgEIAEoDjInLnByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEuVG9rZW5Qcm9ncmFtElQKFG1lbW9fdHJhbnNmZXJfY29uZmlnGAUgASgLMjYucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5NZW1vVHJhbnNmZXJDb25maWciaQocQ3JlYXRlSG9sZGluZ0FjY291bnRSZXNwb25zZRJJCgxpbnN0cnVjdGlvbnMYASADKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbiLMAQoRQ3JlYXRlTWludFJlcXVlc3QSDQoFcGF5ZXIYASABKAkSFAoMbWludF9wdWJfa2V5GAIgASgJEh4KFm1pbnRfYXV0aG9yaXR5X3B1Yl9rZXkYAyABKAkSIAoYZnJlZXplX2F1dGhvcml0eV9wdWJfa2V5GAQgASgJEhAKCGRlY2ltYWxzGAUgASgNEj4KDXRva2VuX3Byb2dyYW0YBiABKA4yJy5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLlRva2VuUHJvZ3JhbSJfChJDcmVhdGVNaW50UmVzcG9uc2USSQoMaW5zdHJ1Y3Rpb25zGAEgAygLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24iigEKC01pbnRSZXF1ZXN0EhQKDG1pbnRfcHViX2tleRgBIAEoCRIjChtkZXN0aW5hdGlvbl9hY2NvdW50X3B1Yl9rZXkYAiABKAkSHgoWbWludF9hdXRob3JpdHlfcHViX2tleRgDIAEoCRIOCgZhbW91bnQYBCABKAkSEAoIZGVjaW1hbHMYBSABKA0iWAoMTWludFJlc3BvbnNlEkgKC2luc3RydWN0aW9uGAEgASgLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24ylwgKB1NlcnZpY2UShwEKDkluaXRpYWxpc2VNaW50EjkucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5Jbml0aWFsaXNlTWludFJlcXVlc3QaOi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkluaXRpYWxpc2VNaW50UmVzcG9uc2USvQEKIEdldEN1cnJlbnRNaW5SZW50Rm9yVG9rZW5BY2NvdW50EksucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5HZXRDdXJyZW50TWluUmVudEZvclRva2VuQWNjb3VudFJlcXVlc3QaTC5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkdldEN1cnJlbnRNaW5SZW50Rm9yVG9rZW5BY2NvdW50UmVzcG9uc2USeAoJUGFyc2VNaW50EjQucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5QYXJzZU1pbnRSZXF1ZXN0GjUucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5QYXJzZU1pbnRSZXNwb25zZRLDAQoiR2V0Q3VycmVudE1pblJlbnRGb3JIb2xkaW5nQWNjb3VudBJNLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuR2V0Q3VycmVudE1pblJlbnRGb3JIb2xkaW5nQWNjb3VudFJlcXVlc3QaTi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkdldEN1cnJlbnRNaW5SZW50Rm9ySG9sZGluZ0FjY291bnRSZXNwb25zZRJ7CgpDcmVhdGVNaW50EjUucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5DcmVhdGVNaW50UmVxdWVzdBo2LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuQ3JlYXRlTWludFJlc3BvbnNlEpkBChRDcmVhdGVIb2xkaW5nQWNjb3VudBI/LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuQ3JlYXRlSG9sZGluZ0FjY291bnRSZXF1ZXN0GkAucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5DcmVhdGVIb2xkaW5nQWNjb3VudFJlc3BvbnNlEmkKBE1pbnQSLy5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLk1pbnRSZXF1ZXN0GjAucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5NaW50UmVzcG9uc2VCVFpSZ2l0aHViLmNvbS9tZXNodHJhZGUvcHJvdG9jaGFpbi9saWIvZ28vcHJvdG9jaGFpbi9zb2xhbmEvcHJvZ3JhbS90b2tlbi92MTt0b2tlbl92MWIGcHJvdG8z", [file_protochain_solana_transaction_v1_instruction, file_protochain_solana_type_v1_token_program]);
 
 /**
  * Request to create InitialiseMint instruction
@@ -253,8 +253,6 @@ export const GetCurrentMinRentForHoldingAccountResponseSchema: GenMessage<GetCur
  */
 export type CreateHoldingAccountRequest = Message<"protochain.solana.program.token.v1.CreateHoldingAccountRequest"> & {
   /**
-   * System program create fields
-   *
    * Account paying for creation (signer)
    *
    * @generated from field: string payer = 1;
@@ -262,46 +260,30 @@ export type CreateHoldingAccountRequest = Message<"protochain.solana.program.tok
   payer: string;
 
   /**
-   * Holding account to create (signer)
-   *
-   * @generated from field: string new_account = 2;
-   */
-  newAccount: string;
-
-  /**
-   * Token program initialize holding account fields
-   *
-   * Same as new_account for validation
-   *
-   * @generated from field: string holding_account_pub_key = 3;
-   */
-  holdingAccountPubKey: string;
-
-  /**
-   * Mint this account will hold
-   *
-   * @generated from field: string mint_pub_key = 4;
-   */
-  mintPubKey: string;
-
-  /**
    * Owner of the holding account
    *
-   * @generated from field: string owner_pub_key = 5;
+   * @generated from field: string owner_pub_key = 2;
    */
   ownerPubKey: string;
 
   /**
-   * optional, defaults to false
+   * Mint this account will hold
    *
-   * @generated from field: protochain.solana.program.token.v1.MemoTransferConfig memo_transfer_config = 6;
+   * @generated from field: string mint_pub_key = 3;
    */
-  memoTransferConfig?: MemoTransferConfig;
+  mintPubKey: string;
 
   /**
-   * @generated from field: protochain.solana.type.v1.TokenProgram token_program = 7;
+   * @generated from field: protochain.solana.type.v1.TokenProgram token_program = 4;
    */
   tokenProgram: TokenProgram;
+
+  /**
+   * optional, defaults to false
+   *
+   * @generated from field: protochain.solana.program.token.v1.MemoTransferConfig memo_transfer_config = 5;
+   */
+  memoTransferConfig?: MemoTransferConfig;
 };
 
 /**
@@ -346,44 +328,37 @@ export type CreateMintRequest = Message<"protochain.solana.program.token.v1.Crea
   payer: string;
 
   /**
-   * Mint account to create (signer)
-   *
-   * @generated from field: string new_account = 2;
-   */
-  newAccount: string;
-
-  /**
    * Token program initialize mint fields
    *
    * Same as new_account for validation
    *
-   * @generated from field: string mint_pub_key = 3;
+   * @generated from field: string mint_pub_key = 2;
    */
   mintPubKey: string;
 
   /**
    * Mint authority
    *
-   * @generated from field: string mint_authority_pub_key = 4;
+   * @generated from field: string mint_authority_pub_key = 3;
    */
   mintAuthorityPubKey: string;
 
   /**
    * Freeze authority (optional)
    *
-   * @generated from field: string freeze_authority_pub_key = 5;
+   * @generated from field: string freeze_authority_pub_key = 4;
    */
   freezeAuthorityPubKey: string;
 
   /**
    * Mint decimals
    *
-   * @generated from field: uint32 decimals = 6;
+   * @generated from field: uint32 decimals = 5;
    */
   decimals: number;
 
   /**
-   * @generated from field: protochain.solana.type.v1.TokenProgram token_program = 7;
+   * @generated from field: protochain.solana.type.v1.TokenProgram token_program = 6;
    */
   tokenProgram: TokenProgram;
 };
@@ -483,56 +458,6 @@ export const MintResponseSchema: GenMessage<MintResponse> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_token_v1_service, 15);
 
 /**
- * @generated from message protochain.solana.program.token.v1.CreateAssociatedTokenAccountRequest
- */
-export type CreateAssociatedTokenAccountRequest = Message<"protochain.solana.program.token.v1.CreateAssociatedTokenAccountRequest"> & {
-  /**
-   * public key of the account paying for creation
-   *
-   * @generated from field: string payer_pub_key = 1;
-   */
-  payerPubKey: string;
-
-  /**
-   * public key for the owner of the token account to be created
-   *
-   * @generated from field: string owner_pub_key = 2;
-   */
-  ownerPubKey: string;
-
-  /**
-   * public key of the mint token account
-   *
-   * @generated from field: string mint_pub_key = 3;
-   */
-  mintPubKey: string;
-};
-
-/**
- * Describes the message protochain.solana.program.token.v1.CreateAssociatedTokenAccountRequest.
- * Use `create(CreateAssociatedTokenAccountRequestSchema)` to create a new message.
- */
-export const CreateAssociatedTokenAccountRequestSchema: GenMessage<CreateAssociatedTokenAccountRequest> = /*@__PURE__*/
-  messageDesc(file_protochain_solana_program_token_v1_service, 16);
-
-/**
- * @generated from message protochain.solana.program.token.v1.CreateAssociatedTokenAccountResponse
- */
-export type CreateAssociatedTokenAccountResponse = Message<"protochain.solana.program.token.v1.CreateAssociatedTokenAccountResponse"> & {
-  /**
-   * @generated from field: protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
-   */
-  instruction?: SolanaInstruction;
-};
-
-/**
- * Describes the message protochain.solana.program.token.v1.CreateAssociatedTokenAccountResponse.
- * Use `create(CreateAssociatedTokenAccountResponseSchema)` to create a new message.
- */
-export const CreateAssociatedTokenAccountResponseSchema: GenMessage<CreateAssociatedTokenAccountResponse> = /*@__PURE__*/
-  messageDesc(file_protochain_solana_program_token_v1_service, 17);
-
-/**
  * Token Program service for creating SPL Token 2022 instructions
  *
  * @generated from service protochain.solana.program.token.v1.Service
@@ -589,7 +514,7 @@ export const Service: GenService<{
     output: typeof CreateMintResponseSchema;
   },
   /**
-   * Creates both system account creation and holding account initialization instructions. Adds memo-enable instruction when requested.
+   * Creates holding account initialization instructions. Adds memo-enable instruction when requested.
    *
    * @generated from rpc protochain.solana.program.token.v1.Service.CreateHoldingAccount
    */
@@ -607,16 +532,6 @@ export const Service: GenService<{
     methodKind: "unary";
     input: typeof MintRequestSchema;
     output: typeof MintResponseSchema;
-  },
-  /**
-   * Create a token account using create_associated_token_account instruction
-   *
-   * @generated from rpc protochain.solana.program.token.v1.Service.CreateAssociatedTokenAccount
-   */
-  createAssociatedTokenAccount: {
-    methodKind: "unary";
-    input: typeof CreateAssociatedTokenAccountRequestSchema;
-    output: typeof CreateAssociatedTokenAccountResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_protochain_solana_program_token_v1_service, 0);
