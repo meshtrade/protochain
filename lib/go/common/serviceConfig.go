@@ -17,6 +17,7 @@ type ServiceConfig struct {
 	APIKey            string
 	CredentialsFile   string
 	UnaryInterceptors []grpc.UnaryClientInterceptor
+	ClientConnection  *grpc.ClientConn
 }
 
 // ServiceOption is a functional option for configuring a gRPC service client
@@ -145,5 +146,12 @@ func WithDevelopmentDefaults() ServiceOption {
 		c.TLS = false
 		c.Timeout = 10 * time.Second
 		c.URL = "localhost:9090"
+	}
+}
+
+// WithConnection congfigures the client to use the given grpc client connection instead of constructing one
+func WithConnection(grpcClientConnection *grpc.ClientConn) ServiceOption {
+	return func(c *ServiceConfig) {
+		c.ClientConnection = grpcClientConnection
 	}
 }
