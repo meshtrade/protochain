@@ -68,9 +68,17 @@ func NewBaseGRPCClient[T any](
 	}
 
 	// Create gRPC connection
-	conn, err := createConnection(config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create gRPC connection: %w", err)
+	var (
+		conn *grpc.ClientConn
+		err  error
+	)
+	if config.ClientConnection == nil {
+		conn, err = createConnection(config)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create gRPC connection: %w", err)
+		}
+	} else {
+		conn = config.ClientConnection
 	}
 
 	// Create typed gRPC client
