@@ -1,8 +1,8 @@
 # Protochain
 
-**Protocol Buffer Wrapper for Solana SDKs**
+**Protocol Buffer Wrapper for Blockchain SDKs**
 
-ProtoChain provides a language-agnostic gRPC API layer over Solana blockchain operations. It wraps the best-in-class Solana SDKs (primarily Rust) with Protocol Buffer service definitions, enabling automatic SDK generation for any language.
+ProtoChain provides a language-agnostic gRPC API layer over blockchain operations. It wraps SDKs with Protocol Buffer service definitions, enabling automatic SDK generation for any language. Furthermore, protochain also provides the infrastructure scaffolding by providing an app per blockchain, allowing you to spin up your own protochain API server for your blockchain of choice.
 
 [![Tests](https://img.shields.io/badge/Tests-All%20Passing-brightgreen.svg)](tests/)
 [![Rust](https://img.shields.io/badge/Rust-30%2F30%20Unit%20Tests-brightgreen.svg)](api/)
@@ -11,20 +11,23 @@ ProtoChain provides a language-agnostic gRPC API layer over Solana blockchain op
 
 ## 🎯 Mission
 
-Addresses the challenge where your backend needs to be in one language, but the most mature Solana SDK is in Rust. ProtoChain provides:
+Addresses the challenge where your backend needs to be in one language, but your chosen blockchains have SDKs in another. ProtoChain provides:
 
 - **Multi-Language SDK Generation**: Generate SDKs for Go, TypeScript, Rust, Python, etc.
-- **Rust SDK Access**: Access Rust's Solana ecosystem via gRPC from any language
 - **Streaming Transaction Monitoring**: gRPC streaming for real-time transaction status updates
 - **Protocol Buffer Definitions**: All APIs defined in Protocol Buffers for consistency
+
+### Supported Blockchains
+
+- Solana
 
 ## 🏗️ Architecture Overview
 
 ### Protocol-First Design
-- **Source of Truth**: All APIs defined in `lib/proto/protochain/solana/` using Protocol Buffers
+- **Source of Truth**: All APIs defined in `lib/proto/protochain/` using Protocol Buffers
 - **Versioning**: Every service is versioned (v1) for backward compatibility
 - **Standards**: Follows Google AIP resource-oriented design patterns
-- **Namespace**: `protochain.solana.[domain].v1` structure
+- **Namespace**: `protochain.[blockchain].[domain].v1` structure
 
 ### Composable Transaction Model
 Implements a strict state machine for transaction lifecycle:
@@ -115,49 +118,29 @@ ProtoChain features a **multi-app architecture** that allows multiple applicatio
 
 ## 🚀 Key Features & Services
 
-### Account Service (`protochain.solana.account.v1`)
+### Solana Specific
+
+#### Account Service (`protochain.solana.account.v1`)
 - **Account Retrieval**: Fetch account data with configurable commitment levels
 - **Keypair Generation**: Create deterministic or random keypairs
 - **Native Funding**: Airdrop SOL for development (devnet/testnet)
 
-### Transaction Service (`protochain.solana.transaction.v1`)
+#### Transaction Service (`protochain.solana.transaction.v1`)
 - **Lifecycle Management**: Complete DRAFT→COMPILED→SIGNED→SUBMITTED flow
 - **Fee Estimation**: Calculate transaction costs before submission
 - **Simulation**: Dry-run transactions for validation
 - **Real-time Monitoring**: Stream transaction status updates via gRPC
 
-### System Program Service (`protochain.solana.program.system.v1`)
+#### System Program Service (`protochain.solana.program.system.v1`)
 - **Account Creation**: Create new accounts with proper rent calculations
 - **SOL Transfers**: Transfer native SOL between accounts
 - **Space Allocation**: Allocate account storage space
 - **Owner Assignment**: Change account ownership
 
-### RPC Client Service (`protochain.solana.rpc_client.v1`)
+#### RPC Client Service (`protochain.solana.rpc_client.v1`)
 - **Direct RPC Access**: Wrapper for raw Solana RPC methods
 - **Rent Calculations**: Get minimum balance for rent exemption
 - **Commitment Levels**: Support for processed/confirmed/finalized
-
-## ✅ Test Coverage
-
-Test suite includes unit tests and integration tests with local blockchain validation
-
-### 🦀 Rust Unit Tests (30/30 ✅)
-- Service implementations and business logic
-- Transaction state machine validation
-- Error handling and edge cases
-- Protocol buffer conversions
-
-### 🐹 Go Integration Tests
-- **Local Blockchain Testing**: Creates accounts and submits transactions to local validator
-- **Streaming Implementation**: Tests gRPC streaming transaction status updates
-- **Multi-instruction Transactions**: Tests atomic transaction execution
-- **Service Integration**: End-to-end API functionality testing
-
-**Test Implementation:**
-- Creates test accounts and verifies balances on local validator
-- Submits transactions and monitors status via streaming APIs
-- Tests transaction state machine transitions
-- Validates system and token program functionality
 
 ## 🛠️ Quick Start
 
@@ -256,16 +239,4 @@ go run ./app/template/cmd/some-executable/main.go test arg
 
 ## 🤝 Contributing
 
-1. Read `CLAUDE.md` for comprehensive development guidelines
-2. Follow the protocol-first development workflow
-3. Ensure all tests pass before committing
-4. Run mandatory linting: `./scripts/lint/all.sh`
-5. Verify blockchain integration with integration tests
-
-## 🏆 Current Status
-
-- All unit tests passing (30/30)
-- Integration tests passing with local Solana validator
-- gRPC streaming implementation functional
-- Multi-language SDK generation working
-- Transaction state machine implemented and tested
+See [CONTRIBUTING.md](CONTRIBUTING.md)
