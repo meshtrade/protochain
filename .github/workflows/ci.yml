@@ -111,11 +111,11 @@ jobs:
           go install golang.org/x/tools/cmd/goimports@latest
 
       - name: Run golangci-lint
-        run: golangci-lint run --config .golangci.yml tests/go/... tool/...
+        run: golangci-lint run --config .golangci.yml tests/go/... tool/... lib/go/...
 
       - name: Check goimports formatting
         run: |
-          GOIMPORTS_FILES=$(find tests/go tool -type f -name '*.go' -not -name '*.pb.go' -not -name '*.passivgo.go')
+          GOIMPORTS_FILES=$(find tests/go tool lib/go -type f -name '*.go' -not -name '*.pb.go' -not -name '*.passivgo.go')
           if [ -n "$GOIMPORTS_FILES" ]; then
             UNFORMATTED=$(echo "$GOIMPORTS_FILES" | xargs goimports -l)
             if [ -n "$UNFORMATTED" ]; then
@@ -128,8 +128,6 @@ jobs:
       - name: Run Go unit tests
         run: |
           go test ./tool/...
-          cd app/template/cmd/some-executable
-          go test ./...
 
   rust:
     name: Rust Lint + Unit Tests
@@ -181,20 +179,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Lint TypeScript SDK
-        run: yarn workspace @protochain/api lint
+      - name: Build TypeScript SDK
+        run: yarn workspace @protochain/api build
 
-      - name: Check TypeScript SDK formatting
-        run: yarn workspace @protochain/api format:check
+      - name: Lint all workspaces
+        run: yarn workspaces run lint
 
-      - name: Typecheck TypeScript SDK
-        run: yarn workspace @protochain/api typecheck
-
-      - name: Typecheck TypeScript tests workspace
-        run: yarn workspace @protochain/tests-ts typecheck
-
-      - name: Lint UI workspace
-        run: yarn workspace protochain-ui lint
-
-      - name: Typecheck UI workspace
-        run: yarn workspace protochain-ui typecheck
+      - name: Typecheck all workspaces
+        run: yarn workspaces run typecheck
