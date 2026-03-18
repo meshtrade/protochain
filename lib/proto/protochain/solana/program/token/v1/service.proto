@@ -62,9 +62,12 @@ message InitialiseMintRequest {
   repeated protochain.solana.program.token.v1.Token2022Extension extensions = 6;
 }
 
-// Response containing InitialiseMint instruction
+// Response containing InitialiseMint instructions.
+// Multiple instructions are returned when extensions are requested
+// (e.g. metadata pointer initialisation precedes initialize_mint,
+// and token-metadata initialisation follows it).
 message InitialiseMintResponse {
-  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+  repeated protochain.solana.transaction.v1.SolanaInstruction instructions = 1;
 }
 
 // Request for the minimum rent and space required for a mint account.

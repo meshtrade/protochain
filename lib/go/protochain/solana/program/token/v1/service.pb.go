@@ -119,10 +119,13 @@ func (x *InitialiseMintRequest) GetExtensions() []*Token2022Extension {
 	return nil
 }
 
-// Response containing InitialiseMint instruction
+// Response containing InitialiseMint instructions.
+// Multiple instructions are returned when extensions are requested
+// (e.g. metadata pointer initialisation precedes initialize_mint,
+// and token-metadata initialisation follows it).
 type InitialiseMintResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Instruction   *v11.SolanaInstruction `protobuf:"bytes,1,opt,name=instruction,proto3" json:"instruction,omitempty"`
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Instructions  []*v11.SolanaInstruction `protobuf:"bytes,1,rep,name=instructions,proto3" json:"instructions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -157,9 +160,9 @@ func (*InitialiseMintResponse) Descriptor() ([]byte, []int) {
 	return file_protochain_solana_program_token_v1_service_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *InitialiseMintResponse) GetInstruction() *v11.SolanaInstruction {
+func (x *InitialiseMintResponse) GetInstructions() []*v11.SolanaInstruction {
 	if x != nil {
-		return x.Instruction
+		return x.Instructions
 	}
 	return nil
 }
@@ -965,9 +968,9 @@ const file_protochain_solana_program_token_v1_service_proto_rawDesc = "" +
 	"\rtoken_program\x18\x05 \x01(\x0e2'.protochain.solana.type.v1.TokenProgramR\ftokenProgram\x12V\n" +
 	"\n" +
 	"extensions\x18\x06 \x03(\v26.protochain.solana.program.token.v1.Token2022ExtensionR\n" +
-	"extensions\"o\n" +
-	"\x16InitialiseMintResponse\x12U\n" +
-	"\vinstruction\x18\x01 \x01(\v23.protochain.solana.transaction.v1.SolanaInstructionR\vinstruction\"\x80\x01\n" +
+	"extensions\"q\n" +
+	"\x16InitialiseMintResponse\x12W\n" +
+	"\finstructions\x18\x01 \x03(\v23.protochain.solana.transaction.v1.SolanaInstructionR\finstructions\"\x80\x01\n" +
 	"&GetCurrentMinRentForMintAccountRequest\x12V\n" +
 	"\n" +
 	"extensions\x18\x06 \x03(\v26.protochain.solana.program.token.v1.Token2022ExtensionR\n" +
@@ -1066,7 +1069,7 @@ var file_protochain_solana_program_token_v1_service_proto_goTypes = []any{
 var file_protochain_solana_program_token_v1_service_proto_depIdxs = []int32{
 	16, // 0: protochain.solana.program.token.v1.InitialiseMintRequest.token_program:type_name -> protochain.solana.type.v1.TokenProgram
 	17, // 1: protochain.solana.program.token.v1.InitialiseMintRequest.extensions:type_name -> protochain.solana.program.token.v1.Token2022Extension
-	18, // 2: protochain.solana.program.token.v1.InitialiseMintResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	18, // 2: protochain.solana.program.token.v1.InitialiseMintResponse.instructions:type_name -> protochain.solana.transaction.v1.SolanaInstruction
 	17, // 3: protochain.solana.program.token.v1.GetCurrentMinRentForMintAccountRequest.extensions:type_name -> protochain.solana.program.token.v1.Token2022Extension
 	6,  // 4: protochain.solana.program.token.v1.ParseMintResponse.mint:type_name -> protochain.solana.program.token.v1.MintInfo
 	7,  // 5: protochain.solana.program.token.v1.GetCurrentMinRentForHoldingAccountRequest.memo_transfer_config:type_name -> protochain.solana.program.token.v1.MemoTransferConfig

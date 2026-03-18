@@ -68,8 +68,8 @@ export { Service as TokenProgramService } from './protochain/solana/program/toke
 export type {
   InitialiseMintRequest,
   InitialiseMintResponse,
-  GetCurrentMinRentForTokenAccountRequest,
-  GetCurrentMinRentForTokenAccountResponse,
+  GetCurrentMinRentForMintAccountRequest,
+  GetCurrentMinRentForMintAccountResponse,
   ParseMintRequest,
   ParseMintResponse,
 } from './protochain/solana/program/token/v1/service_pb';

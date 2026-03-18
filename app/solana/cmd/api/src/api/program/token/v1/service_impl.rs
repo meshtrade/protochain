@@ -20,7 +20,10 @@ use spl_associated_token_account::instruction::create_associated_token_account;
 use spl_token_2022::extension::memo_transfer::instruction::enable_required_transfer_memos;
 
 use spl_pod::optional_keys::OptionalNonZeroPubkey;
-use spl_token_metadata_interface::state::TokenMetadata;
+use spl_token_metadata_interface::{
+    instruction::{initialize as initialize_token_metadata, update_field},
+    state::{Field, TokenMetadata},
+};
 
 use std::collections::HashSet;
 use std::str::FromStr;
@@ -33,8 +36,11 @@ use solana_sdk::{program_pack::Pack, pubkey::Pubkey};
 use spl_associated_token_account::get_associated_token_address_with_program_id;
 use spl_token::ID as LEGACY_PROGRAM_ID;
 use spl_token_2022::{
-    extension::ExtensionType,
-    instruction::{initialize_mint, mint_to_checked, reallocate},
+    extension::{
+        metadata_pointer::instruction::initialize as initialize_metadata_pointer, ExtensionType,
+        StateWithExtensions,
+    },
+    instruction::{initialize_mint2, mint_to_checked, reallocate},
     state::{Account, Mint},
     ID as TOKEN_2022_PROGRAM_ID,
 };
@@ -72,13 +78,50 @@ fn validate_no_duplicate_extensions(extensions: &[Token2022Extension]) -> Result
     Ok(())
 }
 
-/// Calculates the total account space (in bytes) required for a mint with the given extensions.
+/// Calculates the space (in bytes) to allocate when creating a mint account via
+/// `System::CreateAccount`.
 ///
-/// Returns `Mint::LEN` when no extensions are provided. For each known extension type the
-/// function accumulates the fixed-size `ExtensionType` pod bytes and any variable-length TLV
-/// data so that new extension variants can be added by appending a new match arm.
+/// This includes the base mint layout and fixed-size extension type pods
+/// (e.g. `MetadataPointer`), but **not** variable-length content like
+/// `TokenMetadata` which the Token-2022 program allocates internally via
+/// `realloc` when `initialize_token_metadata` is called.
+///
+/// Returns `Mint::LEN` when no extensions are provided.
 #[allow(clippy::result_large_err)]
-fn mint_account_space_for_extensions(extensions: &[Token2022Extension]) -> Result<usize, Status> {
+fn mint_create_account_space(extensions: &[Token2022Extension]) -> Result<usize, Status> {
+    if extensions.is_empty() {
+        return Ok(Mint::LEN);
+    }
+
+    let mut sdk_extension_types: Vec<ExtensionType> = Vec::new();
+    for ext in extensions {
+        match ext
+            .extension
+            .as_ref()
+            .ok_or_else(|| Status::invalid_argument("Extension must have a type set"))?
+        {
+            token2022_extension::Extension::Metadata(_) => {
+                sdk_extension_types.push(ExtensionType::MetadataPointer);
+            }
+        }
+    }
+
+    ExtensionType::try_calculate_account_len::<Mint>(&sdk_extension_types).map_err(|e| {
+        Status::internal(format!("failed to calculate mint account length for extensions: {e}"))
+    })
+}
+
+/// Calculates the total space a mint account will occupy after **all** extensions
+/// — including variable-length metadata content — have been fully initialised.
+///
+/// This is used to determine the rent-exempt lamport deposit at account creation.
+/// The Token-2022 program resizes the account via `realloc` when metadata is
+/// written, so the account must be pre-funded with enough lamports for the final
+/// size even though `mint_create_account_space` returns a smaller allocation.
+///
+/// Returns `Mint::LEN` when no extensions are provided.
+#[allow(clippy::result_large_err)]
+fn mint_total_space_for_rent(extensions: &[Token2022Extension]) -> Result<usize, Status> {
     if extensions.is_empty() {
         return Ok(Mint::LEN);
     }
@@ -155,9 +198,129 @@ fn memo_rent_lamports(rpc: &RpcClient, require_memo: bool) -> Result<u64, Status
         .map_err(|e| Status::internal(format!("failed to fetch memo-aware rent: {e}")))
 }
 
+/// Builds the ordered list of SDK instructions needed to initialise a Token-2022
+/// mint with the requested extensions.
+///
+/// The instruction sequence for a mint with the Metadata extension is:
+///   1. `initialize_metadata_pointer`  – must precede `initialize_mint`
+///   2. `initialize_mint`
+///   3. `initialize_token_metadata`    – must follow `initialize_mint`
+///   4. `update_field` × N             – one per additional-metadata entry
+///
+/// For a plain mint (no extensions) only step 2 is emitted.
+///
+/// New extension types can be supported by adding arms to the pre/post match
+/// blocks and collecting the relevant instructions.
+#[allow(clippy::result_large_err)]
+fn build_token2022_mint_instructions(
+    token_program_id: &Pubkey,
+    mint_pubkey: &Pubkey,
+    mint_authority: &Pubkey,
+    freeze_authority: Option<&Pubkey>,
+    decimals: u8,
+    extensions: &[Token2022Extension],
+) -> Result<Vec<solana_sdk::instruction::Instruction>, Status> {
+    // --- Phase 1: instructions that MUST run before initialize_mint ---
+    let mut pre_init_instructions = Vec::new();
+    // --- Phase 3: instructions that MUST run after initialize_mint ---
+    let mut post_init_instructions = Vec::new();
+
+    for ext in extensions {
+        match ext
+            .extension
+            .as_ref()
+            .ok_or_else(|| Status::invalid_argument("Extension must have a type set"))?
+        {
+            token2022_extension::Extension::Metadata(meta) => {
+                // Resolve metadata_address: default to mint itself (self-referencing metadata)
+                let metadata_address = if meta.metadata_address.is_empty() {
+                    *mint_pubkey
+                } else {
+                    Pubkey::from_str(&meta.metadata_address).map_err(|e| {
+                        Status::invalid_argument(format!("Invalid metadata_address: {e}"))
+                    })?
+                };
+
+                // Resolve update_authority: default to mint_authority
+                let update_authority = if meta.update_authority_pub_key.is_empty() {
+                    *mint_authority
+                } else {
+                    Pubkey::from_str(&meta.update_authority_pub_key).map_err(|e| {
+                        Status::invalid_argument(format!(
+                            "Invalid metadata update_authority_pub_key: {e}"
+                        ))
+                    })?
+                };
+
+                // Pre-init: metadata pointer must be initialised before the mint
+                pre_init_instructions.push(
+                    initialize_metadata_pointer(
+                        token_program_id,
+                        mint_pubkey,
+                        Some(update_authority),
+                        Some(metadata_address),
+                    )
+                    .map_err(|e| {
+                        Status::internal(format!(
+                            "could not create initialize_metadata_pointer instruction: {e}"
+                        ))
+                    })?,
+                );
+
+                // Post-init: token metadata must be initialised after the mint
+                post_init_instructions.push(initialize_token_metadata(
+                    token_program_id,
+                    &metadata_address,
+                    &update_authority,
+                    mint_pubkey,
+                    mint_authority,
+                    meta.name.clone(),
+                    meta.symbol.clone(),
+                    meta.uri.clone(),
+                ));
+
+                // Post-init: additional metadata fields
+                for (key, value) in &meta.additional_metadata {
+                    post_init_instructions.push(update_field(
+                        token_program_id,
+                        &metadata_address,
+                        &update_authority,
+                        Field::Key(key.clone()),
+                        value.clone(),
+                    ));
+                }
+            }
+        }
+    }
+
+    // --- Phase 2: initialize_mint itself ---
+    let init_mint_instruction =
+        initialize_mint2(token_program_id, mint_pubkey, mint_authority, freeze_authority, decimals)
+            .map_err(|e| {
+                Status::internal(format!("could not create initialise mint token instruction: {e}"))
+            })?;
+
+    // Assemble: pre-init → initialize_mint → post-init
+    let mut instructions =
+        Vec::with_capacity(pre_init_instructions.len() + 1 + post_init_instructions.len());
+    instructions.append(&mut pre_init_instructions);
+    instructions.push(init_mint_instruction);
+    instructions.append(&mut post_init_instructions);
+
+    Ok(instructions)
+}
+
 #[tonic::async_trait]
 impl TokenProgramService for TokenProgramServiceImpl {
-    /// Creates an `InitialiseMint` instruction for SPL or SPL 2022 token
+    /// Creates initialisation instructions for an SPL Legacy or Token-2022 mint.
+    ///
+    /// **SPL Legacy** (`TOKEN_PROGRAM_LEGACY`): returns a single `initialize_mint`
+    /// instruction. Extensions must be empty.
+    ///
+    /// **Token-2022** (`TOKEN_PROGRAM_2022`): returns one or more instructions
+    /// depending on the requested extensions.  With the Metadata extension the
+    /// order is: metadata-pointer init → `initialize_mint` → token-metadata init
+    /// → `update_field` × N.
     async fn initialise_mint(
         &self,
         request: Request<InitialiseMintRequest>,
@@ -184,36 +347,71 @@ impl TokenProgramService for TokenProgramServiceImpl {
         let token_program_enum = TokenProgram::try_from(req.token_program)
             .map_err(|_| Status::invalid_argument("Invalid token program value"))?;
 
-        // get the program ID pubkey and convert to string for the system program
         let token_program_id = get_token_program_id(token_program_enum)
             .map_err(|e| Status::invalid_argument(format!("Invalid token program: {e}")))?;
 
         let decimals = u8::try_from(req.decimals)
             .map_err(|_| Status::invalid_argument("decimals must be between 0 and 255"))?;
 
-        let instruction = initialize_mint(
-            &token_program_id,
-            &mint_pubkey,
-            &mint_authority,
-            freeze_authority.as_ref(),
-            decimals,
-        )
-        .map_err(|e| {
-            Status::internal(format!("could not create initialise mint token instruction: {e}"))
-        })?;
+        let sdk_instructions = match token_program_enum {
+            TokenProgram::Legacy => {
+                // SPL Legacy does not support extensions
+                if !req.extensions.is_empty() {
+                    return Err(Status::invalid_argument(
+                        "Extensions are not supported for the Legacy SPL Token program",
+                    ));
+                }
+                let instruction = initialize_mint2(
+                    &token_program_id,
+                    &mint_pubkey,
+                    &mint_authority,
+                    freeze_authority.as_ref(),
+                    decimals,
+                )
+                .map_err(|e| {
+                    Status::internal(format!(
+                        "could not create initialise mint token instruction: {e}"
+                    ))
+                })?;
+                vec![instruction]
+            }
+            TokenProgram::TokenProgram2022 => {
+                validate_no_duplicate_extensions(&req.extensions)?;
+                build_token2022_mint_instructions(
+                    &token_program_id,
+                    &mint_pubkey,
+                    &mint_authority,
+                    freeze_authority.as_ref(),
+                    decimals,
+                    &req.extensions,
+                )?
+            }
+            TokenProgram::Unspecified => {
+                return Err(Status::invalid_argument(
+                    "token_program must be specified (cannot be UNSPECIFIED)",
+                ));
+            }
+        };
 
-        // Convert to proto and return
-        let proto_instruction = sdk_instruction_to_proto(instruction);
-        Ok(Response::new(InitialiseMintResponse {
-            instruction: Some(proto_instruction),
-        }))
+        let instructions = sdk_instructions
+            .into_iter()
+            .map(sdk_instruction_to_proto)
+            .collect();
+
+        Ok(Response::new(InitialiseMintResponse { instructions }))
     }
 
-    /// Gets the minimum rent-exempt balance for a mint account.
+    /// Gets the minimum rent-exempt balance and allocation space for a mint account.
     ///
-    /// With no extensions the result is based on `Mint::LEN`.
-    /// With extensions the account space is computed by summing the fixed-size
-    /// extension pod bytes and any variable-length TLV data (e.g. token metadata).
+    /// With no extensions both values are based on `Mint::LEN` (82 bytes).
+    ///
+    /// With extensions the returned `space` covers only the base mint layout and
+    /// fixed-size extension pods (e.g. `MetadataPointer`).  The returned
+    /// `lamports` covers the **full** final account size — including
+    /// variable-length metadata content that the Token-2022 program allocates
+    /// via `realloc` during `initialize_token_metadata`.  This means `lamports`
+    /// may exceed `rent_exempt(space)` when metadata extensions are present; the
+    /// excess ensures the account remains rent-exempt after Token-2022 resizes it.
     async fn get_current_min_rent_for_mint_account(
         &self,
         request: Request<GetCurrentMinRentForMintAccountRequest>,
@@ -222,11 +420,16 @@ impl TokenProgramService for TokenProgramServiceImpl {
 
         validate_no_duplicate_extensions(&req.extensions)?;
 
-        let space = mint_account_space_for_extensions(&req.extensions)?;
+        // Space for System::CreateAccount — base extension types only.
+        let space = mint_create_account_space(&req.extensions)?;
+
+        // Rent for the full final size including variable-length metadata content
+        // that Token-2022 will allocate via realloc.
+        let rent_space = mint_total_space_for_rent(&req.extensions)?;
 
         let lamports = self
             .rpc_client
-            .get_minimum_balance_for_rent_exemption(space)
+            .get_minimum_balance_for_rent_exemption(rent_space)
             .map_err(|e| {
                 Status::internal(format!("failed to get minimum balance for mint account: {e}"))
             })?;
@@ -237,7 +440,12 @@ impl TokenProgramService for TokenProgramServiceImpl {
         }))
     }
 
-    /// Parses mint account data into structured format
+    /// Parses mint account data into structured format.
+    ///
+    /// Supports both Legacy SPL Token and Token-2022 mints. The account owner is
+    /// checked to ensure it belongs to a known token program, and the appropriate
+    /// unpacking strategy is used (Token-2022 mints may contain extension data
+    /// beyond the base 82-byte Mint layout).
     async fn parse_mint(
         &self,
         request: Request<ParseMintRequest>,
@@ -256,9 +464,29 @@ impl TokenProgramService for TokenProgramServiceImpl {
             .value
             .ok_or_else(|| Status::not_found("Account not found"))?;
 
-        // Unpack the mint account data
-        let mint = Mint::unpack(&account.data)
-            .map_err(|e| Status::invalid_argument(format!("Failed to parse mint account: {e}")))?;
+        // Validate account is owned by a known token program
+        if account.owner != LEGACY_PROGRAM_ID && account.owner != TOKEN_2022_PROGRAM_ID {
+            return Err(Status::invalid_argument(format!(
+                "Account owner {} is not a known token program",
+                account.owner,
+            )));
+        }
+
+        // Unpack the mint account data.
+        // Use StateWithExtensions for Token-2022 accounts which may have extension
+        // data beyond the base 82-byte Mint layout; use Mint::unpack for legacy
+        // SPL accounts which are always exactly 82 bytes.
+        let mint = if account.owner == TOKEN_2022_PROGRAM_ID {
+            StateWithExtensions::<Mint>::unpack(&account.data)
+                .map(|state| state.base)
+                .map_err(|e| {
+                    Status::invalid_argument(format!("Failed to parse Token-2022 mint: {e}"))
+                })?
+        } else {
+            Mint::unpack(&account.data).map_err(|e| {
+                Status::invalid_argument(format!("Failed to parse mint account: {e}"))
+            })?
+        };
 
         Ok(Response::new(ParseMintResponse {
             mint: Some(MintInfo {
@@ -334,7 +562,7 @@ impl TokenProgramService for TokenProgramServiceImpl {
             .await?
             .into_inner();
 
-        // Step 3: Create mint initialization instruction (extensions not yet handled)
+        // Step 3: Create mint initialization instructions (extensions not yet handled)
         let init_response = self
             .initialise_mint(Request::new(InitialiseMintRequest {
                 mint_pub_key: req.mint_pub_key,
@@ -347,14 +575,12 @@ impl TokenProgramService for TokenProgramServiceImpl {
             .await?
             .into_inner();
 
-        // Step 4: Compose response with both instructions
+        // Step 4: Compose response with create account + all init instructions
         let mut instructions = Vec::new();
         if let Some(instr) = create_instruction.instruction {
             instructions.push(instr);
         }
-        if let Some(init_instruction) = init_response.instruction {
-            instructions.push(init_instruction);
-        }
+        instructions.extend(init_response.instructions);
 
         Ok(Response::new(CreateMintResponse { instructions }))
     }

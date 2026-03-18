@@ -80,12 +80,15 @@ pub struct InitialiseMintRequest {
     #[prost(message, repeated, tag="6")]
     pub extensions: ::prost::alloc::vec::Vec<Token2022Extension>,
 }
-/// Response containing InitialiseMint instruction
+/// Response containing InitialiseMint instructions.
+/// Multiple instructions are returned when extensions are requested
+/// (e.g. metadata pointer initialisation precedes initialize_mint,
+/// and token-metadata initialisation follows it).
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct InitialiseMintResponse {
-    #[prost(message, optional, tag="1")]
-    pub instruction: ::core::option::Option<super::super::super::transaction::v1::SolanaInstruction>,
+    #[prost(message, repeated, tag="1")]
+    pub instructions: ::prost::alloc::vec::Vec<super::super::super::transaction::v1::SolanaInstruction>,
 }
 /// Request for the minimum rent and space required for a mint account.
 /// Provide the same extension set you intend to pass to InitialiseMint so that
