@@ -13,7 +13,11 @@ service Service {
   // Creates an InitialiseMint instruction for Token 2022 program
   rpc InitialiseMint(InitialiseMintRequest) returns (InitialiseMintResponse);
 
-  // Gets current minimum rent for a the mint account (given the desired set of extensions).
+  // Returns the minimum rent-exempt balance (in lamports) and the required account
+  // space (in bytes) for a mint account with the requested extensions.
+  // Both values are needed together when calling the System Program's CreateAccount
+  // instruction: lamports funds rent exemption, space determines allocation size.
+  // With no extensions the result is based on the base Mint::LEN (82 bytes).
   rpc GetCurrentMinRentForMintAccount(GetCurrentMinRentForMintAccountRequest) returns (GetCurrentMinRentForMintAccountResponse);
 
   // Parses mint account data into structured format
@@ -63,16 +67,27 @@ message InitialiseMintResponse {
   protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
 }
 
-// Request to get current rent (in lamports) for token account.
+// Request for the minimum rent and space required for a mint account.
+// Provide the same extension set you intend to pass to InitialiseMint so that
+// the returned lamports and space values are consistent with each other.
 message GetCurrentMinRentForMintAccountRequest {
   // Ordered list of extensions to enable on the mint.
-  // If no extensions are provided then result is Mint::LEN.
+  // Must match the extensions you will pass to InitialiseMint.
+  // If empty, results are based on the base Mint::LEN (82 bytes) with no extensions.
+  // Duplicates are rejected.
   repeated protochain.solana.program.token.v1.Token2022Extension extensions = 6;
 }
 
-// Response with current rent amount
+// Rent and space for a mint account with the requested extensions.
+// Pass both fields directly to the System Program's CreateAccount instruction
+// before calling InitialiseMint.
 message GetCurrentMinRentForMintAccountResponse {
+  // Minimum lamports required for the account to be rent-exempt.
   uint64 lamports = 1;
+
+  // Account size in bytes to allocate.
+  // Must equal the space argument passed to CreateAccount.
+  uint64 space = 2;
 }
 
 // Request to parse mint account

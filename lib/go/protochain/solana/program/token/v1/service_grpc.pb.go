@@ -36,7 +36,11 @@ const (
 type ServiceClient interface {
 	// Creates an InitialiseMint instruction for Token 2022 program
 	InitialiseMint(ctx context.Context, in *InitialiseMintRequest, opts ...grpc.CallOption) (*InitialiseMintResponse, error)
-	// Gets current minimum rent for a the mint account (given the desired set of extensions).
+	// Returns the minimum rent-exempt balance (in lamports) and the required account
+	// space (in bytes) for a mint account with the requested extensions.
+	// Both values are needed together when calling the System Program's CreateAccount
+	// instruction: lamports funds rent exemption, space determines allocation size.
+	// With no extensions the result is based on the base Mint::LEN (82 bytes).
 	GetCurrentMinRentForMintAccount(ctx context.Context, in *GetCurrentMinRentForMintAccountRequest, opts ...grpc.CallOption) (*GetCurrentMinRentForMintAccountResponse, error)
 	// Parses mint account data into structured format
 	ParseMint(ctx context.Context, in *ParseMintRequest, opts ...grpc.CallOption) (*ParseMintResponse, error)
@@ -136,7 +140,11 @@ func (c *serviceClient) Mint(ctx context.Context, in *MintRequest, opts ...grpc.
 type ServiceServer interface {
 	// Creates an InitialiseMint instruction for Token 2022 program
 	InitialiseMint(context.Context, *InitialiseMintRequest) (*InitialiseMintResponse, error)
-	// Gets current minimum rent for a the mint account (given the desired set of extensions).
+	// Returns the minimum rent-exempt balance (in lamports) and the required account
+	// space (in bytes) for a mint account with the requested extensions.
+	// Both values are needed together when calling the System Program's CreateAccount
+	// instruction: lamports funds rent exemption, space determines allocation size.
+	// With no extensions the result is based on the base Mint::LEN (82 bytes).
 	GetCurrentMinRentForMintAccount(context.Context, *GetCurrentMinRentForMintAccountRequest) (*GetCurrentMinRentForMintAccountResponse, error)
 	// Parses mint account data into structured format
 	ParseMint(context.Context, *ParseMintRequest) (*ParseMintResponse, error)

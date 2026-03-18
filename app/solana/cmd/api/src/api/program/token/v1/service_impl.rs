@@ -8,17 +8,21 @@ use protochain_api::protochain::solana::program::system::v1::{
     service_server::Service as SystemProgramService, CreateRequest as SystemCreateRequest,
 };
 use protochain_api::protochain::solana::program::token::v1::{
-    service_server::Service as TokenProgramService, CreateHoldingAccountRequest,
-    CreateHoldingAccountResponse, CreateMintRequest, CreateMintResponse,
-    GetCurrentMinRentForHoldingAccountRequest, GetCurrentMinRentForHoldingAccountResponse,
-    GetCurrentMinRentForMintAccountRequest, GetCurrentMinRentForMintAccountResponse,
-    InitialiseMintRequest, InitialiseMintResponse, MintInfo, MintRequest, MintResponse,
-    ParseMintRequest, ParseMintResponse,
+    service_server::Service as TokenProgramService, token2022_extension,
+    CreateHoldingAccountRequest, CreateHoldingAccountResponse, CreateMintRequest,
+    CreateMintResponse, GetCurrentMinRentForHoldingAccountRequest,
+    GetCurrentMinRentForHoldingAccountResponse, GetCurrentMinRentForMintAccountRequest,
+    GetCurrentMinRentForMintAccountResponse, InitialiseMintRequest, InitialiseMintResponse,
+    MintInfo, MintRequest, MintResponse, ParseMintRequest, ParseMintResponse, Token2022Extension,
 };
 use protochain_api::protochain::solana::r#type::v1::TokenProgram;
 use spl_associated_token_account::instruction::create_associated_token_account;
 use spl_token_2022::extension::memo_transfer::instruction::enable_required_transfer_memos;
 
+use spl_pod::optional_keys::OptionalNonZeroPubkey;
+use spl_token_metadata_interface::state::TokenMetadata;
+
+use std::collections::HashSet;
 use std::str::FromStr;
 use std::sync::Arc;
 use tonic::{Request, Response, Status};
@@ -47,6 +51,86 @@ impl TokenProgramServiceImpl {
     pub const fn new(rpc_client: Arc<RpcClient>) -> Self {
         Self { rpc_client }
     }
+}
+
+/// Validates that the given extension list contains no duplicates.
+#[allow(clippy::result_large_err)]
+fn validate_no_duplicate_extensions(extensions: &[Token2022Extension]) -> Result<(), Status> {
+    let mut seen: HashSet<&str> = HashSet::new();
+    for ext in extensions {
+        let key = match ext
+            .extension
+            .as_ref()
+            .ok_or_else(|| Status::invalid_argument("Extension must have a type set"))?
+        {
+            token2022_extension::Extension::Metadata(_) => "Metadata",
+        };
+        if !seen.insert(key) {
+            return Err(Status::invalid_argument(format!("Duplicate extension: {key}")));
+        }
+    }
+    Ok(())
+}
+
+/// Calculates the total account space (in bytes) required for a mint with the given extensions.
+///
+/// Returns `Mint::LEN` when no extensions are provided. For each known extension type the
+/// function accumulates the fixed-size `ExtensionType` pod bytes and any variable-length TLV
+/// data so that new extension variants can be added by appending a new match arm.
+#[allow(clippy::result_large_err)]
+fn mint_account_space_for_extensions(extensions: &[Token2022Extension]) -> Result<usize, Status> {
+    if extensions.is_empty() {
+        return Ok(Mint::LEN);
+    }
+
+    let mut sdk_extension_types: Vec<ExtensionType> = Vec::new();
+    let mut extra_variable_len: usize = 0;
+
+    for ext in extensions {
+        match ext
+            .extension
+            .as_ref()
+            .ok_or_else(|| Status::invalid_argument("Extension must have a type set"))?
+        {
+            token2022_extension::Extension::Metadata(meta) => {
+                sdk_extension_types.push(ExtensionType::MetadataPointer);
+
+                // `TokenMetadata` has two different pubkey field types by design:
+                //   - `mint: Pubkey` — always required; every mint must have an address.
+                //   - `update_authority: OptionalNonZeroPubkey` — optional; immutable mints
+                //     have no update authority.  `OptionalNonZeroPubkey` encodes
+                //     `Option<Pubkey>` in a fixed 32 bytes on-chain by treating the all-zeros
+                //     pubkey as the "None" sentinel, avoiding the extra discriminant byte that
+                //     a standard `Option<Pubkey>` would require.
+                //
+                // Both fields are always exactly 32 bytes on-chain, so neither value affects
+                // the TLV size calculation — placeholder defaults are sufficient here.
+                let token_metadata = TokenMetadata {
+                    update_authority: OptionalNonZeroPubkey::default(),
+                    mint: Pubkey::default(),
+                    name: meta.name.clone(),
+                    symbol: meta.symbol.clone(),
+                    uri: meta.uri.clone(),
+                    additional_metadata: meta
+                        .additional_metadata
+                        .iter()
+                        .map(|(k, v)| (k.clone(), v.clone()))
+                        .collect(),
+                };
+
+                extra_variable_len += token_metadata.tlv_size_of().map_err(|e| {
+                    Status::internal(format!("failed to calculate metadata TLV size: {e}"))
+                })?;
+            }
+        }
+    }
+
+    let base_space = ExtensionType::try_calculate_account_len::<Mint>(&sdk_extension_types)
+        .map_err(|e| {
+            Status::internal(format!("failed to calculate mint account length for extensions: {e}"))
+        })?;
+
+    Ok(base_space + extra_variable_len)
 }
 
 #[allow(clippy::result_large_err)]
@@ -125,25 +209,32 @@ impl TokenProgramService for TokenProgramServiceImpl {
         }))
     }
 
-    /// Gets current minimum rent for a mint account (based on `Mint::LEN`, extensions not yet handled)
+    /// Gets the minimum rent-exempt balance for a mint account.
+    ///
+    /// With no extensions the result is based on `Mint::LEN`.
+    /// With extensions the account space is computed by summing the fixed-size
+    /// extension pod bytes and any variable-length TLV data (e.g. token metadata).
     async fn get_current_min_rent_for_mint_account(
         &self,
-        _request: Request<GetCurrentMinRentForMintAccountRequest>,
+        request: Request<GetCurrentMinRentForMintAccountRequest>,
     ) -> Result<Response<GetCurrentMinRentForMintAccountResponse>, Status> {
-        // Get minimum balance for rent exemption using Mint::LEN
-        // Extensions are not yet handled — always returns base Mint::LEN rent
-        match self
+        let req = request.into_inner();
+
+        validate_no_duplicate_extensions(&req.extensions)?;
+
+        let space = mint_account_space_for_extensions(&req.extensions)?;
+
+        let lamports = self
             .rpc_client
-            .get_minimum_balance_for_rent_exemption(Mint::LEN)
-        {
-            Ok(lamports) => {
-                let response = GetCurrentMinRentForMintAccountResponse { lamports };
-                Ok(Response::new(response))
-            }
-            Err(e) => Err(Status::internal(format!(
-                "Failed to get minimum balance for mint account: {e}"
-            ))),
-        }
+            .get_minimum_balance_for_rent_exemption(space)
+            .map_err(|e| {
+                Status::internal(format!("failed to get minimum balance for mint account: {e}"))
+            })?;
+
+        Ok(Response::new(GetCurrentMinRentForMintAccountResponse {
+            lamports,
+            space: space as u64,
+        }))
     }
 
     /// Parses mint account data into structured format

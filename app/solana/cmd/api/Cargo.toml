@@ -45,6 +45,7 @@ spl-token-2022 = { version = "10", default-features = false, features = ["serde-
 spl-token = { version = "9", default-features = false }
 spl-associated-token-account = { version = "8", default-features = false }
 spl-token-metadata-interface = "0.8"
+spl-pod = "0.7"
 
 # WebSocket support with native TLS for WSS (secure WebSocket) connections
 # Note: rustls via tokio-tungstenite does NOT work reliably for WSS in practice.

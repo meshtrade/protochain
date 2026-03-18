@@ -164,11 +164,15 @@ func (x *InitialiseMintResponse) GetInstruction() *v11.SolanaInstruction {
 	return nil
 }
 
-// Request to get current rent (in lamports) for token account.
+// Request for the minimum rent and space required for a mint account.
+// Provide the same extension set you intend to pass to InitialiseMint so that
+// the returned lamports and space values are consistent with each other.
 type GetCurrentMinRentForMintAccountRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Ordered list of extensions to enable on the mint.
-	// If no extensions are provided then result is Mint::LEN.
+	// Must match the extensions you will pass to InitialiseMint.
+	// If empty, results are based on the base Mint::LEN (82 bytes) with no extensions.
+	// Duplicates are rejected.
 	Extensions    []*Token2022Extension `protobuf:"bytes,6,rep,name=extensions,proto3" json:"extensions,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -211,10 +215,16 @@ func (x *GetCurrentMinRentForMintAccountRequest) GetExtensions() []*Token2022Ext
 	return nil
 }
 
-// Response with current rent amount
+// Rent and space for a mint account with the requested extensions.
+// Pass both fields directly to the System Program's CreateAccount instruction
+// before calling InitialiseMint.
 type GetCurrentMinRentForMintAccountResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Lamports      uint64                 `protobuf:"varint,1,opt,name=lamports,proto3" json:"lamports,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Minimum lamports required for the account to be rent-exempt.
+	Lamports uint64 `protobuf:"varint,1,opt,name=lamports,proto3" json:"lamports,omitempty"`
+	// Account size in bytes to allocate.
+	// Must equal the space argument passed to CreateAccount.
+	Space         uint64 `protobuf:"varint,2,opt,name=space,proto3" json:"space,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -252,6 +262,13 @@ func (*GetCurrentMinRentForMintAccountResponse) Descriptor() ([]byte, []int) {
 func (x *GetCurrentMinRentForMintAccountResponse) GetLamports() uint64 {
 	if x != nil {
 		return x.Lamports
+	}
+	return 0
+}
+
+func (x *GetCurrentMinRentForMintAccountResponse) GetSpace() uint64 {
+	if x != nil {
+		return x.Space
 	}
 	return 0
 }
@@ -954,9 +971,10 @@ const file_protochain_solana_program_token_v1_service_proto_rawDesc = "" +
 	"&GetCurrentMinRentForMintAccountRequest\x12V\n" +
 	"\n" +
 	"extensions\x18\x06 \x03(\v26.protochain.solana.program.token.v1.Token2022ExtensionR\n" +
-	"extensions\"E\n" +
+	"extensions\"[\n" +
 	"'GetCurrentMinRentForMintAccountResponse\x12\x1a\n" +
-	"\blamports\x18\x01 \x01(\x04R\blamports\";\n" +
+	"\blamports\x18\x01 \x01(\x04R\blamports\x12\x14\n" +
+	"\x05space\x18\x02 \x01(\x04R\x05space\";\n" +
 	"\x10ParseMintRequest\x12'\n" +
 	"\x0faccount_address\x18\x01 \x01(\tR\x0eaccountAddress\"U\n" +
 	"\x11ParseMintResponse\x12@\n" +
