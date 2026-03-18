@@ -98,9 +98,17 @@ message ParseMintRequest {
   string account_address = 1;
 }
 
-// Response with parsed mint data
+// Response with parsed mint data.
 message ParseMintResponse {
+  // Base mint account fields (authority, decimals, supply, etc.).
   MintInfo mint = 1;
+
+  // The token program that owns this mint account (Legacy SPL Token or Token-2022).
+  protochain.solana.type.v1.TokenProgram token_program = 2;
+
+  // Extensions present on the mint account.
+  // Only populated for Token-2022 mints that have extensions configured.
+  repeated protochain.solana.program.token.v1.Token2022Extension extensions = 3;
 }
 
 // Structured mint account information

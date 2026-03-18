@@ -14,6 +14,7 @@ use protochain_api::protochain::solana::program::token::v1::{
     GetCurrentMinRentForHoldingAccountResponse, GetCurrentMinRentForMintAccountRequest,
     GetCurrentMinRentForMintAccountResponse, InitialiseMintRequest, InitialiseMintResponse,
     MintInfo, MintRequest, MintResponse, ParseMintRequest, ParseMintResponse, Token2022Extension,
+    Token2022ExtensionMetadata,
 };
 use protochain_api::protochain::solana::r#type::v1::TokenProgram;
 use spl_associated_token_account::instruction::create_associated_token_account;
@@ -37,8 +38,10 @@ use spl_associated_token_account::get_associated_token_address_with_program_id;
 use spl_token::ID as LEGACY_PROGRAM_ID;
 use spl_token_2022::{
     extension::{
-        metadata_pointer::instruction::initialize as initialize_metadata_pointer, ExtensionType,
-        StateWithExtensions,
+        metadata_pointer::{
+            instruction::initialize as initialize_metadata_pointer, MetadataPointer,
+        },
+        BaseStateWithExtensions, ExtensionType, StateWithExtensions,
     },
     instruction::{initialize_mint2, mint_to_checked, reallocate},
     state::{Account, Mint},
@@ -196,6 +199,55 @@ fn memo_rent_lamports(rpc: &RpcClient, require_memo: bool) -> Result<u64, Status
 
     rpc.get_minimum_balance_for_rent_exemption(space)
         .map_err(|e| Status::internal(format!("failed to fetch memo-aware rent: {e}")))
+}
+
+/// Extracts Token-2022 extensions from a parsed mint account and converts them
+/// to proto `Token2022Extension` messages.
+///
+/// Currently supports:
+///   - **Metadata**: reads `MetadataPointer` + `TokenMetadata` TLV data and
+///     returns a `Token2022ExtensionMetadata` proto.
+///
+/// Extensions that are not present on the account are silently skipped.
+fn extract_token2022_extensions(
+    state: &StateWithExtensions<'_, Mint>,
+    account_pubkey: &Pubkey,
+) -> Vec<Token2022Extension> {
+    let mut extensions = Vec::new();
+
+    // Try to extract the Metadata extension (MetadataPointer + TokenMetadata).
+    if let Ok(metadata_pointer) = state.get_extension::<MetadataPointer>() {
+        let metadata_address: Option<Pubkey> = metadata_pointer.metadata_address.into();
+        if let Some(metadata_addr) = metadata_address {
+            // Only read the variable-length TokenMetadata if it is stored on
+            // this mint account itself (self-referencing metadata).
+            if metadata_addr == *account_pubkey {
+                if let Ok(token_metadata) = state.get_variable_len_extension::<TokenMetadata>() {
+                    let update_authority: Option<Pubkey> = token_metadata.update_authority.into();
+
+                    extensions.push(Token2022Extension {
+                        extension: Some(token2022_extension::Extension::Metadata(
+                            Token2022ExtensionMetadata {
+                                metadata_address: metadata_addr.to_string(),
+                                update_authority_pub_key: update_authority
+                                    .map(|k| k.to_string())
+                                    .unwrap_or_default(),
+                                name: token_metadata.name,
+                                symbol: token_metadata.symbol,
+                                uri: token_metadata.uri,
+                                additional_metadata: token_metadata
+                                    .additional_metadata
+                                    .into_iter()
+                                    .collect(),
+                            },
+                        )),
+                    });
+                }
+            }
+        }
+    }
+
+    extensions
 }
 
 /// Builds the ordered list of SDK instructions needed to initialise a Token-2022
@@ -472,20 +524,25 @@ impl TokenProgramService for TokenProgramServiceImpl {
             )));
         }
 
-        // Unpack the mint account data.
+        // Determine which token program owns this mint.
+        let token_program = sdk_token_program_to_proto(&account.owner);
+
+        // Unpack the mint account data and extract extensions.
         // Use StateWithExtensions for Token-2022 accounts which may have extension
         // data beyond the base 82-byte Mint layout; use Mint::unpack for legacy
         // SPL accounts which are always exactly 82 bytes.
-        let mint = if account.owner == TOKEN_2022_PROGRAM_ID {
-            StateWithExtensions::<Mint>::unpack(&account.data)
-                .map(|state| state.base)
-                .map_err(|e| {
-                    Status::invalid_argument(format!("Failed to parse Token-2022 mint: {e}"))
-                })?
+        let (mint, extensions) = if account.owner == TOKEN_2022_PROGRAM_ID {
+            let state = StateWithExtensions::<Mint>::unpack(&account.data).map_err(|e| {
+                Status::invalid_argument(format!("Failed to parse Token-2022 mint: {e}"))
+            })?;
+
+            let extensions = extract_token2022_extensions(&state, &account_pubkey);
+            (state.base, extensions)
         } else {
-            Mint::unpack(&account.data).map_err(|e| {
+            let mint = Mint::unpack(&account.data).map_err(|e| {
                 Status::invalid_argument(format!("Failed to parse mint account: {e}"))
-            })?
+            })?;
+            (mint, Vec::new())
         };
 
         Ok(Response::new(ParseMintResponse {
@@ -502,6 +559,8 @@ impl TokenProgramService for TokenProgramServiceImpl {
                 supply: mint.supply.to_string(),
                 is_initialized: mint.is_initialized,
             }),
+            token_program: token_program.into(),
+            extensions,
         }))
     }
 

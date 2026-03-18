@@ -124,12 +124,20 @@ pub struct ParseMintRequest {
     #[prost(string, tag="1")]
     pub account_address: ::prost::alloc::string::String,
 }
-/// Response with parsed mint data
+/// Response with parsed mint data.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ParseMintResponse {
+    /// Base mint account fields (authority, decimals, supply, etc.).
     #[prost(message, optional, tag="1")]
     pub mint: ::core::option::Option<MintInfo>,
+    /// The token program that owns this mint account (Legacy SPL Token or Token-2022).
+    #[prost(enumeration="super::super::super::r#type::v1::TokenProgram", tag="2")]
+    pub token_program: i32,
+    /// Extensions present on the mint account.
+    /// Only populated for Token-2022 mints that have extensions configured.
+    #[prost(message, repeated, tag="3")]
+    pub extensions: ::prost::alloc::vec::Vec<Token2022Extension>,
 }
 /// Structured mint account information
 #[allow(clippy::derive_partial_eq_without_eq)]

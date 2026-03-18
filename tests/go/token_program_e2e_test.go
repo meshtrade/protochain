@@ -197,8 +197,25 @@ func (suite *TokenProgramE2ETestSuite) Test_01_InitialiseMint_TOKEN2022() {
 	suite.Assert().Equal("0", parsedMint.Mint.Supply, "Initial supply should be zero")
 	suite.Assert().True(parsedMint.Mint.IsInitialized, "Mint should be initialized")
 
-	// NOTE: ParseMint does not yet return parsed extensions, so we cannot verify
-	// the metadata extension content here. That is future scope.
+	// Verify token_program is Token-2022
+	suite.Assert().Equal(type_v1.TokenProgram_TOKEN_PROGRAM_2022, parsedMint.TokenProgram,
+		"Token program should be TOKEN_PROGRAM_2022")
+
+	// Verify extensions match the metadata configured during initialization
+	suite.Require().Len(parsedMint.Extensions, 1, "Should have exactly 1 extension (Metadata)")
+	metaExt := parsedMint.Extensions[0].GetMetadata()
+	suite.Require().NotNil(metaExt, "Extension should be Metadata type")
+	suite.Assert().Equal("Test Token", metaExt.Name, "Metadata name should match")
+	suite.Assert().Equal("TST", metaExt.Symbol, "Metadata symbol should match")
+	suite.Assert().Equal("https://example.com/metadata.json", metaExt.Uri, "Metadata URI should match")
+	suite.Assert().Equal(mintKeyResp.KeyPair.PublicKey, metaExt.MetadataAddress,
+		"Metadata address should be the mint itself (self-referencing)")
+	suite.Assert().Equal(payKeyResp.KeyPair.PublicKey, metaExt.UpdateAuthorityPubKey,
+		"Update authority should default to mint authority")
+	suite.Require().Contains(metaExt.AdditionalMetadata, "description",
+		"Additional metadata should contain 'description' key")
+	suite.Assert().Equal("A test token with metadata", metaExt.AdditionalMetadata["description"],
+		"Additional metadata 'description' value should match")
 
 	suite.T().Logf("✅ Token-2022 Mint with metadata created and verified successfully:")
 	suite.T().Logf("   Mint Address: %s", mintKeyResp.KeyPair.PublicKey)
@@ -311,6 +328,13 @@ func (suite *TokenProgramE2ETestSuite) Test_02_InitialiseMint_SPL() {
 	suite.Assert().Equal(payKeyResp.KeyPair.PublicKey, parsedMint.Mint.FreezeAuthorityPubKey, "Freeze authority should match")
 	suite.Assert().Equal("0", parsedMint.Mint.Supply, "Initial supply should be zero")
 	suite.Assert().True(parsedMint.Mint.IsInitialized, "Mint should be initialized")
+
+	// Verify token_program is Legacy SPL Token
+	suite.Assert().Equal(type_v1.TokenProgram_TOKEN_PROGRAM_LEGACY, parsedMint.TokenProgram,
+		"Token program should be TOKEN_PROGRAM_LEGACY")
+
+	// Legacy mints should have no extensions
+	suite.Assert().Empty(parsedMint.Extensions, "Legacy SPL mint should have no extensions")
 
 	// Verify that passing extensions to Legacy program returns an error
 	_, err = suite.tokenProgramService.InitialiseMint(suite.ctx, &token_v1.InitialiseMintRequest{
