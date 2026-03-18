@@ -39,8 +39,8 @@ pub struct ServerConfig {
 impl Default for SolanaConfig {
     fn default() -> Self {
         Self {
-            rpc_url: "https://coned-duped-tees.txtx.network:8899".to_string(), // Local validator default
-            websocket_url: Some("wss://coned-duped-tees.txtx.network:8900".to_string()), // Optional - will be derived from RPC URL if not specified
+            rpc_url: "http://localhost:8899".to_string(), // Local validator default
+            websocket_url: Some("ws://localhost:8900".to_string()), // Optional - will be derived from RPC URL if not specified
             timeout_seconds: 30,
             retry_attempts: 3,
             health_check_on_startup: true,
@@ -169,8 +169,8 @@ mod tests {
     fn test_default_config() {
         let config = Config::default();
 
-        assert_eq!(config.solana.rpc_url, "https://coned-duped-tees.txtx.network:8899");
-        assert_eq!(config.solana.websocket_url, Some("wss://coned-duped-tees.txtx.network:8900".to_string()));
+        assert_eq!(config.solana.rpc_url, "http://localhost:8899");
+        assert_eq!(config.solana.websocket_url, Some("ws://localhost:8900".to_string()));
         assert_eq!(config.solana.timeout_seconds, 30);
         assert_eq!(config.solana.retry_attempts, 3);
         assert!(config.solana.health_check_on_startup);

@@ -29,7 +29,7 @@ impl ServiceProviders {
             ws_url.clone()
         } else {
             derive_websocket_url_from_rpc(&config.solana.rpc_url)
-                .map_err(|e| anyhow::anyhow!("Failed to derive WebSocket URL: {}", e))?
+                .map_err(|e| anyhow::anyhow!("Failed to derive WebSocket URL: {e}"))?
         };
 
         // Create WebSocket manager with simulation mode
@@ -39,7 +39,7 @@ impl ServiceProviders {
         let websocket_manager = Arc::new(
             WebSocketManager::new(&ws_url, &config.solana.rpc_url)
                 .await
-                .map_err(|e| anyhow::anyhow!("Failed to create WebSocket manager: {}", e))?,
+                .map_err(|e| anyhow::anyhow!("Failed to create WebSocket manager: {e}"))?,
         );
 
         Ok(Self {

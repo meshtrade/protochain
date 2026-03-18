@@ -17,6 +17,10 @@ CLI_CONFIG_BACKUP="$PROJECT_ROOT/.solana-cli-config.backup"
 # Ensure we're in the project root
 cd "$PROJECT_ROOT"
 
+# Metaplex Token Metadata program
+METAPLEX_TOKEN_METADATA_PROGRAM_ID="metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+CLONE_SOURCE_URL="https://api.mainnet-beta.solana.com"
+
 echo "🌐 Starting Solana Local Validator..."
 
 # Check if validator is already running
@@ -60,19 +64,23 @@ echo "📡 Validator will be available at: localhost:8899"
 echo "💰 Faucet will be available at: localhost:9900"
 echo "📄 Logs will be written to: ${LOG_FILE#$PROJECT_ROOT/}"
 echo "📁 Ledger will be stored in: ${LEDGER_DIR#$PROJECT_ROOT/}"
+echo "📦 Cloning Metaplex Token Metadata program from mainnet-beta..."
 echo ""
 
 # Create ledger directory
 mkdir -p "$LEDGER_DIR"
 
 # Start validator in background with comprehensive configuration
+# --clone pulls the Metaplex Token Metadata program from mainnet-beta at startup
 solana-test-validator \
     --reset \
     --quiet \
     --ledger "$LEDGER_DIR" \
     --faucet-sol 1000000 \
     --faucet-port 9900 \
-    --rpc-port 8899 > "$LOG_FILE" 2>&1 &
+    --rpc-port 8899 \
+    --url "$CLONE_SOURCE_URL" \
+    --clone "$METAPLEX_TOKEN_METADATA_PROGRAM_ID" > "$LOG_FILE" 2>&1 &
 
 VALIDATOR_PID=$!
 
@@ -110,7 +118,19 @@ while [[ $WAIT_COUNT -lt $MAX_WAIT ]]; do
             echo "✅ Validator is ready and responding!"
             echo "🌐 Configured Solana CLI to use localhost:8899"
             echo ""
-            echo "💰 To get test SOL: solana airdrop 100"  
+
+            # Verify Metaplex Token Metadata program was cloned successfully
+            echo "🔍 Verifying Metaplex Token Metadata program..."
+            if solana account "$METAPLEX_TOKEN_METADATA_PROGRAM_ID" >/dev/null 2>&1; then
+                echo "✅ Metaplex Token Metadata program is present: $METAPLEX_TOKEN_METADATA_PROGRAM_ID"
+                solana program show "$METAPLEX_TOKEN_METADATA_PROGRAM_ID" 2>/dev/null || true
+            else
+                echo "⚠️  Warning: Metaplex Token Metadata program not found at $METAPLEX_TOKEN_METADATA_PROGRAM_ID"
+                echo "   Clone from mainnet-beta may have failed (check internet connectivity)"
+            fi
+            echo ""
+
+            echo "💰 To get test SOL: solana airdrop 100"
             echo "🔍 To check status: solana cluster-version"
             echo "🛑 To stop validator: ./scripts/tests/stop-validator.sh"
             echo ""

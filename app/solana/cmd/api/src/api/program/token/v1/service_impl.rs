@@ -24,7 +24,8 @@ use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
 use solana_client::rpc_client::RpcClient;
-use solana_sdk::{commitment_config::CommitmentConfig, program_pack::Pack, pubkey::Pubkey};
+use solana_commitment_config::CommitmentConfig;
+use solana_sdk::{program_pack::Pack, pubkey::Pubkey};
 use spl_associated_token_account::get_associated_token_address_with_program_id;
 use spl_token::ID as LEGACY_PROGRAM_ID;
 use spl_token_2022::{

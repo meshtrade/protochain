@@ -4,10 +4,9 @@ use solana_client::rpc_config::RpcSignatureSubscribeConfig;
 use solana_client::rpc_response::{
     ProcessedSignatureResult, ReceivedSignatureResult, Response, RpcSignatureResult,
 };
+use solana_commitment_config::CommitmentConfig;
 use solana_pubsub_client::nonblocking::pubsub_client::PubsubClient;
-use solana_sdk::{
-    commitment_config::CommitmentConfig, signature::Signature, transaction::TransactionError,
-};
+use solana_sdk::{signature::Signature, transaction::TransactionError};
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::mpsc;
@@ -62,7 +61,7 @@ impl WebSocketManager {
         );
 
         Ok(Self {
-            ws_url: "wss://coned-duped-tees.txtx.network:8900".to_string(),
+            ws_url: ws_url.to_string(),
             rpc_client,
             active_subscriptions: Arc::new(DashMap::new()),
         })

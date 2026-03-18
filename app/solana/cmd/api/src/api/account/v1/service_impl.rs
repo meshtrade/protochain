@@ -14,8 +14,8 @@ use protochain_api::protochain::solana::r#type::v1::{CommitmentLevel, KeyPair, T
 use spl_associated_token_account::get_associated_token_address_with_program_id;
 
 use solana_client::rpc_client::RpcClient;
+use solana_commitment_config::CommitmentConfig;
 use solana_sdk::{
-    commitment_config::CommitmentConfig,
     pubkey::Pubkey,
     signature::{Keypair, SeedDerivable, Signer},
 };

@@ -1,4 +1,5 @@
-use solana_sdk::{pubkey::Pubkey, system_instruction, system_program};
+use solana_sdk::pubkey::Pubkey;
+use solana_system_interface::{instruction as system_instruction, program as system_program};
 use std::str::FromStr;
 use tonic::{Request, Response, Status};
 

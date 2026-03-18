@@ -1,11 +1,11 @@
 use crate::websocket::WebSocketManager;
 use solana_client::rpc_client::RpcClient;
 use solana_client::rpc_config::RpcTransactionConfig;
+use solana_commitment_config::CommitmentConfig;
 use solana_rpc_client_api::{
     client_error::{Error as ClientError, ErrorKind as ClientErrorKind},
     request::{RpcError, RpcResponseErrorData},
 };
-use solana_sdk::commitment_config::CommitmentConfig;
 use solana_sdk::transaction::TransactionError;
 use solana_sdk::{
     hash::Hash,
@@ -15,6 +15,9 @@ use solana_sdk::{
     signature::{Keypair, Signature, Signer},
     transaction::Transaction as SolanaTransaction,
 };
+// solana-transaction-status is behind the `agave-unstable-api` feature gate (see workspace
+// Cargo.toml for the rationale).  Only encoding helpers are used here — not the heavier
+// parsed-instruction or status-metadata types — so churn risk is low.
 use solana_transaction_status::{
     option_serializer::OptionSerializer, EncodedTransaction, UiTransactionEncoding,
 };
@@ -104,7 +107,7 @@ impl TransactionServiceImpl {
 /// This approach provides reliable error classification that won't break with message
 /// format changes and enables precise automated retry logic.
 fn classify_submission_error(error: &ClientError) -> SubmissionResult {
-    match &error.kind {
+    match &*error.kind {
         // Direct transaction errors - most reliable classification path
         ClientErrorKind::TransactionError(transaction_error) => {
             classify_transaction_error(transaction_error)
@@ -118,7 +121,9 @@ fn classify_submission_error(error: &ClientError) -> SubmissionResult {
         }) => simulation_result
             .err
             .as_ref()
-            .map_or(SubmissionResult::FailedValidation, classify_transaction_error),
+            .map_or(SubmissionResult::FailedValidation, |e| {
+                classify_transaction_error(&TransactionError::from(e.clone()))
+            }),
 
         // Node health issues - network problems at the validator level
         ClientErrorKind::RpcError(RpcError::RpcResponseError {
@@ -151,7 +156,7 @@ fn classify_submission_error(error: &ClientError) -> SubmissionResult {
             SubmissionResult::Indeterminate
         }
 
-        ClientErrorKind::Custom(_) => {
+        ClientErrorKind::Custom(_) | ClientErrorKind::Middleware(_) => {
             // Only use string matching for truly unstructured error types
             classify_by_message(&error.to_string())
         }
@@ -220,7 +225,9 @@ const fn classify_transaction_error(transaction_error: &TransactionError) -> Sub
         | TransactionError::InvalidLoadedAccountsDataSizeLimit
         | TransactionError::ResanitizationNeeded
         | TransactionError::ProgramExecutionTemporarilyRestricted { .. }
-        | TransactionError::UnbalancedTransaction => SubmissionResult::FailedValidation,
+        | TransactionError::UnbalancedTransaction
+        | TransactionError::ProgramCacheHitMaxLimit
+        | TransactionError::CommitCancelled => SubmissionResult::FailedValidation,
 
         // Instruction-level errors require detailed analysis
         TransactionError::InstructionError(instruction_index, instruction_error) => {
@@ -726,18 +733,10 @@ impl TransactionService for TransactionServiceImpl {
                     // Parse private keys into keypairs
                     let mut keypairs = Vec::new();
                     for private_key_str in &private_keys_method.private_keys {
-                        let private_key_bytes =
-                            bs58::decode(private_key_str).into_vec().map_err(|e| {
-                                Status::invalid_argument(format!("Invalid private key format: {e}"))
+                        let keypair =
+                            Keypair::try_from_base58_string(private_key_str).map_err(|e| {
+                                Status::invalid_argument(format!("Invalid private key: {e}"))
                             })?;
-
-                        if private_key_bytes.len() != 64 {
-                            return Err(Status::invalid_argument("Private key must be 64 bytes"));
-                        }
-
-                        let keypair = Keypair::from_bytes(&private_key_bytes).map_err(|e| {
-                            Status::invalid_argument(format!("Invalid private key: {e}"))
-                        })?;
                         keypairs.push(keypair);
                     }
                     keypairs
