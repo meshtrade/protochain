@@ -57,20 +57,17 @@ pub struct KeyPair {
     #[prost(string, tag="2")]
     pub private_key: ::prost::alloc::string::String,
 }
-/// TokenProgram is the possible token programs
+/// TokenProgram identifies which Solana token program to use for an operation.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
 pub enum TokenProgram {
-    /// UNSPECIFIED allows services to use their default commitment level.
-    /// This provides backward compatibility and lets services choose appropriate defaults.
+    /// UNSPECIFIED is invalid and must not be used. Services will return an error if this value is received.
     Unspecified = 0,
-    /// PROCESSED means the transaction has been processed by the leader and included
-    /// in a block, but the block has not yet been confirmed by the cluster.
-    /// This is the fastest option but least reliable for finality guarantees.
+    /// LEGACY refers to the original SPL Token program (spl-token).
+    /// Most existing tokens use this program.
     Legacy = 1,
-    /// CONFIRMED means the transaction has been processed and the block containing
-    /// the transaction has been confirmed by a supermajority of the cluster.
-    /// This provides a good balance between speed and reliability.
+    /// 2022 refers to the Token Extensions program (spl-token-2022), also known as Token-2022.
+    /// Supports additional features such as transfer fees, interest-bearing tokens, and more.
     TokenProgram2022 = 2,
 }
 impl TokenProgram {

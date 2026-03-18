@@ -116,11 +116,11 @@ func (s *serviceService) InitialiseMint(ctx context.Context, request *Initialise
 	})
 }
 
-// GetCurrentMinRentForTokenAccount executes the GetCurrentMinRentForTokenAccount RPC method with automatic
+// GetCurrentMinRentForMintAccount executes the GetCurrentMinRentForMintAccount RPC method with automatic
 // client-side validation, timeout handling, distributed tracing, and authentication.
-func (s *serviceService) GetCurrentMinRentForTokenAccount(ctx context.Context, request *GetCurrentMinRentForTokenAccountRequest) (*GetCurrentMinRentForTokenAccountResponse, error) {
-	return common.Execute(s.Executor(), ctx, "GetCurrentMinRentForTokenAccount", request, func(ctx context.Context) (*GetCurrentMinRentForTokenAccountResponse, error) {
-		return s.GrpcClient().GetCurrentMinRentForTokenAccount(ctx, request)
+func (s *serviceService) GetCurrentMinRentForMintAccount(ctx context.Context, request *GetCurrentMinRentForMintAccountRequest) (*GetCurrentMinRentForMintAccountResponse, error) {
+	return common.Execute(s.Executor(), ctx, "GetCurrentMinRentForMintAccount", request, func(ctx context.Context) (*GetCurrentMinRentForMintAccountResponse, error) {
+		return s.GrpcClient().GetCurrentMinRentForMintAccount(ctx, request)
 	})
 }
 

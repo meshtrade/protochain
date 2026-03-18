@@ -62,21 +62,21 @@ func (a *ServiceGRPCAdaptor) InitialiseMint(ctx context.Context, request *Initia
 	return initialiseMintResponse, nil
 }
 
-// GetCurrentMinRentForTokenAccount exposes the GetCurrentMinRentForTokenAccount method of the Service interface over gRPC
-func (a *ServiceGRPCAdaptor) GetCurrentMinRentForTokenAccount(ctx context.Context, request *GetCurrentMinRentForTokenAccountRequest) (*GetCurrentMinRentForTokenAccountResponse, error) {
+// GetCurrentMinRentForMintAccount exposes the GetCurrentMinRentForMintAccount method of the Service interface over gRPC
+func (a *ServiceGRPCAdaptor) GetCurrentMinRentForMintAccount(ctx context.Context, request *GetCurrentMinRentForMintAccountRequest) (*GetCurrentMinRentForMintAccountResponse, error) {
 	ctx, span := a.tracer.Start(
 		ctx,
-		ServiceServiceProviderName+"GRPCAdaptor.GetCurrentMinRentForTokenAccount",
+		ServiceServiceProviderName+"GRPCAdaptor.GetCurrentMinRentForMintAccount",
 	)
 	defer span.End()
 
 	// call the service interface implementation
-	getCurrentMinRentForTokenAccountResponse, err := a.service.GetCurrentMinRentForTokenAccount(ctx, request)
+	getCurrentMinRentForMintAccountResponse, err := a.service.GetCurrentMinRentForMintAccount(ctx, request)
 	if err != nil {
 		return nil, err
 	}
 
-	return getCurrentMinRentForTokenAccountResponse, nil
+	return getCurrentMinRentForMintAccountResponse, nil
 }
 
 // ParseMint exposes the ParseMint method of the Service interface over gRPC

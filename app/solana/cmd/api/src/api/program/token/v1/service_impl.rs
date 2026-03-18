@@ -11,7 +11,7 @@ use protochain_api::protochain::solana::program::token::v1::{
     service_server::Service as TokenProgramService, CreateHoldingAccountRequest,
     CreateHoldingAccountResponse, CreateMintRequest, CreateMintResponse,
     GetCurrentMinRentForHoldingAccountRequest, GetCurrentMinRentForHoldingAccountResponse,
-    GetCurrentMinRentForTokenAccountRequest, GetCurrentMinRentForTokenAccountResponse,
+    GetCurrentMinRentForMintAccountRequest, GetCurrentMinRentForMintAccountResponse,
     InitialiseMintRequest, InitialiseMintResponse, MintInfo, MintRequest, MintResponse,
     ParseMintRequest, ParseMintResponse,
 };
@@ -125,22 +125,23 @@ impl TokenProgramService for TokenProgramServiceImpl {
         }))
     }
 
-    /// Gets current minimum rent for a token account (mint size)
-    async fn get_current_min_rent_for_token_account(
+    /// Gets current minimum rent for a mint account (based on `Mint::LEN`, extensions not yet handled)
+    async fn get_current_min_rent_for_mint_account(
         &self,
-        _request: Request<GetCurrentMinRentForTokenAccountRequest>,
-    ) -> Result<Response<GetCurrentMinRentForTokenAccountResponse>, Status> {
+        _request: Request<GetCurrentMinRentForMintAccountRequest>,
+    ) -> Result<Response<GetCurrentMinRentForMintAccountResponse>, Status> {
         // Get minimum balance for rent exemption using Mint::LEN
+        // Extensions are not yet handled — always returns base Mint::LEN rent
         match self
             .rpc_client
             .get_minimum_balance_for_rent_exemption(Mint::LEN)
         {
             Ok(lamports) => {
-                let response = GetCurrentMinRentForTokenAccountResponse { lamports };
+                let response = GetCurrentMinRentForMintAccountResponse { lamports };
                 Ok(Response::new(response))
             }
             Err(e) => Err(Status::internal(format!(
-                "Failed to get minimum balance for token account: {e}"
+                "Failed to get minimum balance for mint account: {e}"
             ))),
         }
     }
@@ -215,8 +216,8 @@ impl TokenProgramService for TokenProgramServiceImpl {
 
         // Step 1: Get current rent for mint account
         let rent_response = self
-            .get_current_min_rent_for_token_account(Request::new(
-                GetCurrentMinRentForTokenAccountRequest {},
+            .get_current_min_rent_for_mint_account(Request::new(
+                GetCurrentMinRentForMintAccountRequest { extensions: vec![] },
             ))
             .await?
             .into_inner();
@@ -242,7 +243,7 @@ impl TokenProgramService for TokenProgramServiceImpl {
             .await?
             .into_inner();
 
-        // Step 3: Create mint initialization instruction
+        // Step 3: Create mint initialization instruction (extensions not yet handled)
         let init_response = self
             .initialise_mint(Request::new(InitialiseMintRequest {
                 mint_pub_key: req.mint_pub_key,
@@ -250,6 +251,7 @@ impl TokenProgramService for TokenProgramServiceImpl {
                 freeze_authority_pub_key: req.freeze_authority_pub_key,
                 decimals: req.decimals,
                 token_program: req.token_program,
+                extensions: vec![],
             }))
             .await?
             .into_inner();

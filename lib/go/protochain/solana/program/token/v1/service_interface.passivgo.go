@@ -11,8 +11,8 @@ type ServiceInterface interface {
 	// Creates an InitialiseMint instruction for Token 2022 program
 	InitialiseMint(ctx context.Context, request *InitialiseMintRequest) (*InitialiseMintResponse, error)
 
-	// Gets current minimum rent for a token account (mint size)
-	GetCurrentMinRentForTokenAccount(ctx context.Context, request *GetCurrentMinRentForTokenAccountRequest) (*GetCurrentMinRentForTokenAccountResponse, error)
+	// Gets current minimum rent for a the mint account (given the desired set of extensions).
+	GetCurrentMinRentForMintAccount(ctx context.Context, request *GetCurrentMinRentForMintAccountRequest) (*GetCurrentMinRentForMintAccountResponse, error)
 
 	// Parses mint account data into structured format
 	ParseMint(ctx context.Context, request *ParseMintRequest) (*ParseMintResponse, error)

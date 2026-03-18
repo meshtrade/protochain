@@ -4,6 +4,8 @@
 
 import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Token2022Extension } from "./token2022_extension_pb";
+import { file_protochain_solana_program_token_v1_token2022_extension } from "./token2022_extension_pb";
 import type { SolanaInstruction } from "../../../transaction/v1/instruction_pb";
 import { file_protochain_solana_transaction_v1_instruction } from "../../../transaction/v1/instruction_pb";
 import type { TokenProgram } from "../../../type/v1/token_program_pb";
@@ -14,38 +16,60 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file protochain/solana/program/token/v1/service.proto.
  */
 export const file_protochain_solana_program_token_v1_service: GenFile = /*@__PURE__*/
-  fileDesc("CjBwcm90b2NoYWluL3NvbGFuYS9wcm9ncmFtL3Rva2VuL3YxL3NlcnZpY2UucHJvdG8SInByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEiwQEKFUluaXRpYWxpc2VNaW50UmVxdWVzdBIUCgxtaW50X3B1Yl9rZXkYASABKAkSHgoWbWludF9hdXRob3JpdHlfcHViX2tleRgCIAEoCRIgChhmcmVlemVfYXV0aG9yaXR5X3B1Yl9rZXkYAyABKAkSEAoIZGVjaW1hbHMYBCABKA0SPgoNdG9rZW5fcHJvZ3JhbRgFIAEoDjInLnByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEuVG9rZW5Qcm9ncmFtImIKFkluaXRpYWxpc2VNaW50UmVzcG9uc2USSAoLaW5zdHJ1Y3Rpb24YASABKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbiIpCidHZXRDdXJyZW50TWluUmVudEZvclRva2VuQWNjb3VudFJlcXVlc3QiPAooR2V0Q3VycmVudE1pblJlbnRGb3JUb2tlbkFjY291bnRSZXNwb25zZRIQCghsYW1wb3J0cxgBIAEoBCIrChBQYXJzZU1pbnRSZXF1ZXN0EhcKD2FjY291bnRfYWRkcmVzcxgBIAEoCSJPChFQYXJzZU1pbnRSZXNwb25zZRI6CgRtaW50GAEgASgLMiwucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5NaW50SW5mbyKGAQoITWludEluZm8SHgoWbWludF9hdXRob3JpdHlfcHViX2tleRgBIAEoCRIgChhmcmVlemVfYXV0aG9yaXR5X3B1Yl9rZXkYAiABKAkSEAoIZGVjaW1hbHMYAyABKA0SDgoGc3VwcGx5GAQgASgJEhYKDmlzX2luaXRpYWxpemVkGAUgASgIIjMKEk1lbW9UcmFuc2ZlckNvbmZpZxIdChVyZXF1aXJlX2luY29taW5nX21lbW8YASABKAgigQEKKUdldEN1cnJlbnRNaW5SZW50Rm9ySG9sZGluZ0FjY291bnRSZXF1ZXN0ElQKFG1lbW9fdHJhbnNmZXJfY29uZmlnGAEgASgLMjYucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5NZW1vVHJhbnNmZXJDb25maWciPgoqR2V0Q3VycmVudE1pblJlbnRGb3JIb2xkaW5nQWNjb3VudFJlc3BvbnNlEhAKCGxhbXBvcnRzGAEgASgEIu8BChtDcmVhdGVIb2xkaW5nQWNjb3VudFJlcXVlc3QSDQoFcGF5ZXIYASABKAkSFQoNb3duZXJfcHViX2tleRgCIAEoCRIUCgxtaW50X3B1Yl9rZXkYAyABKAkSPgoNdG9rZW5fcHJvZ3JhbRgEIAEoDjInLnByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEuVG9rZW5Qcm9ncmFtElQKFG1lbW9fdHJhbnNmZXJfY29uZmlnGAUgASgLMjYucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5NZW1vVHJhbnNmZXJDb25maWciaQocQ3JlYXRlSG9sZGluZ0FjY291bnRSZXNwb25zZRJJCgxpbnN0cnVjdGlvbnMYASADKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbiLMAQoRQ3JlYXRlTWludFJlcXVlc3QSDQoFcGF5ZXIYASABKAkSFAoMbWludF9wdWJfa2V5GAIgASgJEh4KFm1pbnRfYXV0aG9yaXR5X3B1Yl9rZXkYAyABKAkSIAoYZnJlZXplX2F1dGhvcml0eV9wdWJfa2V5GAQgASgJEhAKCGRlY2ltYWxzGAUgASgNEj4KDXRva2VuX3Byb2dyYW0YBiABKA4yJy5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLlRva2VuUHJvZ3JhbSJfChJDcmVhdGVNaW50UmVzcG9uc2USSQoMaW5zdHJ1Y3Rpb25zGAEgAygLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24iigEKC01pbnRSZXF1ZXN0EhQKDG1pbnRfcHViX2tleRgBIAEoCRIjChtkZXN0aW5hdGlvbl9hY2NvdW50X3B1Yl9rZXkYAiABKAkSHgoWbWludF9hdXRob3JpdHlfcHViX2tleRgDIAEoCRIOCgZhbW91bnQYBCABKAkSEAoIZGVjaW1hbHMYBSABKA0iWAoMTWludFJlc3BvbnNlEkgKC2luc3RydWN0aW9uGAEgASgLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24ylwgKB1NlcnZpY2UShwEKDkluaXRpYWxpc2VNaW50EjkucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5Jbml0aWFsaXNlTWludFJlcXVlc3QaOi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkluaXRpYWxpc2VNaW50UmVzcG9uc2USvQEKIEdldEN1cnJlbnRNaW5SZW50Rm9yVG9rZW5BY2NvdW50EksucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5HZXRDdXJyZW50TWluUmVudEZvclRva2VuQWNjb3VudFJlcXVlc3QaTC5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkdldEN1cnJlbnRNaW5SZW50Rm9yVG9rZW5BY2NvdW50UmVzcG9uc2USeAoJUGFyc2VNaW50EjQucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5QYXJzZU1pbnRSZXF1ZXN0GjUucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5QYXJzZU1pbnRSZXNwb25zZRLDAQoiR2V0Q3VycmVudE1pblJlbnRGb3JIb2xkaW5nQWNjb3VudBJNLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuR2V0Q3VycmVudE1pblJlbnRGb3JIb2xkaW5nQWNjb3VudFJlcXVlc3QaTi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkdldEN1cnJlbnRNaW5SZW50Rm9ySG9sZGluZ0FjY291bnRSZXNwb25zZRJ7CgpDcmVhdGVNaW50EjUucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5DcmVhdGVNaW50UmVxdWVzdBo2LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuQ3JlYXRlTWludFJlc3BvbnNlEpkBChRDcmVhdGVIb2xkaW5nQWNjb3VudBI/LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuQ3JlYXRlSG9sZGluZ0FjY291bnRSZXF1ZXN0GkAucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5DcmVhdGVIb2xkaW5nQWNjb3VudFJlc3BvbnNlEmkKBE1pbnQSLy5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLk1pbnRSZXF1ZXN0GjAucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5NaW50UmVzcG9uc2VCVFpSZ2l0aHViLmNvbS9tZXNodHJhZGUvcHJvdG9jaGFpbi9saWIvZ28vcHJvdG9jaGFpbi9zb2xhbmEvcHJvZ3JhbS90b2tlbi92MTt0b2tlbl92MWIGcHJvdG8z", [file_protochain_solana_transaction_v1_instruction, file_protochain_solana_type_v1_token_program]);
+  fileDesc("CjBwcm90b2NoYWluL3NvbGFuYS9wcm9ncmFtL3Rva2VuL3YxL3NlcnZpY2UucHJvdG8SInByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEijQIKFUluaXRpYWxpc2VNaW50UmVxdWVzdBIUCgxtaW50X3B1Yl9rZXkYASABKAkSHgoWbWludF9hdXRob3JpdHlfcHViX2tleRgCIAEoCRIgChhmcmVlemVfYXV0aG9yaXR5X3B1Yl9rZXkYAyABKAkSEAoIZGVjaW1hbHMYBCABKA0SPgoNdG9rZW5fcHJvZ3JhbRgFIAEoDjInLnByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEuVG9rZW5Qcm9ncmFtEkoKCmV4dGVuc2lvbnMYBiADKAsyNi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLlRva2VuMjAyMkV4dGVuc2lvbiJiChZJbml0aWFsaXNlTWludFJlc3BvbnNlEkgKC2luc3RydWN0aW9uGAEgASgLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24idAomR2V0Q3VycmVudE1pblJlbnRGb3JNaW50QWNjb3VudFJlcXVlc3QSSgoKZXh0ZW5zaW9ucxgGIAMoCzI2LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuVG9rZW4yMDIyRXh0ZW5zaW9uIjsKJ0dldEN1cnJlbnRNaW5SZW50Rm9yTWludEFjY291bnRSZXNwb25zZRIQCghsYW1wb3J0cxgBIAEoBCIrChBQYXJzZU1pbnRSZXF1ZXN0EhcKD2FjY291bnRfYWRkcmVzcxgBIAEoCSJPChFQYXJzZU1pbnRSZXNwb25zZRI6CgRtaW50GAEgASgLMiwucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5NaW50SW5mbyKGAQoITWludEluZm8SHgoWbWludF9hdXRob3JpdHlfcHViX2tleRgBIAEoCRIgChhmcmVlemVfYXV0aG9yaXR5X3B1Yl9rZXkYAiABKAkSEAoIZGVjaW1hbHMYAyABKA0SDgoGc3VwcGx5GAQgASgJEhYKDmlzX2luaXRpYWxpemVkGAUgASgIIjMKEk1lbW9UcmFuc2ZlckNvbmZpZxIdChVyZXF1aXJlX2luY29taW5nX21lbW8YASABKAgigQEKKUdldEN1cnJlbnRNaW5SZW50Rm9ySG9sZGluZ0FjY291bnRSZXF1ZXN0ElQKFG1lbW9fdHJhbnNmZXJfY29uZmlnGAEgASgLMjYucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5NZW1vVHJhbnNmZXJDb25maWciPgoqR2V0Q3VycmVudE1pblJlbnRGb3JIb2xkaW5nQWNjb3VudFJlc3BvbnNlEhAKCGxhbXBvcnRzGAEgASgEIu8BChtDcmVhdGVIb2xkaW5nQWNjb3VudFJlcXVlc3QSDQoFcGF5ZXIYASABKAkSFQoNb3duZXJfcHViX2tleRgCIAEoCRIUCgxtaW50X3B1Yl9rZXkYAyABKAkSPgoNdG9rZW5fcHJvZ3JhbRgEIAEoDjInLnByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEuVG9rZW5Qcm9ncmFtElQKFG1lbW9fdHJhbnNmZXJfY29uZmlnGAUgASgLMjYucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5NZW1vVHJhbnNmZXJDb25maWciaQocQ3JlYXRlSG9sZGluZ0FjY291bnRSZXNwb25zZRJJCgxpbnN0cnVjdGlvbnMYASADKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbiLMAQoRQ3JlYXRlTWludFJlcXVlc3QSDQoFcGF5ZXIYASABKAkSFAoMbWludF9wdWJfa2V5GAIgASgJEh4KFm1pbnRfYXV0aG9yaXR5X3B1Yl9rZXkYAyABKAkSIAoYZnJlZXplX2F1dGhvcml0eV9wdWJfa2V5GAQgASgJEhAKCGRlY2ltYWxzGAUgASgNEj4KDXRva2VuX3Byb2dyYW0YBiABKA4yJy5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLlRva2VuUHJvZ3JhbSJfChJDcmVhdGVNaW50UmVzcG9uc2USSQoMaW5zdHJ1Y3Rpb25zGAEgAygLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24iigEKC01pbnRSZXF1ZXN0EhQKDG1pbnRfcHViX2tleRgBIAEoCRIjChtkZXN0aW5hdGlvbl9hY2NvdW50X3B1Yl9rZXkYAiABKAkSHgoWbWludF9hdXRob3JpdHlfcHViX2tleRgDIAEoCRIOCgZhbW91bnQYBCABKAkSEAoIZGVjaW1hbHMYBSABKA0iWAoMTWludFJlc3BvbnNlEkgKC2luc3RydWN0aW9uGAEgASgLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24ylAgKB1NlcnZpY2UShwEKDkluaXRpYWxpc2VNaW50EjkucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5Jbml0aWFsaXNlTWludFJlcXVlc3QaOi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkluaXRpYWxpc2VNaW50UmVzcG9uc2USugEKH0dldEN1cnJlbnRNaW5SZW50Rm9yTWludEFjY291bnQSSi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkdldEN1cnJlbnRNaW5SZW50Rm9yTWludEFjY291bnRSZXF1ZXN0GksucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5HZXRDdXJyZW50TWluUmVudEZvck1pbnRBY2NvdW50UmVzcG9uc2USeAoJUGFyc2VNaW50EjQucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5QYXJzZU1pbnRSZXF1ZXN0GjUucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5QYXJzZU1pbnRSZXNwb25zZRLDAQoiR2V0Q3VycmVudE1pblJlbnRGb3JIb2xkaW5nQWNjb3VudBJNLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuR2V0Q3VycmVudE1pblJlbnRGb3JIb2xkaW5nQWNjb3VudFJlcXVlc3QaTi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkdldEN1cnJlbnRNaW5SZW50Rm9ySG9sZGluZ0FjY291bnRSZXNwb25zZRJ7CgpDcmVhdGVNaW50EjUucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5DcmVhdGVNaW50UmVxdWVzdBo2LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuQ3JlYXRlTWludFJlc3BvbnNlEpkBChRDcmVhdGVIb2xkaW5nQWNjb3VudBI/LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuQ3JlYXRlSG9sZGluZ0FjY291bnRSZXF1ZXN0GkAucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5DcmVhdGVIb2xkaW5nQWNjb3VudFJlc3BvbnNlEmkKBE1pbnQSLy5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLk1pbnRSZXF1ZXN0GjAucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5NaW50UmVzcG9uc2VCVFpSZ2l0aHViLmNvbS9tZXNodHJhZGUvcHJvdG9jaGFpbi9saWIvZ28vcHJvdG9jaGFpbi9zb2xhbmEvcHJvZ3JhbS90b2tlbi92MTt0b2tlbl92MWIGcHJvdG8z", [file_protochain_solana_program_token_v1_token2022_extension, file_protochain_solana_transaction_v1_instruction, file_protochain_solana_type_v1_token_program]);
 
 /**
- * Request to create InitialiseMint instruction
+ * Request to create a Solana Mint (Token-2022) with optional Metadata Extensions.
  *
  * @generated from message protochain.solana.program.token.v1.InitialiseMintRequest
  */
 export type InitialiseMintRequest = Message<"protochain.solana.program.token.v1.InitialiseMintRequest"> & {
   /**
+   * The public key of the Mint account to be initialized.
+   *
    * @generated from field: string mint_pub_key = 1;
    */
   mintPubKey: string;
 
   /**
+   * The authority that can mint new tokens.
+   * This usually defaults to the sender if not provided in the SDK wrapper.
+   *
    * @generated from field: string mint_authority_pub_key = 2;
    */
   mintAuthorityPubKey: string;
 
   /**
+   * Optional authority that can freeze token accounts.
+   *
    * @generated from field: string freeze_authority_pub_key = 3;
    */
   freezeAuthorityPubKey: string;
 
   /**
+   * Number of base 10 digits to the right of the decimal place.
+   * Common values: 9 for SOL-like tokens, 6 for USDC-like tokens, 0 for NFTs.
+   *
    * @generated from field: uint32 decimals = 4;
    */
   decimals: number;
 
   /**
+   * Specifies which program to use.
+   * Metadata extensions are ONLY supported when this is set to TOKEN_2022.
+   *
    * @generated from field: protochain.solana.type.v1.TokenProgram token_program = 5;
    */
   tokenProgram: TokenProgram;
+
+  /**
+   * Ordered list of extensions to enable on the mint.
+   * NOTE: If an extension is not included here during initialization,
+   * it cannot be added to the mint account later.
+   *
+   * @generated from field: repeated protochain.solana.program.token.v1.Token2022Extension extensions = 6;
+   */
+  extensions: Token2022Extension[];
 };
 
 /**
@@ -75,28 +99,33 @@ export const InitialiseMintResponseSchema: GenMessage<InitialiseMintResponse> = 
   messageDesc(file_protochain_solana_program_token_v1_service, 1);
 
 /**
- * Request to get current rent for token account
+ * Request to get current rent (in lamports) for token account.
  *
- * No parameters needed - uses fixed Mint::LEN size
- *
- * @generated from message protochain.solana.program.token.v1.GetCurrentMinRentForTokenAccountRequest
+ * @generated from message protochain.solana.program.token.v1.GetCurrentMinRentForMintAccountRequest
  */
-export type GetCurrentMinRentForTokenAccountRequest = Message<"protochain.solana.program.token.v1.GetCurrentMinRentForTokenAccountRequest"> & {
+export type GetCurrentMinRentForMintAccountRequest = Message<"protochain.solana.program.token.v1.GetCurrentMinRentForMintAccountRequest"> & {
+  /**
+   * Ordered list of extensions to enable on the mint.
+   * If no extensions are provided then result is Mint::LEN.
+   *
+   * @generated from field: repeated protochain.solana.program.token.v1.Token2022Extension extensions = 6;
+   */
+  extensions: Token2022Extension[];
 };
 
 /**
- * Describes the message protochain.solana.program.token.v1.GetCurrentMinRentForTokenAccountRequest.
- * Use `create(GetCurrentMinRentForTokenAccountRequestSchema)` to create a new message.
+ * Describes the message protochain.solana.program.token.v1.GetCurrentMinRentForMintAccountRequest.
+ * Use `create(GetCurrentMinRentForMintAccountRequestSchema)` to create a new message.
  */
-export const GetCurrentMinRentForTokenAccountRequestSchema: GenMessage<GetCurrentMinRentForTokenAccountRequest> = /*@__PURE__*/
+export const GetCurrentMinRentForMintAccountRequestSchema: GenMessage<GetCurrentMinRentForMintAccountRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_token_v1_service, 2);
 
 /**
  * Response with current rent amount
  *
- * @generated from message protochain.solana.program.token.v1.GetCurrentMinRentForTokenAccountResponse
+ * @generated from message protochain.solana.program.token.v1.GetCurrentMinRentForMintAccountResponse
  */
-export type GetCurrentMinRentForTokenAccountResponse = Message<"protochain.solana.program.token.v1.GetCurrentMinRentForTokenAccountResponse"> & {
+export type GetCurrentMinRentForMintAccountResponse = Message<"protochain.solana.program.token.v1.GetCurrentMinRentForMintAccountResponse"> & {
   /**
    * @generated from field: uint64 lamports = 1;
    */
@@ -104,10 +133,10 @@ export type GetCurrentMinRentForTokenAccountResponse = Message<"protochain.solan
 };
 
 /**
- * Describes the message protochain.solana.program.token.v1.GetCurrentMinRentForTokenAccountResponse.
- * Use `create(GetCurrentMinRentForTokenAccountResponseSchema)` to create a new message.
+ * Describes the message protochain.solana.program.token.v1.GetCurrentMinRentForMintAccountResponse.
+ * Use `create(GetCurrentMinRentForMintAccountResponseSchema)` to create a new message.
  */
-export const GetCurrentMinRentForTokenAccountResponseSchema: GenMessage<GetCurrentMinRentForTokenAccountResponse> = /*@__PURE__*/
+export const GetCurrentMinRentForMintAccountResponseSchema: GenMessage<GetCurrentMinRentForMintAccountResponse> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_token_v1_service, 3);
 
 /**
@@ -474,14 +503,14 @@ export const Service: GenService<{
     output: typeof InitialiseMintResponseSchema;
   },
   /**
-   * Gets current minimum rent for a token account (mint size)
+   * Gets current minimum rent for a the mint account (given the desired set of extensions).
    *
-   * @generated from rpc protochain.solana.program.token.v1.Service.GetCurrentMinRentForTokenAccount
+   * @generated from rpc protochain.solana.program.token.v1.Service.GetCurrentMinRentForMintAccount
    */
-  getCurrentMinRentForTokenAccount: {
+  getCurrentMinRentForMintAccount: {
     methodKind: "unary";
-    input: typeof GetCurrentMinRentForTokenAccountRequestSchema;
-    output: typeof GetCurrentMinRentForTokenAccountResponseSchema;
+    input: typeof GetCurrentMinRentForMintAccountRequestSchema;
+    output: typeof GetCurrentMinRentForMintAccountResponseSchema;
   },
   /**
    * Parses mint account data into structured format

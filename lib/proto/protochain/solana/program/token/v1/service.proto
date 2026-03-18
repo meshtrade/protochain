@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package protochain.solana.program.token.v1;
 
+import "protochain/solana/program/token/v1/token2022_extension.proto";
 import "protochain/solana/transaction/v1/instruction.proto";
 import "protochain/solana/type/v1/token_program.proto";
 
@@ -12,8 +13,8 @@ service Service {
   // Creates an InitialiseMint instruction for Token 2022 program
   rpc InitialiseMint(InitialiseMintRequest) returns (InitialiseMintResponse);
 
-  // Gets current minimum rent for a token account (mint size)
-  rpc GetCurrentMinRentForTokenAccount(GetCurrentMinRentForTokenAccountRequest) returns (GetCurrentMinRentForTokenAccountResponse);
+  // Gets current minimum rent for a the mint account (given the desired set of extensions).
+  rpc GetCurrentMinRentForMintAccount(GetCurrentMinRentForMintAccountRequest) returns (GetCurrentMinRentForMintAccountResponse);
 
   // Parses mint account data into structured format
   rpc ParseMint(ParseMintRequest) returns (ParseMintResponse);
@@ -51,37 +52,10 @@ message InitialiseMintRequest {
   // Metadata extensions are ONLY supported when this is set to TOKEN_2022.
   protochain.solana.type.v1.TokenProgram token_program = 5;
 
-  // Configuration for Token-2022 Metadata Extensions.
-  // If this field is omitted, the mint will be created without metadata support,
-  // and metadata CANNOT be added to this mint account later.
-  Token2022Metadata metadata = 6;
-
-  message Token2022Metadata {
-    // The account that serves as the "source of truth" for metadata.
-    // For the most common 'ultramodern' setup, this should be the same as the mint_pub_key.
-    // If left empty in the SDK, it should default to the mint_pub_key.
-    string metadata_address = 1;
-
-    // The authority allowed to sign and update the metadata fields (name, symbol, uri, etc).
-    // If not provided, the SDK should default this to the mint_authority_pub_key.
-    string update_authority_pub_key = 2;
-
-    // The full name of the token (e.g., "USD Coin").
-    string name = 3;
-
-    // The ticker/symbol of the token (e.g., "USDC").
-    string symbol = 4;
-
-    // URL pointing to an off-chain JSON file (IPFS/Arweave/HTTPS).
-    // Follows the Metaplex standard for displaying images and descriptions in wallets.
-    // See: https://developers.metaplex.com/smart-contracts/token-metadata/token-standard
-    string uri = 5;
-
-    // Custom key-value pairs stored directly on the blockchain.
-    // Use this for data that smart contracts need to read (e.g., "rarity": "mythic").
-    // Note: Adding many items increases the rent cost of the Mint account.
-    map<string, string> additional_metadata = 6;
-  }
+  // Ordered list of extensions to enable on the mint.
+  // NOTE: If an extension is not included here during initialization,
+  // it cannot be added to the mint account later.
+  repeated protochain.solana.program.token.v1.Token2022Extension extensions = 6;
 }
 
 // Response containing InitialiseMint instruction
@@ -89,13 +63,15 @@ message InitialiseMintResponse {
   protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
 }
 
-// Request to get current rent for token account
-message GetCurrentMinRentForTokenAccountRequest {
-  // No parameters needed - uses fixed Mint::LEN size
+// Request to get current rent (in lamports) for token account.
+message GetCurrentMinRentForMintAccountRequest {
+  // Ordered list of extensions to enable on the mint.
+  // If no extensions are provided then result is Mint::LEN.
+  repeated protochain.solana.program.token.v1.Token2022Extension extensions = 6;
 }
 
 // Response with current rent amount
-message GetCurrentMinRentForTokenAccountResponse {
+message GetCurrentMinRentForMintAccountResponse {
   uint64 lamports = 1;
 }
 

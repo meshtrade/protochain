@@ -95,7 +95,7 @@ func (suite *TokenProgramE2ETestSuite) Test_01_InitialiseMint() {
 	suite.T().Logf("  Generated mint account: %s", mintKeyResp.KeyPair.PublicKey)
 
 	// Get current rent for token account
-	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForTokenAccount(suite.ctx, &token_v1.GetCurrentMinRentForTokenAccountRequest{})
+	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForMintAccount(suite.ctx, &token_v1.GetCurrentMinRentForMintAccountRequest{})
 	suite.Require().NoError(err, "Should get current rent amount")
 	suite.T().Logf("  Rent required for mint: %d lamports", rentResp.Lamports)
 
@@ -180,12 +180,12 @@ func (suite *TokenProgramE2ETestSuite) Test_01_InitialiseMint() {
 	suite.T().Logf("   Supply: %s", parsedMint.Mint.Supply)
 }
 
-// Test_02_GetCurrentMinRentForTokenAccount tests rent calculation
-func (suite *TokenProgramE2ETestSuite) Test_02_GetCurrentMinRentForTokenAccount() {
+// Test_02_GetCurrentMinRentForMintAccount tests rent calculation
+func (suite *TokenProgramE2ETestSuite) Test_02_GetCurrentMinRentForMintAccount() {
 	suite.T().Log("🎯 Testing Token Account Rent Calculation")
 
 	// Get rent for token account
-	resp, err := suite.tokenProgramService.GetCurrentMinRentForTokenAccount(suite.ctx, &token_v1.GetCurrentMinRentForTokenAccountRequest{})
+	resp, err := suite.tokenProgramService.GetCurrentMinRentForMintAccount(suite.ctx, &token_v1.GetCurrentMinRentForMintAccountRequest{})
 	suite.Require().NoError(err, "Should get rent successfully")
 	suite.Require().NotZero(resp.Lamports, "Rent should not be zero")
 
@@ -269,7 +269,7 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Mint_e2e() {
 	suite.T().Logf("  Generated mint account: %s", mintKeyResp.KeyPair.PublicKey)
 
 	// Get current rent for token account
-	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForTokenAccount(suite.ctx, &token_v1.GetCurrentMinRentForTokenAccountRequest{})
+	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForMintAccount(suite.ctx, &token_v1.GetCurrentMinRentForMintAccountRequest{})
 	suite.Require().NoError(err, "Should get current rent amount")
 	suite.T().Logf("  Rent required for mint: %d lamports", rentResp.Lamports)
 
@@ -378,7 +378,7 @@ func (suite *TokenProgramE2ETestSuite) Test_03_Token_e2e() {
 	suite.T().Logf("  Generated mint account: %s", mintKeyResp.KeyPair.PublicKey)
 
 	// Get current rent for token account
-	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForTokenAccount(suite.ctx, &token_v1.GetCurrentMinRentForTokenAccountRequest{})
+	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForMintAccount(suite.ctx, &token_v1.GetCurrentMinRentForMintAccountRequest{})
 	suite.Require().NoError(err, "Should get current rent amount")
 	suite.T().Logf("  Rent required for mint: %d lamports", rentResp.Lamports)
 
