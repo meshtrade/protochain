@@ -8,7 +8,7 @@ use protochain_api::protochain::solana::program::system::v1::{
     service_server::Service as SystemProgramService, CreateRequest as SystemCreateRequest,
 };
 use protochain_api::protochain::solana::program::token::v1::{
-    service_server::Service as TokenProgramService, token2022_extension,
+    metaplex_uses, service_server::Service as TokenProgramService, token2022_extension,
     CreateHoldingAccountRequest, CreateHoldingAccountResponse, CreateMintRequest,
     CreateMintResponse, GetCurrentMinRentForHoldingAccountRequest,
     GetCurrentMinRentForHoldingAccountResponse, GetCurrentMinRentForSplTokenMintAccountRequest,
@@ -16,8 +16,8 @@ use protochain_api::protochain::solana::program::token::v1::{
     GetCurrentMinRentForToken2022MintAccountRequest,
     GetCurrentMinRentForToken2022MintAccountResponse, InitialiseSplTokenMintRequest,
     InitialiseSplTokenMintResponse, InitialiseToken2022MintRequest,
-    InitialiseToken2022MintResponse, MintInfo, MintRequest, MintResponse, ParseMintRequest,
-    ParseMintResponse, Token2022Extension, Token2022ExtensionMetadata,
+    InitialiseToken2022MintResponse, MetaplexTokenMetadata, MintInfo, MintRequest, MintResponse,
+    ParseMintRequest, ParseMintResponse, Token2022Extension, Token2022ExtensionMetadata,
 };
 use protochain_api::protochain::solana::r#type::v1::TokenProgram;
 use spl_associated_token_account::instruction::create_associated_token_account;
@@ -34,6 +34,12 @@ use std::str::FromStr;
 use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
+use mpl_token_metadata::instructions::CreateMetadataAccountV3Builder;
+use mpl_token_metadata::types::{
+    Collection as MplCollection, Creator as MplCreator, DataV2, UseMethod as MplUseMethod,
+    Uses as MplUses,
+};
+use mpl_token_metadata::ID as METADATA_PROGRAM_ID;
 use solana_client::rpc_client::RpcClient;
 use solana_commitment_config::CommitmentConfig;
 use solana_sdk::{program_pack::Pack, pubkey::Pubkey};
@@ -245,6 +251,106 @@ fn extract_token2022_extensions(
     extensions
 }
 
+/// Converts proto `MetaplexTokenMetadata` into the Metaplex SDK `DataV2` type.
+#[allow(clippy::result_large_err)]
+fn proto_metadata_to_data_v2(metadata: &MetaplexTokenMetadata) -> Result<DataV2, Status> {
+    let creators = if metadata.creators.is_empty() {
+        None
+    } else {
+        let mut creators = Vec::with_capacity(metadata.creators.len());
+        for c in &metadata.creators {
+            creators.push(MplCreator {
+                address: Pubkey::from_str(&c.address).map_err(|e| {
+                    Status::invalid_argument(format!("Invalid creator address: {e}"))
+                })?,
+                verified: c.verified,
+                share: u8::try_from(c.share).map_err(|_| {
+                    Status::invalid_argument("creator share must be between 0 and 100")
+                })?,
+            });
+        }
+        Some(creators)
+    };
+
+    let collection = metadata
+        .collection
+        .as_ref()
+        .map(|c| {
+            Ok::<_, Status>(MplCollection {
+                verified: c.verified,
+                key: Pubkey::from_str(&c.key).map_err(|e| {
+                    Status::invalid_argument(format!("Invalid collection key: {e}"))
+                })?,
+            })
+        })
+        .transpose()?;
+
+    let uses = metadata
+        .uses
+        .as_ref()
+        .map(|u| {
+            let use_method = match metaplex_uses::UseMethod::try_from(u.use_method) {
+                Ok(metaplex_uses::UseMethod::Burn) => MplUseMethod::Burn,
+                Ok(metaplex_uses::UseMethod::Multiple) => MplUseMethod::Multiple,
+                Ok(metaplex_uses::UseMethod::Single) => MplUseMethod::Single,
+                _ => {
+                    return Err(Status::invalid_argument(
+                        "use_method must be BURN, MULTIPLE, or SINGLE",
+                    ))
+                }
+            };
+            Ok::<_, Status>(MplUses {
+                use_method,
+                remaining: u.remaining,
+                total: u.total,
+            })
+        })
+        .transpose()?;
+
+    Ok(DataV2 {
+        name: metadata.name.clone(),
+        symbol: metadata.symbol.clone(),
+        uri: metadata.uri.clone(),
+        seller_fee_basis_points: u16::try_from(metadata.seller_fee_basis_points).map_err(|_| {
+            Status::invalid_argument("seller_fee_basis_points must fit in u16 (0–65535)")
+        })?,
+        creators,
+        collection,
+        uses,
+    })
+}
+
+/// Builds a `CreateMetadataAccountV3` instruction for the Metaplex Token Metadata
+/// program, which creates the on-chain metadata PDA for an SPL Token mint.
+#[allow(clippy::result_large_err)]
+fn build_create_metaplex_metadata_instruction(
+    mint_pubkey: &Pubkey,
+    mint_authority: &Pubkey,
+    payer: &Pubkey,
+    metadata: &MetaplexTokenMetadata,
+) -> Result<solana_sdk::instruction::Instruction, Status> {
+    let (metadata_pda, _) = Pubkey::find_program_address(
+        &[
+            b"metadata",
+            METADATA_PROGRAM_ID.as_ref(),
+            mint_pubkey.as_ref(),
+        ],
+        &METADATA_PROGRAM_ID,
+    );
+
+    let data = proto_metadata_to_data_v2(metadata)?;
+
+    Ok(CreateMetadataAccountV3Builder::new()
+        .metadata(metadata_pda)
+        .mint(*mint_pubkey)
+        .mint_authority(*mint_authority)
+        .payer(*payer)
+        .update_authority(*mint_authority, true)
+        .data(data)
+        .is_mutable(true)
+        .instruction())
+}
+
 /// Builds the ordered list of SDK instructions needed to initialise a Token-2022
 /// mint with the requested extensions.
 ///
@@ -406,7 +512,11 @@ impl TokenProgramService for TokenProgramServiceImpl {
         Ok(Response::new(InitialiseToken2022MintResponse { instructions }))
     }
 
-    /// Creates a single `initialise_mint` instruction for the legacy SPL Token program.
+    /// Creates initialisation instructions for the legacy SPL Token program.
+    ///
+    /// Returns one instruction (`initialize_mint`) when no metadata is provided.
+    /// When `metadata` is set, a `CreateMetadataAccountV3` instruction is appended
+    /// to create the on-chain Metaplex metadata PDA for the mint.
     async fn initialise_spl_token_mint(
         &self,
         request: Request<InitialiseSplTokenMintRequest>,
@@ -430,7 +540,10 @@ impl TokenProgramService for TokenProgramServiceImpl {
         let decimals = u8::try_from(req.decimals)
             .map_err(|_| Status::invalid_argument("decimals must be between 0 and 255"))?;
 
-        let instruction = initialize_mint2(
+        let mut instructions = Vec::new();
+
+        // 1. Base initialize_mint instruction
+        let init_mint_ix = initialize_mint2(
             &SPL_TOKEN_PROGRAM_ID,
             &mint_pubkey,
             &mint_authority,
@@ -440,10 +553,28 @@ impl TokenProgramService for TokenProgramServiceImpl {
         .map_err(|e| {
             Status::internal(format!("could not create initialise mint token instruction: {e}"))
         })?;
+        instructions.push(sdk_instruction_to_proto(init_mint_ix));
 
-        Ok(Response::new(InitialiseSplTokenMintResponse {
-            instruction: Some(sdk_instruction_to_proto(instruction)),
-        }))
+        // 2. Optional Metaplex metadata instruction
+        if let Some(ref metadata) = req.metadata {
+            if req.payer_pub_key.is_empty() {
+                return Err(Status::invalid_argument(
+                    "payer_pub_key is required when metadata is provided",
+                ));
+            }
+            let payer = Pubkey::from_str(&req.payer_pub_key)
+                .map_err(|e| Status::invalid_argument(format!("Invalid payer_pub_key: {e}")))?;
+
+            let create_metadata_ix = build_create_metaplex_metadata_instruction(
+                &mint_pubkey,
+                &mint_authority,
+                &payer,
+                metadata,
+            )?;
+            instructions.push(sdk_instruction_to_proto(create_metadata_ix));
+        }
+
+        Ok(Response::new(InitialiseSplTokenMintResponse { instructions }))
     }
 
     /// Gets the minimum rent-exempt balance and allocation space for a Token-2022
@@ -650,12 +781,12 @@ impl TokenProgramService for TokenProgramServiceImpl {
                         mint_authority_pub_key: req.mint_authority_pub_key,
                         freeze_authority_pub_key: req.freeze_authority_pub_key,
                         decimals: req.decimals,
+                        payer_pub_key: String::new(),
+                        metadata: None,
                     }))
                     .await?
                     .into_inner();
-                if let Some(instr) = init_response.instruction {
-                    instructions.push(instr);
-                }
+                instructions.extend(init_response.instructions);
             }
             TokenProgram::TokenProgram2022 => {
                 let init_response = self

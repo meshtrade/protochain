@@ -262,24 +262,31 @@ func (suite *TokenProgramE2ETestSuite) Test_02_InitialiseMint_SPL() {
 	})
 	suite.Require().NoError(err, "Should create SPL mint account instruction")
 
-	// Initialize mint instruction for legacy SPL Token program
+	// Initialize mint instruction for legacy SPL Token program with Metaplex metadata
 	initialiseMintResp, err := suite.tokenProgramService.InitialiseSPLTokenMint(suite.ctx, &token_v1.InitialiseSPLTokenMintRequest{
 		MintPubKey:            mintKeyResp.KeyPair.PublicKey,
 		MintAuthorityPubKey:   payKeyResp.KeyPair.PublicKey,
 		FreezeAuthorityPubKey: payKeyResp.KeyPair.PublicKey,
 		Decimals:              6,
-	})
-	suite.Require().NoError(err, "Should create SPL initialise mint instruction")
-	suite.Require().NotNil(initialiseMintResp.Instruction,
-		"SPL legacy mint should return exactly 1 instruction (initialize_mint)")
-
-	// Compose atomic transaction
-	atomicTx := &transaction_v1.Transaction{
-		Instructions: []*transaction_v1.SolanaInstruction{
-			createMintInstr.Instruction,
-			initialiseMintResp.Instruction,
+		PayerPubKey:           payKeyResp.KeyPair.PublicKey,
+		Metadata: &token_v1.MetaplexTokenMetadata{
+			Name:                 "Test SPL Token",
+			Symbol:               "TSPL",
+			Uri:                  "https://example.com/spl-metadata.json",
+			SellerFeeBasisPoints: 0,
 		},
-		State: transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
+	})
+	suite.Require().NoError(err, "Should create SPL initialise mint instructions")
+	suite.Require().Len(initialiseMintResp.Instructions, 2,
+		"Should return 2 instructions: initialize_mint + create_metadata_account_v3")
+	suite.T().Logf("  InitialiseSPLTokenMint returned %d instructions", len(initialiseMintResp.Instructions))
+
+	// Compose atomic transaction: system create + init mint + create metadata
+	instructions := []*transaction_v1.SolanaInstruction{createMintInstr.Instruction}
+	instructions = append(instructions, initialiseMintResp.Instructions...)
+	atomicTx := &transaction_v1.Transaction{
+		Instructions: instructions,
+		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 	}
 
 	// Execute transaction lifecycle
@@ -331,17 +338,15 @@ func (suite *TokenProgramE2ETestSuite) Test_02_InitialiseMint_SPL() {
 	suite.Assert().Equal(type_v1.TokenProgram_TOKEN_PROGRAM_LEGACY, parsedMint.TokenProgram,
 		"Token program should be TOKEN_PROGRAM_LEGACY")
 
-	// Legacy mints should have no extensions
+	// Legacy mints should have no extensions (metadata is stored in a separate PDA, not on the mint)
 	suite.Assert().Empty(parsedMint.Extensions, "Legacy SPL mint should have no extensions")
 
-	// Legacy SPL Token program uses a dedicated method with no extensions field,
-	// so there is no need to test extension rejection - the API makes it impossible.
-
-	suite.T().Logf("✅ Legacy SPL Token Mint created and verified successfully:")
+	suite.T().Logf("✅ Legacy SPL Token Mint with Metaplex metadata created and verified successfully:")
 	suite.T().Logf("   Mint Address: %s", mintKeyResp.KeyPair.PublicKey)
 	suite.T().Logf("   Decimals: %d", parsedMint.Mint.Decimals)
 	suite.T().Logf("   Authority: %s", parsedMint.Mint.MintAuthorityPubKey)
 	suite.T().Logf("   Supply: %s", parsedMint.Mint.Supply)
+	suite.T().Logf("   Metaplex Metadata: name=\"Test SPL Token\" symbol=\"TSPL\"")
 }
 
 // Test_03_GetCurrentMinRentForMintAccount tests rent calculation for both Token-2022 and SPL Token

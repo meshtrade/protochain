@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package protochain.solana.program.token.v1;
 
+import "protochain/solana/program/token/v1/spl_token_metadata.proto";
 import "protochain/solana/program/token/v1/token2022_extension.proto";
 import "protochain/solana/transaction/v1/instruction.proto";
 import "protochain/solana/type/v1/token_program.proto";
@@ -102,11 +103,20 @@ message InitialiseSPLTokenMintRequest {
   // Number of base 10 digits to the right of the decimal place.
   // Common values: 9 for SOL-like tokens, 6 for USDC-like tokens, 0 for NFTs.
   uint32 decimals = 4;
+
+  // The public key of the account paying for the Metaplex metadata PDA creation.
+  // Required when metadata is provided.
+  string payer_pub_key = 5;
+
+  // Optional Metaplex metadata to attach to the mint via the Metaplex Token Metadata program.
+  // When provided, a CreateMetadataAccountV3 instruction is appended after initialize_mint.
+  optional MetaplexTokenMetadata metadata = 6;
 }
 
-// Response containing a single SPL Token initialise_mint instruction.
+// Response containing SPL Token initialise_mint instructions.
+// When metadata is requested, additional Metaplex instructions follow the base initialize_mint.
 message InitialiseSPLTokenMintResponse {
-  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+  repeated protochain.solana.transaction.v1.SolanaInstruction instructions = 1;
 }
 
 // Request for the minimum rent and space required for a Token-2022 mint account.
