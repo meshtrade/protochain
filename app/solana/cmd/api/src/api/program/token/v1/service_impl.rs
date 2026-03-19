@@ -12,9 +12,10 @@ use protochain_api::protochain::solana::program::token::v1::{
     CreateHoldingAccountRequest, CreateHoldingAccountResponse, CreateMintRequest,
     CreateMintResponse, GetCurrentMinRentForHoldingAccountRequest,
     GetCurrentMinRentForHoldingAccountResponse, GetCurrentMinRentForMintAccountRequest,
-    GetCurrentMinRentForMintAccountResponse, InitialiseMintRequest, InitialiseMintResponse,
-    MintInfo, MintRequest, MintResponse, ParseMintRequest, ParseMintResponse, Token2022Extension,
-    Token2022ExtensionMetadata,
+    GetCurrentMinRentForMintAccountResponse, InitialiseSplTokenMintRequest,
+    InitialiseSplTokenMintResponse, InitialiseToken2022MintRequest,
+    InitialiseToken2022MintResponse, MintInfo, MintRequest, MintResponse, ParseMintRequest,
+    ParseMintResponse, Token2022Extension, Token2022ExtensionMetadata,
 };
 use protochain_api::protochain::solana::r#type::v1::TokenProgram;
 use spl_associated_token_account::instruction::create_associated_token_account;
@@ -35,7 +36,7 @@ use solana_client::rpc_client::RpcClient;
 use solana_commitment_config::CommitmentConfig;
 use solana_sdk::{program_pack::Pack, pubkey::Pubkey};
 use spl_associated_token_account::get_associated_token_address_with_program_id;
-use spl_token::ID as LEGACY_PROGRAM_ID;
+use spl_token::ID as SPL_TOKEN_PROGRAM_ID;
 use spl_token_2022::{
     extension::{
         metadata_pointer::{
@@ -364,29 +365,23 @@ fn build_token2022_mint_instructions(
 
 #[tonic::async_trait]
 impl TokenProgramService for TokenProgramServiceImpl {
-    /// Creates initialisation instructions for an SPL Legacy or Token-2022 mint.
+    /// Creates initialisation instructions for a Token-2022 mint.
     ///
-    /// **SPL Legacy** (`TOKEN_PROGRAM_LEGACY`): returns a single `initialize_mint`
-    /// instruction. Extensions must be empty.
-    ///
-    /// **Token-2022** (`TOKEN_PROGRAM_2022`): returns one or more instructions
-    /// depending on the requested extensions.  With the Metadata extension the
-    /// order is: metadata-pointer init → `initialize_mint` → token-metadata init
-    /// → `update_field` × N.
-    async fn initialise_mint(
+    /// Returns one or more instructions depending on the requested extensions.
+    /// With the Metadata extension the order is: metadata-pointer init →
+    /// `initialize_mint` → token-metadata init → `update_field` × N.
+    async fn initialise_token2022_mint(
         &self,
-        request: Request<InitialiseMintRequest>,
-    ) -> Result<Response<InitialiseMintResponse>, Status> {
+        request: Request<InitialiseToken2022MintRequest>,
+    ) -> Result<Response<InitialiseToken2022MintResponse>, Status> {
         let req = request.into_inner();
 
-        // parse public keys
         let mint_pubkey = Pubkey::from_str(&req.mint_pub_key)
             .map_err(|e| Status::invalid_argument(format!("Invalid mint_pub_key: {e}")))?;
         let mint_authority = Pubkey::from_str(&req.mint_authority_pub_key).map_err(|e| {
             Status::invalid_argument(format!("Invalid mint_authority_pub_key: {e}"))
         })?;
 
-        // parse optional freeze authority
         let freeze_authority = if req.freeze_authority_pub_key.is_empty() {
             None
         } else {
@@ -395,62 +390,66 @@ impl TokenProgramService for TokenProgramServiceImpl {
             })?)
         };
 
-        // determine which token program to use
-        let token_program_enum = TokenProgram::try_from(req.token_program)
-            .map_err(|_| Status::invalid_argument("Invalid token program value"))?;
-
-        let token_program_id = get_token_program_id(token_program_enum)
-            .map_err(|e| Status::invalid_argument(format!("Invalid token program: {e}")))?;
-
         let decimals = u8::try_from(req.decimals)
             .map_err(|_| Status::invalid_argument("decimals must be between 0 and 255"))?;
 
-        let sdk_instructions = match token_program_enum {
-            TokenProgram::Legacy => {
-                // SPL Legacy does not support extensions
-                if !req.extensions.is_empty() {
-                    return Err(Status::invalid_argument(
-                        "Extensions are not supported for the Legacy SPL Token program",
-                    ));
-                }
-                let instruction = initialize_mint2(
-                    &token_program_id,
-                    &mint_pubkey,
-                    &mint_authority,
-                    freeze_authority.as_ref(),
-                    decimals,
-                )
-                .map_err(|e| {
-                    Status::internal(format!(
-                        "could not create initialise mint token instruction: {e}"
-                    ))
-                })?;
-                vec![instruction]
-            }
-            TokenProgram::TokenProgram2022 => {
-                validate_no_duplicate_extensions(&req.extensions)?;
-                build_token2022_mint_instructions(
-                    &token_program_id,
-                    &mint_pubkey,
-                    &mint_authority,
-                    freeze_authority.as_ref(),
-                    decimals,
-                    &req.extensions,
-                )?
-            }
-            TokenProgram::Unspecified => {
-                return Err(Status::invalid_argument(
-                    "token_program must be specified (cannot be UNSPECIFIED)",
-                ));
-            }
-        };
+        validate_no_duplicate_extensions(&req.extensions)?;
+
+        let sdk_instructions = build_token2022_mint_instructions(
+            &TOKEN_2022_PROGRAM_ID,
+            &mint_pubkey,
+            &mint_authority,
+            freeze_authority.as_ref(),
+            decimals,
+            &req.extensions,
+        )?;
 
         let instructions = sdk_instructions
             .into_iter()
             .map(sdk_instruction_to_proto)
             .collect();
 
-        Ok(Response::new(InitialiseMintResponse { instructions }))
+        Ok(Response::new(InitialiseToken2022MintResponse { instructions }))
+    }
+
+    /// Creates a single `initialise_mint` instruction for the legacy SPL Token program.
+    async fn initialise_spl_token_mint(
+        &self,
+        request: Request<InitialiseSplTokenMintRequest>,
+    ) -> Result<Response<InitialiseSplTokenMintResponse>, Status> {
+        let req = request.into_inner();
+
+        let mint_pubkey = Pubkey::from_str(&req.mint_pub_key)
+            .map_err(|e| Status::invalid_argument(format!("Invalid mint_pub_key: {e}")))?;
+        let mint_authority = Pubkey::from_str(&req.mint_authority_pub_key).map_err(|e| {
+            Status::invalid_argument(format!("Invalid mint_authority_pub_key: {e}"))
+        })?;
+
+        let freeze_authority = if req.freeze_authority_pub_key.is_empty() {
+            None
+        } else {
+            Some(Pubkey::from_str(&req.freeze_authority_pub_key).map_err(|e| {
+                Status::invalid_argument(format!("Invalid freeze_authority_pub_key: {e}"))
+            })?)
+        };
+
+        let decimals = u8::try_from(req.decimals)
+            .map_err(|_| Status::invalid_argument("decimals must be between 0 and 255"))?;
+
+        let instruction = initialize_mint2(
+            &SPL_TOKEN_PROGRAM_ID,
+            &mint_pubkey,
+            &mint_authority,
+            freeze_authority.as_ref(),
+            decimals,
+        )
+        .map_err(|e| {
+            Status::internal(format!("could not create initialise mint token instruction: {e}"))
+        })?;
+
+        Ok(Response::new(InitialiseSplTokenMintResponse {
+            instruction: Some(sdk_instruction_to_proto(instruction)),
+        }))
     }
 
     /// Gets the minimum rent-exempt balance and allocation space for a mint account.
@@ -517,7 +516,7 @@ impl TokenProgramService for TokenProgramServiceImpl {
             .ok_or_else(|| Status::not_found("Account not found"))?;
 
         // Validate account is owned by a known token program
-        if account.owner != LEGACY_PROGRAM_ID && account.owner != TOKEN_2022_PROGRAM_ID {
+        if account.owner != SPL_TOKEN_PROGRAM_ID && account.owner != TOKEN_2022_PROGRAM_ID {
             return Err(Status::invalid_argument(format!(
                 "Account owner {} is not a known token program",
                 account.owner,
@@ -587,12 +586,10 @@ impl TokenProgramService for TokenProgramServiceImpl {
     ) -> Result<Response<CreateMintResponse>, Status> {
         let req = request.into_inner();
 
-        // Validation
         if req.payer.is_empty() {
             return Err(Status::invalid_argument("Payer address is required"));
         }
 
-        // Step 1: Get current rent for mint account
         let rent_response = self
             .get_current_min_rent_for_mint_account(Request::new(
                 GetCurrentMinRentForMintAccountRequest { extensions: vec![] },
@@ -600,13 +597,11 @@ impl TokenProgramService for TokenProgramServiceImpl {
             .await?
             .into_inner();
 
-        // Step 2: Create system account creation instruction
         let system_service = SystemProgramServiceImpl::new();
 
         let token_program_enum = TokenProgram::try_from(req.token_program)
             .map_err(|_| Status::invalid_argument("Invalid token program value"))?;
 
-        // Get the program ID pubkey and convert to string for the system program
         let owner_pubkey = get_token_program_id(token_program_enum)
             .map_err(|e| Status::invalid_argument(format!("Invalid token program: {e}")))?;
 
@@ -621,25 +616,45 @@ impl TokenProgramService for TokenProgramServiceImpl {
             .await?
             .into_inner();
 
-        // Step 3: Create mint initialization instructions (extensions not yet handled)
-        let init_response = self
-            .initialise_mint(Request::new(InitialiseMintRequest {
-                mint_pub_key: req.mint_pub_key,
-                mint_authority_pub_key: req.mint_authority_pub_key,
-                freeze_authority_pub_key: req.freeze_authority_pub_key,
-                decimals: req.decimals,
-                token_program: req.token_program,
-                extensions: vec![],
-            }))
-            .await?
-            .into_inner();
-
-        // Step 4: Compose response with create account + all init instructions
         let mut instructions = Vec::new();
         if let Some(instr) = create_instruction.instruction {
             instructions.push(instr);
         }
-        instructions.extend(init_response.instructions);
+
+        match token_program_enum {
+            TokenProgram::Legacy => {
+                let init_response = self
+                    .initialise_spl_token_mint(Request::new(InitialiseSplTokenMintRequest {
+                        mint_pub_key: req.mint_pub_key,
+                        mint_authority_pub_key: req.mint_authority_pub_key,
+                        freeze_authority_pub_key: req.freeze_authority_pub_key,
+                        decimals: req.decimals,
+                    }))
+                    .await?
+                    .into_inner();
+                if let Some(instr) = init_response.instruction {
+                    instructions.push(instr);
+                }
+            }
+            TokenProgram::TokenProgram2022 => {
+                let init_response = self
+                    .initialise_token2022_mint(Request::new(InitialiseToken2022MintRequest {
+                        mint_pub_key: req.mint_pub_key,
+                        mint_authority_pub_key: req.mint_authority_pub_key,
+                        freeze_authority_pub_key: req.freeze_authority_pub_key,
+                        decimals: req.decimals,
+                        extensions: vec![],
+                    }))
+                    .await?
+                    .into_inner();
+                instructions.extend(init_response.instructions);
+            }
+            TokenProgram::Unspecified => {
+                return Err(Status::invalid_argument(
+                    "token_program must be specified (cannot be UNSPECIFIED)",
+                ));
+            }
+        }
 
         Ok(Response::new(CreateMintResponse { instructions }))
     }
@@ -687,7 +702,7 @@ impl TokenProgramService for TokenProgramServiceImpl {
 
         // get program id from token_program_enum
         let token_program_id = match token_program_enum {
-            TokenProgram::Legacy => Ok(LEGACY_PROGRAM_ID),
+            TokenProgram::Legacy => Ok(SPL_TOKEN_PROGRAM_ID),
             TokenProgram::TokenProgram2022 => Ok(TOKEN_2022_PROGRAM_ID),
             TokenProgram::Unspecified => {
                 Err(format!("unexpected token program id: {token_program_enum:?}"))

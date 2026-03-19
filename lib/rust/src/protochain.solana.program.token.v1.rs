@@ -52,15 +52,14 @@ pub mod token2022_extension {
         Metadata(super::Token2022ExtensionMetadata),
     }
 }
-/// Request to create a Solana Mint (Token-2022) with optional Metadata Extensions.
+/// Request to initialise a Token-2022 mint with optional extensions.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct InitialiseMintRequest {
+pub struct InitialiseToken2022MintRequest {
     /// The public key of the Mint account to be initialized.
     #[prost(string, tag="1")]
     pub mint_pub_key: ::prost::alloc::string::String,
     /// The authority that can mint new tokens.
-    /// This usually defaults to the sender if not provided in the SDK wrapper.
     #[prost(string, tag="2")]
     pub mint_authority_pub_key: ::prost::alloc::string::String,
     /// Optional authority that can freeze token accounts.
@@ -70,34 +69,55 @@ pub struct InitialiseMintRequest {
     /// Common values: 9 for SOL-like tokens, 6 for USDC-like tokens, 0 for NFTs.
     #[prost(uint32, tag="4")]
     pub decimals: u32,
-    /// Specifies which program to use.
-    /// Metadata extensions are ONLY supported when this is set to TOKEN_2022.
-    #[prost(enumeration="super::super::super::r#type::v1::TokenProgram", tag="5")]
-    pub token_program: i32,
     /// Ordered list of extensions to enable on the mint.
     /// NOTE: If an extension is not included here during initialization,
     /// it cannot be added to the mint account later.
-    #[prost(message, repeated, tag="6")]
+    #[prost(message, repeated, tag="5")]
     pub extensions: ::prost::alloc::vec::Vec<Token2022Extension>,
 }
-/// Response containing InitialiseMint instructions.
+/// Response containing Token-2022 InitialiseMint instructions.
 /// Multiple instructions are returned when extensions are requested
 /// (e.g. metadata pointer initialisation precedes initialize_mint,
 /// and token-metadata initialisation follows it).
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct InitialiseMintResponse {
+pub struct InitialiseToken2022MintResponse {
     #[prost(message, repeated, tag="1")]
     pub instructions: ::prost::alloc::vec::Vec<super::super::super::transaction::v1::SolanaInstruction>,
 }
+/// Request to initialise a legacy SPL Token mint.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InitialiseSplTokenMintRequest {
+    /// The public key of the Mint account to be initialized.
+    #[prost(string, tag="1")]
+    pub mint_pub_key: ::prost::alloc::string::String,
+    /// The authority that can mint new tokens.
+    #[prost(string, tag="2")]
+    pub mint_authority_pub_key: ::prost::alloc::string::String,
+    /// Optional authority that can freeze token accounts.
+    #[prost(string, tag="3")]
+    pub freeze_authority_pub_key: ::prost::alloc::string::String,
+    /// Number of base 10 digits to the right of the decimal place.
+    /// Common values: 9 for SOL-like tokens, 6 for USDC-like tokens, 0 for NFTs.
+    #[prost(uint32, tag="4")]
+    pub decimals: u32,
+}
+/// Response containing a single SPL Token initialise_mint instruction.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InitialiseSplTokenMintResponse {
+    #[prost(message, optional, tag="1")]
+    pub instruction: ::core::option::Option<super::super::super::transaction::v1::SolanaInstruction>,
+}
 /// Request for the minimum rent and space required for a mint account.
-/// Provide the same extension set you intend to pass to InitialiseMint so that
+/// Provide the same extension set you intend to pass to InitialiseToken2022Mint so that
 /// the returned lamports and space values are consistent with each other.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetCurrentMinRentForMintAccountRequest {
     /// Ordered list of extensions to enable on the mint.
-    /// Must match the extensions you will pass to InitialiseMint.
+    /// Must match the extensions you will pass to InitialiseToken2022Mint.
     /// If empty, results are based on the base Mint::LEN (82 bytes) with no extensions.
     /// Duplicates are rejected.
     #[prost(message, repeated, tag="6")]
@@ -105,7 +125,7 @@ pub struct GetCurrentMinRentForMintAccountRequest {
 }
 /// Rent and space for a mint account with the requested extensions.
 /// Pass both fields directly to the System Program's CreateAccount instruction
-/// before calling InitialiseMint.
+/// before calling InitialiseToken2022Mint or InitialiseSPLTokenMint.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct GetCurrentMinRentForMintAccountResponse {

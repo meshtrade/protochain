@@ -128,12 +128,11 @@ func (suite *TokenProgramE2ETestSuite) Test_01_InitialiseMint_TOKEN2022() {
 	suite.Require().NoError(err, "Should create mint account instruction")
 
 	// Initialize mint instruction with metadata extension
-	initialiseMintResp, err := suite.tokenProgramService.InitialiseMint(suite.ctx, &token_v1.InitialiseMintRequest{
+	initialiseMintResp, err := suite.tokenProgramService.InitialiseToken2022Mint(suite.ctx, &token_v1.InitialiseToken2022MintRequest{
 		MintPubKey:            mintKeyResp.KeyPair.PublicKey,
 		MintAuthorityPubKey:   payKeyResp.KeyPair.PublicKey,
 		FreezeAuthorityPubKey: payKeyResp.KeyPair.PublicKey,
 		Decimals:              2,
-		TokenProgram:          type_v1.TokenProgram_TOKEN_PROGRAM_2022,
 		Extensions:            []*token_v1.Token2022Extension{metadataExtension},
 	})
 	suite.Require().NoError(err, "Should create initialise mint instructions")
@@ -264,22 +263,21 @@ func (suite *TokenProgramE2ETestSuite) Test_02_InitialiseMint_SPL() {
 	suite.Require().NoError(err, "Should create SPL mint account instruction")
 
 	// Initialize mint instruction for legacy SPL Token program
-	initialiseMintResp, err := suite.tokenProgramService.InitialiseMint(suite.ctx, &token_v1.InitialiseMintRequest{
+	initialiseMintResp, err := suite.tokenProgramService.InitialiseSPLTokenMint(suite.ctx, &token_v1.InitialiseSPLTokenMintRequest{
 		MintPubKey:            mintKeyResp.KeyPair.PublicKey,
 		MintAuthorityPubKey:   payKeyResp.KeyPair.PublicKey,
 		FreezeAuthorityPubKey: payKeyResp.KeyPair.PublicKey,
 		Decimals:              6,
-		TokenProgram:          type_v1.TokenProgram_TOKEN_PROGRAM_LEGACY,
 	})
 	suite.Require().NoError(err, "Should create SPL initialise mint instruction")
-	suite.Require().Len(initialiseMintResp.Instructions, 1,
+	suite.Require().NotNil(initialiseMintResp.Instruction,
 		"SPL legacy mint should return exactly 1 instruction (initialize_mint)")
 
 	// Compose atomic transaction
 	atomicTx := &transaction_v1.Transaction{
 		Instructions: []*transaction_v1.SolanaInstruction{
 			createMintInstr.Instruction,
-			initialiseMintResp.Instructions[0],
+			initialiseMintResp.Instruction,
 		},
 		State: transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 	}
@@ -336,21 +334,8 @@ func (suite *TokenProgramE2ETestSuite) Test_02_InitialiseMint_SPL() {
 	// Legacy mints should have no extensions
 	suite.Assert().Empty(parsedMint.Extensions, "Legacy SPL mint should have no extensions")
 
-	// Verify that passing extensions to Legacy program returns an error
-	_, err = suite.tokenProgramService.InitialiseMint(suite.ctx, &token_v1.InitialiseMintRequest{
-		MintPubKey:            mintKeyResp.KeyPair.PublicKey,
-		MintAuthorityPubKey:   payKeyResp.KeyPair.PublicKey,
-		FreezeAuthorityPubKey: payKeyResp.KeyPair.PublicKey,
-		Decimals:              6,
-		TokenProgram:          type_v1.TokenProgram_TOKEN_PROGRAM_LEGACY,
-		Extensions: []*token_v1.Token2022Extension{
-			{Extension: &token_v1.Token2022Extension_Metadata{
-				Metadata: &token_v1.Token2022ExtensionMetadata{Name: "Fail"},
-			}},
-		},
-	})
-	suite.Require().Error(err, "Should reject extensions for Legacy SPL Token program")
-	suite.T().Logf("  Correctly rejected extensions for Legacy program: %v", err)
+	// Legacy SPL Token program uses a dedicated method with no extensions field,
+	// so there is no need to test extension rejection - the API makes it impossible.
 
 	suite.T().Logf("✅ Legacy SPL Token Mint created and verified successfully:")
 	suite.T().Logf("   Mint Address: %s", mintKeyResp.KeyPair.PublicKey)
@@ -463,12 +448,11 @@ func (suite *TokenProgramE2ETestSuite) Test_04_Mint_e2e() {
 	suite.Require().NoError(err, "Should create mint account instruction")
 
 	// Initialize mint instructions (token program)
-	initialiseMintResp, err := suite.tokenProgramService.InitialiseMint(suite.ctx, &token_v1.InitialiseMintRequest{
+	initialiseMintResp, err := suite.tokenProgramService.InitialiseToken2022Mint(suite.ctx, &token_v1.InitialiseToken2022MintRequest{
 		MintPubKey:            mintKeyResp.KeyPair.PublicKey,
 		MintAuthorityPubKey:   payKeyResp.KeyPair.PublicKey,
 		FreezeAuthorityPubKey: payKeyResp.KeyPair.PublicKey,
 		Decimals:              6,
-		TokenProgram:          type_v1.TokenProgram_TOKEN_PROGRAM_2022,
 	})
 	suite.Require().NoError(err, "Should create initialise mint instructions")
 
@@ -571,12 +555,11 @@ func (suite *TokenProgramE2ETestSuite) Test_05_Token_e2e() {
 	suite.Require().NoError(err, "Should create mint account instruction")
 
 	// Initialize mint instructions (token program)
-	initialiseMintResp, err := suite.tokenProgramService.InitialiseMint(suite.ctx, &token_v1.InitialiseMintRequest{
+	initialiseMintResp, err := suite.tokenProgramService.InitialiseToken2022Mint(suite.ctx, &token_v1.InitialiseToken2022MintRequest{
 		MintPubKey:            mintKeyResp.KeyPair.PublicKey,
 		MintAuthorityPubKey:   payKeyResp.KeyPair.PublicKey,
 		FreezeAuthorityPubKey: payKeyResp.KeyPair.PublicKey,
 		Decimals:              6,
-		TokenProgram:          type_v1.TokenProgram_TOKEN_PROGRAM_2022,
 	})
 	suite.Require().NoError(err, "Should create initialise mint instructions")
 

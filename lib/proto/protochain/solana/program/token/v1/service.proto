@@ -8,10 +8,18 @@ import "protochain/solana/type/v1/token_program.proto";
 
 option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1";
 
-// Token Program service for creating SPL Token 2022 instructions
+// Token Program service for creating SPL Token and Token-2022 instructions
 service Service {
-  // Creates an InitialiseMint instruction for Token 2022 program
-  rpc InitialiseMint(InitialiseMintRequest) returns (InitialiseMintResponse);
+  // Creates initialisation instructions for a Token-2022 mint with optional extensions.
+  // The instruction sequence depends on the requested extensions.
+  // With the Metadata extension the order is:
+  //   metadata_pointer_init → initialize_mint → token_metadata_init → update_field × N
+  // Without extensions only initialize_mint is returned.
+  rpc InitialiseToken2022Mint(InitialiseToken2022MintRequest) returns (InitialiseToken2022MintResponse);
+
+  // Creates a single initialise_mint instruction for the legacy SPL Token program.
+  // Extensions are not supported.
+  rpc InitialiseSPLTokenMint(InitialiseSPLTokenMintRequest) returns (InitialiseSPLTokenMintResponse);
 
   // Returns the minimum rent-exempt balance (in lamports) and the required account
   // space (in bytes) for a mint account with the requested extensions.
@@ -36,13 +44,12 @@ service Service {
   rpc Mint(MintRequest) returns (MintResponse);
 }
 
-// Request to create a Solana Mint (Token-2022) with optional Metadata Extensions.
-message InitialiseMintRequest {
+// Request to initialise a Token-2022 mint with optional extensions.
+message InitialiseToken2022MintRequest {
   // The public key of the Mint account to be initialized.
   string mint_pub_key = 1;
 
   // The authority that can mint new tokens.
-  // This usually defaults to the sender if not provided in the SDK wrapper.
   string mint_authority_pub_key = 2;
 
   // Optional authority that can freeze token accounts.
@@ -52,30 +59,47 @@ message InitialiseMintRequest {
   // Common values: 9 for SOL-like tokens, 6 for USDC-like tokens, 0 for NFTs.
   uint32 decimals = 4;
 
-  // Specifies which program to use.
-  // Metadata extensions are ONLY supported when this is set to TOKEN_2022.
-  protochain.solana.type.v1.TokenProgram token_program = 5;
-
   // Ordered list of extensions to enable on the mint.
   // NOTE: If an extension is not included here during initialization,
   // it cannot be added to the mint account later.
-  repeated protochain.solana.program.token.v1.Token2022Extension extensions = 6;
+  repeated protochain.solana.program.token.v1.Token2022Extension extensions = 5;
 }
 
-// Response containing InitialiseMint instructions.
+// Response containing Token-2022 InitialiseMint instructions.
 // Multiple instructions are returned when extensions are requested
 // (e.g. metadata pointer initialisation precedes initialize_mint,
 // and token-metadata initialisation follows it).
-message InitialiseMintResponse {
+message InitialiseToken2022MintResponse {
   repeated protochain.solana.transaction.v1.SolanaInstruction instructions = 1;
 }
 
+// Request to initialise a legacy SPL Token mint.
+message InitialiseSPLTokenMintRequest {
+  // The public key of the Mint account to be initialized.
+  string mint_pub_key = 1;
+
+  // The authority that can mint new tokens.
+  string mint_authority_pub_key = 2;
+
+  // Optional authority that can freeze token accounts.
+  string freeze_authority_pub_key = 3;
+
+  // Number of base 10 digits to the right of the decimal place.
+  // Common values: 9 for SOL-like tokens, 6 for USDC-like tokens, 0 for NFTs.
+  uint32 decimals = 4;
+}
+
+// Response containing a single SPL Token initialise_mint instruction.
+message InitialiseSPLTokenMintResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
 // Request for the minimum rent and space required for a mint account.
-// Provide the same extension set you intend to pass to InitialiseMint so that
+// Provide the same extension set you intend to pass to InitialiseToken2022Mint so that
 // the returned lamports and space values are consistent with each other.
 message GetCurrentMinRentForMintAccountRequest {
   // Ordered list of extensions to enable on the mint.
-  // Must match the extensions you will pass to InitialiseMint.
+  // Must match the extensions you will pass to InitialiseToken2022Mint.
   // If empty, results are based on the base Mint::LEN (82 bytes) with no extensions.
   // Duplicates are rejected.
   repeated protochain.solana.program.token.v1.Token2022Extension extensions = 6;
@@ -83,7 +107,7 @@ message GetCurrentMinRentForMintAccountRequest {
 
 // Rent and space for a mint account with the requested extensions.
 // Pass both fields directly to the System Program's CreateAccount instruction
-// before calling InitialiseMint.
+// before calling InitialiseToken2022Mint or InitialiseSPLTokenMint.
 message GetCurrentMinRentForMintAccountResponse {
   // Minimum lamports required for the account to be rent-exempt.
   uint64 lamports = 1;

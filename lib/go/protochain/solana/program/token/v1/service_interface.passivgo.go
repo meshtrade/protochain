@@ -6,10 +6,18 @@ import (
 	context "context"
 )
 
-// Token Program service for creating SPL Token 2022 instructions
+// Token Program service for creating SPL Token and Token-2022 instructions
 type ServiceInterface interface {
-	// Creates an InitialiseMint instruction for Token 2022 program
-	InitialiseMint(ctx context.Context, request *InitialiseMintRequest) (*InitialiseMintResponse, error)
+	// Creates initialisation instructions for a Token-2022 mint with optional extensions.
+	// The instruction sequence depends on the requested extensions.
+	// With the Metadata extension the order is:
+	//   metadata_pointer_init → initialize_mint → token_metadata_init → update_field × N
+	// Without extensions only initialize_mint is returned.
+	InitialiseToken2022Mint(ctx context.Context, request *InitialiseToken2022MintRequest) (*InitialiseToken2022MintResponse, error)
+
+	// Creates a single initialise_mint instruction for the legacy SPL Token program.
+	// Extensions are not supported.
+	InitialiseSPLTokenMint(ctx context.Context, request *InitialiseSPLTokenMintRequest) (*InitialiseSPLTokenMintResponse, error)
 
 	// Returns the minimum rent-exempt balance (in lamports) and the required account
 	// space (in bytes) for a mint account with the requested extensions.

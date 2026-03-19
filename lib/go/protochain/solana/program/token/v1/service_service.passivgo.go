@@ -108,11 +108,19 @@ func NewServiceService(opts ...common.ServiceOption) (ServiceServiceClientInterf
 	return &serviceService{BaseGRPCClient: base}, nil
 }
 
-// InitialiseMint executes the InitialiseMint RPC method with automatic
+// InitialiseToken2022Mint executes the InitialiseToken2022Mint RPC method with automatic
 // client-side validation, timeout handling, distributed tracing, and authentication.
-func (s *serviceService) InitialiseMint(ctx context.Context, request *InitialiseMintRequest) (*InitialiseMintResponse, error) {
-	return common.Execute(s.Executor(), ctx, "InitialiseMint", request, func(ctx context.Context) (*InitialiseMintResponse, error) {
-		return s.GrpcClient().InitialiseMint(ctx, request)
+func (s *serviceService) InitialiseToken2022Mint(ctx context.Context, request *InitialiseToken2022MintRequest) (*InitialiseToken2022MintResponse, error) {
+	return common.Execute(s.Executor(), ctx, "InitialiseToken2022Mint", request, func(ctx context.Context) (*InitialiseToken2022MintResponse, error) {
+		return s.GrpcClient().InitialiseToken2022Mint(ctx, request)
+	})
+}
+
+// InitialiseSPLTokenMint executes the InitialiseSPLTokenMint RPC method with automatic
+// client-side validation, timeout handling, distributed tracing, and authentication.
+func (s *serviceService) InitialiseSPLTokenMint(ctx context.Context, request *InitialiseSPLTokenMintRequest) (*InitialiseSPLTokenMintResponse, error) {
+	return common.Execute(s.Executor(), ctx, "InitialiseSPLTokenMint", request, func(ctx context.Context) (*InitialiseSPLTokenMintResponse, error) {
+		return s.GrpcClient().InitialiseSPLTokenMint(ctx, request)
 	})
 }
 

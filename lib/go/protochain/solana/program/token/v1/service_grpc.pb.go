@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Service_InitialiseMint_FullMethodName                     = "/protochain.solana.program.token.v1.Service/InitialiseMint"
+	Service_InitialiseToken2022Mint_FullMethodName            = "/protochain.solana.program.token.v1.Service/InitialiseToken2022Mint"
+	Service_InitialiseSPLTokenMint_FullMethodName             = "/protochain.solana.program.token.v1.Service/InitialiseSPLTokenMint"
 	Service_GetCurrentMinRentForMintAccount_FullMethodName    = "/protochain.solana.program.token.v1.Service/GetCurrentMinRentForMintAccount"
 	Service_ParseMint_FullMethodName                          = "/protochain.solana.program.token.v1.Service/ParseMint"
 	Service_GetCurrentMinRentForHoldingAccount_FullMethodName = "/protochain.solana.program.token.v1.Service/GetCurrentMinRentForHoldingAccount"
@@ -32,10 +33,19 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// Token Program service for creating SPL Token 2022 instructions
+// Token Program service for creating SPL Token and Token-2022 instructions
 type ServiceClient interface {
-	// Creates an InitialiseMint instruction for Token 2022 program
-	InitialiseMint(ctx context.Context, in *InitialiseMintRequest, opts ...grpc.CallOption) (*InitialiseMintResponse, error)
+	// Creates initialisation instructions for a Token-2022 mint with optional extensions.
+	// The instruction sequence depends on the requested extensions.
+	// With the Metadata extension the order is:
+	//
+	//	metadata_pointer_init → initialize_mint → token_metadata_init → update_field × N
+	//
+	// Without extensions only initialize_mint is returned.
+	InitialiseToken2022Mint(ctx context.Context, in *InitialiseToken2022MintRequest, opts ...grpc.CallOption) (*InitialiseToken2022MintResponse, error)
+	// Creates a single initialise_mint instruction for the legacy SPL Token program.
+	// Extensions are not supported.
+	InitialiseSPLTokenMint(ctx context.Context, in *InitialiseSPLTokenMintRequest, opts ...grpc.CallOption) (*InitialiseSPLTokenMintResponse, error)
 	// Returns the minimum rent-exempt balance (in lamports) and the required account
 	// space (in bytes) for a mint account with the requested extensions.
 	// Both values are needed together when calling the System Program's CreateAccount
@@ -62,10 +72,20 @@ func NewServiceClient(cc grpc.ClientConnInterface) ServiceClient {
 	return &serviceClient{cc}
 }
 
-func (c *serviceClient) InitialiseMint(ctx context.Context, in *InitialiseMintRequest, opts ...grpc.CallOption) (*InitialiseMintResponse, error) {
+func (c *serviceClient) InitialiseToken2022Mint(ctx context.Context, in *InitialiseToken2022MintRequest, opts ...grpc.CallOption) (*InitialiseToken2022MintResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(InitialiseMintResponse)
-	err := c.cc.Invoke(ctx, Service_InitialiseMint_FullMethodName, in, out, cOpts...)
+	out := new(InitialiseToken2022MintResponse)
+	err := c.cc.Invoke(ctx, Service_InitialiseToken2022Mint_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) InitialiseSPLTokenMint(ctx context.Context, in *InitialiseSPLTokenMintRequest, opts ...grpc.CallOption) (*InitialiseSPLTokenMintResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(InitialiseSPLTokenMintResponse)
+	err := c.cc.Invoke(ctx, Service_InitialiseSPLTokenMint_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -136,10 +156,19 @@ func (c *serviceClient) Mint(ctx context.Context, in *MintRequest, opts ...grpc.
 // All implementations must embed UnimplementedServiceServer
 // for forward compatibility.
 //
-// Token Program service for creating SPL Token 2022 instructions
+// Token Program service for creating SPL Token and Token-2022 instructions
 type ServiceServer interface {
-	// Creates an InitialiseMint instruction for Token 2022 program
-	InitialiseMint(context.Context, *InitialiseMintRequest) (*InitialiseMintResponse, error)
+	// Creates initialisation instructions for a Token-2022 mint with optional extensions.
+	// The instruction sequence depends on the requested extensions.
+	// With the Metadata extension the order is:
+	//
+	//	metadata_pointer_init → initialize_mint → token_metadata_init → update_field × N
+	//
+	// Without extensions only initialize_mint is returned.
+	InitialiseToken2022Mint(context.Context, *InitialiseToken2022MintRequest) (*InitialiseToken2022MintResponse, error)
+	// Creates a single initialise_mint instruction for the legacy SPL Token program.
+	// Extensions are not supported.
+	InitialiseSPLTokenMint(context.Context, *InitialiseSPLTokenMintRequest) (*InitialiseSPLTokenMintResponse, error)
 	// Returns the minimum rent-exempt balance (in lamports) and the required account
 	// space (in bytes) for a mint account with the requested extensions.
 	// Both values are needed together when calling the System Program's CreateAccount
@@ -166,8 +195,11 @@ type ServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedServiceServer struct{}
 
-func (UnimplementedServiceServer) InitialiseMint(context.Context, *InitialiseMintRequest) (*InitialiseMintResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method InitialiseMint not implemented")
+func (UnimplementedServiceServer) InitialiseToken2022Mint(context.Context, *InitialiseToken2022MintRequest) (*InitialiseToken2022MintResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method InitialiseToken2022Mint not implemented")
+}
+func (UnimplementedServiceServer) InitialiseSPLTokenMint(context.Context, *InitialiseSPLTokenMintRequest) (*InitialiseSPLTokenMintResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method InitialiseSPLTokenMint not implemented")
 }
 func (UnimplementedServiceServer) GetCurrentMinRentForMintAccount(context.Context, *GetCurrentMinRentForMintAccountRequest) (*GetCurrentMinRentForMintAccountResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetCurrentMinRentForMintAccount not implemented")
@@ -208,20 +240,38 @@ func RegisterServiceServer(s grpc.ServiceRegistrar, srv ServiceServer) {
 	s.RegisterService(&Service_ServiceDesc, srv)
 }
 
-func _Service_InitialiseMint_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(InitialiseMintRequest)
+func _Service_InitialiseToken2022Mint_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InitialiseToken2022MintRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ServiceServer).InitialiseMint(ctx, in)
+		return srv.(ServiceServer).InitialiseToken2022Mint(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Service_InitialiseMint_FullMethodName,
+		FullMethod: Service_InitialiseToken2022Mint_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceServer).InitialiseMint(ctx, req.(*InitialiseMintRequest))
+		return srv.(ServiceServer).InitialiseToken2022Mint(ctx, req.(*InitialiseToken2022MintRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_InitialiseSPLTokenMint_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(InitialiseSPLTokenMintRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).InitialiseSPLTokenMint(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_InitialiseSPLTokenMint_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).InitialiseSPLTokenMint(ctx, req.(*InitialiseSPLTokenMintRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -342,8 +392,12 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "InitialiseMint",
-			Handler:    _Service_InitialiseMint_Handler,
+			MethodName: "InitialiseToken2022Mint",
+			Handler:    _Service_InitialiseToken2022Mint_Handler,
+		},
+		{
+			MethodName: "InitialiseSPLTokenMint",
+			Handler:    _Service_InitialiseSPLTokenMint_Handler,
 		},
 		{
 			MethodName: "GetCurrentMinRentForMintAccount",
