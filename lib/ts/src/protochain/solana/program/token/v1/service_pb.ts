@@ -16,7 +16,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file protochain/solana/program/token/v1/service.proto.
  */
 export const file_protochain_solana_program_token_v1_service: GenFile = /*@__PURE__*/
-  fileDesc("CjBwcm90b2NoYWluL3NvbGFuYS9wcm9ncmFtL3Rva2VuL3YxL3NlcnZpY2UucHJvdG8SInByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEi1gEKHkluaXRpYWxpc2VUb2tlbjIwMjJNaW50UmVxdWVzdBIUCgxtaW50X3B1Yl9rZXkYASABKAkSHgoWbWludF9hdXRob3JpdHlfcHViX2tleRgCIAEoCRIgChhmcmVlemVfYXV0aG9yaXR5X3B1Yl9rZXkYAyABKAkSEAoIZGVjaW1hbHMYBCABKA0SSgoKZXh0ZW5zaW9ucxgFIAMoCzI2LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuVG9rZW4yMDIyRXh0ZW5zaW9uImwKH0luaXRpYWxpc2VUb2tlbjIwMjJNaW50UmVzcG9uc2USSQoMaW5zdHJ1Y3Rpb25zGAEgAygLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24iiQEKHUluaXRpYWxpc2VTUExUb2tlbk1pbnRSZXF1ZXN0EhQKDG1pbnRfcHViX2tleRgBIAEoCRIeChZtaW50X2F1dGhvcml0eV9wdWJfa2V5GAIgASgJEiAKGGZyZWV6ZV9hdXRob3JpdHlfcHViX2tleRgDIAEoCRIQCghkZWNpbWFscxgEIAEoDSJqCh5Jbml0aWFsaXNlU1BMVG9rZW5NaW50UmVzcG9uc2USSAoLaW5zdHJ1Y3Rpb24YASABKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbiJ0CiZHZXRDdXJyZW50TWluUmVudEZvck1pbnRBY2NvdW50UmVxdWVzdBJKCgpleHRlbnNpb25zGAYgAygLMjYucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5Ub2tlbjIwMjJFeHRlbnNpb24iSgonR2V0Q3VycmVudE1pblJlbnRGb3JNaW50QWNjb3VudFJlc3BvbnNlEhAKCGxhbXBvcnRzGAEgASgEEg0KBXNwYWNlGAIgASgEIisKEFBhcnNlTWludFJlcXVlc3QSFwoPYWNjb3VudF9hZGRyZXNzGAEgASgJItsBChFQYXJzZU1pbnRSZXNwb25zZRI6CgRtaW50GAEgASgLMiwucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5NaW50SW5mbxI+Cg10b2tlbl9wcm9ncmFtGAIgASgOMicucHJvdG9jaGFpbi5zb2xhbmEudHlwZS52MS5Ub2tlblByb2dyYW0SSgoKZXh0ZW5zaW9ucxgDIAMoCzI2LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuVG9rZW4yMDIyRXh0ZW5zaW9uIoYBCghNaW50SW5mbxIeChZtaW50X2F1dGhvcml0eV9wdWJfa2V5GAEgASgJEiAKGGZyZWV6ZV9hdXRob3JpdHlfcHViX2tleRgCIAEoCRIQCghkZWNpbWFscxgDIAEoDRIOCgZzdXBwbHkYBCABKAkSFgoOaXNfaW5pdGlhbGl6ZWQYBSABKAgiMwoSTWVtb1RyYW5zZmVyQ29uZmlnEh0KFXJlcXVpcmVfaW5jb21pbmdfbWVtbxgBIAEoCCKBAQopR2V0Q3VycmVudE1pblJlbnRGb3JIb2xkaW5nQWNjb3VudFJlcXVlc3QSVAoUbWVtb190cmFuc2Zlcl9jb25maWcYASABKAsyNi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLk1lbW9UcmFuc2ZlckNvbmZpZyI+CipHZXRDdXJyZW50TWluUmVudEZvckhvbGRpbmdBY2NvdW50UmVzcG9uc2USEAoIbGFtcG9ydHMYASABKAQi7wEKG0NyZWF0ZUhvbGRpbmdBY2NvdW50UmVxdWVzdBINCgVwYXllchgBIAEoCRIVCg1vd25lcl9wdWJfa2V5GAIgASgJEhQKDG1pbnRfcHViX2tleRgDIAEoCRI+Cg10b2tlbl9wcm9ncmFtGAQgASgOMicucHJvdG9jaGFpbi5zb2xhbmEudHlwZS52MS5Ub2tlblByb2dyYW0SVAoUbWVtb190cmFuc2Zlcl9jb25maWcYBSABKAsyNi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLk1lbW9UcmFuc2ZlckNvbmZpZyJpChxDcmVhdGVIb2xkaW5nQWNjb3VudFJlc3BvbnNlEkkKDGluc3RydWN0aW9ucxgBIAMoCzIzLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uIswBChFDcmVhdGVNaW50UmVxdWVzdBINCgVwYXllchgBIAEoCRIUCgxtaW50X3B1Yl9rZXkYAiABKAkSHgoWbWludF9hdXRob3JpdHlfcHViX2tleRgDIAEoCRIgChhmcmVlemVfYXV0aG9yaXR5X3B1Yl9rZXkYBCABKAkSEAoIZGVjaW1hbHMYBSABKA0SPgoNdG9rZW5fcHJvZ3JhbRgGIAEoDjInLnByb3RvY2hhaW4uc29sYW5hLnR5cGUudjEuVG9rZW5Qcm9ncmFtIl8KEkNyZWF0ZU1pbnRSZXNwb25zZRJJCgxpbnN0cnVjdGlvbnMYASADKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbiKKAQoLTWludFJlcXVlc3QSFAoMbWludF9wdWJfa2V5GAEgASgJEiMKG2Rlc3RpbmF0aW9uX2FjY291bnRfcHViX2tleRgCIAEoCRIeChZtaW50X2F1dGhvcml0eV9wdWJfa2V5GAMgASgJEg4KBmFtb3VudBgEIAEoCRIQCghkZWNpbWFscxgFIAEoDSJYCgxNaW50UmVzcG9uc2USSAoLaW5zdHJ1Y3Rpb24YASABKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbjLRCQoHU2VydmljZRKiAQoXSW5pdGlhbGlzZVRva2VuMjAyMk1pbnQSQi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkluaXRpYWxpc2VUb2tlbjIwMjJNaW50UmVxdWVzdBpDLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuSW5pdGlhbGlzZVRva2VuMjAyMk1pbnRSZXNwb25zZRKfAQoWSW5pdGlhbGlzZVNQTFRva2VuTWludBJBLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuSW5pdGlhbGlzZVNQTFRva2VuTWludFJlcXVlc3QaQi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkluaXRpYWxpc2VTUExUb2tlbk1pbnRSZXNwb25zZRK6AQofR2V0Q3VycmVudE1pblJlbnRGb3JNaW50QWNjb3VudBJKLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuR2V0Q3VycmVudE1pblJlbnRGb3JNaW50QWNjb3VudFJlcXVlc3QaSy5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkdldEN1cnJlbnRNaW5SZW50Rm9yTWludEFjY291bnRSZXNwb25zZRJ4CglQYXJzZU1pbnQSNC5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLlBhcnNlTWludFJlcXVlc3QaNS5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLlBhcnNlTWludFJlc3BvbnNlEsMBCiJHZXRDdXJyZW50TWluUmVudEZvckhvbGRpbmdBY2NvdW50Ek0ucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5HZXRDdXJyZW50TWluUmVudEZvckhvbGRpbmdBY2NvdW50UmVxdWVzdBpOLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuR2V0Q3VycmVudE1pblJlbnRGb3JIb2xkaW5nQWNjb3VudFJlc3BvbnNlEnsKCkNyZWF0ZU1pbnQSNS5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkNyZWF0ZU1pbnRSZXF1ZXN0GjYucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5DcmVhdGVNaW50UmVzcG9uc2USmQEKFENyZWF0ZUhvbGRpbmdBY2NvdW50Ej8ucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5DcmVhdGVIb2xkaW5nQWNjb3VudFJlcXVlc3QaQC5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkNyZWF0ZUhvbGRpbmdBY2NvdW50UmVzcG9uc2USaQoETWludBIvLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuTWludFJlcXVlc3QaMC5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLk1pbnRSZXNwb25zZUJUWlJnaXRodWIuY29tL21lc2h0cmFkZS9wcm90b2NoYWluL2xpYi9nby9wcm90b2NoYWluL3NvbGFuYS9wcm9ncmFtL3Rva2VuL3YxO3Rva2VuX3YxYgZwcm90bzM", [file_protochain_solana_program_token_v1_token2022_extension, file_protochain_solana_transaction_v1_instruction, file_protochain_solana_type_v1_token_program]);
+  fileDesc("CjBwcm90b2NoYWluL3NvbGFuYS9wcm9ncmFtL3Rva2VuL3YxL3NlcnZpY2UucHJvdG8SInByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEi1gEKHkluaXRpYWxpc2VUb2tlbjIwMjJNaW50UmVxdWVzdBIUCgxtaW50X3B1Yl9rZXkYASABKAkSHgoWbWludF9hdXRob3JpdHlfcHViX2tleRgCIAEoCRIgChhmcmVlemVfYXV0aG9yaXR5X3B1Yl9rZXkYAyABKAkSEAoIZGVjaW1hbHMYBCABKA0SSgoKZXh0ZW5zaW9ucxgFIAMoCzI2LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuVG9rZW4yMDIyRXh0ZW5zaW9uImwKH0luaXRpYWxpc2VUb2tlbjIwMjJNaW50UmVzcG9uc2USSQoMaW5zdHJ1Y3Rpb25zGAEgAygLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24iiQEKHUluaXRpYWxpc2VTUExUb2tlbk1pbnRSZXF1ZXN0EhQKDG1pbnRfcHViX2tleRgBIAEoCRIeChZtaW50X2F1dGhvcml0eV9wdWJfa2V5GAIgASgJEiAKGGZyZWV6ZV9hdXRob3JpdHlfcHViX2tleRgDIAEoCRIQCghkZWNpbWFscxgEIAEoDSJqCh5Jbml0aWFsaXNlU1BMVG9rZW5NaW50UmVzcG9uc2USSAoLaW5zdHJ1Y3Rpb24YASABKAsyMy5wcm90b2NoYWluLnNvbGFuYS50cmFuc2FjdGlvbi52MS5Tb2xhbmFJbnN0cnVjdGlvbiJ9Ci9HZXRDdXJyZW50TWluUmVudEZvclRva2VuMjAyMk1pbnRBY2NvdW50UmVxdWVzdBJKCgpleHRlbnNpb25zGAEgAygLMjYucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5Ub2tlbjIwMjJFeHRlbnNpb24iUwowR2V0Q3VycmVudE1pblJlbnRGb3JUb2tlbjIwMjJNaW50QWNjb3VudFJlc3BvbnNlEhAKCGxhbXBvcnRzGAEgASgEEg0KBXNwYWNlGAIgASgEIjAKLkdldEN1cnJlbnRNaW5SZW50Rm9yU1BMVG9rZW5NaW50QWNjb3VudFJlcXVlc3QiUgovR2V0Q3VycmVudE1pblJlbnRGb3JTUExUb2tlbk1pbnRBY2NvdW50UmVzcG9uc2USEAoIbGFtcG9ydHMYASABKAQSDQoFc3BhY2UYAiABKAQiKwoQUGFyc2VNaW50UmVxdWVzdBIXCg9hY2NvdW50X2FkZHJlc3MYASABKAki2wEKEVBhcnNlTWludFJlc3BvbnNlEjoKBG1pbnQYASABKAsyLC5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLk1pbnRJbmZvEj4KDXRva2VuX3Byb2dyYW0YAiABKA4yJy5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLlRva2VuUHJvZ3JhbRJKCgpleHRlbnNpb25zGAMgAygLMjYucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5Ub2tlbjIwMjJFeHRlbnNpb24ihgEKCE1pbnRJbmZvEh4KFm1pbnRfYXV0aG9yaXR5X3B1Yl9rZXkYASABKAkSIAoYZnJlZXplX2F1dGhvcml0eV9wdWJfa2V5GAIgASgJEhAKCGRlY2ltYWxzGAMgASgNEg4KBnN1cHBseRgEIAEoCRIWCg5pc19pbml0aWFsaXplZBgFIAEoCCIzChJNZW1vVHJhbnNmZXJDb25maWcSHQoVcmVxdWlyZV9pbmNvbWluZ19tZW1vGAEgASgIIoEBCilHZXRDdXJyZW50TWluUmVudEZvckhvbGRpbmdBY2NvdW50UmVxdWVzdBJUChRtZW1vX3RyYW5zZmVyX2NvbmZpZxgBIAEoCzI2LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuTWVtb1RyYW5zZmVyQ29uZmlnIj4KKkdldEN1cnJlbnRNaW5SZW50Rm9ySG9sZGluZ0FjY291bnRSZXNwb25zZRIQCghsYW1wb3J0cxgBIAEoBCLvAQobQ3JlYXRlSG9sZGluZ0FjY291bnRSZXF1ZXN0Eg0KBXBheWVyGAEgASgJEhUKDW93bmVyX3B1Yl9rZXkYAiABKAkSFAoMbWludF9wdWJfa2V5GAMgASgJEj4KDXRva2VuX3Byb2dyYW0YBCABKA4yJy5wcm90b2NoYWluLnNvbGFuYS50eXBlLnYxLlRva2VuUHJvZ3JhbRJUChRtZW1vX3RyYW5zZmVyX2NvbmZpZxgFIAEoCzI2LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuTWVtb1RyYW5zZmVyQ29uZmlnImkKHENyZWF0ZUhvbGRpbmdBY2NvdW50UmVzcG9uc2USSQoMaW5zdHJ1Y3Rpb25zGAEgAygLMjMucHJvdG9jaGFpbi5zb2xhbmEudHJhbnNhY3Rpb24udjEuU29sYW5hSW5zdHJ1Y3Rpb24izAEKEUNyZWF0ZU1pbnRSZXF1ZXN0Eg0KBXBheWVyGAEgASgJEhQKDG1pbnRfcHViX2tleRgCIAEoCRIeChZtaW50X2F1dGhvcml0eV9wdWJfa2V5GAMgASgJEiAKGGZyZWV6ZV9hdXRob3JpdHlfcHViX2tleRgEIAEoCRIQCghkZWNpbWFscxgFIAEoDRI+Cg10b2tlbl9wcm9ncmFtGAYgASgOMicucHJvdG9jaGFpbi5zb2xhbmEudHlwZS52MS5Ub2tlblByb2dyYW0iXwoSQ3JlYXRlTWludFJlc3BvbnNlEkkKDGluc3RydWN0aW9ucxgBIAMoCzIzLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uIooBCgtNaW50UmVxdWVzdBIUCgxtaW50X3B1Yl9rZXkYASABKAkSIwobZGVzdGluYXRpb25fYWNjb3VudF9wdWJfa2V5GAIgASgJEh4KFm1pbnRfYXV0aG9yaXR5X3B1Yl9rZXkYAyABKAkSDgoGYW1vdW50GAQgASgJEhAKCGRlY2ltYWxzGAUgASgNIlgKDE1pbnRSZXNwb25zZRJICgtpbnN0cnVjdGlvbhgBIAEoCzIzLnByb3RvY2hhaW4uc29sYW5hLnRyYW5zYWN0aW9uLnYxLlNvbGFuYUluc3RydWN0aW9uMsELCgdTZXJ2aWNlEqIBChdJbml0aWFsaXNlVG9rZW4yMDIyTWludBJCLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuSW5pdGlhbGlzZVRva2VuMjAyMk1pbnRSZXF1ZXN0GkMucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5Jbml0aWFsaXNlVG9rZW4yMDIyTWludFJlc3BvbnNlEp8BChZJbml0aWFsaXNlU1BMVG9rZW5NaW50EkEucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5Jbml0aWFsaXNlU1BMVG9rZW5NaW50UmVxdWVzdBpCLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuSW5pdGlhbGlzZVNQTFRva2VuTWludFJlc3BvbnNlEtUBCihHZXRDdXJyZW50TWluUmVudEZvclRva2VuMjAyMk1pbnRBY2NvdW50ElMucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5HZXRDdXJyZW50TWluUmVudEZvclRva2VuMjAyMk1pbnRBY2NvdW50UmVxdWVzdBpULnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuR2V0Q3VycmVudE1pblJlbnRGb3JUb2tlbjIwMjJNaW50QWNjb3VudFJlc3BvbnNlEtIBCidHZXRDdXJyZW50TWluUmVudEZvclNQTFRva2VuTWludEFjY291bnQSUi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkdldEN1cnJlbnRNaW5SZW50Rm9yU1BMVG9rZW5NaW50QWNjb3VudFJlcXVlc3QaUy5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkdldEN1cnJlbnRNaW5SZW50Rm9yU1BMVG9rZW5NaW50QWNjb3VudFJlc3BvbnNlEngKCVBhcnNlTWludBI0LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuUGFyc2VNaW50UmVxdWVzdBo1LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuUGFyc2VNaW50UmVzcG9uc2USwwEKIkdldEN1cnJlbnRNaW5SZW50Rm9ySG9sZGluZ0FjY291bnQSTS5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkdldEN1cnJlbnRNaW5SZW50Rm9ySG9sZGluZ0FjY291bnRSZXF1ZXN0Gk4ucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5HZXRDdXJyZW50TWluUmVudEZvckhvbGRpbmdBY2NvdW50UmVzcG9uc2USewoKQ3JlYXRlTWludBI1LnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuQ3JlYXRlTWludFJlcXVlc3QaNi5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkNyZWF0ZU1pbnRSZXNwb25zZRKZAQoUQ3JlYXRlSG9sZGluZ0FjY291bnQSPy5wcm90b2NoYWluLnNvbGFuYS5wcm9ncmFtLnRva2VuLnYxLkNyZWF0ZUhvbGRpbmdBY2NvdW50UmVxdWVzdBpALnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuQ3JlYXRlSG9sZGluZ0FjY291bnRSZXNwb25zZRJpCgRNaW50Ei8ucHJvdG9jaGFpbi5zb2xhbmEucHJvZ3JhbS50b2tlbi52MS5NaW50UmVxdWVzdBowLnByb3RvY2hhaW4uc29sYW5hLnByb2dyYW0udG9rZW4udjEuTWludFJlc3BvbnNlQlRaUmdpdGh1Yi5jb20vbWVzaHRyYWRlL3Byb3RvY2hhaW4vbGliL2dvL3Byb3RvY2hhaW4vc29sYW5hL3Byb2dyYW0vdG9rZW4vdjE7dG9rZW5fdjFiBnByb3RvMw", [file_protochain_solana_program_token_v1_token2022_extension, file_protochain_solana_transaction_v1_instruction, file_protochain_solana_type_v1_token_program]);
 
 /**
  * Request to initialise a Token-2022 mint with optional extensions.
@@ -155,39 +155,87 @@ export const InitialiseSPLTokenMintResponseSchema: GenMessage<InitialiseSPLToken
   messageDesc(file_protochain_solana_program_token_v1_service, 3);
 
 /**
- * Request for the minimum rent and space required for a mint account.
+ * Request for the minimum rent and space required for a Token-2022 mint account.
  * Provide the same extension set you intend to pass to InitialiseToken2022Mint so that
  * the returned lamports and space values are consistent with each other.
  *
- * @generated from message protochain.solana.program.token.v1.GetCurrentMinRentForMintAccountRequest
+ * @generated from message protochain.solana.program.token.v1.GetCurrentMinRentForToken2022MintAccountRequest
  */
-export type GetCurrentMinRentForMintAccountRequest = Message<"protochain.solana.program.token.v1.GetCurrentMinRentForMintAccountRequest"> & {
+export type GetCurrentMinRentForToken2022MintAccountRequest = Message<"protochain.solana.program.token.v1.GetCurrentMinRentForToken2022MintAccountRequest"> & {
   /**
    * Ordered list of extensions to enable on the mint.
    * Must match the extensions you will pass to InitialiseToken2022Mint.
-   * If empty, results are based on the base Mint::LEN (82 bytes) with no extensions.
+   * If empty, results are based on a base Token-2022 mint with no extensions.
    * Duplicates are rejected.
    *
-   * @generated from field: repeated protochain.solana.program.token.v1.Token2022Extension extensions = 6;
+   * @generated from field: repeated protochain.solana.program.token.v1.Token2022Extension extensions = 1;
    */
   extensions: Token2022Extension[];
 };
 
 /**
- * Describes the message protochain.solana.program.token.v1.GetCurrentMinRentForMintAccountRequest.
- * Use `create(GetCurrentMinRentForMintAccountRequestSchema)` to create a new message.
+ * Describes the message protochain.solana.program.token.v1.GetCurrentMinRentForToken2022MintAccountRequest.
+ * Use `create(GetCurrentMinRentForToken2022MintAccountRequestSchema)` to create a new message.
  */
-export const GetCurrentMinRentForMintAccountRequestSchema: GenMessage<GetCurrentMinRentForMintAccountRequest> = /*@__PURE__*/
+export const GetCurrentMinRentForToken2022MintAccountRequestSchema: GenMessage<GetCurrentMinRentForToken2022MintAccountRequest> = /*@__PURE__*/
   messageDesc(file_protochain_solana_program_token_v1_service, 4);
 
 /**
- * Rent and space for a mint account with the requested extensions.
+ * Rent and space for a Token-2022 mint account with the requested extensions.
  * Pass both fields directly to the System Program's CreateAccount instruction
- * before calling InitialiseToken2022Mint or InitialiseSPLTokenMint.
+ * before calling InitialiseToken2022Mint.
  *
- * @generated from message protochain.solana.program.token.v1.GetCurrentMinRentForMintAccountResponse
+ * @generated from message protochain.solana.program.token.v1.GetCurrentMinRentForToken2022MintAccountResponse
  */
-export type GetCurrentMinRentForMintAccountResponse = Message<"protochain.solana.program.token.v1.GetCurrentMinRentForMintAccountResponse"> & {
+export type GetCurrentMinRentForToken2022MintAccountResponse = Message<"protochain.solana.program.token.v1.GetCurrentMinRentForToken2022MintAccountResponse"> & {
+  /**
+   * Minimum lamports required for the account to be rent-exempt after all
+   * extensions (including variable-length metadata) are fully initialised.
+   *
+   * @generated from field: uint64 lamports = 1;
+   */
+  lamports: bigint;
+
+  /**
+   * Initial account size in bytes for System::CreateAccount.
+   * Covers the base mint layout and fixed-size extension pods only.
+   *
+   * @generated from field: uint64 space = 2;
+   */
+  space: bigint;
+};
+
+/**
+ * Describes the message protochain.solana.program.token.v1.GetCurrentMinRentForToken2022MintAccountResponse.
+ * Use `create(GetCurrentMinRentForToken2022MintAccountResponseSchema)` to create a new message.
+ */
+export const GetCurrentMinRentForToken2022MintAccountResponseSchema: GenMessage<GetCurrentMinRentForToken2022MintAccountResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_token_v1_service, 5);
+
+/**
+ * Request for the minimum rent and space required for a legacy SPL Token mint account.
+ * No parameters are needed because SPL Token mints are always exactly Mint::LEN (82 bytes).
+ *
+ * @generated from message protochain.solana.program.token.v1.GetCurrentMinRentForSPLTokenMintAccountRequest
+ */
+export type GetCurrentMinRentForSPLTokenMintAccountRequest = Message<"protochain.solana.program.token.v1.GetCurrentMinRentForSPLTokenMintAccountRequest"> & {
+};
+
+/**
+ * Describes the message protochain.solana.program.token.v1.GetCurrentMinRentForSPLTokenMintAccountRequest.
+ * Use `create(GetCurrentMinRentForSPLTokenMintAccountRequestSchema)` to create a new message.
+ */
+export const GetCurrentMinRentForSPLTokenMintAccountRequestSchema: GenMessage<GetCurrentMinRentForSPLTokenMintAccountRequest> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_token_v1_service, 6);
+
+/**
+ * Rent and space for a legacy SPL Token mint account.
+ * Pass both fields directly to the System Program's CreateAccount instruction
+ * before calling InitialiseSPLTokenMint.
+ *
+ * @generated from message protochain.solana.program.token.v1.GetCurrentMinRentForSPLTokenMintAccountResponse
+ */
+export type GetCurrentMinRentForSPLTokenMintAccountResponse = Message<"protochain.solana.program.token.v1.GetCurrentMinRentForSPLTokenMintAccountResponse"> & {
   /**
    * Minimum lamports required for the account to be rent-exempt.
    *
@@ -196,8 +244,7 @@ export type GetCurrentMinRentForMintAccountResponse = Message<"protochain.solana
   lamports: bigint;
 
   /**
-   * Account size in bytes to allocate.
-   * Must equal the space argument passed to CreateAccount.
+   * Account size in bytes to allocate (always Mint::LEN = 82 bytes).
    *
    * @generated from field: uint64 space = 2;
    */
@@ -205,11 +252,11 @@ export type GetCurrentMinRentForMintAccountResponse = Message<"protochain.solana
 };
 
 /**
- * Describes the message protochain.solana.program.token.v1.GetCurrentMinRentForMintAccountResponse.
- * Use `create(GetCurrentMinRentForMintAccountResponseSchema)` to create a new message.
+ * Describes the message protochain.solana.program.token.v1.GetCurrentMinRentForSPLTokenMintAccountResponse.
+ * Use `create(GetCurrentMinRentForSPLTokenMintAccountResponseSchema)` to create a new message.
  */
-export const GetCurrentMinRentForMintAccountResponseSchema: GenMessage<GetCurrentMinRentForMintAccountResponse> = /*@__PURE__*/
-  messageDesc(file_protochain_solana_program_token_v1_service, 5);
+export const GetCurrentMinRentForSPLTokenMintAccountResponseSchema: GenMessage<GetCurrentMinRentForSPLTokenMintAccountResponse> = /*@__PURE__*/
+  messageDesc(file_protochain_solana_program_token_v1_service, 7);
 
 /**
  * Request to parse mint account
@@ -228,7 +275,7 @@ export type ParseMintRequest = Message<"protochain.solana.program.token.v1.Parse
  * Use `create(ParseMintRequestSchema)` to create a new message.
  */
 export const ParseMintRequestSchema: GenMessage<ParseMintRequest> = /*@__PURE__*/
-  messageDesc(file_protochain_solana_program_token_v1_service, 6);
+  messageDesc(file_protochain_solana_program_token_v1_service, 8);
 
 /**
  * Response with parsed mint data.
@@ -264,7 +311,7 @@ export type ParseMintResponse = Message<"protochain.solana.program.token.v1.Pars
  * Use `create(ParseMintResponseSchema)` to create a new message.
  */
 export const ParseMintResponseSchema: GenMessage<ParseMintResponse> = /*@__PURE__*/
-  messageDesc(file_protochain_solana_program_token_v1_service, 7);
+  messageDesc(file_protochain_solana_program_token_v1_service, 9);
 
 /**
  * Structured mint account information
@@ -303,7 +350,7 @@ export type MintInfo = Message<"protochain.solana.program.token.v1.MintInfo"> & 
  * Use `create(MintInfoSchema)` to create a new message.
  */
 export const MintInfoSchema: GenMessage<MintInfo> = /*@__PURE__*/
-  messageDesc(file_protochain_solana_program_token_v1_service, 8);
+  messageDesc(file_protochain_solana_program_token_v1_service, 10);
 
 /**
  * @generated from message protochain.solana.program.token.v1.MemoTransferConfig
@@ -322,7 +369,7 @@ export type MemoTransferConfig = Message<"protochain.solana.program.token.v1.Mem
  * Use `create(MemoTransferConfigSchema)` to create a new message.
  */
 export const MemoTransferConfigSchema: GenMessage<MemoTransferConfig> = /*@__PURE__*/
-  messageDesc(file_protochain_solana_program_token_v1_service, 9);
+  messageDesc(file_protochain_solana_program_token_v1_service, 11);
 
 /**
  * Request to get current rent for holding account
@@ -343,7 +390,7 @@ export type GetCurrentMinRentForHoldingAccountRequest = Message<"protochain.sola
  * Use `create(GetCurrentMinRentForHoldingAccountRequestSchema)` to create a new message.
  */
 export const GetCurrentMinRentForHoldingAccountRequestSchema: GenMessage<GetCurrentMinRentForHoldingAccountRequest> = /*@__PURE__*/
-  messageDesc(file_protochain_solana_program_token_v1_service, 10);
+  messageDesc(file_protochain_solana_program_token_v1_service, 12);
 
 /**
  * Response with current rent amount for holding account
@@ -362,7 +409,7 @@ export type GetCurrentMinRentForHoldingAccountResponse = Message<"protochain.sol
  * Use `create(GetCurrentMinRentForHoldingAccountResponseSchema)` to create a new message.
  */
 export const GetCurrentMinRentForHoldingAccountResponseSchema: GenMessage<GetCurrentMinRentForHoldingAccountResponse> = /*@__PURE__*/
-  messageDesc(file_protochain_solana_program_token_v1_service, 11);
+  messageDesc(file_protochain_solana_program_token_v1_service, 13);
 
 /**
  * Request to create and initialize a holding account in one call
@@ -409,7 +456,7 @@ export type CreateHoldingAccountRequest = Message<"protochain.solana.program.tok
  * Use `create(CreateHoldingAccountRequestSchema)` to create a new message.
  */
 export const CreateHoldingAccountRequestSchema: GenMessage<CreateHoldingAccountRequest> = /*@__PURE__*/
-  messageDesc(file_protochain_solana_program_token_v1_service, 12);
+  messageDesc(file_protochain_solana_program_token_v1_service, 14);
 
 /**
  * Response containing both create and initialize instructions
@@ -428,7 +475,7 @@ export type CreateHoldingAccountResponse = Message<"protochain.solana.program.to
  * Use `create(CreateHoldingAccountResponseSchema)` to create a new message.
  */
 export const CreateHoldingAccountResponseSchema: GenMessage<CreateHoldingAccountResponse> = /*@__PURE__*/
-  messageDesc(file_protochain_solana_program_token_v1_service, 13);
+  messageDesc(file_protochain_solana_program_token_v1_service, 15);
 
 /**
  * Request to create and initialize a mint account in one call
@@ -486,7 +533,7 @@ export type CreateMintRequest = Message<"protochain.solana.program.token.v1.Crea
  * Use `create(CreateMintRequestSchema)` to create a new message.
  */
 export const CreateMintRequestSchema: GenMessage<CreateMintRequest> = /*@__PURE__*/
-  messageDesc(file_protochain_solana_program_token_v1_service, 14);
+  messageDesc(file_protochain_solana_program_token_v1_service, 16);
 
 /**
  * Response containing both create and initialize instructions
@@ -505,7 +552,7 @@ export type CreateMintResponse = Message<"protochain.solana.program.token.v1.Cre
  * Use `create(CreateMintResponseSchema)` to create a new message.
  */
 export const CreateMintResponseSchema: GenMessage<CreateMintResponse> = /*@__PURE__*/
-  messageDesc(file_protochain_solana_program_token_v1_service, 15);
+  messageDesc(file_protochain_solana_program_token_v1_service, 17);
 
 /**
  * Request to mint tokens to a token account
@@ -554,7 +601,7 @@ export type MintRequest = Message<"protochain.solana.program.token.v1.MintReques
  * Use `create(MintRequestSchema)` to create a new message.
  */
 export const MintRequestSchema: GenMessage<MintRequest> = /*@__PURE__*/
-  messageDesc(file_protochain_solana_program_token_v1_service, 16);
+  messageDesc(file_protochain_solana_program_token_v1_service, 18);
 
 /**
  * Response containing Mint instruction
@@ -573,7 +620,7 @@ export type MintResponse = Message<"protochain.solana.program.token.v1.MintRespo
  * Use `create(MintResponseSchema)` to create a new message.
  */
 export const MintResponseSchema: GenMessage<MintResponse> = /*@__PURE__*/
-  messageDesc(file_protochain_solana_program_token_v1_service, 17);
+  messageDesc(file_protochain_solana_program_token_v1_service, 19);
 
 /**
  * Token Program service for creating SPL Token and Token-2022 instructions
@@ -608,17 +655,39 @@ export const Service: GenService<{
   },
   /**
    * Returns the minimum rent-exempt balance (in lamports) and the required account
-   * space (in bytes) for a mint account with the requested extensions.
-   * Both values are needed together when calling the System Program's CreateAccount
-   * instruction: lamports funds rent exemption, space determines allocation size.
-   * With no extensions the result is based on the base Mint::LEN (82 bytes).
+   * space (in bytes) for a Token-2022 mint account with the requested extensions.
    *
-   * @generated from rpc protochain.solana.program.token.v1.Service.GetCurrentMinRentForMintAccount
+   * The returned space covers the base mint layout and fixed-size extension pods
+   * (e.g. MetadataPointer) needed by System::CreateAccount.
+   *
+   * The returned lamports cover the **full** final account size — including
+   * variable-length metadata content that Token-2022 allocates via realloc
+   * during initialize_token_metadata — so the account remains rent-exempt after
+   * resizing. Pass both values directly to System::CreateAccount.
+   *
+   * Provide the same extension set you intend to pass to InitialiseToken2022Mint
+   * so that the returned values are consistent.
+   *
+   * @generated from rpc protochain.solana.program.token.v1.Service.GetCurrentMinRentForToken2022MintAccount
    */
-  getCurrentMinRentForMintAccount: {
+  getCurrentMinRentForToken2022MintAccount: {
     methodKind: "unary";
-    input: typeof GetCurrentMinRentForMintAccountRequestSchema;
-    output: typeof GetCurrentMinRentForMintAccountResponseSchema;
+    input: typeof GetCurrentMinRentForToken2022MintAccountRequestSchema;
+    output: typeof GetCurrentMinRentForToken2022MintAccountResponseSchema;
+  },
+  /**
+   * Returns the minimum rent-exempt balance (in lamports) and the required account
+   * space (in bytes) for a legacy SPL Token mint account.
+   *
+   * Legacy SPL Token mints are always exactly Mint::LEN (82 bytes) with no
+   * extension support, so no additional parameters are needed.
+   *
+   * @generated from rpc protochain.solana.program.token.v1.Service.GetCurrentMinRentForSPLTokenMintAccount
+   */
+  getCurrentMinRentForSPLTokenMintAccount: {
+    methodKind: "unary";
+    input: typeof GetCurrentMinRentForSPLTokenMintAccountRequestSchema;
+    output: typeof GetCurrentMinRentForSPLTokenMintAccountResponseSchema;
   },
   /**
    * Parses mint account data into structured format

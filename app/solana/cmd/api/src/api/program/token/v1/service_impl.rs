@@ -11,8 +11,10 @@ use protochain_api::protochain::solana::program::token::v1::{
     service_server::Service as TokenProgramService, token2022_extension,
     CreateHoldingAccountRequest, CreateHoldingAccountResponse, CreateMintRequest,
     CreateMintResponse, GetCurrentMinRentForHoldingAccountRequest,
-    GetCurrentMinRentForHoldingAccountResponse, GetCurrentMinRentForMintAccountRequest,
-    GetCurrentMinRentForMintAccountResponse, InitialiseSplTokenMintRequest,
+    GetCurrentMinRentForHoldingAccountResponse, GetCurrentMinRentForSplTokenMintAccountRequest,
+    GetCurrentMinRentForSplTokenMintAccountResponse,
+    GetCurrentMinRentForToken2022MintAccountRequest,
+    GetCurrentMinRentForToken2022MintAccountResponse, InitialiseSplTokenMintRequest,
     InitialiseSplTokenMintResponse, InitialiseToken2022MintRequest,
     InitialiseToken2022MintResponse, MintInfo, MintRequest, MintResponse, ParseMintRequest,
     ParseMintResponse, Token2022Extension, Token2022ExtensionMetadata,
@@ -82,8 +84,8 @@ fn validate_no_duplicate_extensions(extensions: &[Token2022Extension]) -> Result
     Ok(())
 }
 
-/// Calculates the space (in bytes) to allocate when creating a mint account via
-/// `System::CreateAccount`.
+/// Calculates the space (in bytes) to allocate when creating a Token-2022 mint
+/// account via `System::CreateAccount`.
 ///
 /// This includes the base mint layout and fixed-size extension type pods
 /// (e.g. `MetadataPointer`), but **not** variable-length content like
@@ -115,13 +117,15 @@ fn mint_create_account_space(extensions: &[Token2022Extension]) -> Result<usize,
     })
 }
 
-/// Calculates the total space a mint account will occupy after **all** extensions
-/// — including variable-length metadata content — have been fully initialised.
+/// Calculates the total space a Token-2022 mint account will occupy after
+/// **all** extensions — including variable-length metadata content — have been
+/// fully initialised.
 ///
-/// This is used to determine the rent-exempt lamport deposit at account creation.
-/// The Token-2022 program resizes the account via `realloc` when metadata is
-/// written, so the account must be pre-funded with enough lamports for the final
-/// size even though `mint_create_account_space` returns a smaller allocation.
+/// This is used to determine the rent-exempt lamport deposit at account
+/// creation. The Token-2022 program resizes the account via `realloc` when
+/// metadata is written, so the account must be pre-funded with enough lamports
+/// for the final size even though `mint_create_account_space` returns a smaller
+/// allocation.
 ///
 /// Returns `Mint::LEN` when no extensions are provided.
 #[allow(clippy::result_large_err)]
@@ -142,16 +146,6 @@ fn mint_total_space_for_rent(extensions: &[Token2022Extension]) -> Result<usize,
             token2022_extension::Extension::Metadata(meta) => {
                 sdk_extension_types.push(ExtensionType::MetadataPointer);
 
-                // `TokenMetadata` has two different pubkey field types by design:
-                //   - `mint: Pubkey` — always required; every mint must have an address.
-                //   - `update_authority: OptionalNonZeroPubkey` — optional; immutable mints
-                //     have no update authority.  `OptionalNonZeroPubkey` encodes
-                //     `Option<Pubkey>` in a fixed 32 bytes on-chain by treating the all-zeros
-                //     pubkey as the "None" sentinel, avoiding the extra discriminant byte that
-                //     a standard `Option<Pubkey>` would require.
-                //
-                // Both fields are always exactly 32 bytes on-chain, so neither value affects
-                // the TLV size calculation — placeholder defaults are sufficient here.
                 let token_metadata = TokenMetadata {
                     update_authority: OptionalNonZeroPubkey::default(),
                     mint: Pubkey::default(),
@@ -452,21 +446,22 @@ impl TokenProgramService for TokenProgramServiceImpl {
         }))
     }
 
-    /// Gets the minimum rent-exempt balance and allocation space for a mint account.
+    /// Gets the minimum rent-exempt balance and allocation space for a Token-2022
+    /// mint account with the requested extensions.
     ///
-    /// With no extensions both values are based on `Mint::LEN` (82 bytes).
+    /// The returned `space` covers the base mint layout and fixed-size extension
+    /// pods (e.g. `MetadataPointer`) — this is what goes into
+    /// `System::CreateAccount`.
     ///
-    /// With extensions the returned `space` covers only the base mint layout and
-    /// fixed-size extension pods (e.g. `MetadataPointer`).  The returned
-    /// `lamports` covers the **full** final account size — including
-    /// variable-length metadata content that the Token-2022 program allocates
-    /// via `realloc` during `initialize_token_metadata`.  This means `lamports`
-    /// may exceed `rent_exempt(space)` when metadata extensions are present; the
-    /// excess ensures the account remains rent-exempt after Token-2022 resizes it.
-    async fn get_current_min_rent_for_mint_account(
+    /// The returned `lamports` covers the **full** final account size — including
+    /// variable-length metadata content that Token-2022 allocates via `realloc`
+    /// during `initialize_token_metadata`.  This means `lamports` may exceed
+    /// `rent_exempt(space)` when metadata extensions are present; the excess
+    /// ensures the account remains rent-exempt after Token-2022 resizes it.
+    async fn get_current_min_rent_for_token2022_mint_account(
         &self,
-        request: Request<GetCurrentMinRentForMintAccountRequest>,
-    ) -> Result<Response<GetCurrentMinRentForMintAccountResponse>, Status> {
+        request: Request<GetCurrentMinRentForToken2022MintAccountRequest>,
+    ) -> Result<Response<GetCurrentMinRentForToken2022MintAccountResponse>, Status> {
         let req = request.into_inner();
 
         validate_no_duplicate_extensions(&req.extensions)?;
@@ -485,7 +480,33 @@ impl TokenProgramService for TokenProgramServiceImpl {
                 Status::internal(format!("failed to get minimum balance for mint account: {e}"))
             })?;
 
-        Ok(Response::new(GetCurrentMinRentForMintAccountResponse {
+        Ok(Response::new(GetCurrentMinRentForToken2022MintAccountResponse {
+            lamports,
+            space: space as u64,
+        }))
+    }
+
+    /// Gets the minimum rent-exempt balance and allocation space for a legacy
+    /// SPL Token mint account.
+    ///
+    /// SPL Token mints are always exactly `Mint::LEN` (82 bytes) with no
+    /// extension support.
+    async fn get_current_min_rent_for_spl_token_mint_account(
+        &self,
+        request: Request<GetCurrentMinRentForSplTokenMintAccountRequest>,
+    ) -> Result<Response<GetCurrentMinRentForSplTokenMintAccountResponse>, Status> {
+        let _req = request.into_inner();
+
+        let space = Mint::LEN;
+
+        let lamports = self
+            .rpc_client
+            .get_minimum_balance_for_rent_exemption(space)
+            .map_err(|e| {
+                Status::internal(format!("failed to get minimum balance for mint account: {e}"))
+            })?;
+
+        Ok(Response::new(GetCurrentMinRentForSplTokenMintAccountResponse {
             lamports,
             space: space as u64,
         }))
@@ -591,8 +612,8 @@ impl TokenProgramService for TokenProgramServiceImpl {
         }
 
         let rent_response = self
-            .get_current_min_rent_for_mint_account(Request::new(
-                GetCurrentMinRentForMintAccountRequest { extensions: vec![] },
+            .get_current_min_rent_for_spl_token_mint_account(Request::new(
+                GetCurrentMinRentForSplTokenMintAccountRequest {},
             ))
             .await?
             .into_inner();

@@ -19,14 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Service_InitialiseToken2022Mint_FullMethodName            = "/protochain.solana.program.token.v1.Service/InitialiseToken2022Mint"
-	Service_InitialiseSPLTokenMint_FullMethodName             = "/protochain.solana.program.token.v1.Service/InitialiseSPLTokenMint"
-	Service_GetCurrentMinRentForMintAccount_FullMethodName    = "/protochain.solana.program.token.v1.Service/GetCurrentMinRentForMintAccount"
-	Service_ParseMint_FullMethodName                          = "/protochain.solana.program.token.v1.Service/ParseMint"
-	Service_GetCurrentMinRentForHoldingAccount_FullMethodName = "/protochain.solana.program.token.v1.Service/GetCurrentMinRentForHoldingAccount"
-	Service_CreateMint_FullMethodName                         = "/protochain.solana.program.token.v1.Service/CreateMint"
-	Service_CreateHoldingAccount_FullMethodName               = "/protochain.solana.program.token.v1.Service/CreateHoldingAccount"
-	Service_Mint_FullMethodName                               = "/protochain.solana.program.token.v1.Service/Mint"
+	Service_InitialiseToken2022Mint_FullMethodName                  = "/protochain.solana.program.token.v1.Service/InitialiseToken2022Mint"
+	Service_InitialiseSPLTokenMint_FullMethodName                   = "/protochain.solana.program.token.v1.Service/InitialiseSPLTokenMint"
+	Service_GetCurrentMinRentForToken2022MintAccount_FullMethodName = "/protochain.solana.program.token.v1.Service/GetCurrentMinRentForToken2022MintAccount"
+	Service_GetCurrentMinRentForSPLTokenMintAccount_FullMethodName  = "/protochain.solana.program.token.v1.Service/GetCurrentMinRentForSPLTokenMintAccount"
+	Service_ParseMint_FullMethodName                                = "/protochain.solana.program.token.v1.Service/ParseMint"
+	Service_GetCurrentMinRentForHoldingAccount_FullMethodName       = "/protochain.solana.program.token.v1.Service/GetCurrentMinRentForHoldingAccount"
+	Service_CreateMint_FullMethodName                               = "/protochain.solana.program.token.v1.Service/CreateMint"
+	Service_CreateHoldingAccount_FullMethodName                     = "/protochain.solana.program.token.v1.Service/CreateHoldingAccount"
+	Service_Mint_FullMethodName                                     = "/protochain.solana.program.token.v1.Service/Mint"
 )
 
 // ServiceClient is the client API for Service service.
@@ -47,11 +48,25 @@ type ServiceClient interface {
 	// Extensions are not supported.
 	InitialiseSPLTokenMint(ctx context.Context, in *InitialiseSPLTokenMintRequest, opts ...grpc.CallOption) (*InitialiseSPLTokenMintResponse, error)
 	// Returns the minimum rent-exempt balance (in lamports) and the required account
-	// space (in bytes) for a mint account with the requested extensions.
-	// Both values are needed together when calling the System Program's CreateAccount
-	// instruction: lamports funds rent exemption, space determines allocation size.
-	// With no extensions the result is based on the base Mint::LEN (82 bytes).
-	GetCurrentMinRentForMintAccount(ctx context.Context, in *GetCurrentMinRentForMintAccountRequest, opts ...grpc.CallOption) (*GetCurrentMinRentForMintAccountResponse, error)
+	// space (in bytes) for a Token-2022 mint account with the requested extensions.
+	//
+	// The returned space covers the base mint layout and fixed-size extension pods
+	// (e.g. MetadataPointer) needed by System::CreateAccount.
+	//
+	// The returned lamports cover the **full** final account size — including
+	// variable-length metadata content that Token-2022 allocates via realloc
+	// during initialize_token_metadata — so the account remains rent-exempt after
+	// resizing. Pass both values directly to System::CreateAccount.
+	//
+	// Provide the same extension set you intend to pass to InitialiseToken2022Mint
+	// so that the returned values are consistent.
+	GetCurrentMinRentForToken2022MintAccount(ctx context.Context, in *GetCurrentMinRentForToken2022MintAccountRequest, opts ...grpc.CallOption) (*GetCurrentMinRentForToken2022MintAccountResponse, error)
+	// Returns the minimum rent-exempt balance (in lamports) and the required account
+	// space (in bytes) for a legacy SPL Token mint account.
+	//
+	// Legacy SPL Token mints are always exactly Mint::LEN (82 bytes) with no
+	// extension support, so no additional parameters are needed.
+	GetCurrentMinRentForSPLTokenMintAccount(ctx context.Context, in *GetCurrentMinRentForSPLTokenMintAccountRequest, opts ...grpc.CallOption) (*GetCurrentMinRentForSPLTokenMintAccountResponse, error)
 	// Parses mint account data into structured format
 	ParseMint(ctx context.Context, in *ParseMintRequest, opts ...grpc.CallOption) (*ParseMintResponse, error)
 	// Gets current minimum rent for a token holding account, optionally accounting for memo transfer extension size when memo_transfer_config is provided.
@@ -92,10 +107,20 @@ func (c *serviceClient) InitialiseSPLTokenMint(ctx context.Context, in *Initiali
 	return out, nil
 }
 
-func (c *serviceClient) GetCurrentMinRentForMintAccount(ctx context.Context, in *GetCurrentMinRentForMintAccountRequest, opts ...grpc.CallOption) (*GetCurrentMinRentForMintAccountResponse, error) {
+func (c *serviceClient) GetCurrentMinRentForToken2022MintAccount(ctx context.Context, in *GetCurrentMinRentForToken2022MintAccountRequest, opts ...grpc.CallOption) (*GetCurrentMinRentForToken2022MintAccountResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetCurrentMinRentForMintAccountResponse)
-	err := c.cc.Invoke(ctx, Service_GetCurrentMinRentForMintAccount_FullMethodName, in, out, cOpts...)
+	out := new(GetCurrentMinRentForToken2022MintAccountResponse)
+	err := c.cc.Invoke(ctx, Service_GetCurrentMinRentForToken2022MintAccount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) GetCurrentMinRentForSPLTokenMintAccount(ctx context.Context, in *GetCurrentMinRentForSPLTokenMintAccountRequest, opts ...grpc.CallOption) (*GetCurrentMinRentForSPLTokenMintAccountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCurrentMinRentForSPLTokenMintAccountResponse)
+	err := c.cc.Invoke(ctx, Service_GetCurrentMinRentForSPLTokenMintAccount_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -170,11 +195,25 @@ type ServiceServer interface {
 	// Extensions are not supported.
 	InitialiseSPLTokenMint(context.Context, *InitialiseSPLTokenMintRequest) (*InitialiseSPLTokenMintResponse, error)
 	// Returns the minimum rent-exempt balance (in lamports) and the required account
-	// space (in bytes) for a mint account with the requested extensions.
-	// Both values are needed together when calling the System Program's CreateAccount
-	// instruction: lamports funds rent exemption, space determines allocation size.
-	// With no extensions the result is based on the base Mint::LEN (82 bytes).
-	GetCurrentMinRentForMintAccount(context.Context, *GetCurrentMinRentForMintAccountRequest) (*GetCurrentMinRentForMintAccountResponse, error)
+	// space (in bytes) for a Token-2022 mint account with the requested extensions.
+	//
+	// The returned space covers the base mint layout and fixed-size extension pods
+	// (e.g. MetadataPointer) needed by System::CreateAccount.
+	//
+	// The returned lamports cover the **full** final account size — including
+	// variable-length metadata content that Token-2022 allocates via realloc
+	// during initialize_token_metadata — so the account remains rent-exempt after
+	// resizing. Pass both values directly to System::CreateAccount.
+	//
+	// Provide the same extension set you intend to pass to InitialiseToken2022Mint
+	// so that the returned values are consistent.
+	GetCurrentMinRentForToken2022MintAccount(context.Context, *GetCurrentMinRentForToken2022MintAccountRequest) (*GetCurrentMinRentForToken2022MintAccountResponse, error)
+	// Returns the minimum rent-exempt balance (in lamports) and the required account
+	// space (in bytes) for a legacy SPL Token mint account.
+	//
+	// Legacy SPL Token mints are always exactly Mint::LEN (82 bytes) with no
+	// extension support, so no additional parameters are needed.
+	GetCurrentMinRentForSPLTokenMintAccount(context.Context, *GetCurrentMinRentForSPLTokenMintAccountRequest) (*GetCurrentMinRentForSPLTokenMintAccountResponse, error)
 	// Parses mint account data into structured format
 	ParseMint(context.Context, *ParseMintRequest) (*ParseMintResponse, error)
 	// Gets current minimum rent for a token holding account, optionally accounting for memo transfer extension size when memo_transfer_config is provided.
@@ -201,8 +240,11 @@ func (UnimplementedServiceServer) InitialiseToken2022Mint(context.Context, *Init
 func (UnimplementedServiceServer) InitialiseSPLTokenMint(context.Context, *InitialiseSPLTokenMintRequest) (*InitialiseSPLTokenMintResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method InitialiseSPLTokenMint not implemented")
 }
-func (UnimplementedServiceServer) GetCurrentMinRentForMintAccount(context.Context, *GetCurrentMinRentForMintAccountRequest) (*GetCurrentMinRentForMintAccountResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetCurrentMinRentForMintAccount not implemented")
+func (UnimplementedServiceServer) GetCurrentMinRentForToken2022MintAccount(context.Context, *GetCurrentMinRentForToken2022MintAccountRequest) (*GetCurrentMinRentForToken2022MintAccountResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCurrentMinRentForToken2022MintAccount not implemented")
+}
+func (UnimplementedServiceServer) GetCurrentMinRentForSPLTokenMintAccount(context.Context, *GetCurrentMinRentForSPLTokenMintAccountRequest) (*GetCurrentMinRentForSPLTokenMintAccountResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCurrentMinRentForSPLTokenMintAccount not implemented")
 }
 func (UnimplementedServiceServer) ParseMint(context.Context, *ParseMintRequest) (*ParseMintResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ParseMint not implemented")
@@ -276,20 +318,38 @@ func _Service_InitialiseSPLTokenMint_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Service_GetCurrentMinRentForMintAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetCurrentMinRentForMintAccountRequest)
+func _Service_GetCurrentMinRentForToken2022MintAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCurrentMinRentForToken2022MintAccountRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ServiceServer).GetCurrentMinRentForMintAccount(ctx, in)
+		return srv.(ServiceServer).GetCurrentMinRentForToken2022MintAccount(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Service_GetCurrentMinRentForMintAccount_FullMethodName,
+		FullMethod: Service_GetCurrentMinRentForToken2022MintAccount_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceServer).GetCurrentMinRentForMintAccount(ctx, req.(*GetCurrentMinRentForMintAccountRequest))
+		return srv.(ServiceServer).GetCurrentMinRentForToken2022MintAccount(ctx, req.(*GetCurrentMinRentForToken2022MintAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_GetCurrentMinRentForSPLTokenMintAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCurrentMinRentForSPLTokenMintAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).GetCurrentMinRentForSPLTokenMintAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_GetCurrentMinRentForSPLTokenMintAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).GetCurrentMinRentForSPLTokenMintAccount(ctx, req.(*GetCurrentMinRentForSPLTokenMintAccountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -400,8 +460,12 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Service_InitialiseSPLTokenMint_Handler,
 		},
 		{
-			MethodName: "GetCurrentMinRentForMintAccount",
-			Handler:    _Service_GetCurrentMinRentForMintAccount_Handler,
+			MethodName: "GetCurrentMinRentForToken2022MintAccount",
+			Handler:    _Service_GetCurrentMinRentForToken2022MintAccount_Handler,
+		},
+		{
+			MethodName: "GetCurrentMinRentForSPLTokenMintAccount",
+			Handler:    _Service_GetCurrentMinRentForSPLTokenMintAccount_Handler,
 		},
 		{
 			MethodName: "ParseMint",

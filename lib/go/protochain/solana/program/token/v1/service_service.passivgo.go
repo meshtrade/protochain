@@ -124,11 +124,19 @@ func (s *serviceService) InitialiseSPLTokenMint(ctx context.Context, request *In
 	})
 }
 
-// GetCurrentMinRentForMintAccount executes the GetCurrentMinRentForMintAccount RPC method with automatic
+// GetCurrentMinRentForToken2022MintAccount executes the GetCurrentMinRentForToken2022MintAccount RPC method with automatic
 // client-side validation, timeout handling, distributed tracing, and authentication.
-func (s *serviceService) GetCurrentMinRentForMintAccount(ctx context.Context, request *GetCurrentMinRentForMintAccountRequest) (*GetCurrentMinRentForMintAccountResponse, error) {
-	return common.Execute(s.Executor(), ctx, "GetCurrentMinRentForMintAccount", request, func(ctx context.Context) (*GetCurrentMinRentForMintAccountResponse, error) {
-		return s.GrpcClient().GetCurrentMinRentForMintAccount(ctx, request)
+func (s *serviceService) GetCurrentMinRentForToken2022MintAccount(ctx context.Context, request *GetCurrentMinRentForToken2022MintAccountRequest) (*GetCurrentMinRentForToken2022MintAccountResponse, error) {
+	return common.Execute(s.Executor(), ctx, "GetCurrentMinRentForToken2022MintAccount", request, func(ctx context.Context) (*GetCurrentMinRentForToken2022MintAccountResponse, error) {
+		return s.GrpcClient().GetCurrentMinRentForToken2022MintAccount(ctx, request)
+	})
+}
+
+// GetCurrentMinRentForSPLTokenMintAccount executes the GetCurrentMinRentForSPLTokenMintAccount RPC method with automatic
+// client-side validation, timeout handling, distributed tracing, and authentication.
+func (s *serviceService) GetCurrentMinRentForSPLTokenMintAccount(ctx context.Context, request *GetCurrentMinRentForSPLTokenMintAccountRequest) (*GetCurrentMinRentForSPLTokenMintAccountResponse, error) {
+	return common.Execute(s.Executor(), ctx, "GetCurrentMinRentForSPLTokenMintAccount", request, func(ctx context.Context) (*GetCurrentMinRentForSPLTokenMintAccountResponse, error) {
+		return s.GrpcClient().GetCurrentMinRentForSPLTokenMintAccount(ctx, request)
 	})
 }
 

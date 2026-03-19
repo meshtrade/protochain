@@ -144,13 +144,13 @@ pub mod service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
-        pub async fn get_current_min_rent_for_mint_account(
+        pub async fn get_current_min_rent_for_token2022_mint_account(
             &mut self,
             request: impl tonic::IntoRequest<
-                super::GetCurrentMinRentForMintAccountRequest,
+                super::GetCurrentMinRentForToken2022MintAccountRequest,
             >,
         ) -> std::result::Result<
-            tonic::Response<super::GetCurrentMinRentForMintAccountResponse>,
+            tonic::Response<super::GetCurrentMinRentForToken2022MintAccountResponse>,
             tonic::Status,
         > {
             self.inner
@@ -164,14 +164,46 @@ pub mod service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/protochain.solana.program.token.v1.Service/GetCurrentMinRentForMintAccount",
+                "/protochain.solana.program.token.v1.Service/GetCurrentMinRentForToken2022MintAccount",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
                         "protochain.solana.program.token.v1.Service",
-                        "GetCurrentMinRentForMintAccount",
+                        "GetCurrentMinRentForToken2022MintAccount",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn get_current_min_rent_for_spl_token_mint_account(
+            &mut self,
+            request: impl tonic::IntoRequest<
+                super::GetCurrentMinRentForSplTokenMintAccountRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::GetCurrentMinRentForSplTokenMintAccountResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protochain.solana.program.token.v1.Service/GetCurrentMinRentForSPLTokenMintAccount",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protochain.solana.program.token.v1.Service",
+                        "GetCurrentMinRentForSPLTokenMintAccount",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -345,11 +377,22 @@ pub mod service_server {
             tonic::Response<super::InitialiseSplTokenMintResponse>,
             tonic::Status,
         >;
-        async fn get_current_min_rent_for_mint_account(
+        async fn get_current_min_rent_for_token2022_mint_account(
             &self,
-            request: tonic::Request<super::GetCurrentMinRentForMintAccountRequest>,
+            request: tonic::Request<
+                super::GetCurrentMinRentForToken2022MintAccountRequest,
+            >,
         ) -> std::result::Result<
-            tonic::Response<super::GetCurrentMinRentForMintAccountResponse>,
+            tonic::Response<super::GetCurrentMinRentForToken2022MintAccountResponse>,
+            tonic::Status,
+        >;
+        async fn get_current_min_rent_for_spl_token_mint_account(
+            &self,
+            request: tonic::Request<
+                super::GetCurrentMinRentForSplTokenMintAccountRequest,
+            >,
+        ) -> std::result::Result<
+            tonic::Response<super::GetCurrentMinRentForSplTokenMintAccountResponse>,
             tonic::Status,
         >;
         async fn parse_mint(
@@ -555,15 +598,17 @@ pub mod service_server {
                     };
                     Box::pin(fut)
                 }
-                "/protochain.solana.program.token.v1.Service/GetCurrentMinRentForMintAccount" => {
+                "/protochain.solana.program.token.v1.Service/GetCurrentMinRentForToken2022MintAccount" => {
                     #[allow(non_camel_case_types)]
-                    struct GetCurrentMinRentForMintAccountSvc<T: Service>(pub Arc<T>);
+                    struct GetCurrentMinRentForToken2022MintAccountSvc<T: Service>(
+                        pub Arc<T>,
+                    );
                     impl<
                         T: Service,
                     > tonic::server::UnaryService<
-                        super::GetCurrentMinRentForMintAccountRequest,
-                    > for GetCurrentMinRentForMintAccountSvc<T> {
-                        type Response = super::GetCurrentMinRentForMintAccountResponse;
+                        super::GetCurrentMinRentForToken2022MintAccountRequest,
+                    > for GetCurrentMinRentForToken2022MintAccountSvc<T> {
+                        type Response = super::GetCurrentMinRentForToken2022MintAccountResponse;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
@@ -571,12 +616,12 @@ pub mod service_server {
                         fn call(
                             &mut self,
                             request: tonic::Request<
-                                super::GetCurrentMinRentForMintAccountRequest,
+                                super::GetCurrentMinRentForToken2022MintAccountRequest,
                             >,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as Service>::get_current_min_rent_for_mint_account(
+                                <T as Service>::get_current_min_rent_for_token2022_mint_account(
                                         &inner,
                                         request,
                                     )
@@ -591,7 +636,61 @@ pub mod service_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let method = GetCurrentMinRentForMintAccountSvc(inner);
+                        let method = GetCurrentMinRentForToken2022MintAccountSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protochain.solana.program.token.v1.Service/GetCurrentMinRentForSPLTokenMintAccount" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetCurrentMinRentForSPLTokenMintAccountSvc<T: Service>(
+                        pub Arc<T>,
+                    );
+                    impl<
+                        T: Service,
+                    > tonic::server::UnaryService<
+                        super::GetCurrentMinRentForSplTokenMintAccountRequest,
+                    > for GetCurrentMinRentForSPLTokenMintAccountSvc<T> {
+                        type Response = super::GetCurrentMinRentForSplTokenMintAccountResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<
+                                super::GetCurrentMinRentForSplTokenMintAccountRequest,
+                            >,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as Service>::get_current_min_rent_for_spl_token_mint_account(
+                                        &inner,
+                                        request,
+                                    )
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = GetCurrentMinRentForSPLTokenMintAccountSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

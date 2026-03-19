@@ -22,11 +22,26 @@ service Service {
   rpc InitialiseSPLTokenMint(InitialiseSPLTokenMintRequest) returns (InitialiseSPLTokenMintResponse);
 
   // Returns the minimum rent-exempt balance (in lamports) and the required account
-  // space (in bytes) for a mint account with the requested extensions.
-  // Both values are needed together when calling the System Program's CreateAccount
-  // instruction: lamports funds rent exemption, space determines allocation size.
-  // With no extensions the result is based on the base Mint::LEN (82 bytes).
-  rpc GetCurrentMinRentForMintAccount(GetCurrentMinRentForMintAccountRequest) returns (GetCurrentMinRentForMintAccountResponse);
+  // space (in bytes) for a Token-2022 mint account with the requested extensions.
+  //
+  // The returned space covers the base mint layout and fixed-size extension pods
+  // (e.g. MetadataPointer) needed by System::CreateAccount.
+  //
+  // The returned lamports cover the **full** final account size — including
+  // variable-length metadata content that Token-2022 allocates via realloc
+  // during initialize_token_metadata — so the account remains rent-exempt after
+  // resizing. Pass both values directly to System::CreateAccount.
+  //
+  // Provide the same extension set you intend to pass to InitialiseToken2022Mint
+  // so that the returned values are consistent.
+  rpc GetCurrentMinRentForToken2022MintAccount(GetCurrentMinRentForToken2022MintAccountRequest) returns (GetCurrentMinRentForToken2022MintAccountResponse);
+
+  // Returns the minimum rent-exempt balance (in lamports) and the required account
+  // space (in bytes) for a legacy SPL Token mint account.
+  //
+  // Legacy SPL Token mints are always exactly Mint::LEN (82 bytes) with no
+  // extension support, so no additional parameters are needed.
+  rpc GetCurrentMinRentForSPLTokenMintAccount(GetCurrentMinRentForSPLTokenMintAccountRequest) returns (GetCurrentMinRentForSPLTokenMintAccountResponse);
 
   // Parses mint account data into structured format
   rpc ParseMint(ParseMintRequest) returns (ParseMintResponse);
@@ -94,26 +109,42 @@ message InitialiseSPLTokenMintResponse {
   protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
 }
 
-// Request for the minimum rent and space required for a mint account.
+// Request for the minimum rent and space required for a Token-2022 mint account.
 // Provide the same extension set you intend to pass to InitialiseToken2022Mint so that
 // the returned lamports and space values are consistent with each other.
-message GetCurrentMinRentForMintAccountRequest {
+message GetCurrentMinRentForToken2022MintAccountRequest {
   // Ordered list of extensions to enable on the mint.
   // Must match the extensions you will pass to InitialiseToken2022Mint.
-  // If empty, results are based on the base Mint::LEN (82 bytes) with no extensions.
+  // If empty, results are based on a base Token-2022 mint with no extensions.
   // Duplicates are rejected.
-  repeated protochain.solana.program.token.v1.Token2022Extension extensions = 6;
+  repeated protochain.solana.program.token.v1.Token2022Extension extensions = 1;
 }
 
-// Rent and space for a mint account with the requested extensions.
+// Rent and space for a Token-2022 mint account with the requested extensions.
 // Pass both fields directly to the System Program's CreateAccount instruction
-// before calling InitialiseToken2022Mint or InitialiseSPLTokenMint.
-message GetCurrentMinRentForMintAccountResponse {
+// before calling InitialiseToken2022Mint.
+message GetCurrentMinRentForToken2022MintAccountResponse {
+  // Minimum lamports required for the account to be rent-exempt after all
+  // extensions (including variable-length metadata) are fully initialised.
+  uint64 lamports = 1;
+
+  // Initial account size in bytes for System::CreateAccount.
+  // Covers the base mint layout and fixed-size extension pods only.
+  uint64 space = 2;
+}
+
+// Request for the minimum rent and space required for a legacy SPL Token mint account.
+// No parameters are needed because SPL Token mints are always exactly Mint::LEN (82 bytes).
+message GetCurrentMinRentForSPLTokenMintAccountRequest {}
+
+// Rent and space for a legacy SPL Token mint account.
+// Pass both fields directly to the System Program's CreateAccount instruction
+// before calling InitialiseSPLTokenMint.
+message GetCurrentMinRentForSPLTokenMintAccountResponse {
   // Minimum lamports required for the account to be rent-exempt.
   uint64 lamports = 1;
 
-  // Account size in bytes to allocate.
-  // Must equal the space argument passed to CreateAccount.
+  // Account size in bytes to allocate (always Mint::LEN = 82 bytes).
   uint64 space = 2;
 }
 

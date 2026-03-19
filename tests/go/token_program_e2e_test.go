@@ -108,8 +108,8 @@ func (suite *TokenProgramE2ETestSuite) Test_01_InitialiseMint_TOKEN2022() {
 		},
 	}
 
-	// Get current rent for mint account WITH metadata extension
-	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForMintAccount(suite.ctx, &token_v1.GetCurrentMinRentForMintAccountRequest{
+	// Get current rent for Token-2022 mint account WITH metadata extension
+	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForToken2022MintAccount(suite.ctx, &token_v1.GetCurrentMinRentForToken2022MintAccountRequest{
 		Extensions: []*token_v1.Token2022Extension{metadataExtension},
 	})
 	suite.Require().NoError(err, "Should get current rent amount")
@@ -248,7 +248,7 @@ func (suite *TokenProgramE2ETestSuite) Test_02_InitialiseMint_SPL() {
 	suite.T().Logf("  Generated mint account: %s", mintKeyResp.KeyPair.PublicKey)
 
 	// SPL legacy mint: fixed 82 bytes, no extensions
-	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForMintAccount(suite.ctx, &token_v1.GetCurrentMinRentForMintAccountRequest{})
+	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForSPLTokenMintAccount(suite.ctx, &token_v1.GetCurrentMinRentForSPLTokenMintAccountRequest{})
 	suite.Require().NoError(err, "Should get current rent amount")
 	suite.T().Logf("  Rent required for SPL mint: %d lamports", rentResp.Lamports)
 
@@ -344,18 +344,40 @@ func (suite *TokenProgramE2ETestSuite) Test_02_InitialiseMint_SPL() {
 	suite.T().Logf("   Supply: %s", parsedMint.Mint.Supply)
 }
 
-// Test_03_GetCurrentMinRentForMintAccount tests rent calculation
+// Test_03_GetCurrentMinRentForMintAccount tests rent calculation for both Token-2022 and SPL Token
 func (suite *TokenProgramE2ETestSuite) Test_03_GetCurrentMinRentForMintAccount() {
 	suite.T().Log("🎯 Testing Token Account Rent Calculation")
 
-	// Get rent for token account
-	resp, err := suite.tokenProgramService.GetCurrentMinRentForMintAccount(suite.ctx, &token_v1.GetCurrentMinRentForMintAccountRequest{})
-	suite.Require().NoError(err, "Should get rent successfully")
-	suite.Require().NotZero(resp.Lamports, "Rent should not be zero")
+	// Test Token-2022 mint rent (no extensions)
+	token2022Resp, err := suite.tokenProgramService.GetCurrentMinRentForToken2022MintAccount(suite.ctx, &token_v1.GetCurrentMinRentForToken2022MintAccountRequest{})
+	suite.Require().NoError(err, "Should get Token-2022 rent successfully")
+	suite.Require().NotZero(token2022Resp.Lamports, "Token-2022 rent should not be zero")
+	suite.Assert().Greater(token2022Resp.Lamports, uint64(1_000_000), "Token-2022 rent should be at least 1M lamports")
+	suite.T().Logf("  Token-2022 mint account rent (no extensions): %d lamports (space: %d bytes)", token2022Resp.Lamports, token2022Resp.Space)
 
-	// Validate reasonable rent amount (mint accounts are 82 bytes)
-	suite.Assert().Greater(resp.Lamports, uint64(1_000_000), "Rent should be at least 1M lamports for mint account")
-	suite.T().Logf("  Mint account rent: %d lamports", resp.Lamports)
+	// Test Token-2022 mint rent with metadata extension
+	token2022MetaResp, err := suite.tokenProgramService.GetCurrentMinRentForToken2022MintAccount(suite.ctx, &token_v1.GetCurrentMinRentForToken2022MintAccountRequest{
+		Extensions: []*token_v1.Token2022Extension{{
+			Extension: &token_v1.Token2022Extension_Metadata{
+				Metadata: &token_v1.Token2022ExtensionMetadata{
+					Name:   "Test Token",
+					Symbol: "TST",
+					Uri:    "https://example.com/metadata.json",
+				},
+			},
+		}},
+	})
+	suite.Require().NoError(err, "Should get Token-2022 metadata rent successfully")
+	suite.Assert().Greater(token2022MetaResp.Space, token2022Resp.Space, "Token-2022 with metadata should require more space")
+	suite.T().Logf("  Token-2022 mint account rent (with metadata): %d lamports (space: %d bytes)", token2022MetaResp.Lamports, token2022MetaResp.Space)
+
+	// Test SPL Token mint rent
+	splResp, err := suite.tokenProgramService.GetCurrentMinRentForSPLTokenMintAccount(suite.ctx, &token_v1.GetCurrentMinRentForSPLTokenMintAccountRequest{})
+	suite.Require().NoError(err, "Should get SPL Token rent successfully")
+	suite.Require().NotZero(splResp.Lamports, "SPL Token rent should not be zero")
+	suite.Assert().Equal(uint64(token_v1.MINT_ACCOUNT_LEN), splResp.Space, "SPL Token mint should be exactly MINT_ACCOUNT_LEN bytes")
+	suite.Assert().Greater(splResp.Lamports, uint64(1_000_000), "SPL Token rent should be at least 1M lamports")
+	suite.T().Logf("  SPL Token mint account rent: %d lamports (space: %d bytes)", splResp.Lamports, splResp.Space)
 }
 
 // Test_03_5_GetCurrentMinRentForHoldingAccount tests rent calculation for holding accounts
@@ -432,8 +454,8 @@ func (suite *TokenProgramE2ETestSuite) Test_04_Mint_e2e() {
 	suite.Require().NoError(err, "Should generate mint keypair")
 	suite.T().Logf("  Generated mint account: %s", mintKeyResp.KeyPair.PublicKey)
 
-	// Get current rent for token account
-	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForMintAccount(suite.ctx, &token_v1.GetCurrentMinRentForMintAccountRequest{})
+	// Get current rent for Token-2022 mint account (no extensions)
+	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForToken2022MintAccount(suite.ctx, &token_v1.GetCurrentMinRentForToken2022MintAccountRequest{})
 	suite.Require().NoError(err, "Should get current rent amount")
 	suite.T().Logf("  Rent required for mint: %d lamports", rentResp.Lamports)
 
@@ -539,8 +561,8 @@ func (suite *TokenProgramE2ETestSuite) Test_05_Token_e2e() {
 	suite.Require().NoError(err, "Should generate mint keypair")
 	suite.T().Logf("  Generated mint account: %s", mintKeyResp.KeyPair.PublicKey)
 
-	// Get current rent for token account
-	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForMintAccount(suite.ctx, &token_v1.GetCurrentMinRentForMintAccountRequest{})
+	// Get current rent for Token-2022 mint account (no extensions)
+	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForToken2022MintAccount(suite.ctx, &token_v1.GetCurrentMinRentForToken2022MintAccountRequest{})
 	suite.Require().NoError(err, "Should get current rent amount")
 	suite.T().Logf("  Rent required for mint: %d lamports", rentResp.Lamports)
 

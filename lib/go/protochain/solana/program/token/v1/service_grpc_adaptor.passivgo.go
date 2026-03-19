@@ -79,21 +79,38 @@ func (a *ServiceGRPCAdaptor) InitialiseSPLTokenMint(ctx context.Context, request
 	return initialiseSPLTokenMintResponse, nil
 }
 
-// GetCurrentMinRentForMintAccount exposes the GetCurrentMinRentForMintAccount method of the Service interface over gRPC
-func (a *ServiceGRPCAdaptor) GetCurrentMinRentForMintAccount(ctx context.Context, request *GetCurrentMinRentForMintAccountRequest) (*GetCurrentMinRentForMintAccountResponse, error) {
+// GetCurrentMinRentForToken2022MintAccount exposes the GetCurrentMinRentForToken2022MintAccount method of the Service interface over gRPC
+func (a *ServiceGRPCAdaptor) GetCurrentMinRentForToken2022MintAccount(ctx context.Context, request *GetCurrentMinRentForToken2022MintAccountRequest) (*GetCurrentMinRentForToken2022MintAccountResponse, error) {
 	ctx, span := a.tracer.Start(
 		ctx,
-		ServiceServiceProviderName+"GRPCAdaptor.GetCurrentMinRentForMintAccount",
+		ServiceServiceProviderName+"GRPCAdaptor.GetCurrentMinRentForToken2022MintAccount",
 	)
 	defer span.End()
 
 	// call the service interface implementation
-	getCurrentMinRentForMintAccountResponse, err := a.service.GetCurrentMinRentForMintAccount(ctx, request)
+	getCurrentMinRentForToken2022MintAccountResponse, err := a.service.GetCurrentMinRentForToken2022MintAccount(ctx, request)
 	if err != nil {
 		return nil, err
 	}
 
-	return getCurrentMinRentForMintAccountResponse, nil
+	return getCurrentMinRentForToken2022MintAccountResponse, nil
+}
+
+// GetCurrentMinRentForSPLTokenMintAccount exposes the GetCurrentMinRentForSPLTokenMintAccount method of the Service interface over gRPC
+func (a *ServiceGRPCAdaptor) GetCurrentMinRentForSPLTokenMintAccount(ctx context.Context, request *GetCurrentMinRentForSPLTokenMintAccountRequest) (*GetCurrentMinRentForSPLTokenMintAccountResponse, error) {
+	ctx, span := a.tracer.Start(
+		ctx,
+		ServiceServiceProviderName+"GRPCAdaptor.GetCurrentMinRentForSPLTokenMintAccount",
+	)
+	defer span.End()
+
+	// call the service interface implementation
+	getCurrentMinRentForSPLTokenMintAccountResponse, err := a.service.GetCurrentMinRentForSPLTokenMintAccount(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return getCurrentMinRentForSPLTokenMintAccountResponse, nil
 }
 
 // ParseMint exposes the ParseMint method of the Service interface over gRPC

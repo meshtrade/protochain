@@ -20,11 +20,26 @@ type ServiceInterface interface {
 	InitialiseSPLTokenMint(ctx context.Context, request *InitialiseSPLTokenMintRequest) (*InitialiseSPLTokenMintResponse, error)
 
 	// Returns the minimum rent-exempt balance (in lamports) and the required account
-	// space (in bytes) for a mint account with the requested extensions.
-	// Both values are needed together when calling the System Program's CreateAccount
-	// instruction: lamports funds rent exemption, space determines allocation size.
-	// With no extensions the result is based on the base Mint::LEN (82 bytes).
-	GetCurrentMinRentForMintAccount(ctx context.Context, request *GetCurrentMinRentForMintAccountRequest) (*GetCurrentMinRentForMintAccountResponse, error)
+	// space (in bytes) for a Token-2022 mint account with the requested extensions.
+	//
+	// The returned space covers the base mint layout and fixed-size extension pods
+	// (e.g. MetadataPointer) needed by System::CreateAccount.
+	//
+	// The returned lamports cover the **full** final account size — including
+	// variable-length metadata content that Token-2022 allocates via realloc
+	// during initialize_token_metadata — so the account remains rent-exempt after
+	// resizing. Pass both values directly to System::CreateAccount.
+	//
+	// Provide the same extension set you intend to pass to InitialiseToken2022Mint
+	// so that the returned values are consistent.
+	GetCurrentMinRentForToken2022MintAccount(ctx context.Context, request *GetCurrentMinRentForToken2022MintAccountRequest) (*GetCurrentMinRentForToken2022MintAccountResponse, error)
+
+	// Returns the minimum rent-exempt balance (in lamports) and the required account
+	// space (in bytes) for a legacy SPL Token mint account.
+	//
+	// Legacy SPL Token mints are always exactly Mint::LEN (82 bytes) with no
+	// extension support, so no additional parameters are needed.
+	GetCurrentMinRentForSPLTokenMintAccount(ctx context.Context, request *GetCurrentMinRentForSPLTokenMintAccountRequest) (*GetCurrentMinRentForSPLTokenMintAccountResponse, error)
 
 	// Parses mint account data into structured format
 	ParseMint(ctx context.Context, request *ParseMintRequest) (*ParseMintResponse, error)
