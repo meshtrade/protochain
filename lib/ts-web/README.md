@@ -1,6 +1,6 @@
 # @protochain/ts-web
 
-TypeScript SDK for Protochain gRPC APIs, optimized for browser and Node.js usage via Connect-Web.
+Browser-optimized TypeScript SDK for Protochain gRPC APIs via Connect-Web.
 
 [![npm](https://img.shields.io/npm/v/@protochain/ts-web)](https://www.npmjs.com/package/@protochain/ts-web)
 
