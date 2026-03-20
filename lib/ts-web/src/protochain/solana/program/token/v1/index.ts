@@ -11,11 +11,11 @@
 // ===================================================================
 
 // Generated exports
-export * from './service_pb';
-export * from './service_web_protochaints';
-export * from './spl_token_metadata_pb';
-export * from './token2022_extension_metadata_pb';
-export * from './token2022_extension_pb';
+export * from "./service_pb";
+export * from "./service_web_protochaints";
+export * from "./spl_token_metadata_pb";
+export * from "./token2022_extension_metadata_pb";
+export * from "./token2022_extension_pb";
 
 // ===================================================================
 // END OF AUTO-GENERATED SECTION

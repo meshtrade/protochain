@@ -13,9 +13,12 @@ static_resources:
                 stat_prefix: ingress_http
                 codec_type: AUTO
                 http_filters:
-                  - name: envoy.filters.http.connect_grpc_bridge
+                  - name: envoy.filters.http.cors
                     typed_config:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.connect_grpc_bridge.v3.FilterConfig
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+                  - name: envoy.filters.http.grpc_web
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_web.v3.GrpcWeb
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
@@ -31,13 +34,15 @@ static_resources:
                           route:
                             cluster: solana_api
                             timeout: 60s
-                      cors:
-                        allow_origin_string_match:
-                          - prefix: "*"
-                        allow_methods: "GET, PUT, DELETE, POST, OPTIONS"
-                        allow_headers: "keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout,connect-protocol-version,connect-timeout-ms"
-                        expose_headers: "grpc-status,grpc-message,grpc-status-details-bin"
-                        max_age: "1728000"
+                      typed_per_filter_config:
+                        envoy.filters.http.cors:
+                          "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy
+                          allow_origin_string_match:
+                            - prefix: "*"
+                          allow_methods: "GET, PUT, DELETE, POST, OPTIONS"
+                          allow_headers: "keep-alive,user-agent,cache-control,content-type,content-transfer-encoding,x-accept-content-transfer-encoding,x-accept-response-streaming,x-user-agent,x-grpc-web,grpc-timeout,connect-protocol-version,connect-timeout-ms"
+                          expose_headers: "grpc-status,grpc-message,grpc-status-details-bin"
+                          max_age: "1728000"
 
   clusters:
     - name: solana_api

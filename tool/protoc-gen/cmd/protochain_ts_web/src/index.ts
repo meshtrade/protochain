@@ -37,7 +37,7 @@ function generateConnectClientManually(_schema: Schema, file: DescFile) {
 
   // Generate imports for Connect-ES (Web)
   content += `import { createClient, type Client as ConnectClient, Interceptor } from "@connectrpc/connect";\n`;
-  content += `import { createConnectTransport } from "@connectrpc/connect-web";\n`;
+  content += `import { createGrpcWebTransport } from "@connectrpc/connect-web";\n`;
 
   // Import the service schema from generated code
   for (const service of file.services) {
@@ -240,7 +240,7 @@ function generateServiceClientString(
   content += "/**\n";
   content += ` * Web client for interacting with the ${file.proto.package} ${toReadableResourceName(resourceName)} API service.\n`;
   content +=
-    " * Uses Connect-ES with Connect transport for browser-based communication.\n";
+    " * Uses Connect-ES with gRPC-Web transport for browser-based communication.\n";
   content += " *\n";
   content +=
     " * Uses functional options pattern for configuration:\n";
@@ -295,8 +295,8 @@ function generateServiceClientString(
   content += "      interceptors.push(createLoggingInterceptor());\n";
   content += "    }\n";
   content += "\n";
-  content += "    // Create the Connect transport for browser\n";
-  content += "    const transport = createConnectTransport({\n";
+  content += "    // Create the gRPC-Web transport for browser\n";
+  content += "    const transport = createGrpcWebTransport({\n";
   content += "      baseUrl: this._config.apiServerURL!,\n";
   content += "      interceptors,\n";
   content += "    });\n";
