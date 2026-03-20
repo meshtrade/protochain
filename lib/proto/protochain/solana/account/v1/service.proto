@@ -72,4 +72,3 @@ message GetAssociatedTokenAddressRequest {
 message GetAssociatedTokenAddressResponse {
   string address = 1; // Address of the token account (Base58)
 }
-;
