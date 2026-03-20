@@ -80,7 +80,7 @@ solana-test-validator \
     --faucet-port 9900 \
     --rpc-port 8899 \
     --url "$CLONE_SOURCE_URL" \
-    --clone "$METAPLEX_TOKEN_METADATA_PROGRAM_ID" > "$LOG_FILE" 2>&1 &
+    --clone-upgradeable-program "$METAPLEX_TOKEN_METADATA_PROGRAM_ID" > "$LOG_FILE" 2>&1 &
 
 VALIDATOR_PID=$!
 
