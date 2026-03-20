@@ -20,37 +20,33 @@ tests/
 
 ## Quick Start
 
-### Prerequisites
-- Go 1.21+
-- Running Solana validator
-- Running Protochain gRPC backend
-
-### Running Tests
+### Full Stack (just want to run tests)
 
 ```bash
-# Option 1: Auto-detect running services
-cd tests/go && go test -v
-
-# Option 2: Force integration tests
+docker compose up -d
 cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
-
-# Run a specific test suite
-cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v -run "TestComposableE2ESuite/Test_05"
+docker compose down
 ```
 
-### Starting Services
+### Hybrid Development (iterating on the Rust backend)
 
 ```bash
-# Terminal 1: Start validator (Docker or native)
-./scripts/tests/start-validator-docker.sh
-# or: ./scripts/tests/start-validator.sh
+# Start only surfpool validator
+docker compose up surfpool -d
 
-# Terminal 2: Start backend
+# Run backend locally
 cargo run -p protochain-solana-api
-# or: ./scripts/tests/start-backend.sh
 
-# Terminal 3: Run tests
-cd tests/go && go test -v
+# Run tests
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
+
+docker compose down
+```
+
+### Run a specific test
+
+```bash
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v -run "TestTokenProgramE2ESuite/Test_02"
 ```
 
 See [tests/go/README.md](go/README.md) for detailed documentation.

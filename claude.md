@@ -1,4 +1,4 @@
-# ProtoSol - Protocol Buffer Wrapper for Solana SDKs
+# Protochain - Protocol Buffer Wrapper for Blockchain SDKs
 
 ## 🚨 **CRITICAL: MANDATORY LINTING AFTER CODE CHANGES** 🚨
 
@@ -48,7 +48,7 @@ After making ANY code changes, you MUST run appropriate linting:
 ---
 
 ## 🎯 Project Mission
-ProtoSol provides a language-agnostic gRPC API layer over Solana blockchain operations. It wraps the best-in-class Solana SDKs (primarily Rust) with Protocol Buffer service definitions, enabling automatic SDK generation for any language. This solves the fundamental challenge where your backend needs to be in one language, but the best Solana SDK is in another.
+Protochain provides a language-agnostic gRPC API layer over blockchain operations. It wraps the best-in-class blockchain SDKs (primarily Rust) with Protocol Buffer service definitions, enabling automatic SDK generation for any language. This solves the fundamental challenge where your backend needs to be in one language, but the best blockchain SDK is in another.
 
 ## 🏗️ Core Architecture Philosophy
 
@@ -72,7 +72,7 @@ DRAFT → COMPILED → PARTIALLY_SIGNED → FULLY_SIGNED → SUBMITTED
 ### 3. Multi-Language SDK Architecture
 - **Rust** (`lib/rust/`): Generated with tonic/prost for backend implementation
 - **Go** (`lib/go/`): Generated with custom interfaces via protoc-gen-protosolgo
-- **TypeScript** (`lib/ts/`): Generated with @bufbuild/protobuf for browser/Node.js
+- **TypeScript** (`lib/ts-web/`): Generated with @bufbuild/protobuf for browser
 
 ## 📁 Repository Structure (Verified)
 
@@ -154,16 +154,10 @@ protochain/
 │   │   ├── rs.sh                  # Rust linting
 │   │   └── go.sh                  # Go linting
 │   └── tests/
-│       ├── start-docker.sh        # 🐳 Full stack Docker Compose
-│       ├── stop-docker.sh         # Stop Docker stack
-│       ├── start-validator-docker.sh # 🐳 Validator only in Docker
-│       ├── stop-validator-docker.sh  # Stop validator Docker
-│       ├── start-validator.sh     # Native Solana validator
-│       ├── stop-validator.sh      # Stop native validator
-│       ├── start-backend.sh       # Start gRPC backend
+│       ├── start-backend.sh       # Start gRPC backend natively
 │       └── stop-backend.sh        # Stop gRPC backend
 │
-├── docker-compose.yml             # 🐳 Full stack orchestration
+├── docker-compose.yml             # 🐳 Surfpool + Envoy + API stack
 ├── .dockerignore                  # Docker build context optimization
 ├── buf.yaml                        # Buf configuration
 ├── go.work                         # Go workspace (multi-module)
@@ -260,48 +254,31 @@ vim tests/go/composable_e2e_test.go
 
 #### 6️⃣ Run Full Stack Testing
 
-**Option A: Docker Compose (Full Stack)**
+**Option A: Docker Compose (Full Stack — recommended for just running tests)**
 ```bash
-# Start everything with Docker
-./scripts/tests/start-docker.sh
+# Start surfpool validator + envoy + API
+docker compose up -d
 
 # Run integration tests
 cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
 
 # Stop everything
-./scripts/tests/stop-docker.sh
+docker compose down
 ```
 
-**Option B: Hybrid Development (Most Common - Validator in Docker, Backend Local)**
+**Option B: Hybrid Development (for iterating on the Rust backend)**
 ```bash
-# Terminal 1: Start validator in Docker (stable, no restarts needed)
-./scripts/tests/start-validator-docker.sh
+# Start only the surfpool validator
+docker compose up surfpool -d
 
-# Terminal 2: Start backend locally (restart freely during development)
+# Run backend locally (restart freely during development)
 cargo run -p protochain-solana-api
 
-# Terminal 3: Run integration tests (auto-detects running services)
-cd tests/go && go test -v
+# Run integration tests
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
 
-# Stop validator when done
-./scripts/tests/stop-validator-docker.sh
-```
-
-**Option C: Native Development (Traditional)**
-```bash
-# Terminal 1: Start local Solana validator
-./scripts/tests/start-validator.sh
-
-# Terminal 2: Start Rust backend
-cargo run -p protochain-solana-api
-# OR
-./scripts/tests/start-backend.sh
-
-# Terminal 3: Run integration tests (auto-detects running services)
-cd tests/go
-go test -v                                    # Auto-runs if services are up
-RUN_INTEGRATION_TESTS=1 go test -v          # Force run (will fail if services down)
-RUN_INTEGRATION_TESTS=0 go test -v          # Explicitly skip integration tests
+# Stop surfpool when done
+docker compose down
 ```
 
 ### 🚨 WORKFLOW RULES (NEVER Break These)
@@ -458,26 +435,13 @@ SOLANA_RETRY_ATTEMPTS=3
 
 ### Usage
 ```bash
-# Normal workflow - auto-detects services:
-./scripts/tests/start-validator.sh    # Terminal 1
-./scripts/tests/start-backend.sh      # Terminal 2
-go test -v                            # Terminal 3: auto-runs if services up
+# Normal workflow - start stack, then run tests:
+docker compose up -d                 # Start surfpool + API
+cd tests/go && go test -v            # Auto-runs if services are up
 
 # Override options:
 RUN_INTEGRATION_TESTS=1 go test -v   # Force run (fails if services down)
 RUN_INTEGRATION_TESTS=0 go test -v   # Explicitly skip
-```
-
-### Error Messages
-```bash
-# When services aren't running (helpful guidance):
-Integration tests skipped - Solana validator or backend not running. Start them with:
-  Terminal 1: ./scripts/tests/start-validator.sh  
-  Terminal 2: ./scripts/tests/start-backend.sh
-  Or set RUN_INTEGRATION_TESTS=1 to force run (tests will fail)
-
-# When explicitly disabled:
-Integration tests explicitly disabled with RUN_INTEGRATION_TESTS=0
 ```
 
 ## 🐛 Troubleshooting
@@ -499,7 +463,7 @@ cat lib/_code_gen/buf.gen.yaml
 ### Backend Issues
 ```bash
 # Port already in use
-lsof -i :50051  # Find process
+lsof -i :50064  # Find process
 kill -9 [PID]   # Kill it
 
 # Can't connect to Solana
@@ -507,57 +471,25 @@ curl http://localhost:8899 -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"getHealth"}'
 
 # Check logs
-cargo run --package protosol-solana-api 2>&1 | tee debug.log
+cargo run --package protochain-solana-api 2>&1 | tee debug.log
 ```
 
 ### Test Issues
 ```bash
 # Tests timeout
-export SOLANA_RPC_URL=http://localhost:8899
 export RUN_INTEGRATION_TESTS=1
 
-# Validator not running
-solana-test-validator --reset
+# Services not running - start the full stack
+docker compose up -d
 
-# Backend not running
-./scripts/tests/start-backend.sh
+# Or just surfpool for hybrid development
+docker compose up surfpool -d
 ```
 
 ## 🛠️ Repository Tooling & Known Issues
 
 ### Development Experience Improvements
 See [repository-tooling-TODO.md](./repository-tooling-TODO.md) for comprehensive list of tooling improvements and their priority rankings.
-
-### First Integration Run Learnings (2025-08-27)
-**Success**: 6/9 integration tests passed on first attempt with real blockchain integration!
-
-**Key Fixes Applied During Setup:**
-1. **Script Path Bug**: `scripts/tests/start-backend.sh` had incorrect `PROJECT_ROOT` calculation
-2. **Config Structure Bug**: `tests/go/config/config.go` looked for non-existent `api-test` directory  
-3. **Legacy References**: Updated workspace member checks and project markers
-
-**Architecture Validation Results:**
-- ✅ **Full Stack Working**: Validator → Backend → gRPC → Go SDK → Blockchain
-- ✅ **Real Transactions**: Created 4 accounts, submitted 4 transactions, all finalized
-- ✅ **Multi-instruction Composition**: Atomic transactions with 3 instructions working
-- ✅ **Account Management**: Funding, creation, and transfers all functional
-- ✅ **Transaction Estimation**: Fixed compute unit fallback logic for failed simulations
-- ✅ **Signing Flow**: Fixed all transaction signing issues - **100% test pass rate achieved (9/9 tests)**
-- ✅ **State Machine Logic**: Corrected single-signer transactions properly become FULLY_SIGNED
-- ✅ **Proto Serialization**: Fixed nil logs handling for failed simulations
-
-**Blockchain Verification Commands That Worked:**
-```bash
-# Account balance verification (all successful)
-solana balance 82w62sgdBAyS7UqubPj58xDE8VuQYFCFH1HTR1YY8wkK --url http://localhost:8899
-solana balance D6GbPRKPbcRckGamaEy9HTmhtba62DoBtaJGGecmjy7Z --url http://localhost:8899
-
-# Transaction confirmation (all finalized)
-solana confirm 63UAEzVeMohpwiB59AhgroxN3HdGrXxbAmVKUaRYnJF89b5eMF2sgGE2eePVRrPPkCEPQhgyx8scfvxR9aZYnhvt --url http://localhost:8899
-
-# Transaction history (complete activity log)
-solana transaction-history 82w62sgdBAyS7UqubPj58xDE8VuQYFCFH1HTR1YY8wkK --url http://localhost:8899
-```
 
 ## 🔍 Master-Level Debugging & Testing Guide
 
@@ -659,11 +591,11 @@ Learn to read error messages like a detective:
 
 Use multiple terminal sessions for faster iteration:
 ```bash
-# Terminal 1: Keep validator running
-./scripts/tests/start-validator.sh
+# Terminal 1: Keep surfpool running
+docker compose up surfpool -d
 
 # Terminal 2: Monitor backend with logs
-cargo run --package protosol-solana-api 2>&1 | tee debug.log
+cargo run --package protochain-solana-api 2>&1 | tee debug.log
 
 # Terminal 3: Run specific failing tests
 cd tests/go
@@ -727,29 +659,25 @@ suite.Assert().Equal(transaction_v1.TransactionState_TRANSACTION_STATE_COMPILED,
 
 #### Service Health Monitoring
 ```bash
-# Check all stack components
+# Check surfpool
 curl -s http://localhost:8899 -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"getHealth"}' | jq
 
-# Check backend health (if endpoint exists)
-grpc_health_probe -addr localhost:50051
+# Check Docker containers
+docker compose ps
 
-# Process monitoring
-lsof -i :8899   # Validator
-lsof -i :50051  # Backend
-ps aux | grep solana-test-validator
+# View logs
+docker compose logs -f protochain-solana-api
+docker compose logs -f surfpool
 ```
 
 #### Advanced Log Analysis
 ```bash
 # Backend logs with structured analysis
-cargo run --package protosol-solana-api 2>&1 | grep -E "(ERROR|WARN|Failed|Invalid)"
+cargo run --package protochain-solana-api 2>&1 | grep -E "(ERROR|WARN|Failed|Invalid)"
 
-# Test logs with timing analysis  
+# Test logs with timing analysis
 RUN_INTEGRATION_TESTS=1 go test -v 2>&1 | grep -E "(FAIL|Error|panic|timeout)"
-
-# Validator logs
-tail -f ~/.config/solana/validator.log | grep -E "(ERROR|WARN)"
 ```
 
 ### Repository Investigation Commands
@@ -778,98 +706,55 @@ grep -r -E "[0-9a-fA-F]{64}" tests/go/ --include="*.go"
 
 ## 🐳 Docker Development Guide
 
-### Multi-Environment Development Options
+The project uses Docker Compose with [Surfpool](https://github.com/solana-foundation/surfpool) as the Solana validator and an Envoy-fronted Rust API image.
 
-**Option A: Full Stack Docker Compose (Best for Integration Testing)**
+### Full Stack (recommended for running tests)
 ```bash
-# Start complete stack (validator + API)
-./scripts/tests/start-docker.sh
-docker-compose logs -f                    # View all logs
-docker-compose logs -f protochain-api     # View API logs only
+# Start surfpool validator + envoy + API
+docker compose up -d
+
+# View logs
+docker compose logs -f
+docker compose logs -f protochain-solana-api
 
 # Run integration tests
 cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
 
 # Stop everything
-./scripts/tests/stop-docker.sh
+docker compose down
 ```
 
-**Option B: Hybrid Development (Most Common for Development)**
+### Hybrid Development (for iterating on the Rust backend)
 ```bash
-# Start stable validator in Docker (once per session)
-./scripts/tests/start-validator-docker.sh
+# Start only surfpool validator
+docker compose up surfpool -d
 
-# Develop backend locally (restart as needed)
+# Develop backend locally (restart freely)
 cargo run -p protochain-solana-api
 
-# Monitor validator logs
-docker logs -f solana-validator
+# Run tests against local backend (default port 50064)
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
 
-# Stop validator when done
-./scripts/tests/stop-validator-docker.sh
-```
-
-**Option C: Containerized API with Helper Script**
-```bash
-# Build and run with helper script
-./app/solana/ci/docker-build.sh build
-./app/solana/ci/docker-build.sh run local     # Local validator
-./app/solana/ci/docker-build.sh run devnet    # Solana devnet
-./app/solana/ci/docker-build.sh run mainnet   # Mainnet beta
-
-# Manual Docker commands
-docker build -f app/solana/ci/Dockerfile -t protochain-solana-api .
-docker run -p 50051:50051 -e SOLANA_RPC_URL=https://api.devnet.solana.com protochain-solana-api
-```
-
-### Docker Environment Variables
-```bash
-# Solana Configuration
-SOLANA_RPC_URL=http://localhost:8899           # RPC endpoint
-SOLANA_TIMEOUT_SECONDS=30                      # Request timeout
-SOLANA_RETRY_ATTEMPTS=3                        # Retry attempts
-SOLANA_HEALTH_CHECK_ON_STARTUP=true            # Health check on start
-
-# Server Configuration
-SERVER_HOST=0.0.0.0                           # Bind address
-SERVER_PORT=50051                              # gRPC port
-
-# Logging Configuration
-RUST_LOG=info,protochain_solana_api=info       # Log levels
-PROTOCHAIN_JSON_LOGS=true                      # JSON structured logs
-```
-
-### Docker Network Endpoints
-```bash
-# Local Development (Docker Desktop)
-SOLANA_RPC_URL=http://host.docker.internal:8899  # Access host validator
-
-# Public Networks
-SOLANA_RPC_URL=https://api.devnet.solana.com      # Solana devnet
-SOLANA_RPC_URL=https://api.mainnet-beta.solana.com # Mainnet beta
-
-# Integration Testing
-SOLANA_RPC_URL=http://solana-validator:8899       # Docker Compose internal
+# Stop surfpool when done
+docker compose down
 ```
 
 ### Docker Troubleshooting
 ```bash
 # View container status
-docker ps --filter name=protochain
-docker-compose ps
+docker compose ps
 
 # View logs
-docker logs protochain-api
-docker logs solana-validator
+docker compose logs protochain-solana-api
+docker compose logs surfpool
 
-# Test connectivity
+# Test surfpool connectivity
 curl -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"getHealth"}' \
   http://localhost:8899
 
 # Clean up resources
-docker-compose down -v --remove-orphans
-docker system prune -f
+docker compose down -v --remove-orphans
 ```
 
 ## 🚀 Quick Commands Reference
@@ -878,29 +763,29 @@ docker system prune -f
 # Daily Development
 buf lint                                    # Validate protos
 ./scripts/code-gen/generate/all.sh        # Generate all SDKs
-cargo run -p protochain-solana-api   # Run backend
+cargo run -p protochain-solana-api        # Run backend locally
 cargo test                                 # Run Rust unit tests
 
-# Testing - Docker Options
-./scripts/tests/start-docker.sh          # Full stack Docker
-./scripts/tests/start-validator-docker.sh # Validator only Docker
-./scripts/tests/stop-docker.sh           # Stop Docker stack
-./scripts/tests/stop-validator-docker.sh # Stop validator Docker
+# Testing - Full Stack
+docker compose up -d                      # Start surfpool + envoy + API
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v  # Run integration tests
+docker compose down                       # Stop everything
 
-# Testing - Native Options
-./scripts/tests/start-validator.sh        # Start native Solana
-./scripts/tests/start-backend.sh          # Start native backend
-cd tests/go && go test -v                         # Auto-runs if services up
-cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v -run "TestComposableE2ESuite/Test_06"  # Specific test
+# Testing - Hybrid (iterate on Rust backend)
+docker compose up surfpool -d             # Start only surfpool validator
+cargo run -p protochain-solana-api        # Run backend locally
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v  # Run tests
+docker compose down                       # Stop surfpool
+
+# Specific test
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v -run "TestTokenProgramE2ESuite/Test_02"
 
 # Cleanup
 ./scripts/code-gen/clean/all.sh          # Remove generated code
-./scripts/tests/stop-backend.sh          # Stop backend
-./scripts/tests/stop-validator.sh        # Stop validator
 
 # Build for Production
 cargo build --release                     # Optimized backend
-cd lib/ts && yarn build                  # TypeScript SDK
+cd lib/ts-web && yarn build              # TypeScript SDK
 cd lib/go && go build ./...              # Go SDK verification
 ```
 

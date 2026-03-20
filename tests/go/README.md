@@ -4,6 +4,31 @@ Go integration tests that validate the Protochain Solana gRPC API using the gene
 
 ## Running Tests
 
+### Full Stack (just want to run tests)
+
+```bash
+docker compose up -d
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
+docker compose down
+```
+
+### Hybrid Development (iterating on the Rust backend)
+
+```bash
+# Start only surfpool validator
+docker compose up surfpool -d
+
+# Run backend locally (restart as needed)
+cargo run -p protochain-solana-api
+
+# Run tests
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
+
+docker compose down
+```
+
+### Test controls
+
 ```bash
 # Auto-detect running services (skips if not available)
 cd tests/go && go test -v
@@ -12,41 +37,10 @@ cd tests/go && go test -v
 cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
 
 # Run specific test suite/test
-cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v -run "TestComposableE2ESuite/Test_05"
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v -run "TestTokenProgramE2ESuite/Test_02"
 
 # Explicitly skip
 cd tests/go && RUN_INTEGRATION_TESTS=0 go test -v
-```
-
-## Prerequisites
-
-1. **Start Solana validator:**
-   ```bash
-   ./scripts/tests/start-validator-docker.sh
-   # or: ./scripts/tests/start-validator.sh
-   ```
-
-2. **Start gRPC backend:**
-   ```bash
-   cargo run -p protochain-solana-api
-   # or: ./scripts/tests/start-backend.sh
-   ```
-
-3. **Run tests:**
-   ```bash
-   cd tests/go
-   RUN_INTEGRATION_TESTS=1 go test -v -timeout 10m
-   ```
-
-## Configuration
-
-Tests use `local-config.json`:
-```json
-{
-    "solana_rpc_url": "http://localhost:8899",
-    "backend_grpc_endpoint": "localhost",
-    "backend_grpc_port": 50051
-}
 ```
 
 ## Test Files
@@ -63,7 +57,7 @@ Tests use the **testify suite** pattern. Individual tests must be run with the `
 
 ```bash
 # Correct
-RUN_INTEGRATION_TESTS=1 go test -v -run "TestComposableE2ESuite/Test_05"
+RUN_INTEGRATION_TESTS=1 go test -v -run "TestTokenProgramE2ESuite/Test_05"
 
 # Wrong (won't match testify suite tests)
 RUN_INTEGRATION_TESTS=1 go test -v -run "Test_05"
@@ -81,22 +75,21 @@ import (
 
 ## Troubleshooting
 
-### Backend connection errors
+### Services not running
 ```bash
-# Verify backend is running
-lsof -i :50051
+# Start the full stack
+docker compose up -d
 
-# Restart backend
-./scripts/tests/start-backend.sh
+# Check container health
+docker compose ps
 ```
 
-### Validator issues
+### Backend connection errors
 ```bash
-# Check validator health
+# Check surfpool is healthy
 curl -s http://localhost:8899 -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"getHealth"}'
 
-# Restart validator
-./scripts/tests/stop-validator-docker.sh
-./scripts/tests/start-validator-docker.sh
+# Check API logs
+docker compose logs protochain-solana-api
 ```
