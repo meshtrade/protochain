@@ -86,6 +86,11 @@
     "solana",
     "blockchain"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meshtrade/protochain",
+    "directory": "lib/ts-web"
+  },
   "author": "meshtrade",
   "license": "MIT",
   "publishConfig": {
