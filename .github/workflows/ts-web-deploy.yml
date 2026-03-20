@@ -117,6 +117,7 @@ jobs:
 
       - name: Create PR with version update
         if: success()
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
