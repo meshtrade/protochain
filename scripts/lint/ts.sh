@@ -10,7 +10,7 @@ PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 # Define TypeScript workspaces to check
 TS_WORKSPACES=(
-    "${PROJECT_ROOT}/lib/ts"
+    "${PROJECT_ROOT}/lib/ts-web"
     "${PROJECT_ROOT}/tests/ts"
 )
 
@@ -37,11 +37,11 @@ OVERALL_SUCCESS=true
 # Process each TypeScript workspace
 for TS_DIR in "${TS_WORKSPACES[@]}"; do
     WORKSPACE_NAME=$(basename "${TS_DIR}")
-    # Differentiate between lib/ts and tests/ts by checking the full path
+    # Differentiate between lib/ts-web and tests/ts by checking the full path
     IS_LIB_TS=false
-    if [[ "${TS_DIR}" == */lib/ts ]]; then
+    if [[ "${TS_DIR}" == */lib/ts-web ]]; then
         IS_LIB_TS=true
-        WORKSPACE_NAME="lib/ts"
+        WORKSPACE_NAME="lib/ts-web"
     elif [[ "${TS_DIR}" == */tests/ts ]]; then
         WORKSPACE_NAME="tests/ts"
     fi
@@ -62,11 +62,11 @@ for TS_DIR in "${TS_WORKSPACES[@]}"; do
         yarn install
     fi
 
-    # Run ESLint with auto-fix (only for lib/ts which has the script)
+    # Run ESLint with auto-fix (only for lib/ts-web which has the script)
     if [ "${IS_LIB_TS}" = true ]; then
         echo -e "${YELLOW}Running ESLint with auto-fix on ${WORKSPACE_NAME}...${NC}"
-        # lib/ts - skip generated protochain files
-        if find src -name "*.ts" -o -name "*.tsx" | grep -v "src/protochain/" | head -1 > /dev/null 2>&1; then
+        # lib/ts-web - skip generated protobuf files (matched by pattern, not path)
+        if find src -name "*.ts" -o -name "*.tsx" | grep -v -E "_pb\.ts$|_protochaints\.ts$" | head -1 > /dev/null 2>&1; then
             if yarn lint:fix; then
                 echo -e "${GREEN}✓ ESLint passed for ${WORKSPACE_NAME}${NC}"
             else
@@ -78,7 +78,7 @@ for TS_DIR in "${TS_WORKSPACES[@]}"; do
         fi
     fi
 
-    # Run Prettier with auto-fix (only for lib/ts which has the script)
+    # Run Prettier with auto-fix (only for lib/ts-web which has the script)
     if [ "${IS_LIB_TS}" = true ]; then
         echo -e "${YELLOW}Running Prettier with auto-fix on ${WORKSPACE_NAME}...${NC}"
         if yarn format; then

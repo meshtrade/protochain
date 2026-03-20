@@ -1,6 +1,7 @@
 dist/
 node_modules/
-src/protochain/
+*_pb.ts
+*_protochaints.ts
 *.min.js
 *.min.css
 coverage/

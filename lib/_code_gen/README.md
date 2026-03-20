@@ -14,7 +14,7 @@ buf generate lib/proto --template lib/_code_gen/buf.gen.yaml
 **Output:**
 - `lib/rust/src/` - Rust SDK (prost + tonic)
 - `lib/go/` - Go SDK (protobuf + gRPC + custom interfaces)
-- `lib/ts/src/` - TypeScript SDK (es module)
+- `lib/ts-web/src/` - TypeScript SDK (es module + ServiceWeb client wrappers)
 
 ### `buf.gen.rust.yaml` (Rust Only)
 Generates only the **Rust SDK** using prost and tonic.
@@ -40,18 +40,6 @@ buf generate lib/proto --template lib/_code_gen/buf.gen.go.yaml
 
 **Use Case:** Integration testing, Go client development
 
-### `buf.gen.ts.yaml` (TypeScript Only)
-Generates only the **TypeScript SDK** using es modules.
-
-```bash
-buf generate lib/proto --template lib/_code_gen/buf.gen.ts.yaml
-```
-
-**Output:**
-- `lib/ts/src/` - TypeScript SDK
-
-**Use Case:** Frontend development, Browser clients
-
 ## Usage in Scripts
 
 To use language-specific generation in scripts:
@@ -63,9 +51,6 @@ buf generate lib/proto --template lib/_code_gen/buf.gen.rust.yaml
 
 # For Go only (testing)
 buf generate lib/proto --template lib/_code_gen/buf.gen.go.yaml
-
-# For TypeScript only (frontend)
-buf generate lib/proto --template lib/_code_gen/buf.gen.ts.yaml
 
 # For all languages (complete)
 buf generate lib/proto --template lib/_code_gen/buf.gen.yaml
@@ -93,6 +78,6 @@ To add a new language:
 ## Notes
 
 - All configurations validate proto files with `buf lint` before generation
-- Proto source files are in `lib/proto/protosol/solana/`
+- Proto source files are in `lib/proto/protochain/solana/`
 - Generated files should never be manually edited (regenerate instead)
 - Each language has its own output directory to avoid conflicts

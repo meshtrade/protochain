@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
-import { RPCClientService, createClient, createGrpcTransport } from "@protochain/api";
-import { GetMinimumBalanceForRentExemptionRequest } from "@protochain/api";
+import { RPCClientService, createClient, createConnectTransport } from "@protochain/ts-web";
+import { GetMinimumBalanceForRentExemptionRequest } from "@protochain/ts-web";
 
 const BACKEND_ENDPOINT = "http://localhost:50051";
 
@@ -10,7 +10,7 @@ async function testRPCService() {
   
   try {
     // Create gRPC transport and client
-    const transport = createGrpcTransport({
+    const transport = createConnectTransport({
       baseUrl: BACKEND_ENDPOINT
     });
     

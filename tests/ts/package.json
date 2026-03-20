@@ -15,7 +15,7 @@
     "lint": "echo 'No linting configured for test files'"
   },
   "dependencies": {
-    "@protochain/api": "1.0.0"
+    "@protochain/ts-web": "1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

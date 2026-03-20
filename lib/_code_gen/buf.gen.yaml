@@ -30,6 +30,11 @@ plugins:
 
   # TypeScript generation
   - remote: buf.build/bufbuild/es:v2.7.0
-    out: ./lib/ts/src
+    out: ./lib/ts-web/src
     opt:
       - target=ts
+
+  # Custom protochain_ts_web plugin for ServiceWeb client wrapper generation
+  - local: ["node", "tool/protoc-gen/cmd/protochain_ts_web/dist/index.js"]
+    out: ./lib/ts-web/src
+    strategy: all

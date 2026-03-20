@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
-import { TokenProgramService, createClient, createGrpcTransport, AccountService } from "@protochain/api";
-import { InitialiseMintRequest } from "@protochain/api";
+import { TokenProgramService, createClient, createConnectTransport, AccountService } from "@protochain/ts-web";
+import { InitialiseSPLTokenMintRequest } from "@protochain/ts-web";
 
 const BACKEND_ENDPOINT = "http://localhost:50051";
 
@@ -10,7 +10,7 @@ async function testTokenService() {
   
   try {
     // Create gRPC transport and clients
-    const transport = createGrpcTransport({
+    const transport = createConnectTransport({
       baseUrl: BACKEND_ENDPOINT
     });
     
@@ -28,26 +28,34 @@ async function testTokenService() {
     
     console.log(`✅ Generated mint authority: ${keyPairResp.keyPair.publicKey}`);
     
-    // Test 1: InitializeMint
-    console.log("\n🧪 Test 1: InitializeMint");
-    const initMintResp = await tokenClient.initialiseMint({
+    // Test 1: InitialiseSPLTokenMint
+    console.log("\n🧪 Test 1: InitialiseSPLTokenMint");
+    const initMintResp = await tokenClient.initialiseSPLTokenMint({
       mintPubKey: keyPairResp.keyPair.publicKey,
       mintAuthorityPubKey: keyPairResp.keyPair.publicKey,
       freezeAuthorityPubKey: keyPairResp.keyPair.publicKey,
       decimals: 6
     });
-    
-    console.log("✅ InitializeMint successful:");
-    console.log(`   Instruction Program ID: ${initMintResp.instruction?.programId}`);
-    console.log(`   Accounts Length: ${initMintResp.instruction?.accounts?.length}`);
-    console.log(`   Data Length: ${initMintResp.instruction?.data?.length}`);
-    
+
+    console.log("✅ InitialiseSPLTokenMint successful:");
+    console.log(`   Instructions count: ${initMintResp.instructions?.length}`);
+    if (initMintResp.instructions && initMintResp.instructions.length > 0) {
+      const firstInstruction = initMintResp.instructions[0];
+      console.log(`   First Instruction Program ID: ${firstInstruction?.programId}`);
+      console.log(`   First Instruction Accounts Length: ${firstInstruction?.accounts?.length}`);
+      console.log(`   First Instruction Data Length: ${firstInstruction?.data?.length}`);
+    }
+
     // Validate instruction structure
     if (initMintResp) {
       console.log("✅ Instruction validation:");
-      console.log(`   Has Program ID: ${!!initMintResp.instruction?.programId}`);
-      console.log(`   Has Accounts: ${!!initMintResp.instruction?.accounts && initMintResp.instruction.accounts.length > 0}`);
-      console.log(`   Has Data: ${!!initMintResp.instruction?.data && initMintResp.instruction.data.length > 0}`);
+      console.log(`   Has Instructions: ${!!initMintResp.instructions && initMintResp.instructions.length > 0}`);
+      if (initMintResp.instructions && initMintResp.instructions.length > 0) {
+        const firstInstruction = initMintResp.instructions[0];
+        console.log(`   Has Program ID: ${!!firstInstruction?.programId}`);
+        console.log(`   Has Accounts: ${!!firstInstruction?.accounts && firstInstruction.accounts.length > 0}`);
+        console.log(`   Has Data: ${!!firstInstruction?.data && firstInstruction.data.length > 0}`);
+      }
     }
     
     console.log("\n🎉 TokenProgramService tests completed successfully!");

@@ -1,5 +1,6 @@
-# Generated protobuf files
-src/protochain/
+# Generated protobuf files (pattern-based, works across all chains e.g. solana, sui)
+*_pb.ts
+*_protochaints.ts
 
 # Build artifacts
 dist/

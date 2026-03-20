@@ -1,16 +1,9 @@
 {
-  "name": "protochain-monorepo",
+  "name": "protochain",
   "private": true,
   "workspaces": [
-    "lib/ts",
-    "ui",
+    "lib/ts-web",
     "tests/ts"
   ],
-  "packageManager": "yarn@1.22.22",
-  "scripts": {
-    "start:ui": "yarn workspace protochain-ui dev",
-    "build:ui": "yarn workspace protochain-ui build",
-    "lint:ui": "yarn workspace protochain-ui lint",
-    "typecheck:ui": "yarn workspace protochain-ui typecheck"
-  }
+  "packageManager": "yarn@1.22.22"
 }

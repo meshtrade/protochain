@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 
-import { TransactionService, createClient, createGrpcTransport, AccountService, SystemProgramService } from "@protochain/api";
-import { CompileTransactionRequest, EstimateTransactionRequest } from "@protochain/api";
+import { TransactionService, createClient, createConnectTransport, AccountService, SystemProgramService } from "@protochain/ts-web";
+import { CompileTransactionRequest, EstimateTransactionRequest } from "@protochain/ts-web";
 
 const BACKEND_ENDPOINT = "http://localhost:50051";
 
@@ -10,7 +10,7 @@ async function testTransactionService() {
   
   try {
     // Create gRPC transport and clients
-    const transport = createGrpcTransport({
+    const transport = createConnectTransport({
       baseUrl: BACKEND_ENDPOINT
     });
     
