@@ -7,44 +7,54 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "import": "./dist/index.js"
     },
     "./solana/account/v1": {
+      "types": "./dist/protochain/solana/account/v1/index.d.ts",
       "require": "./dist/protochain/solana/account/v1/index.js",
-      "types": "./dist/protochain/solana/account/v1/index.d.ts"
+      "import": "./dist/protochain/solana/account/v1/index.js"
     },
     "./solana/transaction/v1": {
+      "types": "./dist/protochain/solana/transaction/v1/index.d.ts",
       "require": "./dist/protochain/solana/transaction/v1/index.js",
-      "types": "./dist/protochain/solana/transaction/v1/index.d.ts"
+      "import": "./dist/protochain/solana/transaction/v1/index.js"
     },
     "./solana/program/system/v1": {
+      "types": "./dist/protochain/solana/program/system/v1/index.d.ts",
       "require": "./dist/protochain/solana/program/system/v1/index.js",
-      "types": "./dist/protochain/solana/program/system/v1/index.d.ts"
+      "import": "./dist/protochain/solana/program/system/v1/index.js"
     },
     "./solana/program/token/v1": {
+      "types": "./dist/protochain/solana/program/token/v1/index.d.ts",
       "require": "./dist/protochain/solana/program/token/v1/index.js",
-      "types": "./dist/protochain/solana/program/token/v1/index.d.ts"
+      "import": "./dist/protochain/solana/program/token/v1/index.js"
     },
     "./solana/rpc_client/v1": {
+      "types": "./dist/protochain/solana/rpc_client/v1/index.d.ts",
       "require": "./dist/protochain/solana/rpc_client/v1/index.js",
-      "types": "./dist/protochain/solana/rpc_client/v1/index.d.ts"
+      "import": "./dist/protochain/solana/rpc_client/v1/index.js"
     },
     "./solana/type/v1": {
+      "types": "./dist/protochain/solana/type/v1/index.d.ts",
       "require": "./dist/protochain/solana/type/v1/index.js",
-      "types": "./dist/protochain/solana/type/v1/index.d.ts"
+      "import": "./dist/protochain/solana/type/v1/index.js"
     },
     "./config": {
+      "types": "./dist/protochain/config/index.d.ts",
       "require": "./dist/protochain/config/index.js",
-      "types": "./dist/protochain/config/index.d.ts"
+      "import": "./dist/protochain/config/index.js"
     },
     "./interceptors": {
+      "types": "./dist/protochain/interceptors/index.d.ts",
       "require": "./dist/protochain/interceptors/index.js",
-      "types": "./dist/protochain/interceptors/index.d.ts"
+      "import": "./dist/protochain/interceptors/index.js"
     },
     "./*": {
+      "types": "./dist/protochain/*.d.ts",
       "require": "./dist/protochain/*.js",
-      "types": "./dist/protochain/*.d.ts"
+      "import": "./dist/protochain/*.js"
     }
   },
   "scripts": {
@@ -91,7 +101,7 @@
     "url": "https://github.com/meshtrade/protochain",
     "directory": "lib/ts-web"
   },
-  "author": "meshtrade",
+  "author": "Bernard Bussy <bernard@meshtrade.co>",
   "license": "MIT",
   "publishConfig": {
     "access": "public"
