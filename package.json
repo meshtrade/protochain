@@ -2,8 +2,7 @@
   "name": "protochain",
   "private": true,
   "workspaces": [
-    "lib/ts-web",
-    "tests/ts"
+    "lib/ts-web"
   ],
   "packageManager": "yarn@1.22.22"
 }
