@@ -38,7 +38,7 @@ DRAFT → COMPILED → PARTIALLY_SIGNED → FULLY_SIGNED → SUBMITTED
 ### Multi-Language SDK Generation
 - **Rust** (`lib/rust/`): Generated with tonic/prost for backend implementation
 - **Go** (`lib/go/`): Generated with custom interfaces via protoc-gen-protochaingo
-- **TypeScript** (`lib/ts/`): Generated with @bufbuild/protobuf for browser/Node.js
+- **TypeScript** (`lib/ts-web/`): Generated with @bufbuild/protobuf for browser/Node.js ([`@protochain/ts-web`](https://www.npmjs.com/package/@protochain/ts-web))
 
 ## 📁 Repository Structure
 
@@ -48,7 +48,10 @@ protochain/
 │   └── protochain/solana/
 │       ├── account/v1/           # Account management services
 │       ├── transaction/v1/       # Transaction lifecycle services
-│       ├── program/system/v1/    # System program wrappers
+│       ├── program/
+│       │   ├── system/v1/       # System program wrappers
+│       │   └── token/v1/        # SPL Token & Token-2022 wrappers
+│       ├── rpc_client/v1/       # Direct RPC client service
 │       └── type/v1/              # Shared type definitions
 │
 ├── app/                          # 🏗️ Multi-App Architecture
@@ -59,7 +62,10 @@ protochain/
 │   │           └── src/api/     # Service implementations
 │   │               ├── account/v1/      # Account service logic
 │   │               ├── transaction/v1/  # Transaction state machine
-│   │               └── program/system/v1/ # System program conversions
+│   │               ├── program/
+│   │               │   ├── system/v1/  # System program conversions
+│   │               │   └── token/v1/   # Token program operations
+│   │               └── rpc_client/v1/  # Direct RPC operations
 │   │
 │   └── template/               # Template for new applications
 │       └── cmd/
@@ -71,7 +77,7 @@ protochain/
 ├── lib/                         # 📦 Generated Multi-Language SDKs
 │   ├── rust/src/               # Generated Rust bindings
 │   ├── go/protochain/           # Generated Go SDK + interfaces
-│   └── ts/src/               # Generated TypeScript SDK
+│   └── ts-web/src/              # Generated TypeScript SDK (@protochain/ts-web)
 │
 ├── tests/go/                   # 🧪 Integration Test Suite
 │   ├── streaming_e2e_test.go  # Real blockchain integration tests

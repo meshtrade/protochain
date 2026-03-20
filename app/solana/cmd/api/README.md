@@ -1,103 +1,77 @@
-# Solana gRPC Application Server
+# Solana gRPC API Server
 
-This is the structured Solana gRPC API backend service.
+Rust gRPC backend for Solana blockchain operations (`protochain-solana-api`).
 
 ## Architecture
 
-The application follows a layered architecture with dependency injection:
-
 ```
-project/solana/cmd/api/
+app/solana/cmd/api/
 ├── src/
-│   ├── main.rs                 # Application entry point
-│   ├── lib.rs                  # Library exports
-│   ├── service_providers/      # Dependency injection container
-│   │   ├── mod.rs              # Module exports
-│   │   ├── service_providers.rs # Main service provider struct
-│   │   └── solana_clients.rs   # Solana RPC client management
-│   └── api/                    # API layer organization
-│       ├── mod.rs              # API module exports
-│       ├── api.rs              # Root API struct
-│       ├── transaction/        # Transaction service
-│       │   └── v1/             # Version 1 implementation
-│       │       ├── mod.rs
-│       │       ├── transaction_v1_api.rs
-│       │       └── service_impl.rs
-│       └── account/            # Account service
-│           └── v1/             # Version 1 implementation
-│               ├── mod.rs
-│               ├── account_v1_api.rs
-│               └── service_impl.rs
-└── Cargo.toml                  # Package configuration
-```
-
-## Key Features
-
-### Dependency Injection
-- **ServiceProviders**: Main dependency container managing all service dependencies
-- **SolanaClientsServiceProviders**: Manages Solana RPC client instances
-- **Specific Dependencies**: Service implementations only hold dependencies they actually need (e.g., RPC client)
-- **Thread-safe Arc<RpcClient>**: Shared safely across service implementations
-
-### API Organization
-- **Clean Layer Structure**: Direct API → service pattern without unnecessary nesting
-- **Versioned Services**: Transaction v1 and Account v1 services with room for evolution
-- **Service Implementations**: Hold only required dependencies, not entire service provider structs
-- **Proper Separation**: API layers extract dependencies and pass them to service implementations
-
-### Network Configuration
-- **Environment-based Configuration**: Uses SOLANA_RPC_URL environment variable
-- **Mainnet/Devnet Support**: Easy network switching via environment variables
-- **Safe Defaults**: Defaults to devnet if no environment variable is set
-
-## Usage
-
-### Development
-
-Start the server using the development scripts:
-```bash
-# From project root
-./project/solana/scripts/dev.sh start
-```
-
-### Direct Usage
-
-Run the application directly:
-```bash
-# From project root
-cargo run -p protochain-solana-api
-
-# With specific network
-SOLANA_RPC_URL="https://api.mainnet-beta.solana.com" cargo run -p protochain-solana-api
-```
-
-### Testing
-
-The structured app is fully compatible with existing integration tests:
-```bash
-# Run integration tests against the structured app
-RUN_INTEGRATION_TESTS=1 go test -v ./project/solana/cmd/api-test
+│   ├── main.rs                    # gRPC server entry (port 50051)
+│   ├── config.rs                  # Configuration management
+│   ├── service_providers/         # Dependency injection container
+│   │   ├── service_providers.rs   # Main service provider struct
+│   │   └── solana_clients.rs      # Solana RPC client management
+│   └── api/                       # Service implementations
+│       ├── aggregator.rs          # API aggregator
+│       ├── account/v1/            # Account service
+│       ├── transaction/v1/        # Transaction state machine
+│       ├── program/
+│       │   ├── system/v1/         # System program wrappers
+│       │   └── token/v1/          # SPL Token & Token-2022
+│       └── rpc_client/v1/         # Direct RPC client operations
+└── Cargo.toml
 ```
 
 ## Services
 
-### Transaction Service v1
-- **SubmitTransaction**: Process and submit transactions to Solana network
-- **GetTransaction**: Retrieve transaction data from Solana network by signature
-
 ### Account Service v1
-- **GetAccount**: Retrieve account data from Solana network by address
+- **GetAccount** - Retrieve account data with configurable commitment levels
+- **GenerateNewKeyPair** - Create deterministic or random keypairs
+- **FundNative** - Airdrop SOL (devnet/testnet only)
 
-Both services include:
-- Real Solana network integration
-- Comprehensive error handling
-- Input validation
-- Request/response logging
+### Transaction Service v1
+- **CompileTransaction** - DRAFT -> COMPILED state transition
+- **SignTransaction** - COMPILED -> PARTIALLY_SIGNED/FULLY_SIGNED
+- **SubmitTransaction** - FULLY_SIGNED -> SUBMITTED
+- **EstimateTransaction** - Fee calculation
+- **SimulateTransaction** - Dry run
+- **GetTransaction** - Fetch by signature
+- **StreamTransactionStatuses** - Real-time gRPC streaming
 
-## Architecture Benefits
+### System Program Service v1
+- Returns `SolanaInstruction` messages for transaction composition
+- Create, Transfer, Allocate, Assign, and more
 
-1. **Maintainability**: Clear separation of concerns with dependency injection
-2. **Testability**: Mockable dependencies through the service provider pattern
-3. **Scalability**: Easy to add new services and versions
-4. **Professional Structure**: Follows enterprise patterns used in production systems
-5. **Network Flexibility**: Easy switching between Solana networks (mainnet/devnet/testnet)
+### Token Program Service v1
+- SPL Token and Token-2022 operations
+- Mint initialization with optional Metaplex metadata
+- Token account creation and management
+
+### RPC Client Service v1
+- Direct Solana RPC method wrappers
+- Rent calculations, slot queries
+
+## Running
+
+```bash
+# From repository root
+cargo run -p protochain-solana-api
+
+# With specific network
+SOLANA_RPC_URL="https://api.devnet.solana.com" cargo run -p protochain-solana-api
+```
+
+## Testing
+
+```bash
+# Rust unit tests
+cargo test -p protochain-solana-api
+
+# Go integration tests (requires running validator + backend)
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
+```
+
+## Docker
+
+See [ci/api/README.md](../../ci/api/README.md) for containerization details.

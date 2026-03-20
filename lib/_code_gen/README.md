@@ -40,6 +40,18 @@ buf generate lib/proto --template lib/_code_gen/buf.gen.go.yaml
 
 **Use Case:** Integration testing, Go client development
 
+### `buf.gen.ts-web.yaml` (TypeScript Only)
+Generates only the **TypeScript SDK** with ES modules and ServiceWeb client wrappers.
+
+```bash
+buf generate lib/proto --template lib/_code_gen/buf.gen.ts-web.yaml
+```
+
+**Output:**
+- `lib/ts-web/src/` - TypeScript SDK (`@protochain/ts-web`)
+
+**Use Case:** CI/CD npm publishing (avoids generating Go/Rust in the deploy pipeline)
+
 ## Usage in Scripts
 
 To use language-specific generation in scripts:

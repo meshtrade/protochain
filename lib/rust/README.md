@@ -1,14 +1,15 @@
-# Protochain API Rust SDK
+# Protochain Rust SDK
 
-This crate provides Rust bindings for the Protochain API protocol buffers.
+This crate (`protochain-api`) provides generated Rust bindings (prost + tonic) for the Protochain gRPC API.
 
 ## Generated Code
 
-All code in `src/` (except `lib.rs`) is auto-generated from the protobuf definitions in `api/proto/`.
+All code in `src/` (except `lib.rs`) is auto-generated from protobuf definitions in `lib/proto/protochain/solana/`.
 
-To regenerate the code:
+To regenerate:
 ```bash
-./dev/tool.sh generate --project=api
+# From repository root
+./scripts/code-gen/generate/all.sh
 ```
 
 ## Usage
@@ -16,28 +17,7 @@ To regenerate the code:
 Add this to your `Cargo.toml`:
 ```toml
 [dependencies]
-protochain-api = { path = "../path/to/api/rust" }
+protochain-api = { path = "../../lib/rust" }
 ```
 
-Then use in your code:
-```rust
-use protochain_api::{Transaction, SubmitTransactionRequest};
-use protochain_api::service_client::ServiceClient;
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = ServiceClient::connect("http://[::1]:50051").await?;
-    
-    let request = tonic::Request::new(SubmitTransactionRequest {
-        transaction: Some(Transaction {
-            hash: "example_hash".to_string(),
-            data: "example_data".to_string(),
-        }),
-    });
-    
-    let response = client.submit_transaction(request).await?;
-    println!("Response: {:?}", response);
-    
-    Ok(())
-}
-```
+This crate is used by the Solana API backend at `app/solana/cmd/api/`.
