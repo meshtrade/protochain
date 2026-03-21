@@ -1,17 +1,13 @@
-use crate::api::program::system::v1::service_impl::SystemProgramServiceImpl;
 use crate::api::program::token::v1::token_program::get_token_program_id;
 use crate::api::{
     common::solana_conversions::sdk_instruction_to_proto,
     program::token::v1::token_program::sdk_token_program_to_proto,
 };
-use protochain_api::protochain::solana::program::system::v1::{
-    service_server::Service as SystemProgramService, CreateRequest as SystemCreateRequest,
-};
 use protochain_api::protochain::solana::program::token::v1::{
     metaplex_uses, service_server::Service as TokenProgramService, token2022_extension,
-    CreateHoldingAccountRequest, CreateHoldingAccountResponse, CreateMintRequest,
-    CreateMintResponse, GetCurrentMinRentForHoldingAccountRequest,
-    GetCurrentMinRentForHoldingAccountResponse, GetCurrentMinRentForSplTokenMintAccountRequest,
+    CreateHoldingAccountRequest, CreateHoldingAccountResponse,
+    GetCurrentMinRentForHoldingAccountRequest, GetCurrentMinRentForHoldingAccountResponse,
+    GetCurrentMinRentForSplTokenMintAccountRequest,
     GetCurrentMinRentForSplTokenMintAccountResponse,
     GetCurrentMinRentForToken2022MintAccountRequest,
     GetCurrentMinRentForToken2022MintAccountResponse, InitialiseSplTokenMintRequest,
@@ -729,86 +725,6 @@ impl TokenProgramService for TokenProgramServiceImpl {
         let lamports = memo_rent_lamports(&self.rpc_client, require_memo)?;
         let response = GetCurrentMinRentForHoldingAccountResponse { lamports };
         Ok(Response::new(response))
-    }
-
-    /// Creates both system account creation and mint initialization instructions
-    async fn create_mint(
-        &self,
-        request: Request<CreateMintRequest>,
-    ) -> Result<Response<CreateMintResponse>, Status> {
-        let req = request.into_inner();
-
-        if req.payer.is_empty() {
-            return Err(Status::invalid_argument("Payer address is required"));
-        }
-
-        let rent_response = self
-            .get_current_min_rent_for_spl_token_mint_account(Request::new(
-                GetCurrentMinRentForSplTokenMintAccountRequest {},
-            ))
-            .await?
-            .into_inner();
-
-        let system_service = SystemProgramServiceImpl::new();
-
-        let token_program_enum = TokenProgram::try_from(req.token_program)
-            .map_err(|_| Status::invalid_argument("Invalid token program value"))?;
-
-        let owner_pubkey = get_token_program_id(token_program_enum)
-            .map_err(|e| Status::invalid_argument(format!("Invalid token program: {e}")))?;
-
-        let create_instruction = system_service
-            .create(Request::new(SystemCreateRequest {
-                payer: req.payer.clone(),
-                new_account: req.mint_pub_key.clone(),
-                owner: owner_pubkey.to_string(),
-                lamports: rent_response.lamports,
-                space: Mint::LEN as u64,
-            }))
-            .await?
-            .into_inner();
-
-        let mut instructions = Vec::new();
-        if let Some(instr) = create_instruction.instruction {
-            instructions.push(instr);
-        }
-
-        match token_program_enum {
-            TokenProgram::Legacy => {
-                let init_response = self
-                    .initialise_spl_token_mint(Request::new(InitialiseSplTokenMintRequest {
-                        mint_pub_key: req.mint_pub_key,
-                        mint_authority_pub_key: req.mint_authority_pub_key,
-                        freeze_authority_pub_key: req.freeze_authority_pub_key,
-                        decimals: req.decimals,
-                        payer_pub_key: String::new(),
-                        metadata: None,
-                    }))
-                    .await?
-                    .into_inner();
-                instructions.extend(init_response.instructions);
-            }
-            TokenProgram::TokenProgram2022 => {
-                let init_response = self
-                    .initialise_token2022_mint(Request::new(InitialiseToken2022MintRequest {
-                        mint_pub_key: req.mint_pub_key,
-                        mint_authority_pub_key: req.mint_authority_pub_key,
-                        freeze_authority_pub_key: req.freeze_authority_pub_key,
-                        decimals: req.decimals,
-                        extensions: vec![],
-                    }))
-                    .await?
-                    .into_inner();
-                instructions.extend(init_response.instructions);
-            }
-            TokenProgram::Unspecified => {
-                return Err(Status::invalid_argument(
-                    "token_program must be specified (cannot be UNSPECIFIED)",
-                ));
-            }
-        }
-
-        Ok(Response::new(CreateMintResponse { instructions }))
     }
 
     /// Creates holding account instructions with optional memo transfer support

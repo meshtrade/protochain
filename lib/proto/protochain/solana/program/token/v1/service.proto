@@ -18,10 +18,6 @@ service Service {
   // Without extensions only initialize_mint is returned.
   rpc InitialiseToken2022Mint(InitialiseToken2022MintRequest) returns (InitialiseToken2022MintResponse);
 
-  // Creates a single initialise_mint instruction for the legacy SPL Token program.
-  // Extensions are not supported.
-  rpc InitialiseSPLTokenMint(InitialiseSPLTokenMintRequest) returns (InitialiseSPLTokenMintResponse);
-
   // Returns the minimum rent-exempt balance (in lamports) and the required account
   // space (in bytes) for a Token-2022 mint account with the requested extensions.
   //
@@ -37,6 +33,10 @@ service Service {
   // so that the returned values are consistent.
   rpc GetCurrentMinRentForToken2022MintAccount(GetCurrentMinRentForToken2022MintAccountRequest) returns (GetCurrentMinRentForToken2022MintAccountResponse);
 
+  // Creates a single initialise_mint instruction for the legacy SPL Token program.
+  // Extensions are not supported.
+  rpc InitialiseSPLTokenMint(InitialiseSPLTokenMintRequest) returns (InitialiseSPLTokenMintResponse);
+
   // Returns the minimum rent-exempt balance (in lamports) and the required account
   // space (in bytes) for a legacy SPL Token mint account.
   //
@@ -45,18 +45,19 @@ service Service {
   rpc GetCurrentMinRentForSPLTokenMintAccount(GetCurrentMinRentForSPLTokenMintAccountRequest) returns (GetCurrentMinRentForSPLTokenMintAccountResponse);
 
   // Parses mint account data into structured format
+  //
+  // Token Program Agnostic. Response indicates if mint is for Token2022 or SPL tokens.
   rpc ParseMint(ParseMintRequest) returns (ParseMintResponse);
 
   // Gets current minimum rent for a token holding account, optionally accounting for memo transfer extension size when memo_transfer_config is provided.
   rpc GetCurrentMinRentForHoldingAccount(GetCurrentMinRentForHoldingAccountRequest) returns (GetCurrentMinRentForHoldingAccountResponse);
 
-  // Creates both system account creation and mint initialization instructions. Memo transfer is not applicable to mint accounts.
-  rpc CreateMint(CreateMintRequest) returns (CreateMintResponse);
-
   // Creates holding account initialization instructions. Adds memo-enable instruction when requested.
   rpc CreateHoldingAccount(CreateHoldingAccountRequest) returns (CreateHoldingAccountResponse);
 
   // Mint tokens to an existing token account using MintToChecked instruction
+  //
+  // Token Program Agnostic.
   rpc Mint(MintRequest) returns (MintResponse);
 }
 
@@ -89,6 +90,30 @@ message InitialiseToken2022MintResponse {
   repeated protochain.solana.transaction.v1.SolanaInstruction instructions = 1;
 }
 
+// Request for the minimum rent and space required for a Token-2022 mint account.
+// Provide the same extension set you intend to pass to InitialiseToken2022Mint so that
+// the returned lamports and space values are consistent with each other.
+message GetCurrentMinRentForToken2022MintAccountRequest {
+  // Ordered list of extensions to enable on the mint.
+  // Must match the extensions you will pass to InitialiseToken2022Mint.
+  // If empty, results are based on a base Token-2022 mint with no extensions.
+  // Duplicates are rejected.
+  repeated protochain.solana.program.token.v1.Token2022Extension extensions = 1;
+}
+
+// Rent and space for a Token-2022 mint account with the requested extensions.
+// Pass both fields directly to the System Program's CreateAccount instruction
+// before calling InitialiseToken2022Mint.
+message GetCurrentMinRentForToken2022MintAccountResponse {
+  // Minimum lamports required for the account to be rent-exempt after all
+  // extensions (including variable-length metadata) are fully initialised.
+  uint64 lamports = 1;
+
+  // Initial account size in bytes for System::CreateAccount.
+  // Covers the base mint layout and fixed-size extension pods only.
+  uint64 space = 2;
+}
+
 // Request to initialise a legacy SPL Token mint.
 message InitialiseSPLTokenMintRequest {
   // The public key of the Mint account to be initialized.
@@ -117,30 +142,6 @@ message InitialiseSPLTokenMintRequest {
 // When metadata is requested, additional Metaplex instructions follow the base initialize_mint.
 message InitialiseSPLTokenMintResponse {
   repeated protochain.solana.transaction.v1.SolanaInstruction instructions = 1;
-}
-
-// Request for the minimum rent and space required for a Token-2022 mint account.
-// Provide the same extension set you intend to pass to InitialiseToken2022Mint so that
-// the returned lamports and space values are consistent with each other.
-message GetCurrentMinRentForToken2022MintAccountRequest {
-  // Ordered list of extensions to enable on the mint.
-  // Must match the extensions you will pass to InitialiseToken2022Mint.
-  // If empty, results are based on a base Token-2022 mint with no extensions.
-  // Duplicates are rejected.
-  repeated protochain.solana.program.token.v1.Token2022Extension extensions = 1;
-}
-
-// Rent and space for a Token-2022 mint account with the requested extensions.
-// Pass both fields directly to the System Program's CreateAccount instruction
-// before calling InitialiseToken2022Mint.
-message GetCurrentMinRentForToken2022MintAccountResponse {
-  // Minimum lamports required for the account to be rent-exempt after all
-  // extensions (including variable-length metadata) are fully initialised.
-  uint64 lamports = 1;
-
-  // Initial account size in bytes for System::CreateAccount.
-  // Covers the base mint layout and fixed-size extension pods only.
-  uint64 space = 2;
 }
 
 // Request for the minimum rent and space required for a legacy SPL Token mint account.
@@ -211,24 +212,6 @@ message CreateHoldingAccountRequest {
 
 // Response containing both create and initialize instructions
 message CreateHoldingAccountResponse {
-  repeated protochain.solana.transaction.v1.SolanaInstruction instructions = 1;
-}
-
-// Request to create and initialize a mint account in one call
-message CreateMintRequest {
-  // System program create fields
-  string payer = 1; // Account paying for creation (signer)
-
-  // Token program initialize mint fields
-  string mint_pub_key = 2; // Same as new_account for validation
-  string mint_authority_pub_key = 3; // Mint authority
-  string freeze_authority_pub_key = 4; // Freeze authority (optional)
-  uint32 decimals = 5; // Mint decimals
-  protochain.solana.type.v1.TokenProgram token_program = 6;
-}
-
-// Response containing both create and initialize instructions
-message CreateMintResponse {
   repeated protochain.solana.transaction.v1.SolanaInstruction instructions = 1;
 }
 

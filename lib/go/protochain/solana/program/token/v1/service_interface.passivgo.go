@@ -15,10 +15,6 @@ type ServiceInterface interface {
 	// Without extensions only initialize_mint is returned.
 	InitialiseToken2022Mint(ctx context.Context, request *InitialiseToken2022MintRequest) (*InitialiseToken2022MintResponse, error)
 
-	// Creates a single initialise_mint instruction for the legacy SPL Token program.
-	// Extensions are not supported.
-	InitialiseSPLTokenMint(ctx context.Context, request *InitialiseSPLTokenMintRequest) (*InitialiseSPLTokenMintResponse, error)
-
 	// Returns the minimum rent-exempt balance (in lamports) and the required account
 	// space (in bytes) for a Token-2022 mint account with the requested extensions.
 	//
@@ -34,6 +30,10 @@ type ServiceInterface interface {
 	// so that the returned values are consistent.
 	GetCurrentMinRentForToken2022MintAccount(ctx context.Context, request *GetCurrentMinRentForToken2022MintAccountRequest) (*GetCurrentMinRentForToken2022MintAccountResponse, error)
 
+	// Creates a single initialise_mint instruction for the legacy SPL Token program.
+	// Extensions are not supported.
+	InitialiseSPLTokenMint(ctx context.Context, request *InitialiseSPLTokenMintRequest) (*InitialiseSPLTokenMintResponse, error)
+
 	// Returns the minimum rent-exempt balance (in lamports) and the required account
 	// space (in bytes) for a legacy SPL Token mint account.
 	//
@@ -42,18 +42,19 @@ type ServiceInterface interface {
 	GetCurrentMinRentForSPLTokenMintAccount(ctx context.Context, request *GetCurrentMinRentForSPLTokenMintAccountRequest) (*GetCurrentMinRentForSPLTokenMintAccountResponse, error)
 
 	// Parses mint account data into structured format
+	//
+	// Token Program Agnostic. Response indicates if mint is for Token2022 or SPL tokens.
 	ParseMint(ctx context.Context, request *ParseMintRequest) (*ParseMintResponse, error)
 
 	// Gets current minimum rent for a token holding account, optionally accounting for memo transfer extension size when memo_transfer_config is provided.
 	GetCurrentMinRentForHoldingAccount(ctx context.Context, request *GetCurrentMinRentForHoldingAccountRequest) (*GetCurrentMinRentForHoldingAccountResponse, error)
 
-	// Creates both system account creation and mint initialization instructions. Memo transfer is not applicable to mint accounts.
-	CreateMint(ctx context.Context, request *CreateMintRequest) (*CreateMintResponse, error)
-
 	// Creates holding account initialization instructions. Adds memo-enable instruction when requested.
 	CreateHoldingAccount(ctx context.Context, request *CreateHoldingAccountRequest) (*CreateHoldingAccountResponse, error)
 
 	// Mint tokens to an existing token account using MintToChecked instruction
+	//
+	// Token Program Agnostic.
 	Mint(ctx context.Context, request *MintRequest) (*MintResponse, error)
 }
 

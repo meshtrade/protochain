@@ -116,19 +116,19 @@ func (s *serviceService) InitialiseToken2022Mint(ctx context.Context, request *I
 	})
 }
 
-// InitialiseSPLTokenMint executes the InitialiseSPLTokenMint RPC method with automatic
-// client-side validation, timeout handling, distributed tracing, and authentication.
-func (s *serviceService) InitialiseSPLTokenMint(ctx context.Context, request *InitialiseSPLTokenMintRequest) (*InitialiseSPLTokenMintResponse, error) {
-	return common.Execute(s.Executor(), ctx, "InitialiseSPLTokenMint", request, func(ctx context.Context) (*InitialiseSPLTokenMintResponse, error) {
-		return s.GrpcClient().InitialiseSPLTokenMint(ctx, request)
-	})
-}
-
 // GetCurrentMinRentForToken2022MintAccount executes the GetCurrentMinRentForToken2022MintAccount RPC method with automatic
 // client-side validation, timeout handling, distributed tracing, and authentication.
 func (s *serviceService) GetCurrentMinRentForToken2022MintAccount(ctx context.Context, request *GetCurrentMinRentForToken2022MintAccountRequest) (*GetCurrentMinRentForToken2022MintAccountResponse, error) {
 	return common.Execute(s.Executor(), ctx, "GetCurrentMinRentForToken2022MintAccount", request, func(ctx context.Context) (*GetCurrentMinRentForToken2022MintAccountResponse, error) {
 		return s.GrpcClient().GetCurrentMinRentForToken2022MintAccount(ctx, request)
+	})
+}
+
+// InitialiseSPLTokenMint executes the InitialiseSPLTokenMint RPC method with automatic
+// client-side validation, timeout handling, distributed tracing, and authentication.
+func (s *serviceService) InitialiseSPLTokenMint(ctx context.Context, request *InitialiseSPLTokenMintRequest) (*InitialiseSPLTokenMintResponse, error) {
+	return common.Execute(s.Executor(), ctx, "InitialiseSPLTokenMint", request, func(ctx context.Context) (*InitialiseSPLTokenMintResponse, error) {
+		return s.GrpcClient().InitialiseSPLTokenMint(ctx, request)
 	})
 }
 
@@ -153,14 +153,6 @@ func (s *serviceService) ParseMint(ctx context.Context, request *ParseMintReques
 func (s *serviceService) GetCurrentMinRentForHoldingAccount(ctx context.Context, request *GetCurrentMinRentForHoldingAccountRequest) (*GetCurrentMinRentForHoldingAccountResponse, error) {
 	return common.Execute(s.Executor(), ctx, "GetCurrentMinRentForHoldingAccount", request, func(ctx context.Context) (*GetCurrentMinRentForHoldingAccountResponse, error) {
 		return s.GrpcClient().GetCurrentMinRentForHoldingAccount(ctx, request)
-	})
-}
-
-// CreateMint executes the CreateMint RPC method with automatic
-// client-side validation, timeout handling, distributed tracing, and authentication.
-func (s *serviceService) CreateMint(ctx context.Context, request *CreateMintRequest) (*CreateMintResponse, error) {
-	return common.Execute(s.Executor(), ctx, "CreateMint", request, func(ctx context.Context) (*CreateMintResponse, error) {
-		return s.GrpcClient().CreateMint(ctx, request)
 	})
 }
 
