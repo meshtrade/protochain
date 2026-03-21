@@ -4,6 +4,7 @@ package protochain.solana.program.token.v1;
 
 import "protochain/solana/program/token/v1/spl_token_metadata.proto";
 import "protochain/solana/program/token/v1/token2022_extension.proto";
+import "protochain/solana/program/token/v1/token2022_holding_account_extension.proto";
 import "protochain/solana/transaction/v1/instruction.proto";
 import "protochain/solana/type/v1/token_program.proto";
 
@@ -17,6 +18,10 @@ option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/pr
 // calculation, and any extension/metadata setup. This removes the need for
 // callers to separately query rent, build a system create instruction, and
 // then initialise the mint.
+//
+// Holding account creation methods (CreateToken2022HoldingAccount,
+// CreateSPLTokenHoldingAccount) follow the same pattern — returning the
+// complete instruction set and rent-exempt lamport cost in one call.
 service Service {
   // Creates a fully initialised Token-2022 mint account in one call.
   //
@@ -45,11 +50,22 @@ service Service {
   // Token Program Agnostic. Response indicates if mint is for Token2022 or SPL tokens.
   rpc ParseMint(ParseMintRequest) returns (ParseMintResponse);
 
-  // Gets current minimum rent for a token holding account, optionally accounting for memo transfer extension size when memo_transfer_config is provided.
-  rpc GetCurrentMinRentForHoldingAccount(GetCurrentMinRentForHoldingAccountRequest) returns (GetCurrentMinRentForHoldingAccountResponse);
+  // Creates a Token-2022 holding account (Associated Token Account) in one call.
+  //
+  // Returns the complete ordered instruction set:
+  //   1. Create Associated Token Account (ATA)
+  //   2. For each requested extension: reallocate + extension-init instructions
+  //      (e.g. for MemoTransfer: reallocate for MemoTransfer + enable_required_transfer_memos)
+  //
+  // The response also includes the lamports required for rent exemption,
+  // accounting for the final account size with all requested extensions.
+  rpc CreateToken2022HoldingAccount(CreateToken2022HoldingAccountRequest) returns (CreateToken2022HoldingAccountResponse);
 
-  // Creates holding account initialization instructions. Adds memo-enable instruction when requested.
-  rpc CreateHoldingAccount(CreateHoldingAccountRequest) returns (CreateHoldingAccountResponse);
+  // Creates a legacy SPL Token holding account (Associated Token Account) in one call.
+  //
+  // Returns a single ATA creation instruction along with the lamports required
+  // for rent exemption.
+  rpc CreateSPLTokenHoldingAccount(CreateSPLTokenHoldingAccountRequest) returns (CreateSPLTokenHoldingAccountResponse);
 
   // Mint tokens to an existing token account using MintToChecked instruction
   //
@@ -163,33 +179,58 @@ message MintInfo {
   bool is_initialized = 5;
 }
 
-message MemoTransferConfig {
-  // Require every inbound transfer into the account to include a memo.
-  bool require_incoming_memo = 1;
+// Request to create a Token-2022 holding account (Associated Token Account)
+// with optional extensions.
+message CreateToken2022HoldingAccountRequest {
+  // The public key of the account that will pay for account creation (signer).
+  string payer_pub_key = 1;
+
+  // The public key of the wallet that will own the holding account
+  // (controls the token balance).
+  string owner_pub_key = 2;
+
+  // The public key of the mint this holding account will hold tokens for.
+  string mint_pub_key = 3;
+
+  // Ordered list of Token-2022 extensions to enable on the holding account.
+  // Extensions that are not included here during creation cannot be added
+  // later without reallocating the account.
+  repeated Token2022HoldingAccountExtension extensions = 4;
 }
 
-// Request to get current rent for holding account
-message GetCurrentMinRentForHoldingAccountRequest {
-  MemoTransferConfig memo_transfer_config = 1; // optional, defaults to false
-}
-
-// Response with current rent amount for holding account
-message GetCurrentMinRentForHoldingAccountResponse {
-  uint64 lamports = 1;
-}
-
-// Request to create and initialize a holding account in one call
-message CreateHoldingAccountRequest {
-  string payer = 1; // Account paying for creation (signer)
-  string owner_pub_key = 2; // Owner of the holding account
-  string mint_pub_key = 3; // Mint this account will hold
-  protochain.solana.type.v1.TokenProgram token_program = 4;
-  MemoTransferConfig memo_transfer_config = 5; // optional, defaults to false
-}
-
-// Response containing both create and initialize instructions
-message CreateHoldingAccountResponse {
+// Response containing the complete instruction set for Token-2022 holding
+// account creation.
+message CreateToken2022HoldingAccountResponse {
+  // Ordered instructions to include in a transaction.
+  // Includes ATA creation and optionally reallocate + extension-init
+  // instructions for each requested extension.
   repeated protochain.solana.transaction.v1.SolanaInstruction instructions = 1;
+
+  // Lamports required for the holding account to be rent-exempt.
+  // Accounts for the base token account size plus any requested extensions.
+  uint64 lamports = 2;
+}
+
+// Request to create a legacy SPL Token holding account (Associated Token Account).
+message CreateSPLTokenHoldingAccountRequest {
+  // The public key of the account that will pay for account creation (signer).
+  string payer_pub_key = 1;
+
+  // The public key of the wallet that will own the holding account
+  // (controls the token balance).
+  string owner_pub_key = 2;
+
+  // The public key of the mint this holding account will hold tokens for.
+  string mint_pub_key = 3;
+}
+
+// Response containing the instruction set for SPL Token holding account creation.
+message CreateSPLTokenHoldingAccountResponse {
+  // A single ATA creation instruction.
+  repeated protochain.solana.transaction.v1.SolanaInstruction instructions = 1;
+
+  // Lamports required for the holding account to be rent-exempt.
+  uint64 lamports = 2;
 }
 
 // Request to mint tokens to a token account

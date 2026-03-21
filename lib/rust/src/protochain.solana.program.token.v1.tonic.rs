@@ -174,13 +174,11 @@ pub mod service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
-        pub async fn get_current_min_rent_for_holding_account(
+        pub async fn create_token2022_holding_account(
             &mut self,
-            request: impl tonic::IntoRequest<
-                super::GetCurrentMinRentForHoldingAccountRequest,
-            >,
+            request: impl tonic::IntoRequest<super::CreateToken2022HoldingAccountRequest>,
         ) -> std::result::Result<
-            tonic::Response<super::GetCurrentMinRentForHoldingAccountResponse>,
+            tonic::Response<super::CreateToken2022HoldingAccountResponse>,
             tonic::Status,
         > {
             self.inner
@@ -194,23 +192,23 @@ pub mod service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/protochain.solana.program.token.v1.Service/GetCurrentMinRentForHoldingAccount",
+                "/protochain.solana.program.token.v1.Service/CreateToken2022HoldingAccount",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
                         "protochain.solana.program.token.v1.Service",
-                        "GetCurrentMinRentForHoldingAccount",
+                        "CreateToken2022HoldingAccount",
                     ),
                 );
             self.inner.unary(req, path, codec).await
         }
-        pub async fn create_holding_account(
+        pub async fn create_spl_token_holding_account(
             &mut self,
-            request: impl tonic::IntoRequest<super::CreateHoldingAccountRequest>,
+            request: impl tonic::IntoRequest<super::CreateSplTokenHoldingAccountRequest>,
         ) -> std::result::Result<
-            tonic::Response<super::CreateHoldingAccountResponse>,
+            tonic::Response<super::CreateSplTokenHoldingAccountResponse>,
             tonic::Status,
         > {
             self.inner
@@ -224,14 +222,14 @@ pub mod service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/protochain.solana.program.token.v1.Service/CreateHoldingAccount",
+                "/protochain.solana.program.token.v1.Service/CreateSPLTokenHoldingAccount",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
                         "protochain.solana.program.token.v1.Service",
-                        "CreateHoldingAccount",
+                        "CreateSPLTokenHoldingAccount",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -290,18 +288,18 @@ pub mod service_server {
             tonic::Response<super::ParseMintResponse>,
             tonic::Status,
         >;
-        async fn get_current_min_rent_for_holding_account(
+        async fn create_token2022_holding_account(
             &self,
-            request: tonic::Request<super::GetCurrentMinRentForHoldingAccountRequest>,
+            request: tonic::Request<super::CreateToken2022HoldingAccountRequest>,
         ) -> std::result::Result<
-            tonic::Response<super::GetCurrentMinRentForHoldingAccountResponse>,
+            tonic::Response<super::CreateToken2022HoldingAccountResponse>,
             tonic::Status,
         >;
-        async fn create_holding_account(
+        async fn create_spl_token_holding_account(
             &self,
-            request: tonic::Request<super::CreateHoldingAccountRequest>,
+            request: tonic::Request<super::CreateSplTokenHoldingAccountRequest>,
         ) -> std::result::Result<
-            tonic::Response<super::CreateHoldingAccountResponse>,
+            tonic::Response<super::CreateSplTokenHoldingAccountResponse>,
             tonic::Status,
         >;
         async fn mint(
@@ -518,15 +516,15 @@ pub mod service_server {
                     };
                     Box::pin(fut)
                 }
-                "/protochain.solana.program.token.v1.Service/GetCurrentMinRentForHoldingAccount" => {
+                "/protochain.solana.program.token.v1.Service/CreateToken2022HoldingAccount" => {
                     #[allow(non_camel_case_types)]
-                    struct GetCurrentMinRentForHoldingAccountSvc<T: Service>(pub Arc<T>);
+                    struct CreateToken2022HoldingAccountSvc<T: Service>(pub Arc<T>);
                     impl<
                         T: Service,
                     > tonic::server::UnaryService<
-                        super::GetCurrentMinRentForHoldingAccountRequest,
-                    > for GetCurrentMinRentForHoldingAccountSvc<T> {
-                        type Response = super::GetCurrentMinRentForHoldingAccountResponse;
+                        super::CreateToken2022HoldingAccountRequest,
+                    > for CreateToken2022HoldingAccountSvc<T> {
+                        type Response = super::CreateToken2022HoldingAccountResponse;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
@@ -534,12 +532,12 @@ pub mod service_server {
                         fn call(
                             &mut self,
                             request: tonic::Request<
-                                super::GetCurrentMinRentForHoldingAccountRequest,
+                                super::CreateToken2022HoldingAccountRequest,
                             >,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as Service>::get_current_min_rent_for_holding_account(
+                                <T as Service>::create_token2022_holding_account(
                                         &inner,
                                         request,
                                     )
@@ -554,7 +552,7 @@ pub mod service_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let method = GetCurrentMinRentForHoldingAccountSvc(inner);
+                        let method = CreateToken2022HoldingAccountSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -570,25 +568,31 @@ pub mod service_server {
                     };
                     Box::pin(fut)
                 }
-                "/protochain.solana.program.token.v1.Service/CreateHoldingAccount" => {
+                "/protochain.solana.program.token.v1.Service/CreateSPLTokenHoldingAccount" => {
                     #[allow(non_camel_case_types)]
-                    struct CreateHoldingAccountSvc<T: Service>(pub Arc<T>);
+                    struct CreateSPLTokenHoldingAccountSvc<T: Service>(pub Arc<T>);
                     impl<
                         T: Service,
-                    > tonic::server::UnaryService<super::CreateHoldingAccountRequest>
-                    for CreateHoldingAccountSvc<T> {
-                        type Response = super::CreateHoldingAccountResponse;
+                    > tonic::server::UnaryService<
+                        super::CreateSplTokenHoldingAccountRequest,
+                    > for CreateSPLTokenHoldingAccountSvc<T> {
+                        type Response = super::CreateSplTokenHoldingAccountResponse;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
                         >;
                         fn call(
                             &mut self,
-                            request: tonic::Request<super::CreateHoldingAccountRequest>,
+                            request: tonic::Request<
+                                super::CreateSplTokenHoldingAccountRequest,
+                            >,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as Service>::create_holding_account(&inner, request)
+                                <T as Service>::create_spl_token_holding_account(
+                                        &inner,
+                                        request,
+                                    )
                                     .await
                             };
                             Box::pin(fut)
@@ -600,7 +604,7 @@ pub mod service_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let method = CreateHoldingAccountSvc(inner);
+                        let method = CreateSPLTokenHoldingAccountSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

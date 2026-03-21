@@ -1,21 +1,21 @@
+use crate::api::program::system::v1::SystemProgramServiceImpl;
 use crate::api::program::token::v1::token_program::get_token_program_id;
 use crate::api::{
     common::solana_conversions::sdk_instruction_to_proto,
     program::token::v1::token_program::sdk_token_program_to_proto,
 };
-use crate::api::program::system::v1::SystemProgramServiceImpl;
 use protochain_api::protochain::solana::program::system::v1::{
     service_server::Service as SystemProgramService, CreateRequest,
 };
 use protochain_api::protochain::solana::program::token::v1::{
     metaplex_uses, service_server::Service as TokenProgramService, token2022_extension,
-    CreateHoldingAccountRequest, CreateHoldingAccountResponse, CreateSplTokenMintRequest,
-    CreateSplTokenMintResponse, CreateToken2022MintRequest, CreateToken2022MintResponse,
-    GetCurrentMinRentForHoldingAccountRequest, GetCurrentMinRentForHoldingAccountResponse,
-    MetaplexTokenMetadata, MintInfo, MintRequest, MintResponse, ParseMintRequest, ParseMintResponse,
-    Token2022Extension, Token2022ExtensionMetadata,
+    token2022_holding_account_extension, CreateSplTokenHoldingAccountRequest,
+    CreateSplTokenHoldingAccountResponse, CreateSplTokenMintRequest, CreateSplTokenMintResponse,
+    CreateToken2022HoldingAccountRequest, CreateToken2022HoldingAccountResponse,
+    CreateToken2022MintRequest, CreateToken2022MintResponse, MetaplexTokenMetadata, MintInfo,
+    MintRequest, MintResponse, ParseMintRequest, ParseMintResponse, Token2022Extension,
+    Token2022ExtensionMetadata, Token2022HoldingAccountExtension,
 };
-use protochain_api::protochain::solana::r#type::v1::TokenProgram;
 use spl_associated_token_account::instruction::create_associated_token_account;
 use spl_token_2022::extension::memo_transfer::instruction::enable_required_transfer_memos;
 
@@ -93,6 +93,29 @@ fn validate_no_duplicate_extensions(extensions: &[Token2022Extension]) -> Result
         };
         if !seen.insert(key) {
             return Err(Status::invalid_argument(format!("Duplicate extension: {key}")));
+        }
+    }
+    Ok(())
+}
+
+/// Validates that the given holding account extension list contains no duplicates.
+#[allow(clippy::result_large_err)]
+fn validate_no_duplicate_holding_account_extensions(
+    extensions: &[Token2022HoldingAccountExtension],
+) -> Result<(), Status> {
+    let mut seen: HashSet<&str> = HashSet::new();
+    for ext in extensions {
+        let key = match ext
+            .extension
+            .as_ref()
+            .ok_or_else(|| Status::invalid_argument("Extension must have a type set"))?
+        {
+            token2022_holding_account_extension::Extension::MemoTransfer(_) => "MemoTransfer",
+        };
+        if !seen.insert(key) {
+            return Err(Status::invalid_argument(format!(
+                "Duplicate holding account extension: {key}"
+            )));
         }
     }
     Ok(())
@@ -188,18 +211,44 @@ fn mint_total_space_for_rent(extensions: &[Token2022Extension]) -> Result<usize,
     Ok(base_space + extra_variable_len)
 }
 
+/// Collects the SDK `ExtensionType` variants requested by the holding account
+/// extensions, used for calculating account size and building reallocate
+/// instructions.
 #[allow(clippy::result_large_err)]
-fn holding_account_space(require_memo: bool) -> Result<usize, Status> {
-    if !require_memo {
+fn holding_account_extension_types(
+    extensions: &[Token2022HoldingAccountExtension],
+) -> Result<Vec<ExtensionType>, Status> {
+    let mut types = Vec::with_capacity(extensions.len());
+    for ext in extensions {
+        match ext
+            .extension
+            .as_ref()
+            .ok_or_else(|| Status::invalid_argument("Extension must have a type set"))?
+        {
+            token2022_holding_account_extension::Extension::MemoTransfer(_) => {
+                types.push(ExtensionType::MemoTransfer);
+            }
+        }
+    }
+    Ok(types)
+}
+
+/// Calculates the total account size for a Token-2022 holding account with the
+/// given extensions.
+///
+/// Returns `Account::LEN` when no extensions are provided.
+#[allow(clippy::result_large_err)]
+fn holding_account_total_space(
+    extensions: &[Token2022HoldingAccountExtension],
+) -> Result<usize, Status> {
+    if extensions.is_empty() {
         return Ok(Account::LEN);
     }
 
-    let len = ExtensionType::try_calculate_account_len::<Account>(&[ExtensionType::MemoTransfer])
-        .map_err(|e| {
-        Status::internal(format!("failed to calculate memo-transfer account length: {e}"))
-    })?;
-
-    Ok(len)
+    let sdk_types = holding_account_extension_types(extensions)?;
+    ExtensionType::try_calculate_account_len::<Account>(&sdk_types).map_err(|e| {
+        Status::internal(format!("failed to calculate holding account length for extensions: {e}"))
+    })
 }
 
 /// Maximum number of decimal places supported for Solana token mints.
@@ -214,22 +263,14 @@ const MAX_TOKEN_DECIMALS: u8 = 9;
 /// Returns a `u8` in the range `0..=9` or an `INVALID_ARGUMENT` status.
 #[allow(clippy::result_large_err)]
 fn validate_decimals(value: u32) -> Result<u8, Status> {
-    let decimals = u8::try_from(value)
-        .map_err(|_| Status::invalid_argument("decimals must fit in a u8"))?;
+    let decimals =
+        u8::try_from(value).map_err(|_| Status::invalid_argument("decimals must fit in a u8"))?;
     if decimals > MAX_TOKEN_DECIMALS {
         return Err(Status::invalid_argument(format!(
             "decimals must be between 0 and {MAX_TOKEN_DECIMALS}, got {decimals}"
         )));
     }
     Ok(decimals)
-}
-
-#[allow(clippy::result_large_err)]
-fn memo_rent_lamports(rpc: &RpcClient, require_memo: bool) -> Result<u64, Status> {
-    let space = holding_account_space(require_memo)?;
-
-    rpc.get_minimum_balance_for_rent_exemption(space)
-        .map_err(|e| Status::internal(format!("failed to fetch memo-aware rent: {e}")))
 }
 
 /// Extracts Token-2022 extensions from a parsed mint account and converts them
@@ -748,123 +789,158 @@ impl TokenProgramService for TokenProgramServiceImpl {
         }))
     }
 
-    /// Gets current minimum rent for a token holding account
-    async fn get_current_min_rent_for_holding_account(
-        &self,
-        request: Request<GetCurrentMinRentForHoldingAccountRequest>,
-    ) -> Result<Response<GetCurrentMinRentForHoldingAccountResponse>, Status> {
-        let req = request.into_inner();
-        let require_memo = req
-            .memo_transfer_config
-            .as_ref()
-            .is_some_and(|cfg| cfg.require_incoming_memo);
-
-        let lamports = memo_rent_lamports(&self.rpc_client, require_memo)?;
-        let response = GetCurrentMinRentForHoldingAccountResponse { lamports };
-        Ok(Response::new(response))
-    }
-
-    /// Creates holding account instructions with optional memo transfer support
+    /// Creates a Token-2022 holding account (ATA) with optional extensions.
     ///
-    /// For Legacy token program: Uses simple ATA creation
-    /// For Token 2022 with memo: Creates account with extended space, initializes as token account,
-    /// then initializes the memo transfer extension
-    async fn create_holding_account(
+    /// Combines ATA creation, rent calculation, and extension-init instructions
+    /// into a single response. For each requested extension, appends the
+    /// necessary reallocate + extension-init instructions after the ATA creation.
+    async fn create_token2022_holding_account(
         &self,
-        request: Request<CreateHoldingAccountRequest>,
-    ) -> Result<Response<CreateHoldingAccountResponse>, Status> {
+        request: Request<CreateToken2022HoldingAccountRequest>,
+    ) -> Result<Response<CreateToken2022HoldingAccountResponse>, Status> {
         let req = request.into_inner();
 
-        // Validation
-        if req.payer.is_empty() {
-            return Err(Status::invalid_argument("Payer address is required"));
+        if req.payer_pub_key.is_empty() {
+            return Err(Status::invalid_argument("payer_pub_key is required"));
         }
         if req.owner_pub_key.is_empty() {
-            return Err(Status::invalid_argument("Owner account address is required"));
+            return Err(Status::invalid_argument("owner_pub_key is required"));
         }
-        // determine which token program to use (require token program be passed, so we can create owner and holding account within same transaction)
-        let token_program_enum = TokenProgram::try_from(req.token_program)
-            .map_err(|_| Status::invalid_argument("Invalid token program value"))?;
-        if req.memo_transfer_config.is_some() && token_program_enum == TokenProgram::Legacy {
-            return Err(Status::invalid_argument(
-                "Memo transfer config can only be enabled for Token2022 program",
-            ));
+        if req.mint_pub_key.is_empty() {
+            return Err(Status::invalid_argument("mint_pub_key is required"));
         }
 
-        // parse public keys
-        let payer_pubkey = Pubkey::from_str(&req.payer)
+        let payer_pubkey = Pubkey::from_str(&req.payer_pub_key)
             .map_err(|e| Status::invalid_argument(format!("Invalid payer_pub_key: {e}")))?;
-        let owner_pub_key = Pubkey::from_str(&req.owner_pub_key)
+        let owner_pubkey = Pubkey::from_str(&req.owner_pub_key)
             .map_err(|e| Status::invalid_argument(format!("Invalid owner_pub_key: {e}")))?;
-        let mint_pub_key = Pubkey::from_str(&req.mint_pub_key)
+        let mint_pubkey = Pubkey::from_str(&req.mint_pub_key)
             .map_err(|e| Status::invalid_argument(format!("Invalid mint_pub_key: {e}")))?;
 
-        // check if memo extension should be added
-        let require_memo = req
-            .memo_transfer_config
-            .as_ref()
-            .is_some_and(|cfg| cfg.require_incoming_memo);
+        validate_no_duplicate_holding_account_extensions(&req.extensions)?;
 
-        // get program id from token_program_enum
-        let token_program_id = match token_program_enum {
-            TokenProgram::Legacy => Ok(SPL_TOKEN_PROGRAM_ID),
-            TokenProgram::TokenProgram2022 => Ok(TOKEN_2022_PROGRAM_ID),
-            TokenProgram::Unspecified => {
-                Err(format!("unexpected token program id: {token_program_enum:?}"))
-            }
-        }
-        .map_err(Status::internal)?;
+        // Calculate rent for the final account size (base + all extensions)
+        let total_space = holding_account_total_space(&req.extensions)?;
+        let lamports = self
+            .rpc_client
+            .get_minimum_balance_for_rent_exemption(total_space)
+            .map_err(|e| {
+                Status::internal(format!("failed to get minimum balance for holding account: {e}"))
+            })?;
 
-        // prepare vector to hold instructions
         let mut instructions: Vec<protochain_api::SolanaInstruction> = Vec::new();
 
-        let create_account_instruction = create_associated_token_account(
+        // 1. Create Associated Token Account
+        let create_ata_ix = create_associated_token_account(
             &payer_pubkey,
-            &owner_pub_key,
-            &mint_pub_key,
-            &token_program_id,
+            &owner_pubkey,
+            &mint_pubkey,
+            &TOKEN_2022_PROGRAM_ID,
         );
-        instructions.push(sdk_instruction_to_proto(create_account_instruction));
+        instructions.push(sdk_instruction_to_proto(create_ata_ix));
 
-        // derive associated token account address
-        let ata_address = get_associated_token_address_with_program_id(
-            &owner_pub_key,    // wallet
-            &mint_pub_key,     // mint
-            &token_program_id, // token program id
-        );
+        // 2. For each extension: reallocate + init
+        if !req.extensions.is_empty() {
+            let ata_address = get_associated_token_address_with_program_id(
+                &owner_pubkey,
+                &mint_pubkey,
+                &TOKEN_2022_PROGRAM_ID,
+            );
 
-        // add enable memo instruction if required
-        if require_memo {
-            let reallocate_instruction = reallocate(
-                &token_program_id,
-                &ata_address,
-                &payer_pubkey,
-                &owner_pub_key,
-                &[&owner_pub_key],
-                &[ExtensionType::MemoTransfer],
-            )
-            .map_err(|e| {
-                Status::internal(format!(
-                    "could not create reallocation instruction to allow for memo extension: {e}"
-                ))
-            })?;
-            instructions.push(sdk_instruction_to_proto(reallocate_instruction));
+            for ext in &req.extensions {
+                match ext
+                    .extension
+                    .as_ref()
+                    .ok_or_else(|| Status::invalid_argument("Extension must have a type set"))?
+                {
+                    token2022_holding_account_extension::Extension::MemoTransfer(cfg) => {
+                        // Reallocate account to include MemoTransfer extension
+                        let reallocate_ix = reallocate(
+                            &TOKEN_2022_PROGRAM_ID,
+                            &ata_address,
+                            &payer_pubkey,
+                            &owner_pubkey,
+                            &[&owner_pubkey],
+                            &[ExtensionType::MemoTransfer],
+                        )
+                        .map_err(|e| {
+                            Status::internal(format!(
+                                "could not create reallocation instruction for memo extension: {e}"
+                            ))
+                        })?;
+                        instructions.push(sdk_instruction_to_proto(reallocate_ix));
 
-            let enable_required_transfer_memos_instruction = enable_required_transfer_memos(
-                &token_program_id,
-                &ata_address,
-                &owner_pub_key,
-                &[&payer_pubkey],
-            )
-            .map_err(|e| {
-                Status::internal(format!(
-                    "could not create required transfer memos instruction: {e}"
-                ))
-            })?;
-            instructions.push(sdk_instruction_to_proto(enable_required_transfer_memos_instruction));
+                        // Enable required transfer memos if configured
+                        if cfg.require_incoming_memo {
+                            let enable_memo_ix = enable_required_transfer_memos(
+                                &TOKEN_2022_PROGRAM_ID,
+                                &ata_address,
+                                &owner_pubkey,
+                                &[&payer_pubkey],
+                            )
+                            .map_err(|e| {
+                                Status::internal(format!(
+                                    "could not create enable_required_transfer_memos instruction: {e}"
+                                ))
+                            })?;
+                            instructions.push(sdk_instruction_to_proto(enable_memo_ix));
+                        }
+                    }
+                }
+            }
         }
 
-        Ok(Response::new(CreateHoldingAccountResponse { instructions }))
+        Ok(Response::new(CreateToken2022HoldingAccountResponse {
+            instructions,
+            lamports,
+        }))
+    }
+
+    /// Creates a legacy SPL Token holding account (ATA) in one call.
+    ///
+    /// Returns a single ATA creation instruction and the rent-exempt lamport cost.
+    async fn create_spl_token_holding_account(
+        &self,
+        request: Request<CreateSplTokenHoldingAccountRequest>,
+    ) -> Result<Response<CreateSplTokenHoldingAccountResponse>, Status> {
+        let req = request.into_inner();
+
+        if req.payer_pub_key.is_empty() {
+            return Err(Status::invalid_argument("payer_pub_key is required"));
+        }
+        if req.owner_pub_key.is_empty() {
+            return Err(Status::invalid_argument("owner_pub_key is required"));
+        }
+        if req.mint_pub_key.is_empty() {
+            return Err(Status::invalid_argument("mint_pub_key is required"));
+        }
+
+        let payer_pubkey = Pubkey::from_str(&req.payer_pub_key)
+            .map_err(|e| Status::invalid_argument(format!("Invalid payer_pub_key: {e}")))?;
+        let owner_pubkey = Pubkey::from_str(&req.owner_pub_key)
+            .map_err(|e| Status::invalid_argument(format!("Invalid owner_pub_key: {e}")))?;
+        let mint_pubkey = Pubkey::from_str(&req.mint_pub_key)
+            .map_err(|e| Status::invalid_argument(format!("Invalid mint_pub_key: {e}")))?;
+
+        // SPL Token accounts are always Account::LEN (165 bytes)
+        let lamports = self
+            .rpc_client
+            .get_minimum_balance_for_rent_exemption(Account::LEN)
+            .map_err(|e| {
+                Status::internal(format!("failed to get minimum balance for holding account: {e}"))
+            })?;
+
+        let create_ata_ix = create_associated_token_account(
+            &payer_pubkey,
+            &owner_pubkey,
+            &mint_pubkey,
+            &SPL_TOKEN_PROGRAM_ID,
+        );
+
+        Ok(Response::new(CreateSplTokenHoldingAccountResponse {
+            instructions: vec![sdk_instruction_to_proto(create_ata_ix)],
+            lamports,
+        }))
     }
 
     /// Creates a `MintToChecked` instruction for Token 2022 program

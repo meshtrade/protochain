@@ -316,55 +316,64 @@ func (suite *TokenProgramE2ETestSuite) Test_02_CreateMint_SPL() {
 	suite.T().Logf("   Metaplex Metadata: name=\"Test SPL Token\" symbol=\"TSPL\"")
 }
 
-// Test_03_5_GetCurrentMinRentForHoldingAccount tests rent calculation for holding accounts
-func (suite *TokenProgramE2ETestSuite) Test_03_5_GetCurrentMinRentForHoldingAccount() {
-	suite.T().Log("🎯 Testing Holding Account Rent Calculation")
-
-	// Get rent for holding account using our new method
-	resp, err := suite.tokenProgramService.GetCurrentMinRentForHoldingAccount(suite.ctx, &token_v1.GetCurrentMinRentForHoldingAccountRequest{})
-	suite.Require().NoError(err, "Should get holding account rent successfully")
-	suite.Require().NotZero(resp.Lamports, "Holding account rent should not be zero")
-
-	// Validate reasonable rent amount (holding accounts are 165 bytes)
-	suite.Assert().Greater(resp.Lamports, uint64(1_000_000), "Rent should be at least 1M lamports for holding account")
-	suite.T().Logf("  Holding account rent: %d lamports", resp.Lamports)
-}
-
-// Test_03_6_InitialiseHoldingAccountInstruction tests holding account instruction creation
-func (suite *TokenProgramE2ETestSuite) Test_03_6_InitialiseHoldingAccountInstruction() {
-	suite.T().Log("🎯 Testing InitialiseHoldingAccount Instruction Creation")
+// Test_03_6_CreateHoldingAccountInstruction tests the split holding account creation methods
+func (suite *TokenProgramE2ETestSuite) Test_03_6_CreateHoldingAccountInstruction() {
+	suite.T().Log("🎯 Testing Token-2022 and SPL Holding Account Instruction Creation")
 
 	// Use hardcoded valid public keys for instruction creation test
 	testPayerAccountKey := "11111111111111111111111111111113"
 	testMintPubKey := "11111111111111111111111111111114"
 	testOwnerPubKey := "So11111111111111111111111111111111111111112" // Wrapped SOL
 
-	// Create holding account instruction using memo transfer configuration
-	resp, err := suite.tokenProgramService.CreateHoldingAccount(suite.ctx, &token_v1.CreateHoldingAccountRequest{
-		Payer:              testPayerAccountKey,
-		MintPubKey:         testMintPubKey,
-		OwnerPubKey:        testOwnerPubKey,
-		TokenProgram:       type_v1.TokenProgram_TOKEN_PROGRAM_2022,
-		MemoTransferConfig: &token_v1.MemoTransferConfig{RequireIncomingMemo: true},
+	// --- Token-2022 with memo transfer extension ---
+	token2022Resp, err := suite.tokenProgramService.CreateToken2022HoldingAccount(suite.ctx, &token_v1.CreateToken2022HoldingAccountRequest{
+		PayerPubKey: testPayerAccountKey,
+		MintPubKey:  testMintPubKey,
+		OwnerPubKey: testOwnerPubKey,
+		Extensions: []*token_v1.Token2022HoldingAccountExtension{
+			{
+				Extension: &token_v1.Token2022HoldingAccountExtension_MemoTransfer{
+					MemoTransfer: &token_v1.MemoTransferConfig{RequireIncomingMemo: true},
+				},
+			},
+		},
 	})
-	suite.Require().NoError(err, "Should create holding account instruction successfully")
-	suite.Require().NotNil(resp.Instructions, "Instruction should not be nil")
-	suite.Require().Len(resp.Instructions, 3, "Should include create, initialise and memo-enable instructions")
-	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, resp.Instructions[2].ProgramId, "Memo enable instruction should target Token 2022 program")
-	suite.Assert().Greater(len(resp.Instructions[1].Data), 0, "Memo enable instruction should have non-empty data")
+	suite.Require().NoError(err, "Should create Token-2022 holding account instructions")
+	suite.Require().NotNil(token2022Resp.Instructions, "Instructions should not be nil")
+	// ATA create + reallocate + enable_required_transfer_memos
+	suite.Require().Len(token2022Resp.Instructions, 3, "Should include ATA create, reallocate, and memo-enable instructions")
+	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, token2022Resp.Instructions[2].ProgramId, "Memo enable instruction should target Token 2022 program")
+	suite.Assert().Greater(len(token2022Resp.Instructions[1].Data), 0, "Reallocate instruction should have non-empty data")
+	suite.Require().NotZero(token2022Resp.Lamports, "Lamports should not be zero")
+	suite.T().Logf("  Token-2022 holding account with memo: %d instructions, %d lamports", len(token2022Resp.Instructions), token2022Resp.Lamports)
 
-	suite.T().Logf("✅ InitialiseHoldingAccount returned %d instructions (memo enabled)", len(resp.Instructions))
-
-	// Validate default behaviour when memo config is omitted
-	defaultResp, err := suite.tokenProgramService.CreateHoldingAccount(suite.ctx, &token_v1.CreateHoldingAccountRequest{
-		Payer:        testPayerAccountKey,
-		MintPubKey:   testMintPubKey,
-		OwnerPubKey:  testOwnerPubKey,
-		TokenProgram: type_v1.TokenProgram_TOKEN_PROGRAM_2022,
+	// --- Token-2022 without extensions (baseline) ---
+	token2022DefaultResp, err := suite.tokenProgramService.CreateToken2022HoldingAccount(suite.ctx, &token_v1.CreateToken2022HoldingAccountRequest{
+		PayerPubKey: testPayerAccountKey,
+		MintPubKey:  testMintPubKey,
+		OwnerPubKey: testOwnerPubKey,
 	})
-	suite.Require().NoError(err, "Should create holding account instruction without memo config")
-	suite.Require().NotNil(defaultResp.Instructions, "Instruction should not be nil for default response")
-	suite.Require().Len(defaultResp.Instructions, 1, "Default response should only contain create instruction")
+	suite.Require().NoError(err, "Should create Token-2022 holding account without extensions")
+	suite.Require().Len(token2022DefaultResp.Instructions, 1, "Default Token-2022 response should only contain ATA create instruction")
+	suite.Require().NotZero(token2022DefaultResp.Lamports, "Lamports should not be zero for default")
+
+	// Memo-enabled rent should exceed baseline
+	suite.Assert().Greater(token2022Resp.Lamports, token2022DefaultResp.Lamports,
+		"Token-2022 with memo extension should require more lamports than baseline")
+	suite.T().Logf("  Rent comparison: baseline=%d, with memo=%d", token2022DefaultResp.Lamports, token2022Resp.Lamports)
+
+	// --- SPL Token holding account ---
+	splResp, err := suite.tokenProgramService.CreateSPLTokenHoldingAccount(suite.ctx, &token_v1.CreateSPLTokenHoldingAccountRequest{
+		PayerPubKey: testPayerAccountKey,
+		MintPubKey:  testMintPubKey,
+		OwnerPubKey: testOwnerPubKey,
+	})
+	suite.Require().NoError(err, "Should create SPL Token holding account instructions")
+	suite.Require().Len(splResp.Instructions, 1, "SPL Token response should contain a single ATA create instruction")
+	suite.Require().NotZero(splResp.Lamports, "SPL Token lamports should not be zero")
+	suite.T().Logf("  SPL Token holding account: %d instructions, %d lamports", len(splResp.Instructions), splResp.Lamports)
+
+	suite.T().Logf("✅ Holding account instruction creation tests passed")
 }
 
 func (suite *TokenProgramE2ETestSuite) Test_04_Mint_e2e() {
@@ -538,34 +547,27 @@ func (suite *TokenProgramE2ETestSuite) Test_05_Token_e2e() {
 	suite.Require().NoError(err, "Should generate wallet account keypair")
 	suite.T().Logf("  Generated wallet account: %s", walletAccKeyResp.KeyPair.PublicKey)
 
-	// Get baseline rent for holding account
-	holdingAccountRentResp, err := suite.tokenProgramService.GetCurrentMinRentForHoldingAccount(suite.ctx, &token_v1.GetCurrentMinRentForHoldingAccountRequest{})
-	suite.Require().NoError(err, "Should get current rent amount for token holding account")
-	suite.T().Logf("  Holding account rent: %d lamports", holdingAccountRentResp.Lamports)
-
-	// Get memo-enabled rent for holding account
-	holdingRentWithMemo, err := suite.tokenProgramService.GetCurrentMinRentForHoldingAccount(suite.ctx, &token_v1.GetCurrentMinRentForHoldingAccountRequest{
-		MemoTransferConfig: &token_v1.MemoTransferConfig{RequireIncomingMemo: true},
+	// Build Token-2022 holding account with memo transfer extension in one call
+	createHoldingAccountResp, err := suite.tokenProgramService.CreateToken2022HoldingAccount(suite.ctx, &token_v1.CreateToken2022HoldingAccountRequest{
+		PayerPubKey: payKeyResp.KeyPair.PublicKey,
+		MintPubKey:  mintKeyResp.KeyPair.PublicKey,
+		OwnerPubKey: walletAccKeyResp.KeyPair.PublicKey,
+		Extensions: []*token_v1.Token2022HoldingAccountExtension{
+			{
+				Extension: &token_v1.Token2022HoldingAccountExtension_MemoTransfer{
+					MemoTransfer: &token_v1.MemoTransferConfig{RequireIncomingMemo: true},
+				},
+			},
+		},
 	})
-	suite.Require().NoError(err, "Should get memo-enabled holding account rent")
-	suite.Assert().Greater(holdingRentWithMemo.Lamports, holdingAccountRentResp.Lamports, "Memo-enabled rent should exceed baseline")
-	suite.T().Logf("  Holding account rent with memo: %d lamports", holdingRentWithMemo.Lamports)
+	suite.Require().NoError(err, "Should create Token-2022 holding account instruction bundle")
+	// ATA create + reallocate + enable_required_transfer_memos
+	suite.Require().Len(createHoldingAccountResp.Instructions, 3, "CreateToken2022HoldingAccount with memo should return ATA create, reallocate, and enable memo instructions")
+	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, createHoldingAccountResp.Instructions[2].ProgramId, "Third instruction should target Token 2022 program for memo enable")
+	suite.Require().NotZero(createHoldingAccountResp.Lamports, "Lamports should not be zero")
+	suite.T().Logf("  Created Token-2022 holding account with memo transfer (%d instructions, %d lamports)", len(createHoldingAccountResp.Instructions), createHoldingAccountResp.Lamports)
 
-	// Build holding account instructions with memo transfer enabled
-	createHoldingAccountResp, err := suite.tokenProgramService.CreateHoldingAccount(suite.ctx, &token_v1.CreateHoldingAccountRequest{
-		Payer:              payKeyResp.KeyPair.PublicKey,
-		MintPubKey:         mintKeyResp.KeyPair.PublicKey,
-		OwnerPubKey:        walletAccKeyResp.KeyPair.PublicKey,
-		MemoTransferConfig: &token_v1.MemoTransferConfig{RequireIncomingMemo: true},
-		TokenProgram:       type_v1.TokenProgram_TOKEN_PROGRAM_2022,
-	})
-	suite.Require().NoError(err, "Should create holding account instruction bundle")
-	// With memo: System Create + InitializeMemoTransfer
-	suite.Require().Len(createHoldingAccountResp.Instructions, 3, "CreateHoldingAccount with memo should return creation, initialise and enable memo transfer config instructions")
-	suite.Assert().Equal(token_v1.TOKEN_2022_PROGRAM_ID, createHoldingAccountResp.Instructions[2].ProgramId, "Second instruction should initialize memo transfers")
-	suite.T().Logf("  Created holding account with memo transfer (3 instructions)")
-
-	// Compose atomic transaction with mint + holding account instructions (including memo enable)
+	// Compose atomic transaction with holding account instructions
 	createHoldingAccountTxn := &transaction_v1.Transaction{
 		Instructions: createHoldingAccountResp.Instructions,
 		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,

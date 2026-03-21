@@ -19,12 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Service_CreateToken2022Mint_FullMethodName                = "/protochain.solana.program.token.v1.Service/CreateToken2022Mint"
-	Service_CreateSPLTokenMint_FullMethodName                 = "/protochain.solana.program.token.v1.Service/CreateSPLTokenMint"
-	Service_ParseMint_FullMethodName                          = "/protochain.solana.program.token.v1.Service/ParseMint"
-	Service_GetCurrentMinRentForHoldingAccount_FullMethodName = "/protochain.solana.program.token.v1.Service/GetCurrentMinRentForHoldingAccount"
-	Service_CreateHoldingAccount_FullMethodName               = "/protochain.solana.program.token.v1.Service/CreateHoldingAccount"
-	Service_Mint_FullMethodName                               = "/protochain.solana.program.token.v1.Service/Mint"
+	Service_CreateToken2022Mint_FullMethodName           = "/protochain.solana.program.token.v1.Service/CreateToken2022Mint"
+	Service_CreateSPLTokenMint_FullMethodName            = "/protochain.solana.program.token.v1.Service/CreateSPLTokenMint"
+	Service_ParseMint_FullMethodName                     = "/protochain.solana.program.token.v1.Service/ParseMint"
+	Service_CreateToken2022HoldingAccount_FullMethodName = "/protochain.solana.program.token.v1.Service/CreateToken2022HoldingAccount"
+	Service_CreateSPLTokenHoldingAccount_FullMethodName  = "/protochain.solana.program.token.v1.Service/CreateSPLTokenHoldingAccount"
+	Service_Mint_FullMethodName                          = "/protochain.solana.program.token.v1.Service/Mint"
 )
 
 // ServiceClient is the client API for Service service.
@@ -39,6 +39,10 @@ const (
 // calculation, and any extension/metadata setup. This removes the need for
 // callers to separately query rent, build a system create instruction, and
 // then initialise the mint.
+//
+// Holding account creation methods (CreateToken2022HoldingAccount,
+// CreateSPLTokenHoldingAccount) follow the same pattern — returning the
+// complete instruction set and rent-exempt lamport cost in one call.
 type ServiceClient interface {
 	// Creates a fully initialised Token-2022 mint account in one call.
 	//
@@ -64,10 +68,21 @@ type ServiceClient interface {
 	//
 	// Token Program Agnostic. Response indicates if mint is for Token2022 or SPL tokens.
 	ParseMint(ctx context.Context, in *ParseMintRequest, opts ...grpc.CallOption) (*ParseMintResponse, error)
-	// Gets current minimum rent for a token holding account, optionally accounting for memo transfer extension size when memo_transfer_config is provided.
-	GetCurrentMinRentForHoldingAccount(ctx context.Context, in *GetCurrentMinRentForHoldingAccountRequest, opts ...grpc.CallOption) (*GetCurrentMinRentForHoldingAccountResponse, error)
-	// Creates holding account initialization instructions. Adds memo-enable instruction when requested.
-	CreateHoldingAccount(ctx context.Context, in *CreateHoldingAccountRequest, opts ...grpc.CallOption) (*CreateHoldingAccountResponse, error)
+	// Creates a Token-2022 holding account (Associated Token Account) in one call.
+	//
+	// Returns the complete ordered instruction set:
+	//  1. Create Associated Token Account (ATA)
+	//  2. For each requested extension: reallocate + extension-init instructions
+	//     (e.g. for MemoTransfer: reallocate for MemoTransfer + enable_required_transfer_memos)
+	//
+	// The response also includes the lamports required for rent exemption,
+	// accounting for the final account size with all requested extensions.
+	CreateToken2022HoldingAccount(ctx context.Context, in *CreateToken2022HoldingAccountRequest, opts ...grpc.CallOption) (*CreateToken2022HoldingAccountResponse, error)
+	// Creates a legacy SPL Token holding account (Associated Token Account) in one call.
+	//
+	// Returns a single ATA creation instruction along with the lamports required
+	// for rent exemption.
+	CreateSPLTokenHoldingAccount(ctx context.Context, in *CreateSPLTokenHoldingAccountRequest, opts ...grpc.CallOption) (*CreateSPLTokenHoldingAccountResponse, error)
 	// Mint tokens to an existing token account using MintToChecked instruction
 	//
 	// Token Program Agnostic.
@@ -112,20 +127,20 @@ func (c *serviceClient) ParseMint(ctx context.Context, in *ParseMintRequest, opt
 	return out, nil
 }
 
-func (c *serviceClient) GetCurrentMinRentForHoldingAccount(ctx context.Context, in *GetCurrentMinRentForHoldingAccountRequest, opts ...grpc.CallOption) (*GetCurrentMinRentForHoldingAccountResponse, error) {
+func (c *serviceClient) CreateToken2022HoldingAccount(ctx context.Context, in *CreateToken2022HoldingAccountRequest, opts ...grpc.CallOption) (*CreateToken2022HoldingAccountResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetCurrentMinRentForHoldingAccountResponse)
-	err := c.cc.Invoke(ctx, Service_GetCurrentMinRentForHoldingAccount_FullMethodName, in, out, cOpts...)
+	out := new(CreateToken2022HoldingAccountResponse)
+	err := c.cc.Invoke(ctx, Service_CreateToken2022HoldingAccount_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *serviceClient) CreateHoldingAccount(ctx context.Context, in *CreateHoldingAccountRequest, opts ...grpc.CallOption) (*CreateHoldingAccountResponse, error) {
+func (c *serviceClient) CreateSPLTokenHoldingAccount(ctx context.Context, in *CreateSPLTokenHoldingAccountRequest, opts ...grpc.CallOption) (*CreateSPLTokenHoldingAccountResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateHoldingAccountResponse)
-	err := c.cc.Invoke(ctx, Service_CreateHoldingAccount_FullMethodName, in, out, cOpts...)
+	out := new(CreateSPLTokenHoldingAccountResponse)
+	err := c.cc.Invoke(ctx, Service_CreateSPLTokenHoldingAccount_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -154,6 +169,10 @@ func (c *serviceClient) Mint(ctx context.Context, in *MintRequest, opts ...grpc.
 // calculation, and any extension/metadata setup. This removes the need for
 // callers to separately query rent, build a system create instruction, and
 // then initialise the mint.
+//
+// Holding account creation methods (CreateToken2022HoldingAccount,
+// CreateSPLTokenHoldingAccount) follow the same pattern — returning the
+// complete instruction set and rent-exempt lamport cost in one call.
 type ServiceServer interface {
 	// Creates a fully initialised Token-2022 mint account in one call.
 	//
@@ -179,10 +198,21 @@ type ServiceServer interface {
 	//
 	// Token Program Agnostic. Response indicates if mint is for Token2022 or SPL tokens.
 	ParseMint(context.Context, *ParseMintRequest) (*ParseMintResponse, error)
-	// Gets current minimum rent for a token holding account, optionally accounting for memo transfer extension size when memo_transfer_config is provided.
-	GetCurrentMinRentForHoldingAccount(context.Context, *GetCurrentMinRentForHoldingAccountRequest) (*GetCurrentMinRentForHoldingAccountResponse, error)
-	// Creates holding account initialization instructions. Adds memo-enable instruction when requested.
-	CreateHoldingAccount(context.Context, *CreateHoldingAccountRequest) (*CreateHoldingAccountResponse, error)
+	// Creates a Token-2022 holding account (Associated Token Account) in one call.
+	//
+	// Returns the complete ordered instruction set:
+	//  1. Create Associated Token Account (ATA)
+	//  2. For each requested extension: reallocate + extension-init instructions
+	//     (e.g. for MemoTransfer: reallocate for MemoTransfer + enable_required_transfer_memos)
+	//
+	// The response also includes the lamports required for rent exemption,
+	// accounting for the final account size with all requested extensions.
+	CreateToken2022HoldingAccount(context.Context, *CreateToken2022HoldingAccountRequest) (*CreateToken2022HoldingAccountResponse, error)
+	// Creates a legacy SPL Token holding account (Associated Token Account) in one call.
+	//
+	// Returns a single ATA creation instruction along with the lamports required
+	// for rent exemption.
+	CreateSPLTokenHoldingAccount(context.Context, *CreateSPLTokenHoldingAccountRequest) (*CreateSPLTokenHoldingAccountResponse, error)
 	// Mint tokens to an existing token account using MintToChecked instruction
 	//
 	// Token Program Agnostic.
@@ -206,11 +236,11 @@ func (UnimplementedServiceServer) CreateSPLTokenMint(context.Context, *CreateSPL
 func (UnimplementedServiceServer) ParseMint(context.Context, *ParseMintRequest) (*ParseMintResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ParseMint not implemented")
 }
-func (UnimplementedServiceServer) GetCurrentMinRentForHoldingAccount(context.Context, *GetCurrentMinRentForHoldingAccountRequest) (*GetCurrentMinRentForHoldingAccountResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetCurrentMinRentForHoldingAccount not implemented")
+func (UnimplementedServiceServer) CreateToken2022HoldingAccount(context.Context, *CreateToken2022HoldingAccountRequest) (*CreateToken2022HoldingAccountResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateToken2022HoldingAccount not implemented")
 }
-func (UnimplementedServiceServer) CreateHoldingAccount(context.Context, *CreateHoldingAccountRequest) (*CreateHoldingAccountResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CreateHoldingAccount not implemented")
+func (UnimplementedServiceServer) CreateSPLTokenHoldingAccount(context.Context, *CreateSPLTokenHoldingAccountRequest) (*CreateSPLTokenHoldingAccountResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateSPLTokenHoldingAccount not implemented")
 }
 func (UnimplementedServiceServer) Mint(context.Context, *MintRequest) (*MintResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Mint not implemented")
@@ -290,38 +320,38 @@ func _Service_ParseMint_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Service_GetCurrentMinRentForHoldingAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetCurrentMinRentForHoldingAccountRequest)
+func _Service_CreateToken2022HoldingAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateToken2022HoldingAccountRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ServiceServer).GetCurrentMinRentForHoldingAccount(ctx, in)
+		return srv.(ServiceServer).CreateToken2022HoldingAccount(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Service_GetCurrentMinRentForHoldingAccount_FullMethodName,
+		FullMethod: Service_CreateToken2022HoldingAccount_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceServer).GetCurrentMinRentForHoldingAccount(ctx, req.(*GetCurrentMinRentForHoldingAccountRequest))
+		return srv.(ServiceServer).CreateToken2022HoldingAccount(ctx, req.(*CreateToken2022HoldingAccountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Service_CreateHoldingAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateHoldingAccountRequest)
+func _Service_CreateSPLTokenHoldingAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSPLTokenHoldingAccountRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ServiceServer).CreateHoldingAccount(ctx, in)
+		return srv.(ServiceServer).CreateSPLTokenHoldingAccount(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Service_CreateHoldingAccount_FullMethodName,
+		FullMethod: Service_CreateSPLTokenHoldingAccount_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceServer).CreateHoldingAccount(ctx, req.(*CreateHoldingAccountRequest))
+		return srv.(ServiceServer).CreateSPLTokenHoldingAccount(ctx, req.(*CreateSPLTokenHoldingAccountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -364,12 +394,12 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Service_ParseMint_Handler,
 		},
 		{
-			MethodName: "GetCurrentMinRentForHoldingAccount",
-			Handler:    _Service_GetCurrentMinRentForHoldingAccount_Handler,
+			MethodName: "CreateToken2022HoldingAccount",
+			Handler:    _Service_CreateToken2022HoldingAccount_Handler,
 		},
 		{
-			MethodName: "CreateHoldingAccount",
-			Handler:    _Service_CreateHoldingAccount_Handler,
+			MethodName: "CreateSPLTokenHoldingAccount",
+			Handler:    _Service_CreateSPLTokenHoldingAccount_Handler,
 		},
 		{
 			MethodName: "Mint",

@@ -14,6 +14,10 @@ import (
 // calculation, and any extension/metadata setup. This removes the need for
 // callers to separately query rent, build a system create instruction, and
 // then initialise the mint.
+//
+// Holding account creation methods (CreateToken2022HoldingAccount,
+// CreateSPLTokenHoldingAccount) follow the same pattern — returning the
+// complete instruction set and rent-exempt lamport cost in one call.
 type ServiceInterface interface {
 	// Creates a fully initialised Token-2022 mint account in one call.
 	//
@@ -42,11 +46,22 @@ type ServiceInterface interface {
 	// Token Program Agnostic. Response indicates if mint is for Token2022 or SPL tokens.
 	ParseMint(ctx context.Context, request *ParseMintRequest) (*ParseMintResponse, error)
 
-	// Gets current minimum rent for a token holding account, optionally accounting for memo transfer extension size when memo_transfer_config is provided.
-	GetCurrentMinRentForHoldingAccount(ctx context.Context, request *GetCurrentMinRentForHoldingAccountRequest) (*GetCurrentMinRentForHoldingAccountResponse, error)
+	// Creates a Token-2022 holding account (Associated Token Account) in one call.
+	//
+	// Returns the complete ordered instruction set:
+	//   1. Create Associated Token Account (ATA)
+	//   2. For each requested extension: reallocate + extension-init instructions
+	//      (e.g. for MemoTransfer: reallocate for MemoTransfer + enable_required_transfer_memos)
+	//
+	// The response also includes the lamports required for rent exemption,
+	// accounting for the final account size with all requested extensions.
+	CreateToken2022HoldingAccount(ctx context.Context, request *CreateToken2022HoldingAccountRequest) (*CreateToken2022HoldingAccountResponse, error)
 
-	// Creates holding account initialization instructions. Adds memo-enable instruction when requested.
-	CreateHoldingAccount(ctx context.Context, request *CreateHoldingAccountRequest) (*CreateHoldingAccountResponse, error)
+	// Creates a legacy SPL Token holding account (Associated Token Account) in one call.
+	//
+	// Returns a single ATA creation instruction along with the lamports required
+	// for rent exemption.
+	CreateSPLTokenHoldingAccount(ctx context.Context, request *CreateSPLTokenHoldingAccountRequest) (*CreateSPLTokenHoldingAccountResponse, error)
 
 	// Mint tokens to an existing token account using MintToChecked instruction
 	//

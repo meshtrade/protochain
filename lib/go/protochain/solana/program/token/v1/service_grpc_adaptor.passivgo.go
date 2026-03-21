@@ -96,38 +96,38 @@ func (a *ServiceGRPCAdaptor) ParseMint(ctx context.Context, request *ParseMintRe
 	return parseMintResponse, nil
 }
 
-// GetCurrentMinRentForHoldingAccount exposes the GetCurrentMinRentForHoldingAccount method of the Service interface over gRPC
-func (a *ServiceGRPCAdaptor) GetCurrentMinRentForHoldingAccount(ctx context.Context, request *GetCurrentMinRentForHoldingAccountRequest) (*GetCurrentMinRentForHoldingAccountResponse, error) {
+// CreateToken2022HoldingAccount exposes the CreateToken2022HoldingAccount method of the Service interface over gRPC
+func (a *ServiceGRPCAdaptor) CreateToken2022HoldingAccount(ctx context.Context, request *CreateToken2022HoldingAccountRequest) (*CreateToken2022HoldingAccountResponse, error) {
 	ctx, span := a.tracer.Start(
 		ctx,
-		ServiceServiceProviderName+"GRPCAdaptor.GetCurrentMinRentForHoldingAccount",
+		ServiceServiceProviderName+"GRPCAdaptor.CreateToken2022HoldingAccount",
 	)
 	defer span.End()
 
 	// call the service interface implementation
-	getCurrentMinRentForHoldingAccountResponse, err := a.service.GetCurrentMinRentForHoldingAccount(ctx, request)
+	createToken2022HoldingAccountResponse, err := a.service.CreateToken2022HoldingAccount(ctx, request)
 	if err != nil {
 		return nil, err
 	}
 
-	return getCurrentMinRentForHoldingAccountResponse, nil
+	return createToken2022HoldingAccountResponse, nil
 }
 
-// CreateHoldingAccount exposes the CreateHoldingAccount method of the Service interface over gRPC
-func (a *ServiceGRPCAdaptor) CreateHoldingAccount(ctx context.Context, request *CreateHoldingAccountRequest) (*CreateHoldingAccountResponse, error) {
+// CreateSPLTokenHoldingAccount exposes the CreateSPLTokenHoldingAccount method of the Service interface over gRPC
+func (a *ServiceGRPCAdaptor) CreateSPLTokenHoldingAccount(ctx context.Context, request *CreateSPLTokenHoldingAccountRequest) (*CreateSPLTokenHoldingAccountResponse, error) {
 	ctx, span := a.tracer.Start(
 		ctx,
-		ServiceServiceProviderName+"GRPCAdaptor.CreateHoldingAccount",
+		ServiceServiceProviderName+"GRPCAdaptor.CreateSPLTokenHoldingAccount",
 	)
 	defer span.End()
 
 	// call the service interface implementation
-	createHoldingAccountResponse, err := a.service.CreateHoldingAccount(ctx, request)
+	createSPLTokenHoldingAccountResponse, err := a.service.CreateSPLTokenHoldingAccount(ctx, request)
 	if err != nil {
 		return nil, err
 	}
 
-	return createHoldingAccountResponse, nil
+	return createSPLTokenHoldingAccountResponse, nil
 }
 
 // Mint exposes the Mint method of the Service interface over gRPC
