@@ -45,23 +45,6 @@ func NewServiceGRPCAdaptor(
 	}
 }
 
-// InitialiseToken2022Mint exposes the InitialiseToken2022Mint method of the Service interface over gRPC
-func (a *ServiceGRPCAdaptor) InitialiseToken2022Mint(ctx context.Context, request *InitialiseToken2022MintRequest) (*InitialiseToken2022MintResponse, error) {
-	ctx, span := a.tracer.Start(
-		ctx,
-		ServiceServiceProviderName+"GRPCAdaptor.InitialiseToken2022Mint",
-	)
-	defer span.End()
-
-	// call the service interface implementation
-	initialiseToken2022MintResponse, err := a.service.InitialiseToken2022Mint(ctx, request)
-	if err != nil {
-		return nil, err
-	}
-
-	return initialiseToken2022MintResponse, nil
-}
-
 // GetCurrentMinRentForToken2022MintAccount exposes the GetCurrentMinRentForToken2022MintAccount method of the Service interface over gRPC
 func (a *ServiceGRPCAdaptor) GetCurrentMinRentForToken2022MintAccount(ctx context.Context, request *GetCurrentMinRentForToken2022MintAccountRequest) (*GetCurrentMinRentForToken2022MintAccountResponse, error) {
 	ctx, span := a.tracer.Start(
@@ -79,21 +62,21 @@ func (a *ServiceGRPCAdaptor) GetCurrentMinRentForToken2022MintAccount(ctx contex
 	return getCurrentMinRentForToken2022MintAccountResponse, nil
 }
 
-// InitialiseSPLTokenMint exposes the InitialiseSPLTokenMint method of the Service interface over gRPC
-func (a *ServiceGRPCAdaptor) InitialiseSPLTokenMint(ctx context.Context, request *InitialiseSPLTokenMintRequest) (*InitialiseSPLTokenMintResponse, error) {
+// InitialiseToken2022Mint exposes the InitialiseToken2022Mint method of the Service interface over gRPC
+func (a *ServiceGRPCAdaptor) InitialiseToken2022Mint(ctx context.Context, request *InitialiseToken2022MintRequest) (*InitialiseToken2022MintResponse, error) {
 	ctx, span := a.tracer.Start(
 		ctx,
-		ServiceServiceProviderName+"GRPCAdaptor.InitialiseSPLTokenMint",
+		ServiceServiceProviderName+"GRPCAdaptor.InitialiseToken2022Mint",
 	)
 	defer span.End()
 
 	// call the service interface implementation
-	initialiseSPLTokenMintResponse, err := a.service.InitialiseSPLTokenMint(ctx, request)
+	initialiseToken2022MintResponse, err := a.service.InitialiseToken2022Mint(ctx, request)
 	if err != nil {
 		return nil, err
 	}
 
-	return initialiseSPLTokenMintResponse, nil
+	return initialiseToken2022MintResponse, nil
 }
 
 // GetCurrentMinRentForSPLTokenMintAccount exposes the GetCurrentMinRentForSPLTokenMintAccount method of the Service interface over gRPC
@@ -111,6 +94,23 @@ func (a *ServiceGRPCAdaptor) GetCurrentMinRentForSPLTokenMintAccount(ctx context
 	}
 
 	return getCurrentMinRentForSPLTokenMintAccountResponse, nil
+}
+
+// InitialiseSPLTokenMint exposes the InitialiseSPLTokenMint method of the Service interface over gRPC
+func (a *ServiceGRPCAdaptor) InitialiseSPLTokenMint(ctx context.Context, request *InitialiseSPLTokenMintRequest) (*InitialiseSPLTokenMintResponse, error) {
+	ctx, span := a.tracer.Start(
+		ctx,
+		ServiceServiceProviderName+"GRPCAdaptor.InitialiseSPLTokenMint",
+	)
+	defer span.End()
+
+	// call the service interface implementation
+	initialiseSPLTokenMintResponse, err := a.service.InitialiseSPLTokenMint(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return initialiseSPLTokenMintResponse, nil
 }
 
 // ParseMint exposes the ParseMint method of the Service interface over gRPC

@@ -8,13 +8,6 @@ import (
 
 // Token Program service for creating SPL Token and Token-2022 instructions
 type ServiceInterface interface {
-	// Creates initialisation instructions for a Token-2022 mint with optional extensions.
-	// The instruction sequence depends on the requested extensions.
-	// With the Metadata extension the order is:
-	//   metadata_pointer_init → initialize_mint → token_metadata_init → update_field × N
-	// Without extensions only initialize_mint is returned.
-	InitialiseToken2022Mint(ctx context.Context, request *InitialiseToken2022MintRequest) (*InitialiseToken2022MintResponse, error)
-
 	// Returns the minimum rent-exempt balance (in lamports) and the required account
 	// space (in bytes) for a Token-2022 mint account with the requested extensions.
 	//
@@ -30,9 +23,12 @@ type ServiceInterface interface {
 	// so that the returned values are consistent.
 	GetCurrentMinRentForToken2022MintAccount(ctx context.Context, request *GetCurrentMinRentForToken2022MintAccountRequest) (*GetCurrentMinRentForToken2022MintAccountResponse, error)
 
-	// Creates a single initialise_mint instruction for the legacy SPL Token program.
-	// Extensions are not supported.
-	InitialiseSPLTokenMint(ctx context.Context, request *InitialiseSPLTokenMintRequest) (*InitialiseSPLTokenMintResponse, error)
+	// Creates initialisation instructions for a Token-2022 mint with optional extensions.
+	// The instruction sequence depends on the requested extensions.
+	// With the Metadata extension the order is:
+	//   metadata_pointer_init → initialize_mint → token_metadata_init → update_field × N
+	// Without extensions only initialize_mint is returned.
+	InitialiseToken2022Mint(ctx context.Context, request *InitialiseToken2022MintRequest) (*InitialiseToken2022MintResponse, error)
 
 	// Returns the minimum rent-exempt balance (in lamports) and the required account
 	// space (in bytes) for a legacy SPL Token mint account.
@@ -40,6 +36,10 @@ type ServiceInterface interface {
 	// Legacy SPL Token mints are always exactly Mint::LEN (82 bytes) with no
 	// extension support, so no additional parameters are needed.
 	GetCurrentMinRentForSPLTokenMintAccount(ctx context.Context, request *GetCurrentMinRentForSPLTokenMintAccountRequest) (*GetCurrentMinRentForSPLTokenMintAccountResponse, error)
+
+	// Creates a single initialise_mint instruction for the legacy SPL Token program.
+	// Extensions are not supported.
+	InitialiseSPLTokenMint(ctx context.Context, request *InitialiseSPLTokenMintRequest) (*InitialiseSPLTokenMintResponse, error)
 
 	// Parses mint account data into structured format
 	//

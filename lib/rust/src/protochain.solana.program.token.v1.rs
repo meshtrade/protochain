@@ -159,6 +159,34 @@ pub mod token2022_extension {
         Metadata(super::Token2022ExtensionMetadata),
     }
 }
+/// Request for the minimum rent and space required for a Token-2022 mint account.
+/// Provide the same extension set you intend to pass to InitialiseToken2022Mint so that
+/// the returned lamports and space values are consistent with each other.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetCurrentMinRentForToken2022MintAccountRequest {
+    /// Ordered list of extensions to enable on the mint.
+    /// Must match the extensions you will pass to InitialiseToken2022Mint.
+    /// If empty, results are based on a base Token-2022 mint with no extensions.
+    /// Duplicates are rejected.
+    #[prost(message, repeated, tag="1")]
+    pub extensions: ::prost::alloc::vec::Vec<Token2022Extension>,
+}
+/// Rent and space for a Token-2022 mint account with the requested extensions.
+/// Pass both fields directly to the System Program's CreateAccount instruction
+/// before calling InitialiseToken2022Mint.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct GetCurrentMinRentForToken2022MintAccountResponse {
+    /// Minimum lamports required for the account to be rent-exempt after all
+    /// extensions (including variable-length metadata) are fully initialised.
+    #[prost(uint64, tag="1")]
+    pub lamports: u64,
+    /// Initial account size in bytes for System::CreateAccount.
+    /// Covers the base mint layout and fixed-size extension pods only.
+    #[prost(uint64, tag="2")]
+    pub space: u64,
+}
 /// Request to initialise a Token-2022 mint with optional extensions.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -192,31 +220,22 @@ pub struct InitialiseToken2022MintResponse {
     #[prost(message, repeated, tag="1")]
     pub instructions: ::prost::alloc::vec::Vec<super::super::super::transaction::v1::SolanaInstruction>,
 }
-/// Request for the minimum rent and space required for a Token-2022 mint account.
-/// Provide the same extension set you intend to pass to InitialiseToken2022Mint so that
-/// the returned lamports and space values are consistent with each other.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GetCurrentMinRentForToken2022MintAccountRequest {
-    /// Ordered list of extensions to enable on the mint.
-    /// Must match the extensions you will pass to InitialiseToken2022Mint.
-    /// If empty, results are based on a base Token-2022 mint with no extensions.
-    /// Duplicates are rejected.
-    #[prost(message, repeated, tag="1")]
-    pub extensions: ::prost::alloc::vec::Vec<Token2022Extension>,
-}
-/// Rent and space for a Token-2022 mint account with the requested extensions.
-/// Pass both fields directly to the System Program's CreateAccount instruction
-/// before calling InitialiseToken2022Mint.
+/// Request for the minimum rent and space required for a legacy SPL Token mint account.
+/// No parameters are needed because SPL Token mints are always exactly Mint::LEN (82 bytes).
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct GetCurrentMinRentForToken2022MintAccountResponse {
-    /// Minimum lamports required for the account to be rent-exempt after all
-    /// extensions (including variable-length metadata) are fully initialised.
+pub struct GetCurrentMinRentForSplTokenMintAccountRequest {
+}
+/// Rent and space for a legacy SPL Token mint account.
+/// Pass both fields directly to the System Program's CreateAccount instruction
+/// before calling InitialiseSPLTokenMint.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct GetCurrentMinRentForSplTokenMintAccountResponse {
+    /// Minimum lamports required for the account to be rent-exempt.
     #[prost(uint64, tag="1")]
     pub lamports: u64,
-    /// Initial account size in bytes for System::CreateAccount.
-    /// Covers the base mint layout and fixed-size extension pods only.
+    /// Account size in bytes to allocate (always Mint::LEN = 82 bytes).
     #[prost(uint64, tag="2")]
     pub space: u64,
 }
@@ -253,25 +272,6 @@ pub struct InitialiseSplTokenMintRequest {
 pub struct InitialiseSplTokenMintResponse {
     #[prost(message, repeated, tag="1")]
     pub instructions: ::prost::alloc::vec::Vec<super::super::super::transaction::v1::SolanaInstruction>,
-}
-/// Request for the minimum rent and space required for a legacy SPL Token mint account.
-/// No parameters are needed because SPL Token mints are always exactly Mint::LEN (82 bytes).
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct GetCurrentMinRentForSplTokenMintAccountRequest {
-}
-/// Rent and space for a legacy SPL Token mint account.
-/// Pass both fields directly to the System Program's CreateAccount instruction
-/// before calling InitialiseSPLTokenMint.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct GetCurrentMinRentForSplTokenMintAccountResponse {
-    /// Minimum lamports required for the account to be rent-exempt.
-    #[prost(uint64, tag="1")]
-    pub lamports: u64,
-    /// Account size in bytes to allocate (always Mint::LEN = 82 bytes).
-    #[prost(uint64, tag="2")]
-    pub space: u64,
 }
 /// Request to parse mint account
 #[allow(clippy::derive_partial_eq_without_eq)]

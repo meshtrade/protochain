@@ -84,36 +84,6 @@ pub mod service_client {
             self.inner = self.inner.max_encoding_message_size(limit);
             self
         }
-        pub async fn initialise_token2022_mint(
-            &mut self,
-            request: impl tonic::IntoRequest<super::InitialiseToken2022MintRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::InitialiseToken2022MintResponse>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/protochain.solana.program.token.v1.Service/InitialiseToken2022Mint",
-            );
-            let mut req = request.into_request();
-            req.extensions_mut()
-                .insert(
-                    GrpcMethod::new(
-                        "protochain.solana.program.token.v1.Service",
-                        "InitialiseToken2022Mint",
-                    ),
-                );
-            self.inner.unary(req, path, codec).await
-        }
         pub async fn get_current_min_rent_for_token2022_mint_account(
             &mut self,
             request: impl tonic::IntoRequest<
@@ -146,11 +116,11 @@ pub mod service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
-        pub async fn initialise_spl_token_mint(
+        pub async fn initialise_token2022_mint(
             &mut self,
-            request: impl tonic::IntoRequest<super::InitialiseSplTokenMintRequest>,
+            request: impl tonic::IntoRequest<super::InitialiseToken2022MintRequest>,
         ) -> std::result::Result<
-            tonic::Response<super::InitialiseSplTokenMintResponse>,
+            tonic::Response<super::InitialiseToken2022MintResponse>,
             tonic::Status,
         > {
             self.inner
@@ -164,14 +134,14 @@ pub mod service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/protochain.solana.program.token.v1.Service/InitialiseSPLTokenMint",
+                "/protochain.solana.program.token.v1.Service/InitialiseToken2022Mint",
             );
             let mut req = request.into_request();
             req.extensions_mut()
                 .insert(
                     GrpcMethod::new(
                         "protochain.solana.program.token.v1.Service",
-                        "InitialiseSPLTokenMint",
+                        "InitialiseToken2022Mint",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -204,6 +174,36 @@ pub mod service_client {
                     GrpcMethod::new(
                         "protochain.solana.program.token.v1.Service",
                         "GetCurrentMinRentForSPLTokenMintAccount",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn initialise_spl_token_mint(
+            &mut self,
+            request: impl tonic::IntoRequest<super::InitialiseSplTokenMintRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::InitialiseSplTokenMintResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protochain.solana.program.token.v1.Service/InitialiseSPLTokenMint",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protochain.solana.program.token.v1.Service",
+                        "InitialiseSPLTokenMint",
                     ),
                 );
             self.inner.unary(req, path, codec).await
@@ -333,13 +333,6 @@ pub mod service_server {
     /// Generated trait containing gRPC methods that should be implemented for use with ServiceServer.
     #[async_trait]
     pub trait Service: Send + Sync + 'static {
-        async fn initialise_token2022_mint(
-            &self,
-            request: tonic::Request<super::InitialiseToken2022MintRequest>,
-        ) -> std::result::Result<
-            tonic::Response<super::InitialiseToken2022MintResponse>,
-            tonic::Status,
-        >;
         async fn get_current_min_rent_for_token2022_mint_account(
             &self,
             request: tonic::Request<
@@ -349,11 +342,11 @@ pub mod service_server {
             tonic::Response<super::GetCurrentMinRentForToken2022MintAccountResponse>,
             tonic::Status,
         >;
-        async fn initialise_spl_token_mint(
+        async fn initialise_token2022_mint(
             &self,
-            request: tonic::Request<super::InitialiseSplTokenMintRequest>,
+            request: tonic::Request<super::InitialiseToken2022MintRequest>,
         ) -> std::result::Result<
-            tonic::Response<super::InitialiseSplTokenMintResponse>,
+            tonic::Response<super::InitialiseToken2022MintResponse>,
             tonic::Status,
         >;
         async fn get_current_min_rent_for_spl_token_mint_account(
@@ -363,6 +356,13 @@ pub mod service_server {
             >,
         ) -> std::result::Result<
             tonic::Response<super::GetCurrentMinRentForSplTokenMintAccountResponse>,
+            tonic::Status,
+        >;
+        async fn initialise_spl_token_mint(
+            &self,
+            request: tonic::Request<super::InitialiseSplTokenMintRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::InitialiseSplTokenMintResponse>,
             tonic::Status,
         >;
         async fn parse_mint(
@@ -467,54 +467,6 @@ pub mod service_server {
         }
         fn call(&mut self, req: http::Request<B>) -> Self::Future {
             match req.uri().path() {
-                "/protochain.solana.program.token.v1.Service/InitialiseToken2022Mint" => {
-                    #[allow(non_camel_case_types)]
-                    struct InitialiseToken2022MintSvc<T: Service>(pub Arc<T>);
-                    impl<
-                        T: Service,
-                    > tonic::server::UnaryService<super::InitialiseToken2022MintRequest>
-                    for InitialiseToken2022MintSvc<T> {
-                        type Response = super::InitialiseToken2022MintResponse;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<
-                                super::InitialiseToken2022MintRequest,
-                            >,
-                        ) -> Self::Future {
-                            let inner = Arc::clone(&self.0);
-                            let fut = async move {
-                                <T as Service>::initialise_token2022_mint(&inner, request)
-                                    .await
-                            };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let max_decoding_message_size = self.max_decoding_message_size;
-                    let max_encoding_message_size = self.max_encoding_message_size;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let method = InitialiseToken2022MintSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            )
-                            .apply_max_message_size_config(
-                                max_decoding_message_size,
-                                max_encoding_message_size,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
                 "/protochain.solana.program.token.v1.Service/GetCurrentMinRentForToken2022MintAccount" => {
                     #[allow(non_camel_case_types)]
                     struct GetCurrentMinRentForToken2022MintAccountSvc<T: Service>(
@@ -569,25 +521,27 @@ pub mod service_server {
                     };
                     Box::pin(fut)
                 }
-                "/protochain.solana.program.token.v1.Service/InitialiseSPLTokenMint" => {
+                "/protochain.solana.program.token.v1.Service/InitialiseToken2022Mint" => {
                     #[allow(non_camel_case_types)]
-                    struct InitialiseSPLTokenMintSvc<T: Service>(pub Arc<T>);
+                    struct InitialiseToken2022MintSvc<T: Service>(pub Arc<T>);
                     impl<
                         T: Service,
-                    > tonic::server::UnaryService<super::InitialiseSplTokenMintRequest>
-                    for InitialiseSPLTokenMintSvc<T> {
-                        type Response = super::InitialiseSplTokenMintResponse;
+                    > tonic::server::UnaryService<super::InitialiseToken2022MintRequest>
+                    for InitialiseToken2022MintSvc<T> {
+                        type Response = super::InitialiseToken2022MintResponse;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
                         >;
                         fn call(
                             &mut self,
-                            request: tonic::Request<super::InitialiseSplTokenMintRequest>,
+                            request: tonic::Request<
+                                super::InitialiseToken2022MintRequest,
+                            >,
                         ) -> Self::Future {
                             let inner = Arc::clone(&self.0);
                             let fut = async move {
-                                <T as Service>::initialise_spl_token_mint(&inner, request)
+                                <T as Service>::initialise_token2022_mint(&inner, request)
                                     .await
                             };
                             Box::pin(fut)
@@ -599,7 +553,7 @@ pub mod service_server {
                     let max_encoding_message_size = self.max_encoding_message_size;
                     let inner = self.inner.clone();
                     let fut = async move {
-                        let method = InitialiseSPLTokenMintSvc(inner);
+                        let method = InitialiseToken2022MintSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -654,6 +608,52 @@ pub mod service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = GetCurrentMinRentForSPLTokenMintAccountSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protochain.solana.program.token.v1.Service/InitialiseSPLTokenMint" => {
+                    #[allow(non_camel_case_types)]
+                    struct InitialiseSPLTokenMintSvc<T: Service>(pub Arc<T>);
+                    impl<
+                        T: Service,
+                    > tonic::server::UnaryService<super::InitialiseSplTokenMintRequest>
+                    for InitialiseSPLTokenMintSvc<T> {
+                        type Response = super::InitialiseSplTokenMintResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::InitialiseSplTokenMintRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as Service>::initialise_spl_token_mint(&inner, request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = InitialiseSPLTokenMintSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
