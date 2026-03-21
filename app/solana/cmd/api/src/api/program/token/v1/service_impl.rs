@@ -3,17 +3,17 @@ use crate::api::{
     common::solana_conversions::sdk_instruction_to_proto,
     program::token::v1::token_program::sdk_token_program_to_proto,
 };
+use crate::api::program::system::v1::SystemProgramServiceImpl;
+use protochain_api::protochain::solana::program::system::v1::{
+    service_server::Service as SystemProgramService, CreateRequest,
+};
 use protochain_api::protochain::solana::program::token::v1::{
     metaplex_uses, service_server::Service as TokenProgramService, token2022_extension,
-    CreateHoldingAccountRequest, CreateHoldingAccountResponse,
+    CreateHoldingAccountRequest, CreateHoldingAccountResponse, CreateSplTokenMintRequest,
+    CreateSplTokenMintResponse, CreateToken2022MintRequest, CreateToken2022MintResponse,
     GetCurrentMinRentForHoldingAccountRequest, GetCurrentMinRentForHoldingAccountResponse,
-    GetCurrentMinRentForSplTokenMintAccountRequest,
-    GetCurrentMinRentForSplTokenMintAccountResponse,
-    GetCurrentMinRentForToken2022MintAccountRequest,
-    GetCurrentMinRentForToken2022MintAccountResponse, InitialiseSplTokenMintRequest,
-    InitialiseSplTokenMintResponse, InitialiseToken2022MintRequest,
-    InitialiseToken2022MintResponse, MetaplexTokenMetadata, MintInfo, MintRequest, MintResponse,
-    ParseMintRequest, ParseMintResponse, Token2022Extension, Token2022ExtensionMetadata,
+    MetaplexTokenMetadata, MintInfo, MintRequest, MintResponse, ParseMintRequest, ParseMintResponse,
+    Token2022Extension, Token2022ExtensionMetadata,
 };
 use protochain_api::protochain::solana::r#type::v1::TokenProgram;
 use spl_associated_token_account::instruction::create_associated_token_account;
@@ -53,17 +53,29 @@ use spl_token_2022::{
     ID as TOKEN_2022_PROGRAM_ID,
 };
 
-/// Token Program service implementation for Token 2022 operations
+/// Token Program service implementation for Token 2022 and SPL Token operations.
+///
+/// Depends on the System Program service for building `System::CreateAccount`
+/// instructions — ensuring a single source of truth for account creation logic
+/// across all services.
 #[derive(Clone)]
 pub struct TokenProgramServiceImpl {
     /// Solana RPC client for blockchain interactions
     rpc_client: Arc<RpcClient>,
+    /// System Program service for creating account instructions
+    system_program_service: Arc<SystemProgramServiceImpl>,
 }
 
 impl TokenProgramServiceImpl {
-    /// Creates a new `TokenProgramServiceImpl` instance with the provided RPC client
-    pub const fn new(rpc_client: Arc<RpcClient>) -> Self {
-        Self { rpc_client }
+    /// Creates a new `TokenProgramServiceImpl` instance with the provided dependencies
+    pub const fn new(
+        rpc_client: Arc<RpcClient>,
+        system_program_service: Arc<SystemProgramServiceImpl>,
+    ) -> Self {
+        Self {
+            rpc_client,
+            system_program_service,
+        }
     }
 }
 
@@ -188,6 +200,28 @@ fn holding_account_space(require_memo: bool) -> Result<usize, Status> {
     })?;
 
     Ok(len)
+}
+
+/// Maximum number of decimal places supported for Solana token mints.
+///
+/// SOL itself uses 9 decimals; USDC-like tokens typically use 6; NFTs use 0.
+/// Values above 9 are not used in practice and can cause precision issues in
+/// UIs and off-chain tooling.
+const MAX_TOKEN_DECIMALS: u8 = 9;
+
+/// Parses and validates a token decimal value from a proto `uint32` field.
+///
+/// Returns a `u8` in the range `0..=9` or an `INVALID_ARGUMENT` status.
+#[allow(clippy::result_large_err)]
+fn validate_decimals(value: u32) -> Result<u8, Status> {
+    let decimals = u8::try_from(value)
+        .map_err(|_| Status::invalid_argument("decimals must fit in a u8"))?;
+    if decimals > MAX_TOKEN_DECIMALS {
+        return Err(Status::invalid_argument(format!(
+            "decimals must be between 0 and {MAX_TOKEN_DECIMALS}, got {decimals}"
+        )));
+    }
+    Ok(decimals)
 }
 
 #[allow(clippy::result_large_err)]
@@ -461,16 +495,24 @@ fn build_token2022_mint_instructions(
 
 #[tonic::async_trait]
 impl TokenProgramService for TokenProgramServiceImpl {
-    /// Creates initialisation instructions for a Token-2022 mint.
+    /// Creates a fully initialised Token-2022 mint account in one call.
     ///
-    /// Returns one or more instructions depending on the requested extensions.
-    /// With the Metadata extension the order is: metadata-pointer init →
-    /// `initialize_mint` → token-metadata init → `update_field` × N.
-    async fn initialise_token2022_mint(
+    /// Combines rent calculation, `System::CreateAccount`, and all Token-2022
+    /// initialisation instructions into a single response. The instruction
+    /// order is:
+    ///   1. `System::CreateAccount` (via injected system program service)
+    ///   2. Extension pre-init (e.g. metadata pointer)
+    ///   3. `initialize_mint`
+    ///   4. Extension post-init (e.g. token metadata init, `update_field` × N)
+    async fn create_token2022_mint(
         &self,
-        request: Request<InitialiseToken2022MintRequest>,
-    ) -> Result<Response<InitialiseToken2022MintResponse>, Status> {
+        request: Request<CreateToken2022MintRequest>,
+    ) -> Result<Response<CreateToken2022MintResponse>, Status> {
         let req = request.into_inner();
+
+        if req.payer_pub_key.is_empty() {
+            return Err(Status::invalid_argument("payer_pub_key is required"));
+        }
 
         let mint_pubkey = Pubkey::from_str(&req.mint_pub_key)
             .map_err(|e| Status::invalid_argument(format!("Invalid mint_pub_key: {e}")))?;
@@ -486,11 +528,38 @@ impl TokenProgramService for TokenProgramServiceImpl {
             })?)
         };
 
-        let decimals = u8::try_from(req.decimals)
-            .map_err(|_| Status::invalid_argument("decimals must be between 0 and 255"))?;
+        let decimals = validate_decimals(req.decimals)?;
 
         validate_no_duplicate_extensions(&req.extensions)?;
 
+        // Calculate space and rent
+        let space = mint_create_account_space(&req.extensions)?;
+        let rent_space = mint_total_space_for_rent(&req.extensions)?;
+        let lamports = self
+            .rpc_client
+            .get_minimum_balance_for_rent_exemption(rent_space)
+            .map_err(|e| {
+                Status::internal(format!("failed to get minimum balance for mint account: {e}"))
+            })?;
+
+        // 1. Build System::CreateAccount instruction via the system program service
+        let create_account_resp = self
+            .system_program_service
+            .create(Request::new(CreateRequest {
+                payer: req.payer_pub_key.clone(),
+                new_account: req.mint_pub_key.clone(),
+                owner: TOKEN_2022_PROGRAM_ID.to_string(),
+                lamports,
+                space: space as u64,
+            }))
+            .await?;
+
+        let create_account_instruction = create_account_resp
+            .into_inner()
+            .instruction
+            .ok_or_else(|| Status::internal("System program did not return an instruction"))?;
+
+        // 2. Build Token-2022 initialisation instructions
         let sdk_instructions = build_token2022_mint_instructions(
             &TOKEN_2022_PROGRAM_ID,
             &mint_pubkey,
@@ -500,24 +569,33 @@ impl TokenProgramService for TokenProgramServiceImpl {
             &req.extensions,
         )?;
 
-        let instructions = sdk_instructions
-            .into_iter()
-            .map(sdk_instruction_to_proto)
-            .collect();
+        // Assemble: system create + all token init instructions
+        let mut instructions = Vec::with_capacity(1 + sdk_instructions.len());
+        instructions.push(create_account_instruction);
+        for ix in sdk_instructions {
+            instructions.push(sdk_instruction_to_proto(ix));
+        }
 
-        Ok(Response::new(InitialiseToken2022MintResponse { instructions }))
+        Ok(Response::new(CreateToken2022MintResponse {
+            instructions,
+            lamports,
+            space: space as u64,
+        }))
     }
 
-    /// Creates initialisation instructions for the legacy SPL Token program.
+    /// Creates a fully initialised legacy SPL Token mint account in one call.
     ///
-    /// Returns one instruction (`initialize_mint`) when no metadata is provided.
-    /// When `metadata` is set, a `CreateMetadataAccountV3` instruction is appended
-    /// to create the on-chain Metaplex metadata PDA for the mint.
-    async fn initialise_spl_token_mint(
+    /// Combines rent calculation, `System::CreateAccount`, `initialize_mint`, and
+    /// optionally a Metaplex `CreateMetadataAccountV3` instruction.
+    async fn create_spl_token_mint(
         &self,
-        request: Request<InitialiseSplTokenMintRequest>,
-    ) -> Result<Response<InitialiseSplTokenMintResponse>, Status> {
+        request: Request<CreateSplTokenMintRequest>,
+    ) -> Result<Response<CreateSplTokenMintResponse>, Status> {
         let req = request.into_inner();
+
+        if req.payer_pub_key.is_empty() {
+            return Err(Status::invalid_argument("payer_pub_key is required"));
+        }
 
         let mint_pubkey = Pubkey::from_str(&req.mint_pub_key)
             .map_err(|e| Status::invalid_argument(format!("Invalid mint_pub_key: {e}")))?;
@@ -533,12 +611,38 @@ impl TokenProgramService for TokenProgramServiceImpl {
             })?)
         };
 
-        let decimals = u8::try_from(req.decimals)
-            .map_err(|_| Status::invalid_argument("decimals must be between 0 and 255"))?;
+        let decimals = validate_decimals(req.decimals)?;
+
+        // SPL Token mints are always exactly Mint::LEN (82 bytes)
+        let space = Mint::LEN;
+        let lamports = self
+            .rpc_client
+            .get_minimum_balance_for_rent_exemption(space)
+            .map_err(|e| {
+                Status::internal(format!("failed to get minimum balance for mint account: {e}"))
+            })?;
 
         let mut instructions = Vec::new();
 
-        // 1. Base initialize_mint instruction
+        // 1. System::CreateAccount via the system program service
+        let create_account_resp = self
+            .system_program_service
+            .create(Request::new(CreateRequest {
+                payer: req.payer_pub_key.clone(),
+                new_account: req.mint_pub_key.clone(),
+                owner: SPL_TOKEN_PROGRAM_ID.to_string(),
+                lamports,
+                space: space as u64,
+            }))
+            .await?;
+
+        let create_account_instruction = create_account_resp
+            .into_inner()
+            .instruction
+            .ok_or_else(|| Status::internal("System program did not return an instruction"))?;
+        instructions.push(create_account_instruction);
+
+        // 2. initialize_mint instruction
         let init_mint_ix = initialize_mint2(
             &SPL_TOKEN_PROGRAM_ID,
             &mint_pubkey,
@@ -551,13 +655,8 @@ impl TokenProgramService for TokenProgramServiceImpl {
         })?;
         instructions.push(sdk_instruction_to_proto(init_mint_ix));
 
-        // 2. Optional Metaplex metadata instruction
+        // 3. Optional Metaplex metadata instruction
         if let Some(ref metadata) = req.metadata {
-            if req.payer_pub_key.is_empty() {
-                return Err(Status::invalid_argument(
-                    "payer_pub_key is required when metadata is provided",
-                ));
-            }
             let payer = Pubkey::from_str(&req.payer_pub_key)
                 .map_err(|e| Status::invalid_argument(format!("Invalid payer_pub_key: {e}")))?;
 
@@ -570,70 +669,8 @@ impl TokenProgramService for TokenProgramServiceImpl {
             instructions.push(sdk_instruction_to_proto(create_metadata_ix));
         }
 
-        Ok(Response::new(InitialiseSplTokenMintResponse { instructions }))
-    }
-
-    /// Gets the minimum rent-exempt balance and allocation space for a Token-2022
-    /// mint account with the requested extensions.
-    ///
-    /// The returned `space` covers the base mint layout and fixed-size extension
-    /// pods (e.g. `MetadataPointer`) — this is what goes into
-    /// `System::CreateAccount`.
-    ///
-    /// The returned `lamports` covers the **full** final account size — including
-    /// variable-length metadata content that Token-2022 allocates via `realloc`
-    /// during `initialize_token_metadata`.  This means `lamports` may exceed
-    /// `rent_exempt(space)` when metadata extensions are present; the excess
-    /// ensures the account remains rent-exempt after Token-2022 resizes it.
-    async fn get_current_min_rent_for_token2022_mint_account(
-        &self,
-        request: Request<GetCurrentMinRentForToken2022MintAccountRequest>,
-    ) -> Result<Response<GetCurrentMinRentForToken2022MintAccountResponse>, Status> {
-        let req = request.into_inner();
-
-        validate_no_duplicate_extensions(&req.extensions)?;
-
-        // Space for System::CreateAccount — base extension types only.
-        let space = mint_create_account_space(&req.extensions)?;
-
-        // Rent for the full final size including variable-length metadata content
-        // that Token-2022 will allocate via realloc.
-        let rent_space = mint_total_space_for_rent(&req.extensions)?;
-
-        let lamports = self
-            .rpc_client
-            .get_minimum_balance_for_rent_exemption(rent_space)
-            .map_err(|e| {
-                Status::internal(format!("failed to get minimum balance for mint account: {e}"))
-            })?;
-
-        Ok(Response::new(GetCurrentMinRentForToken2022MintAccountResponse {
-            lamports,
-            space: space as u64,
-        }))
-    }
-
-    /// Gets the minimum rent-exempt balance and allocation space for a legacy
-    /// SPL Token mint account.
-    ///
-    /// SPL Token mints are always exactly `Mint::LEN` (82 bytes) with no
-    /// extension support.
-    async fn get_current_min_rent_for_spl_token_mint_account(
-        &self,
-        request: Request<GetCurrentMinRentForSplTokenMintAccountRequest>,
-    ) -> Result<Response<GetCurrentMinRentForSplTokenMintAccountResponse>, Status> {
-        let _req = request.into_inner();
-
-        let space = Mint::LEN;
-
-        let lamports = self
-            .rpc_client
-            .get_minimum_balance_for_rent_exemption(space)
-            .map_err(|e| {
-                Status::internal(format!("failed to get minimum balance for mint account: {e}"))
-            })?;
-
-        Ok(Response::new(GetCurrentMinRentForSplTokenMintAccountResponse {
+        Ok(Response::new(CreateSplTokenMintResponse {
+            instructions,
             lamports,
             space: space as u64,
         }))
@@ -860,8 +897,7 @@ impl TokenProgramService for TokenProgramServiceImpl {
             .map_err(|e| Status::invalid_argument(format!("Invalid amount: {e}")))?;
 
         // Validate decimals
-        let decimals = u8::try_from(req.decimals)
-            .map_err(|_| Status::invalid_argument("decimals must be between 0 and 255"))?;
+        let decimals = validate_decimals(req.decimals)?;
 
         // Determine token program id from account owner
         let token_program_id = get_token_program_id(sdk_token_program_to_proto(&account.owner))

@@ -159,119 +159,92 @@ pub mod token2022_extension {
         Metadata(super::Token2022ExtensionMetadata),
     }
 }
-/// Request for the minimum rent and space required for a Token-2022 mint account.
-/// Provide the same extension set you intend to pass to InitialiseToken2022Mint so that
-/// the returned lamports and space values are consistent with each other.
+/// Request to create and fully initialise a Token-2022 mint account.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GetCurrentMinRentForToken2022MintAccountRequest {
-    /// Ordered list of extensions to enable on the mint.
-    /// Must match the extensions you will pass to InitialiseToken2022Mint.
-    /// If empty, results are based on a base Token-2022 mint with no extensions.
-    /// Duplicates are rejected.
-    #[prost(message, repeated, tag="1")]
-    pub extensions: ::prost::alloc::vec::Vec<Token2022Extension>,
-}
-/// Rent and space for a Token-2022 mint account with the requested extensions.
-/// Pass both fields directly to the System Program's CreateAccount instruction
-/// before calling InitialiseToken2022Mint.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct GetCurrentMinRentForToken2022MintAccountResponse {
-    /// Minimum lamports required for the account to be rent-exempt after all
-    /// extensions (including variable-length metadata) are fully initialised.
-    #[prost(uint64, tag="1")]
-    pub lamports: u64,
-    /// Initial account size in bytes for System::CreateAccount.
-    /// Covers the base mint layout and fixed-size extension pods only.
-    #[prost(uint64, tag="2")]
-    pub space: u64,
-}
-/// Request to initialise a Token-2022 mint with optional extensions.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct InitialiseToken2022MintRequest {
-    /// The public key of the Mint account to be initialized.
+pub struct CreateToken2022MintRequest {
+    /// The public key of the account that will pay for account creation (signer).
     #[prost(string, tag="1")]
+    pub payer_pub_key: ::prost::alloc::string::String,
+    /// The public key of the Mint account to be created and initialized (signer).
+    #[prost(string, tag="2")]
     pub mint_pub_key: ::prost::alloc::string::String,
     /// The authority that can mint new tokens.
-    #[prost(string, tag="2")]
+    #[prost(string, tag="3")]
     pub mint_authority_pub_key: ::prost::alloc::string::String,
     /// Optional authority that can freeze token accounts.
-    #[prost(string, tag="3")]
+    /// Leave empty to disable freeze functionality.
+    #[prost(string, tag="4")]
     pub freeze_authority_pub_key: ::prost::alloc::string::String,
     /// Number of base 10 digits to the right of the decimal place.
     /// Common values: 9 for SOL-like tokens, 6 for USDC-like tokens, 0 for NFTs.
-    #[prost(uint32, tag="4")]
+    #[prost(uint32, tag="5")]
     pub decimals: u32,
     /// Ordered list of extensions to enable on the mint.
-    /// NOTE: If an extension is not included here during initialization,
-    /// it cannot be added to the mint account later.
-    #[prost(message, repeated, tag="5")]
+    /// NOTE: If extensions are not included here during initialization,
+    /// they cannot be added to the mint account later.
+    #[prost(message, repeated, tag="6")]
     pub extensions: ::prost::alloc::vec::Vec<Token2022Extension>,
 }
-/// Response containing Token-2022 InitialiseMint instructions.
-/// Multiple instructions are returned when extensions are requested
-/// (e.g. metadata pointer initialisation precedes initialize_mint,
-/// and token-metadata initialisation follows it).
+/// Response containing the complete instruction set for Token-2022 mint creation.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct InitialiseToken2022MintResponse {
+pub struct CreateToken2022MintResponse {
+    /// Ordered instructions to include in a transaction.
+    /// Includes System::CreateAccount followed by all Token-2022 initialisation instructions.
     #[prost(message, repeated, tag="1")]
     pub instructions: ::prost::alloc::vec::Vec<super::super::super::transaction::v1::SolanaInstruction>,
-}
-/// Request for the minimum rent and space required for a legacy SPL Token mint account.
-/// No parameters are needed because SPL Token mints are always exactly Mint::LEN (82 bytes).
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct GetCurrentMinRentForSplTokenMintAccountRequest {
-}
-/// Rent and space for a legacy SPL Token mint account.
-/// Pass both fields directly to the System Program's CreateAccount instruction
-/// before calling InitialiseSPLTokenMint.
-#[allow(clippy::derive_partial_eq_without_eq)]
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct GetCurrentMinRentForSplTokenMintAccountResponse {
-    /// Minimum lamports required for the account to be rent-exempt.
-    #[prost(uint64, tag="1")]
-    pub lamports: u64,
-    /// Account size in bytes to allocate (always Mint::LEN = 82 bytes).
+    /// Lamports deposited into the mint account for rent exemption.
+    /// Covers the full final account size including variable-length extension data
+    /// (e.g. token metadata) that Token-2022 allocates via realloc after creation.
     #[prost(uint64, tag="2")]
+    pub lamports: u64,
+    /// Initial account space in bytes passed to System::CreateAccount.
+    /// Covers the base mint layout and fixed-size extension pods only.
+    /// Token-2022 may realloc beyond this size for variable-length extensions.
+    #[prost(uint64, tag="3")]
     pub space: u64,
 }
-/// Request to initialise a legacy SPL Token mint.
+/// Request to create and fully initialise a legacy SPL Token mint account.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct InitialiseSplTokenMintRequest {
-    /// The public key of the Mint account to be initialized.
+pub struct CreateSplTokenMintRequest {
+    /// The public key of the account that will pay for account creation (signer).
     #[prost(string, tag="1")]
+    pub payer_pub_key: ::prost::alloc::string::String,
+    /// The public key of the Mint account to be created and initialized (signer).
+    #[prost(string, tag="2")]
     pub mint_pub_key: ::prost::alloc::string::String,
     /// The authority that can mint new tokens.
-    #[prost(string, tag="2")]
+    #[prost(string, tag="3")]
     pub mint_authority_pub_key: ::prost::alloc::string::String,
     /// Optional authority that can freeze token accounts.
-    #[prost(string, tag="3")]
+    /// Leave empty to disable freeze functionality.
+    #[prost(string, tag="4")]
     pub freeze_authority_pub_key: ::prost::alloc::string::String,
     /// Number of base 10 digits to the right of the decimal place.
     /// Common values: 9 for SOL-like tokens, 6 for USDC-like tokens, 0 for NFTs.
-    #[prost(uint32, tag="4")]
+    #[prost(uint32, tag="5")]
     pub decimals: u32,
-    /// The public key of the account paying for the Metaplex metadata PDA creation.
-    /// Required when metadata is provided.
-    #[prost(string, tag="5")]
-    pub payer_pub_key: ::prost::alloc::string::String,
     /// Optional Metaplex metadata to attach to the mint via the Metaplex Token Metadata program.
     /// When provided, a CreateMetadataAccountV3 instruction is appended after initialize_mint.
     #[prost(message, optional, tag="6")]
     pub metadata: ::core::option::Option<MetaplexTokenMetadata>,
 }
-/// Response containing SPL Token initialise_mint instructions.
-/// When metadata is requested, additional Metaplex instructions follow the base initialize_mint.
+/// Response containing the complete instruction set for SPL Token mint creation.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct InitialiseSplTokenMintResponse {
+pub struct CreateSplTokenMintResponse {
+    /// Ordered instructions to include in a transaction.
+    /// Includes System::CreateAccount, initialize_mint, and optionally CreateMetadataAccountV3.
     #[prost(message, repeated, tag="1")]
     pub instructions: ::prost::alloc::vec::Vec<super::super::super::transaction::v1::SolanaInstruction>,
+    /// Lamports deposited into the mint account for rent exemption.
+    #[prost(uint64, tag="2")]
+    pub lamports: u64,
+    /// Account space in bytes passed to System::CreateAccount (always 82 bytes for SPL Token mints).
+    #[prost(uint64, tag="3")]
+    pub space: u64,
 }
 /// Request to parse mint account
 #[allow(clippy::derive_partial_eq_without_eq)]

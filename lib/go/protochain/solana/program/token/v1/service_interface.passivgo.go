@@ -6,40 +6,36 @@ import (
 	context "context"
 )
 
-// Token Program service for creating SPL Token and Token-2022 instructions
+// Token Program service for creating SPL Token and Token-2022 instructions.
+//
+// Mint creation methods (CreateToken2022Mint, CreateSPLTokenMint) return the
+// complete set of instructions needed to create and initialise a mint account
+// in a single call — including the System::CreateAccount instruction, rent
+// calculation, and any extension/metadata setup. This removes the need for
+// callers to separately query rent, build a system create instruction, and
+// then initialise the mint.
 type ServiceInterface interface {
-	// Returns the minimum rent-exempt balance (in lamports) and the required account
-	// space (in bytes) for a Token-2022 mint account with the requested extensions.
+	// Creates a fully initialised Token-2022 mint account in one call.
 	//
-	// The returned space covers the base mint layout and fixed-size extension pods
-	// (e.g. MetadataPointer) needed by System::CreateAccount.
+	// Returns the complete ordered instruction set:
+	//   1. System::CreateAccount  — allocates and funds the mint account
+	//   2. Extension pre-init instructions (e.g. initialize_metadata_pointer)
+	//   3. initialize_mint
+	//   4. Extension post-init instructions (e.g. initialize_token_metadata, update_field × N)
 	//
-	// The returned lamports cover the **full** final account size — including
-	// variable-length metadata content that Token-2022 allocates via realloc
-	// during initialize_token_metadata — so the account remains rent-exempt after
-	// resizing. Pass both values directly to System::CreateAccount.
-	//
-	// Provide the same extension set you intend to pass to InitialiseToken2022Mint
-	// so that the returned values are consistent.
-	GetCurrentMinRentForToken2022MintAccount(ctx context.Context, request *GetCurrentMinRentForToken2022MintAccountRequest) (*GetCurrentMinRentForToken2022MintAccountResponse, error)
+	// The response also includes the lamports deposited and the space allocated
+	// for the account, so callers know the cost without a separate query.
+	CreateToken2022Mint(ctx context.Context, request *CreateToken2022MintRequest) (*CreateToken2022MintResponse, error)
 
-	// Creates initialisation instructions for a Token-2022 mint with optional extensions.
-	// The instruction sequence depends on the requested extensions.
-	// With the Metadata extension the order is:
-	//   metadata_pointer_init → initialize_mint → token_metadata_init → update_field × N
-	// Without extensions only initialize_mint is returned.
-	InitialiseToken2022Mint(ctx context.Context, request *InitialiseToken2022MintRequest) (*InitialiseToken2022MintResponse, error)
-
-	// Returns the minimum rent-exempt balance (in lamports) and the required account
-	// space (in bytes) for a legacy SPL Token mint account.
+	// Creates a fully initialised legacy SPL Token mint account in one call.
 	//
-	// Legacy SPL Token mints are always exactly Mint::LEN (82 bytes) with no
-	// extension support, so no additional parameters are needed.
-	GetCurrentMinRentForSPLTokenMintAccount(ctx context.Context, request *GetCurrentMinRentForSPLTokenMintAccountRequest) (*GetCurrentMinRentForSPLTokenMintAccountResponse, error)
-
-	// Creates a single initialise_mint instruction for the legacy SPL Token program.
-	// Extensions are not supported.
-	InitialiseSPLTokenMint(ctx context.Context, request *InitialiseSPLTokenMintRequest) (*InitialiseSPLTokenMintResponse, error)
+	// Returns the complete ordered instruction set:
+	//   1. System::CreateAccount  — allocates and funds the mint account (always 82 bytes)
+	//   2. initialize_mint
+	//   3. (optional) CreateMetadataAccountV3 — Metaplex on-chain metadata PDA
+	//
+	// The response also includes the lamports deposited and the space allocated.
+	CreateSPLTokenMint(ctx context.Context, request *CreateSPLTokenMintRequest) (*CreateSPLTokenMintResponse, error)
 
 	// Parses mint account data into structured format
 	//

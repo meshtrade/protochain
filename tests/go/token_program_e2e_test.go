@@ -13,7 +13,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	account_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/account/v1"
-	system_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/program/system/v1"
 	token_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1"
 	transaction_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/transaction/v1"
 	type_v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/type/v1"
@@ -23,13 +22,12 @@ import (
 // TokenProgramE2ETestSuite tests the Token Program service functionality
 type TokenProgramE2ETestSuite struct {
 	suite.Suite
-	ctx                  context.Context
-	cancel               context.CancelFunc
-	grpcConn             *grpc.ClientConn
-	accountService       account_v1.ServiceClient
-	transactionService   transaction_v1.ServiceClient
-	systemProgramService system_v1.ServiceClient
-	tokenProgramService  token_v1.ServiceClient
+	ctx                 context.Context
+	cancel              context.CancelFunc
+	grpcConn            *grpc.ClientConn
+	accountService      account_v1.ServiceClient
+	transactionService  transaction_v1.ServiceClient
+	tokenProgramService token_v1.ServiceClient
 }
 
 func (suite *TokenProgramE2ETestSuite) SetupSuite() {
@@ -55,7 +53,6 @@ func (suite *TokenProgramE2ETestSuite) SetupSuite() {
 	// Initialize service clients
 	suite.accountService = account_v1.NewServiceClient(suite.grpcConn)
 	suite.transactionService = transaction_v1.NewServiceClient(suite.grpcConn)
-	suite.systemProgramService = system_v1.NewServiceClient(suite.grpcConn)
 	suite.tokenProgramService = token_v1.NewServiceClient(suite.grpcConn)
 
 	suite.T().Logf("✅ Token Program test suite setup complete")
@@ -70,8 +67,8 @@ func (suite *TokenProgramE2ETestSuite) TearDownSuite() {
 	}
 }
 
-// Test_01_InitialiseMint_TOKEN2022 tests Token-2022 mint creation with metadata extension
-func (suite *TokenProgramE2ETestSuite) Test_01_InitialiseMint_TOKEN2022() {
+// Test_01_CreateMint_TOKEN2022 tests Token-2022 mint creation with metadata extension
+func (suite *TokenProgramE2ETestSuite) Test_01_CreateMint_TOKEN2022() {
 	suite.T().Log("🎯 Testing Token 2022 Mint Creation with Metadata Extension")
 
 	// Generate payer account
@@ -108,45 +105,28 @@ func (suite *TokenProgramE2ETestSuite) Test_01_InitialiseMint_TOKEN2022() {
 		},
 	}
 
-	// Get current rent for Token-2022 mint account WITH metadata extension
-	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForToken2022MintAccount(suite.ctx, &token_v1.GetCurrentMinRentForToken2022MintAccountRequest{
-		Extensions: []*token_v1.Token2022Extension{metadataExtension},
-	})
-	suite.Require().NoError(err, "Should get current rent amount")
-	suite.Require().NotZero(rentResp.Space, "Space should not be zero")
-	suite.Assert().Greater(rentResp.Space, uint64(token_v1.MINT_ACCOUNT_LEN), "Space with metadata should exceed base mint size")
-	suite.T().Logf("  Rent required for mint with metadata: %d lamports (space: %d bytes)", rentResp.Lamports, rentResp.Space)
-
-	// Create mint account instruction using space from rent response
-	createMintInstr, err := suite.systemProgramService.Create(suite.ctx, &system_v1.CreateRequest{
-		Payer:      payKeyResp.KeyPair.PublicKey,
-		NewAccount: mintKeyResp.KeyPair.PublicKey,
-		Owner:      token_v1.TOKEN_2022_PROGRAM_ID,
-		Lamports:   rentResp.Lamports,
-		Space:      rentResp.Space,
-	})
-	suite.Require().NoError(err, "Should create mint account instruction")
-
-	// Initialize mint instruction with metadata extension
-	initialiseMintResp, err := suite.tokenProgramService.InitialiseToken2022Mint(suite.ctx, &token_v1.InitialiseToken2022MintRequest{
+	// Create Token-2022 mint in one call (includes system create + all init instructions)
+	createMintResp, err := suite.tokenProgramService.CreateToken2022Mint(suite.ctx, &token_v1.CreateToken2022MintRequest{
+		PayerPubKey:           payKeyResp.KeyPair.PublicKey,
 		MintPubKey:            mintKeyResp.KeyPair.PublicKey,
 		MintAuthorityPubKey:   payKeyResp.KeyPair.PublicKey,
 		FreezeAuthorityPubKey: payKeyResp.KeyPair.PublicKey,
 		Decimals:              2,
 		Extensions:            []*token_v1.Token2022Extension{metadataExtension},
 	})
-	suite.Require().NoError(err, "Should create initialise mint instructions")
-	// With metadata: metadata_pointer_init + initialize_mint + token_metadata_init + update_field(description)
-	suite.Require().Len(initialiseMintResp.Instructions, 4,
-		"Should return 4 instructions: metadata_pointer_init, initialize_mint, token_metadata_init, update_field")
-	suite.T().Logf("  InitialiseMint returned %d instructions", len(initialiseMintResp.Instructions))
+	suite.Require().NoError(err, "Should create Token-2022 mint")
+	suite.Require().NotZero(createMintResp.Lamports, "Lamports should not be zero")
+	suite.Require().NotZero(createMintResp.Space, "Space should not be zero")
+	suite.Assert().Greater(createMintResp.Space, uint64(token_v1.MINT_ACCOUNT_LEN), "Space with metadata should exceed base mint size")
+	// With metadata: system_create + metadata_pointer_init + initialize_mint + token_metadata_init + update_field(description)
+	suite.Require().Len(createMintResp.Instructions, 5,
+		"Should return 5 instructions: system_create, metadata_pointer_init, initialize_mint, token_metadata_init, update_field")
+	suite.T().Logf("  CreateToken2022Mint returned %d instructions (lamports: %d, space: %d)",
+		len(createMintResp.Instructions), createMintResp.Lamports, createMintResp.Space)
 
-	// Compose atomic transaction: system create + all init instructions
-	instructions := []*transaction_v1.SolanaInstruction{createMintInstr.Instruction}
-	instructions = append(instructions, initialiseMintResp.Instructions...)
-
+	// Compose atomic transaction
 	atomicTx := &transaction_v1.Transaction{
-		Instructions: instructions,
+		Instructions: createMintResp.Instructions,
 		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 	}
 
@@ -223,8 +203,8 @@ func (suite *TokenProgramE2ETestSuite) Test_01_InitialiseMint_TOKEN2022() {
 	suite.T().Logf("   Supply: %s", parsedMint.Mint.Supply)
 }
 
-// Test_02_InitialiseMint_SPL tests legacy SPL Token mint creation
-func (suite *TokenProgramE2ETestSuite) Test_02_InitialiseMint_SPL() {
+// Test_02_CreateMint_SPL tests legacy SPL Token mint creation
+func (suite *TokenProgramE2ETestSuite) Test_02_CreateMint_SPL() {
 	suite.T().Log("🎯 Testing Legacy SPL Token Mint Creation")
 
 	// Generate payer account
@@ -247,28 +227,13 @@ func (suite *TokenProgramE2ETestSuite) Test_02_InitialiseMint_SPL() {
 	suite.Require().NoError(err, "Should generate mint keypair")
 	suite.T().Logf("  Generated mint account: %s", mintKeyResp.KeyPair.PublicKey)
 
-	// SPL legacy mint: fixed 82 bytes, no extensions
-	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForSPLTokenMintAccount(suite.ctx, &token_v1.GetCurrentMinRentForSPLTokenMintAccountRequest{})
-	suite.Require().NoError(err, "Should get current rent amount")
-	suite.T().Logf("  Rent required for SPL mint: %d lamports", rentResp.Lamports)
-
-	// Create mint account instruction with SPL Token program as owner
-	createMintInstr, err := suite.systemProgramService.Create(suite.ctx, &system_v1.CreateRequest{
-		Payer:      payKeyResp.KeyPair.PublicKey,
-		NewAccount: mintKeyResp.KeyPair.PublicKey,
-		Owner:      token_v1.SPL_TOKEN_PROGRAM_ID,
-		Lamports:   rentResp.Lamports,
-		Space:      token_v1.MINT_ACCOUNT_LEN,
-	})
-	suite.Require().NoError(err, "Should create SPL mint account instruction")
-
-	// Initialize mint instruction for legacy SPL Token program with Metaplex metadata
-	initialiseMintResp, err := suite.tokenProgramService.InitialiseSPLTokenMint(suite.ctx, &token_v1.InitialiseSPLTokenMintRequest{
+	// Create SPL Token mint in one call (includes system create + init + metadata)
+	createMintResp, err := suite.tokenProgramService.CreateSPLTokenMint(suite.ctx, &token_v1.CreateSPLTokenMintRequest{
+		PayerPubKey:           payKeyResp.KeyPair.PublicKey,
 		MintPubKey:            mintKeyResp.KeyPair.PublicKey,
 		MintAuthorityPubKey:   payKeyResp.KeyPair.PublicKey,
 		FreezeAuthorityPubKey: payKeyResp.KeyPair.PublicKey,
 		Decimals:              6,
-		PayerPubKey:           payKeyResp.KeyPair.PublicKey,
 		Metadata: &token_v1.MetaplexTokenMetadata{
 			Name:                 "Test SPL Token",
 			Symbol:               "TSPL",
@@ -276,16 +241,18 @@ func (suite *TokenProgramE2ETestSuite) Test_02_InitialiseMint_SPL() {
 			SellerFeeBasisPoints: 0,
 		},
 	})
-	suite.Require().NoError(err, "Should create SPL initialise mint instructions")
-	suite.Require().Len(initialiseMintResp.Instructions, 2,
-		"Should return 2 instructions: initialize_mint + create_metadata_account_v3")
-	suite.T().Logf("  InitialiseSPLTokenMint returned %d instructions", len(initialiseMintResp.Instructions))
+	suite.Require().NoError(err, "Should create SPL Token mint")
+	suite.Require().NotZero(createMintResp.Lamports, "Lamports should not be zero")
+	suite.Assert().Equal(uint64(token_v1.MINT_ACCOUNT_LEN), createMintResp.Space, "SPL Token mint should be exactly MINT_ACCOUNT_LEN bytes")
+	// system_create + initialize_mint + create_metadata_account_v3
+	suite.Require().Len(createMintResp.Instructions, 3,
+		"Should return 3 instructions: system_create, initialize_mint, create_metadata_account_v3")
+	suite.T().Logf("  CreateSPLTokenMint returned %d instructions (lamports: %d, space: %d)",
+		len(createMintResp.Instructions), createMintResp.Lamports, createMintResp.Space)
 
-	// Compose atomic transaction: system create + init mint + create metadata
-	instructions := []*transaction_v1.SolanaInstruction{createMintInstr.Instruction}
-	instructions = append(instructions, initialiseMintResp.Instructions...)
+	// Compose atomic transaction
 	atomicTx := &transaction_v1.Transaction{
-		Instructions: instructions,
+		Instructions: createMintResp.Instructions,
 		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 	}
 
@@ -347,42 +314,6 @@ func (suite *TokenProgramE2ETestSuite) Test_02_InitialiseMint_SPL() {
 	suite.T().Logf("   Authority: %s", parsedMint.Mint.MintAuthorityPubKey)
 	suite.T().Logf("   Supply: %s", parsedMint.Mint.Supply)
 	suite.T().Logf("   Metaplex Metadata: name=\"Test SPL Token\" symbol=\"TSPL\"")
-}
-
-// Test_03_GetCurrentMinRentForMintAccount tests rent calculation for both Token-2022 and SPL Token
-func (suite *TokenProgramE2ETestSuite) Test_03_GetCurrentMinRentForMintAccount() {
-	suite.T().Log("🎯 Testing Token Account Rent Calculation")
-
-	// Test Token-2022 mint rent (no extensions)
-	token2022Resp, err := suite.tokenProgramService.GetCurrentMinRentForToken2022MintAccount(suite.ctx, &token_v1.GetCurrentMinRentForToken2022MintAccountRequest{})
-	suite.Require().NoError(err, "Should get Token-2022 rent successfully")
-	suite.Require().NotZero(token2022Resp.Lamports, "Token-2022 rent should not be zero")
-	suite.Assert().Greater(token2022Resp.Lamports, uint64(1_000_000), "Token-2022 rent should be at least 1M lamports")
-	suite.T().Logf("  Token-2022 mint account rent (no extensions): %d lamports (space: %d bytes)", token2022Resp.Lamports, token2022Resp.Space)
-
-	// Test Token-2022 mint rent with metadata extension
-	token2022MetaResp, err := suite.tokenProgramService.GetCurrentMinRentForToken2022MintAccount(suite.ctx, &token_v1.GetCurrentMinRentForToken2022MintAccountRequest{
-		Extensions: []*token_v1.Token2022Extension{{
-			Extension: &token_v1.Token2022Extension_Metadata{
-				Metadata: &token_v1.Token2022ExtensionMetadata{
-					Name:   "Test Token",
-					Symbol: "TST",
-					Uri:    "https://example.com/metadata.json",
-				},
-			},
-		}},
-	})
-	suite.Require().NoError(err, "Should get Token-2022 metadata rent successfully")
-	suite.Assert().Greater(token2022MetaResp.Space, token2022Resp.Space, "Token-2022 with metadata should require more space")
-	suite.T().Logf("  Token-2022 mint account rent (with metadata): %d lamports (space: %d bytes)", token2022MetaResp.Lamports, token2022MetaResp.Space)
-
-	// Test SPL Token mint rent
-	splResp, err := suite.tokenProgramService.GetCurrentMinRentForSPLTokenMintAccount(suite.ctx, &token_v1.GetCurrentMinRentForSPLTokenMintAccountRequest{})
-	suite.Require().NoError(err, "Should get SPL Token rent successfully")
-	suite.Require().NotZero(splResp.Lamports, "SPL Token rent should not be zero")
-	suite.Assert().Equal(uint64(token_v1.MINT_ACCOUNT_LEN), splResp.Space, "SPL Token mint should be exactly MINT_ACCOUNT_LEN bytes")
-	suite.Assert().Greater(splResp.Lamports, uint64(1_000_000), "SPL Token rent should be at least 1M lamports")
-	suite.T().Logf("  SPL Token mint account rent: %d lamports (space: %d bytes)", splResp.Lamports, splResp.Space)
 }
 
 // Test_03_5_GetCurrentMinRentForHoldingAccount tests rent calculation for holding accounts
@@ -459,35 +390,20 @@ func (suite *TokenProgramE2ETestSuite) Test_04_Mint_e2e() {
 	suite.Require().NoError(err, "Should generate mint keypair")
 	suite.T().Logf("  Generated mint account: %s", mintKeyResp.KeyPair.PublicKey)
 
-	// Get current rent for Token-2022 mint account (no extensions)
-	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForToken2022MintAccount(suite.ctx, &token_v1.GetCurrentMinRentForToken2022MintAccountRequest{})
-	suite.Require().NoError(err, "Should get current rent amount")
-	suite.T().Logf("  Rent required for mint: %d lamports", rentResp.Lamports)
-
-	// Create mint account instruction (system program)
-	createMintInstr, err := suite.systemProgramService.Create(suite.ctx, &system_v1.CreateRequest{
-		Payer:      payKeyResp.KeyPair.PublicKey,
-		NewAccount: mintKeyResp.KeyPair.PublicKey,
-		Owner:      token_v1.TOKEN_2022_PROGRAM_ID, // Token 2022 program as owner
-		Lamports:   rentResp.Lamports,
-		Space:      token_v1.MINT_ACCOUNT_LEN,
-	})
-	suite.Require().NoError(err, "Should create mint account instruction")
-
-	// Initialize mint instructions (token program)
-	initialiseMintResp, err := suite.tokenProgramService.InitialiseToken2022Mint(suite.ctx, &token_v1.InitialiseToken2022MintRequest{
+	// Create Token-2022 mint in one call (no extensions)
+	createMintResp, err := suite.tokenProgramService.CreateToken2022Mint(suite.ctx, &token_v1.CreateToken2022MintRequest{
+		PayerPubKey:           payKeyResp.KeyPair.PublicKey,
 		MintPubKey:            mintKeyResp.KeyPair.PublicKey,
 		MintAuthorityPubKey:   payKeyResp.KeyPair.PublicKey,
 		FreezeAuthorityPubKey: payKeyResp.KeyPair.PublicKey,
 		Decimals:              6,
 	})
-	suite.Require().NoError(err, "Should create initialise mint instructions")
+	suite.Require().NoError(err, "Should create Token-2022 mint")
+	suite.T().Logf("  CreateToken2022Mint returned %d instructions (lamports: %d)", len(createMintResp.Instructions), createMintResp.Lamports)
 
-	// Compose atomic transaction: system create + all init instructions
-	instructions := []*transaction_v1.SolanaInstruction{createMintInstr.Instruction}
-	instructions = append(instructions, initialiseMintResp.Instructions...)
+	// Compose atomic transaction
 	atomicTx := &transaction_v1.Transaction{
-		Instructions: instructions,
+		Instructions: createMintResp.Instructions,
 		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 	}
 	suite.T().Logf("  Composed atomic transaction with %d instructions", len(atomicTx.Instructions))
@@ -499,7 +415,7 @@ func (suite *TokenProgramE2ETestSuite) Test_04_Mint_e2e() {
 	})
 	suite.Require().NoError(err, "Should compile transaction")
 
-	// Sign transaction (payer for fees and mint creation; ATA is derived so doesn't sign)
+	// Sign transaction (payer for fees and mint creation)
 	signedTx, err := suite.transactionService.SignTransaction(suite.ctx, &transaction_v1.SignTransactionRequest{
 		Transaction: compiledTx.Transaction,
 		SigningMethod: &transaction_v1.SignTransactionRequest_PrivateKeys{
@@ -566,34 +482,19 @@ func (suite *TokenProgramE2ETestSuite) Test_05_Token_e2e() {
 	suite.Require().NoError(err, "Should generate mint keypair")
 	suite.T().Logf("  Generated mint account: %s", mintKeyResp.KeyPair.PublicKey)
 
-	// Get current rent for Token-2022 mint account (no extensions)
-	rentResp, err := suite.tokenProgramService.GetCurrentMinRentForToken2022MintAccount(suite.ctx, &token_v1.GetCurrentMinRentForToken2022MintAccountRequest{})
-	suite.Require().NoError(err, "Should get current rent amount")
-	suite.T().Logf("  Rent required for mint: %d lamports", rentResp.Lamports)
-
-	// Create mint account instruction (system program)
-	createMintInstr, err := suite.systemProgramService.Create(suite.ctx, &system_v1.CreateRequest{
-		Payer:      payKeyResp.KeyPair.PublicKey,
-		NewAccount: mintKeyResp.KeyPair.PublicKey,
-		Owner:      token_v1.TOKEN_2022_PROGRAM_ID, // Token 2022 program as owner
-		Lamports:   rentResp.Lamports,
-		Space:      token_v1.MINT_ACCOUNT_LEN,
-	})
-	suite.Require().NoError(err, "Should create mint account instruction")
-
-	// Initialize mint instructions (token program)
-	initialiseMintResp, err := suite.tokenProgramService.InitialiseToken2022Mint(suite.ctx, &token_v1.InitialiseToken2022MintRequest{
+	// Create Token-2022 mint in one call (no extensions)
+	createMintResp, err := suite.tokenProgramService.CreateToken2022Mint(suite.ctx, &token_v1.CreateToken2022MintRequest{
+		PayerPubKey:           payKeyResp.KeyPair.PublicKey,
 		MintPubKey:            mintKeyResp.KeyPair.PublicKey,
 		MintAuthorityPubKey:   payKeyResp.KeyPair.PublicKey,
 		FreezeAuthorityPubKey: payKeyResp.KeyPair.PublicKey,
 		Decimals:              6,
 	})
-	suite.Require().NoError(err, "Should create initialise mint instructions")
+	suite.Require().NoError(err, "Should create Token-2022 mint")
+	suite.T().Logf("  CreateToken2022Mint returned %d instructions (lamports: %d)", len(createMintResp.Instructions), createMintResp.Lamports)
 
-	mintInstructions := []*transaction_v1.SolanaInstruction{createMintInstr.Instruction}
-	mintInstructions = append(mintInstructions, initialiseMintResp.Instructions...)
 	createMintTxn := &transaction_v1.Transaction{
-		Instructions: mintInstructions,
+		Instructions: createMintResp.Instructions,
 		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
 	}
 
@@ -604,7 +505,7 @@ func (suite *TokenProgramE2ETestSuite) Test_05_Token_e2e() {
 	})
 	suite.Require().NoError(err, "Should compile transaction")
 
-	// Sign transaction (payer for fees and mint creation; ATA is derived so doesn't sign)
+	// Sign transaction (payer for fees and mint creation)
 	signedCreateMintTxn, err := suite.transactionService.SignTransaction(suite.ctx, &transaction_v1.SignTransactionRequest{
 		Transaction: compiledCreateMintTxn.Transaction,
 		SigningMethod: &transaction_v1.SignTransactionRequest_PrivateKeys{
