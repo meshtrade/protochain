@@ -112,7 +112,7 @@ func discoverCredentials() string {
 	}
 
 	// Check if the default path exists
-	if _, err := os.Stat(defaultPath); err == nil {
+	if _, err := os.Stat(defaultPath); err == nil { //nolint:gosec // path is constructed from well-known system directories, not user input
 		return defaultPath
 	}
 
