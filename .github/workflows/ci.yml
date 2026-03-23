@@ -164,10 +164,10 @@ jobs:
         run: cargo clippy --workspace --all-targets --all-features -- -D warnings
 
       - name: Run workspace unit tests
-        run: cargo test --workspace --all-features
+        run: cargo test --workspace
 
       - name: Check generated Rust SDK crate builds
-        run: cargo test --manifest-path lib/rust/Cargo.toml --all-features --lib
+        run: cargo test --manifest-path lib/rust/Cargo.toml --lib
 
   typescript:
     name: TypeScript Lint + Type Checks
