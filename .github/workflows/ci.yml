@@ -164,7 +164,12 @@ jobs:
         run: cargo clippy --workspace --all-targets -- -D warnings
 
       - name: Run workspace unit tests
-        run: cargo test --workspace --lib
+        # RUSTFLAGS=-Clink-arg=-zmuldefs works around a duplicate `entrypoint`
+        # symbol from spl-token-2022 and spl-associated-token-account on Linux.
+        # Both crates unconditionally compile solana-program-entrypoint even
+        # with default-features=false; the duplicate is harmless (identical
+        # weak symbols) but lld on Linux treats it as a hard error.
+        run: RUSTFLAGS="${RUSTFLAGS:+$RUSTFLAGS }-Clink-arg=-zmuldefs" cargo test --workspace
 
       - name: Check generated Rust SDK crate builds
         run: cargo test --manifest-path lib/rust/Cargo.toml --lib
