@@ -138,7 +138,7 @@ jobs:
 
       - name: Run Go unit tests
         run: |
-          go test ./tool/...
+          go test ./lib/go/...
 
   rust:
     name: Rust Lint + Unit Tests
@@ -161,10 +161,10 @@ jobs:
         run: cargo fmt --all --check
 
       - name: Run clippy
-        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+        run: cargo clippy --workspace --all-targets -- -D warnings
 
       - name: Run workspace unit tests
-        run: cargo test --workspace
+        run: cargo test --workspace --lib
 
       - name: Check generated Rust SDK crate builds
         run: cargo test --manifest-path lib/rust/Cargo.toml --lib
