@@ -53,9 +53,8 @@ jobs:
             typescript:
               - 'package.json'
               - 'yarn.lock'
-              - 'lib/ts/**'
-              - 'tests/ts/**'
-              - 'ui/**'
+              - 'lib/ts-web/**'
+              - 'tool/protoc-gen/cmd/protochain_ts_web/**'
               - 'scripts/lint/ts.sh'
 
   proto:
@@ -71,6 +70,18 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
 
       - name: Setup buf
         uses: bufbuild/buf-setup-action@v1
@@ -107,7 +118,7 @@ jobs:
 
       - name: Install linters
         run: |
-          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
           go install golang.org/x/tools/cmd/goimports@latest
 
       - name: Run golangci-lint
@@ -180,7 +191,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Build TypeScript SDK
-        run: yarn workspace @protochain/api build
+        run: yarn workspace @protochain/ts-web build
 
       - name: Lint all workspaces
         run: yarn workspaces run lint
