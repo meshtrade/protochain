@@ -8,31 +8,6 @@ use solana_sdk::pubkey::Pubkey;
 use spl_token::id as spl_token_id;
 use spl_token_2022::id as spl_token_2022_id;
 
-/// Converts a protobuf `TokenProgram` enum to the corresponding Solana SDK program ID
-///
-/// Maps the protobuf token program definition to the actual Solana blockchain
-/// program ID that should be used for token operations.
-///
-/// # Arguments
-/// * `token_program` - The protobuf `TokenProgram` enum value
-///
-/// # Returns
-/// * `Ok(Pubkey)` - The corresponding Solana token program ID
-/// * `Err(String)` - Error if the token program is UNSPECIFIED or unknown
-///
-/// # Token Programs
-/// - **Legacy**: SPL Token Program (Token-v1)
-/// - **2022**: Token Extensions Program (Token-v2022)
-pub fn proto_token_program_to_sdk(token_program: TokenProgram) -> Result<Pubkey, String> {
-    match token_program {
-        TokenProgram::Unspecified => {
-            Err("TokenProgram must be specified (cannot be UNSPECIFIED)".to_string())
-        }
-        TokenProgram::Legacy => Ok(spl_token_id()),
-        TokenProgram::TokenProgram2022 => Ok(spl_token_2022_id()),
-    }
-}
-
 /// Converts a Solana SDK token program ID to the corresponding protobuf `TokenProgram`
 ///
 /// Maps a Solana token program ID back to its protobuf representation.
@@ -52,21 +27,20 @@ pub fn sdk_token_program_to_proto(program_id: &Pubkey) -> TokenProgram {
     }
 }
 
-/// Gets the Solana SDK token program ID for a protobuf `TokenProgram` enum value
-///
-/// # Arguments
-/// * `token_program` - The protobuf `TokenProgram` enum value
-///
-/// # Returns
-/// * `Ok(Pubkey)` - The corresponding Solana token program ID
-/// * `Err(String)` - Error if the token program is UNSPECIFIED
-pub fn get_token_program_id(token_program: TokenProgram) -> Result<Pubkey, String> {
-    proto_token_program_to_sdk(token_program)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Converts a protobuf `TokenProgram` enum to the corresponding Solana SDK program ID.
+    fn proto_token_program_to_sdk(token_program: TokenProgram) -> Result<Pubkey, String> {
+        match token_program {
+            TokenProgram::Unspecified => {
+                Err("TokenProgram must be specified (cannot be UNSPECIFIED)".to_string())
+            }
+            TokenProgram::Legacy => Ok(spl_token_id()),
+            TokenProgram::TokenProgram2022 => Ok(spl_token_2022_id()),
+        }
+    }
 
     #[test]
     fn test_proto_to_sdk_legacy() {
@@ -135,31 +109,5 @@ mod tests {
         };
         let converted = sdk_token_program_to_proto(&program_id);
         assert_eq!(original, converted);
-    }
-
-    #[test]
-    fn test_get_token_program_id_legacy() {
-        let Ok(program_id) = get_token_program_id(TokenProgram::Legacy) else {
-            unreachable!("Legacy should convert successfully")
-        };
-        assert_eq!(program_id, spl_token_id());
-    }
-
-    #[test]
-    fn test_get_token_program_id_token_2022() {
-        let Ok(program_id) = get_token_program_id(TokenProgram::TokenProgram2022) else {
-            unreachable!("TokenProgram2022 should convert successfully")
-        };
-        assert_eq!(program_id, spl_token_2022_id());
-    }
-
-    #[test]
-    fn test_get_token_program_id_unspecified_returns_error() {
-        let result = get_token_program_id(TokenProgram::Unspecified);
-        assert!(result.is_err());
-        let Err(err) = result else {
-            unreachable!("Already asserted Err")
-        };
-        assert!(err.contains("TokenProgram must be specified"));
     }
 }

@@ -63,9 +63,18 @@ type ServiceInterface interface {
 	// for rent exemption.
 	CreateSPLTokenHoldingAccount(ctx context.Context, request *CreateSPLTokenHoldingAccountRequest) (*CreateSPLTokenHoldingAccountResponse, error)
 
-	// Mint tokens to an existing token account using MintToChecked instruction
+	// Mints tokens to a destination account using the MintToChecked instruction.
 	//
-	// Token Program Agnostic.
+	// Token Program Agnostic — the service reads the mint account on-chain to
+	// determine the owning token program, the mint authority, and the decimal
+	// precision.  Callers only need to supply the mint address, the destination
+	// owner's system account address, and the human-readable token amount.
+	//
+	// The Associated Token Account (ATA) for the destination owner is derived
+	// automatically from the mint and the owner address.
+	//
+	// NOTE: Multi-sig mint authorities are not yet supported.  The on-chain mint
+	// authority must be a single key-pair signer.
 	Mint(ctx context.Context, request *MintRequest) (*MintResponse, error)
 }
 

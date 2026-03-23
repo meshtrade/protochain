@@ -630,13 +630,12 @@ func (suite *TokenProgramE2ETestSuite) Test_05_Token_e2e() {
 	suite.Require().NotEmpty(holdingAccountResp.Account.Data, "Holding account should have data")
 
 	// BUILD INSTRUCTION to mint tokens into the holding account
-	mintAmount := "1000000" // 1 token with 6 decimals
+	mintAmount := "1.0"         // 1 token (human-readable; the API resolves decimals from the mint)
+	expectedSupply := "1000000" // 1.0 token with 6 decimals = 1_000_000 base units
 	mintInstr, err := suite.tokenProgramService.Mint(suite.ctx, &token_v1.MintRequest{
-		MintPubKey:               mintKeyResp.KeyPair.PublicKey,
-		DestinationAccountPubKey: ataAddressResp.Address,       // mint into the token account
-		MintAuthorityPubKey:      payKeyResp.KeyPair.PublicKey, // payer is the mint authority
-		Amount:                   mintAmount,
-		Decimals:                 6, // Must match mint decimals
+		MintPubKey:             mintKeyResp.KeyPair.PublicKey,
+		DestinationOwnerPubKey: walletAccKeyResp.KeyPair.PublicKey, // owner system account — ATA is derived by the API
+		Amount:                 mintAmount,
 	})
 	suite.Require().NoError(err, "Should create mint instruction")
 	suite.T().Logf("  Created mint instruction for %s tokens", mintAmount)
@@ -697,7 +696,7 @@ func (suite *TokenProgramE2ETestSuite) Test_05_Token_e2e() {
 		})
 		suite.Require().NoError(err, "Should parse mint account after minting (attempt %d)", attempt)
 
-		if parsedMintAfterMinting != nil && parsedMintAfterMinting.Mint != nil && parsedMintAfterMinting.Mint.Supply == mintAmount {
+		if parsedMintAfterMinting != nil && parsedMintAfterMinting.Mint != nil && parsedMintAfterMinting.Mint.Supply == expectedSupply {
 			break
 		}
 
@@ -707,7 +706,7 @@ func (suite *TokenProgramE2ETestSuite) Test_05_Token_e2e() {
 	}
 	suite.Require().NotNil(parsedMintAfterMinting, "ParseMint response should not be nil after minting")
 	suite.Require().NotNil(parsedMintAfterMinting.Mint, "Parsed mint should not be nil after minting")
-	suite.Assert().Equal(mintAmount, parsedMintAfterMinting.Mint.Supply, "Mint supply should match minted amount")
+	suite.Assert().Equal(expectedSupply, parsedMintAfterMinting.Mint.Supply, "Mint supply should match minted amount in base units")
 
 	suite.T().Logf("✅ Complete mint + holding account creation + minting verified successfully:")
 	suite.T().Logf("   Mint Address: %s", mintKeyResp.KeyPair.PublicKey)

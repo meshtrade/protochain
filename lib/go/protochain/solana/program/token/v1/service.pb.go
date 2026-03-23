@@ -789,16 +789,38 @@ func (x *CreateSPLTokenHoldingAccountResponse) GetLamports() uint64 {
 	return 0
 }
 
-// Request to mint tokens to a token account
+// Request to mint tokens to a destination account.
+//
+// The service retrieves the mint account on-chain to resolve the mint
+// authority, decimal precision, and owning token program — so callers do not
+// need to supply those values.
+//
+// NOTE: Multi-sig mint authorities are not yet supported.
 type MintRequest struct {
-	state                    protoimpl.MessageState `protogen:"open.v1"`
-	MintPubKey               string                 `protobuf:"bytes,1,opt,name=mint_pub_key,json=mintPubKey,proto3" json:"mint_pub_key,omitempty"`                                             // The mint to mint from
-	DestinationAccountPubKey string                 `protobuf:"bytes,2,opt,name=destination_account_pub_key,json=destinationAccountPubKey,proto3" json:"destination_account_pub_key,omitempty"` // Token account to mint to
-	MintAuthorityPubKey      string                 `protobuf:"bytes,3,opt,name=mint_authority_pub_key,json=mintAuthorityPubKey,proto3" json:"mint_authority_pub_key,omitempty"`                // Authority that can mint tokens
-	Amount                   string                 `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount,omitempty"`                                                                         // Amount to mint (as string to handle large numbers)
-	Decimals                 uint32                 `protobuf:"varint,5,opt,name=decimals,proto3" json:"decimals,omitempty"`                                                                    // Expected decimals for validation
-	unknownFields            protoimpl.UnknownFields
-	sizeCache                protoimpl.SizeCache
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Public key of the token mint to mint from.
+	MintPubKey string `protobuf:"bytes,1,opt,name=mint_pub_key,json=mintPubKey,proto3" json:"mint_pub_key,omitempty"`
+	// Public key of the **system account** (wallet) that owns the destination
+	// token account.  The Associated Token Account (ATA) is derived
+	// automatically from this owner and the mint.
+	//
+	// Do NOT pass the ATA address itself — pass the owner's system account.
+	DestinationOwnerPubKey string `protobuf:"bytes,2,opt,name=destination_owner_pub_key,json=destinationOwnerPubKey,proto3" json:"destination_owner_pub_key,omitempty"`
+	// Human-readable token amount as a decimal string.
+	//
+	// Express the amount in whole-token units (e.g. "1.5" for one-and-a-half
+	// tokens).  The service converts this to the on-chain base-unit
+	// representation using the mint's decimal precision.
+	//
+	// Examples (assuming 6 decimals):
+	//
+	//	"1.0"     → 1 000 000 base units
+	//	"0.5"     → 500 000 base units
+	//	"1000"    → 1 000 000 000 base units
+	//	"0.000001"→ 1 base unit
+	Amount        string `protobuf:"bytes,4,opt,name=amount,proto3" json:"amount,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *MintRequest) Reset() {
@@ -838,16 +860,9 @@ func (x *MintRequest) GetMintPubKey() string {
 	return ""
 }
 
-func (x *MintRequest) GetDestinationAccountPubKey() string {
+func (x *MintRequest) GetDestinationOwnerPubKey() string {
 	if x != nil {
-		return x.DestinationAccountPubKey
-	}
-	return ""
-}
-
-func (x *MintRequest) GetMintAuthorityPubKey() string {
-	if x != nil {
-		return x.MintAuthorityPubKey
+		return x.DestinationOwnerPubKey
 	}
 	return ""
 }
@@ -857,13 +872,6 @@ func (x *MintRequest) GetAmount() string {
 		return x.Amount
 	}
 	return ""
-}
-
-func (x *MintRequest) GetDecimals() uint32 {
-	if x != nil {
-		return x.Decimals
-	}
-	return 0
 }
 
 // Response containing Mint instruction
@@ -975,14 +983,12 @@ const file_protochain_solana_program_token_v1_service_proto_rawDesc = "" +
 	"mintPubKey\"\x9b\x01\n" +
 	"$CreateSPLTokenHoldingAccountResponse\x12W\n" +
 	"\finstructions\x18\x01 \x03(\v23.protochain.solana.transaction.v1.SolanaInstructionR\finstructions\x12\x1a\n" +
-	"\blamports\x18\x02 \x01(\x04R\blamports\"\xd7\x01\n" +
+	"\blamports\x18\x02 \x01(\x04R\blamports\"\x82\x01\n" +
 	"\vMintRequest\x12 \n" +
 	"\fmint_pub_key\x18\x01 \x01(\tR\n" +
-	"mintPubKey\x12=\n" +
-	"\x1bdestination_account_pub_key\x18\x02 \x01(\tR\x18destinationAccountPubKey\x123\n" +
-	"\x16mint_authority_pub_key\x18\x03 \x01(\tR\x13mintAuthorityPubKey\x12\x16\n" +
-	"\x06amount\x18\x04 \x01(\tR\x06amount\x12\x1a\n" +
-	"\bdecimals\x18\x05 \x01(\rR\bdecimals\"e\n" +
+	"mintPubKey\x129\n" +
+	"\x19destination_owner_pub_key\x18\x02 \x01(\tR\x16destinationOwnerPubKey\x12\x16\n" +
+	"\x06amount\x18\x04 \x01(\tR\x06amount\"e\n" +
 	"\fMintResponse\x12U\n" +
 	"\vinstruction\x18\x01 \x01(\v23.protochain.solana.transaction.v1.SolanaInstructionR\vinstruction2\x88\a\n" +
 	"\aService\x12\x96\x01\n" +

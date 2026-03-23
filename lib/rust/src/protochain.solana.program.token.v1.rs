@@ -383,25 +383,39 @@ pub struct CreateSplTokenHoldingAccountResponse {
     #[prost(uint64, tag="2")]
     pub lamports: u64,
 }
-/// Request to mint tokens to a token account
+/// Request to mint tokens to a destination account.
+///
+/// The service retrieves the mint account on-chain to resolve the mint
+/// authority, decimal precision, and owning token program — so callers do not
+/// need to supply those values.
+///
+/// NOTE: Multi-sig mint authorities are not yet supported.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MintRequest {
-    /// The mint to mint from
+    /// Public key of the token mint to mint from.
     #[prost(string, tag="1")]
     pub mint_pub_key: ::prost::alloc::string::String,
-    /// Token account to mint to
+    /// Public key of the **system account** (wallet) that owns the destination
+    /// token account.  The Associated Token Account (ATA) is derived
+    /// automatically from this owner and the mint.
+    ///
+    /// Do NOT pass the ATA address itself — pass the owner's system account.
     #[prost(string, tag="2")]
-    pub destination_account_pub_key: ::prost::alloc::string::String,
-    /// Authority that can mint tokens
-    #[prost(string, tag="3")]
-    pub mint_authority_pub_key: ::prost::alloc::string::String,
-    /// Amount to mint (as string to handle large numbers)
+    pub destination_owner_pub_key: ::prost::alloc::string::String,
+    /// Human-readable token amount as a decimal string.
+    ///
+    /// Express the amount in whole-token units (e.g. "1.5" for one-and-a-half
+    /// tokens).  The service converts this to the on-chain base-unit
+    /// representation using the mint's decimal precision.
+    ///
+    /// Examples (assuming 6 decimals):
+    ///    "1.0"     → 1 000 000 base units
+    ///    "0.5"     → 500 000 base units
+    ///    "1000"    → 1 000 000 000 base units
+    ///    "0.000001"→ 1 base unit
     #[prost(string, tag="4")]
     pub amount: ::prost::alloc::string::String,
-    /// Expected decimals for validation
-    #[prost(uint32, tag="5")]
-    pub decimals: u32,
 }
 /// Response containing Mint instruction
 #[allow(clippy::derive_partial_eq_without_eq)]
