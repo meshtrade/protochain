@@ -187,8 +187,19 @@ jobs:
       - name: Enable corepack
         run: corepack enable
 
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Setup buf
+        uses: bufbuild/buf-setup-action@v1
+
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+
+      - name: Generate TypeScript SDK from protos
+        run: ./scripts/code-gen/generate/all.sh
 
       - name: Build TypeScript SDK
         run: yarn workspace @protochain/ts-web build
