@@ -308,12 +308,134 @@ func (suite *TokenProgramE2ETestSuite) Test_02_CreateMint_SPL() {
 	// Legacy mints should have no extensions (metadata is stored in a separate PDA, not on the mint)
 	suite.Assert().Empty(parsedMint.Extensions, "Legacy SPL mint should have no extensions")
 
+	// Verify Metaplex metadata is returned for SPL mints with metadata
+	suite.Require().NotNil(parsedMint.MetaplexMetadata, "SPL mint with metadata should have metaplex_metadata populated")
+	suite.Assert().Equal("Test SPL Token", parsedMint.MetaplexMetadata.Name, "Metaplex metadata name should match")
+	suite.Assert().Equal("TSPL", parsedMint.MetaplexMetadata.Symbol, "Metaplex metadata symbol should match")
+	suite.Assert().Equal("https://example.com/spl-metadata.json", parsedMint.MetaplexMetadata.Uri, "Metaplex metadata URI should match")
+	suite.Assert().Equal(uint32(0), parsedMint.MetaplexMetadata.SellerFeeBasisPoints, "Seller fee basis points should match")
+
 	suite.T().Logf("✅ Legacy SPL Token Mint with Metaplex metadata created and verified successfully:")
 	suite.T().Logf("   Mint Address: %s", mintKeyResp.KeyPair.PublicKey)
 	suite.T().Logf("   Decimals: %d", parsedMint.Mint.Decimals)
 	suite.T().Logf("   Authority: %s", parsedMint.Mint.MintAuthorityPubKey)
 	suite.T().Logf("   Supply: %s", parsedMint.Mint.Supply)
-	suite.T().Logf("   Metaplex Metadata: name=\"Test SPL Token\" symbol=\"TSPL\"")
+	suite.T().Logf("   Metaplex Metadata: name=%q symbol=%q uri=%q",
+		parsedMint.MetaplexMetadata.Name, parsedMint.MetaplexMetadata.Symbol, parsedMint.MetaplexMetadata.Uri)
+}
+
+// Test_03_CreateMint_SPL_NO_META_DATA tests SPL Token mint creation without Metaplex metadata.
+// Confirms that when no metadata is provided during mint creation, ParseMint returns
+// nil for metaplex_metadata (the API gracefully handles a missing metadata PDA).
+func (suite *TokenProgramE2ETestSuite) Test_03_CreateMint_SPL_NO_META_DATA() {
+	suite.T().Log("🎯 Testing Legacy SPL Token Mint Creation WITHOUT Metadata")
+
+	// Generate payer account
+	payKeyResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
+	suite.Require().NoError(err, "Should generate payer keypair")
+
+	// Fund payer account
+	fundResp, err := suite.accountService.FundNative(suite.ctx, &account_v1.FundNativeRequest{
+		Address: payKeyResp.KeyPair.PublicKey,
+		Amount:  "5000000000", // 5 SOL
+	})
+	suite.Require().NoError(err, "Should fund payer account")
+	suite.T().Logf("  Funded payer account: %s", payKeyResp.KeyPair.PublicKey)
+
+	// Wait for airdrop confirmation via websocket monitoring (bootstrap only)
+	suite.monitorTransactionToCompletion(fundResp.GetSignature())
+
+	// Generate mint account keypair
+	mintKeyResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
+	suite.Require().NoError(err, "Should generate mint keypair")
+	suite.T().Logf("  Generated mint account: %s", mintKeyResp.KeyPair.PublicKey)
+
+	// Create SPL Token mint WITHOUT metadata (no Metadata field set)
+	createMintResp, err := suite.tokenProgramService.CreateSPLTokenMint(suite.ctx, &token_v1.CreateSPLTokenMintRequest{
+		PayerPubKey:           payKeyResp.KeyPair.PublicKey,
+		MintPubKey:            mintKeyResp.KeyPair.PublicKey,
+		MintAuthorityPubKey:   payKeyResp.KeyPair.PublicKey,
+		FreezeAuthorityPubKey: payKeyResp.KeyPair.PublicKey,
+		Decimals:              6,
+		// NOTE: No Metadata field — this is the key difference from Test_02
+	})
+	suite.Require().NoError(err, "Should create SPL Token mint without metadata")
+	suite.Require().NotZero(createMintResp.Lamports, "Lamports should not be zero")
+	suite.Assert().Equal(uint64(token_v1.MINT_ACCOUNT_LEN), createMintResp.Space, "SPL Token mint should be exactly MINT_ACCOUNT_LEN bytes")
+	// system_create + initialize_mint only (no create_metadata_account_v3)
+	suite.Require().Len(createMintResp.Instructions, 2,
+		"Should return 2 instructions: system_create, initialize_mint (no metadata)")
+	suite.T().Logf("  CreateSPLTokenMint (no metadata) returned %d instructions (lamports: %d, space: %d)",
+		len(createMintResp.Instructions), createMintResp.Lamports, createMintResp.Space)
+
+	// Compose atomic transaction
+	atomicTx := &transaction_v1.Transaction{
+		Instructions: createMintResp.Instructions,
+		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
+	}
+
+	// Execute transaction lifecycle
+	compiledTx, err := suite.transactionService.CompileTransaction(suite.ctx, &transaction_v1.CompileTransactionRequest{
+		Transaction: atomicTx,
+		FeePayer:    payKeyResp.KeyPair.PublicKey,
+	})
+	suite.Require().NoError(err, "Should compile transaction")
+
+	// Sign transaction
+	signedTx, err := suite.transactionService.SignTransaction(suite.ctx, &transaction_v1.SignTransactionRequest{
+		Transaction: compiledTx.Transaction,
+		SigningMethod: &transaction_v1.SignTransactionRequest_PrivateKeys{
+			PrivateKeys: &transaction_v1.SignWithPrivateKeys{
+				PrivateKeys: []string{
+					payKeyResp.KeyPair.PrivateKey,  // payer signature
+					mintKeyResp.KeyPair.PrivateKey, // mint account signature
+				},
+			},
+		},
+	})
+	suite.Require().NoError(err, "Should sign transaction")
+
+	// Submit transaction
+	submittedTx, err := suite.transactionService.SubmitTransaction(suite.ctx, &transaction_v1.SubmitTransactionRequest{
+		Transaction: signedTx.Transaction,
+	})
+	suite.Require().NoError(err, "Should submit transaction")
+	suite.T().Logf("  Transaction submitted: %s", submittedTx.Signature)
+
+	// Monitor transaction to confirmation via websocket before reading account state
+	suite.monitorTransactionToCompletion(submittedTx.Signature)
+
+	// Verify mint creation by parsing the account
+	parsedMint, err := suite.tokenProgramService.ParseMint(suite.ctx, &token_v1.ParseMintRequest{
+		AccountAddress: mintKeyResp.KeyPair.PublicKey,
+	})
+	suite.Require().NoError(err, "Should parse SPL mint account")
+	suite.Require().NotNil(parsedMint.Mint, "Parsed mint should not be nil")
+
+	// Validate mint properties
+	suite.Assert().Equal(uint32(6), parsedMint.Mint.Decimals, "Mint should have 6 decimals")
+	suite.Assert().Equal(payKeyResp.KeyPair.PublicKey, parsedMint.Mint.MintAuthorityPubKey, "Mint authority should match")
+	suite.Assert().Equal(payKeyResp.KeyPair.PublicKey, parsedMint.Mint.FreezeAuthorityPubKey, "Freeze authority should match")
+	suite.Assert().Equal("0", parsedMint.Mint.Supply, "Initial supply should be zero")
+	suite.Assert().True(parsedMint.Mint.IsInitialized, "Mint should be initialized")
+
+	// Verify token_program is Legacy SPL Token
+	suite.Assert().Equal(type_v1.TokenProgram_TOKEN_PROGRAM_LEGACY, parsedMint.TokenProgram,
+		"Token program should be TOKEN_PROGRAM_LEGACY")
+
+	// Legacy mints should have no extensions
+	suite.Assert().Empty(parsedMint.Extensions, "Legacy SPL mint should have no extensions")
+
+	// Verify Metaplex metadata is nil when no metadata was created
+	suite.Assert().Nil(parsedMint.MetaplexMetadata,
+		"SPL mint without metadata should have nil metaplex_metadata")
+
+	suite.T().Logf("✅ Legacy SPL Token Mint WITHOUT metadata created and verified successfully:")
+	suite.T().Logf("   Mint Address: %s", mintKeyResp.KeyPair.PublicKey)
+	suite.T().Logf("   Decimals: %d", parsedMint.Mint.Decimals)
+	suite.T().Logf("   Authority: %s", parsedMint.Mint.MintAuthorityPubKey)
+	suite.T().Logf("   Supply: %s", parsedMint.Mint.Supply)
+	suite.T().Logf("   Metaplex Metadata: nil (as expected)")
 }
 
 // Test_03_6_CreateHoldingAccountInstruction tests the split holding account creation methods

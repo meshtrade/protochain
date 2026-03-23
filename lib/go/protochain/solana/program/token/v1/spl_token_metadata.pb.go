@@ -94,9 +94,9 @@ type MetaplexTokenMetadata struct {
 	// List of creators and their royalty shares.
 	Creators []*MetaplexCreator `protobuf:"bytes,5,rep,name=creators,proto3" json:"creators,omitempty"`
 	// Optional collection information grouping this asset.
-	Collection *MetaplexCollection `protobuf:"bytes,6,opt,name=collection,proto3,oneof" json:"collection,omitempty"`
+	Collection *MetaplexCollection `protobuf:"bytes,6,opt,name=collection,proto3" json:"collection,omitempty"`
 	// Optional usage restrictions/rules (primarily for gaming or limited-use assets).
-	Uses          *MetaplexUses `protobuf:"bytes,7,opt,name=uses,proto3,oneof" json:"uses,omitempty"`
+	Uses          *MetaplexUses `protobuf:"bytes,7,opt,name=uses,proto3" json:"uses,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -367,19 +367,17 @@ var File_protochain_solana_program_token_v1_spl_token_metadata_proto protoreflec
 
 const file_protochain_solana_program_token_v1_spl_token_metadata_proto_rawDesc = "" +
 	"\n" +
-	";protochain/solana/program/token/v1/spl_token_metadata.proto\x12\"protochain.solana.program.token.v1\"\x9d\x03\n" +
+	";protochain/solana/program/token/v1/spl_token_metadata.proto\x12\"protochain.solana.program.token.v1\"\xfb\x02\n" +
 	"\x15MetaplexTokenMetadata\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x16\n" +
 	"\x06symbol\x18\x02 \x01(\tR\x06symbol\x12\x10\n" +
 	"\x03uri\x18\x03 \x01(\tR\x03uri\x125\n" +
 	"\x17seller_fee_basis_points\x18\x04 \x01(\rR\x14sellerFeeBasisPoints\x12O\n" +
-	"\bcreators\x18\x05 \x03(\v23.protochain.solana.program.token.v1.MetaplexCreatorR\bcreators\x12[\n" +
+	"\bcreators\x18\x05 \x03(\v23.protochain.solana.program.token.v1.MetaplexCreatorR\bcreators\x12V\n" +
 	"\n" +
-	"collection\x18\x06 \x01(\v26.protochain.solana.program.token.v1.MetaplexCollectionH\x00R\n" +
-	"collection\x88\x01\x01\x12I\n" +
-	"\x04uses\x18\a \x01(\v20.protochain.solana.program.token.v1.MetaplexUsesH\x01R\x04uses\x88\x01\x01B\r\n" +
-	"\v_collectionB\a\n" +
-	"\x05_uses\"]\n" +
+	"collection\x18\x06 \x01(\v26.protochain.solana.program.token.v1.MetaplexCollectionR\n" +
+	"collection\x12D\n" +
+	"\x04uses\x18\a \x01(\v20.protochain.solana.program.token.v1.MetaplexUsesR\x04uses\"]\n" +
 	"\x0fMetaplexCreator\x12\x18\n" +
 	"\aaddress\x18\x01 \x01(\tR\aaddress\x12\x1a\n" +
 	"\bverified\x18\x02 \x01(\bR\bverified\x12\x14\n" +
@@ -436,7 +434,6 @@ func file_protochain_solana_program_token_v1_spl_token_metadata_proto_init() {
 	if File_protochain_solana_program_token_v1_spl_token_metadata_proto != nil {
 		return
 	}
-	file_protochain_solana_program_token_v1_spl_token_metadata_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

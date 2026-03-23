@@ -4,7 +4,11 @@ use std::str::FromStr;
 
 use tonic::{Request, Response, Status};
 
+use mpl_token_metadata::accounts::Metadata as MetaplexMetadataAccount;
+use mpl_token_metadata::ID as METADATA_PROGRAM_ID;
+
 use protochain_api::protochain::solana::program::token::v1::{
+    metaplex_uses, MetaplexCollection, MetaplexCreator, MetaplexTokenMetadata, MetaplexUses,
     MintInfo, ParseMintRequest, ParseMintResponse,
 };
 
@@ -18,6 +22,61 @@ use crate::api::program::token::v1::token_program::sdk_token_program_to_proto;
 
 use super::TokenProgramServiceImpl;
 
+/// Trims trailing null bytes and whitespace that Metaplex pads fixed-length
+/// string fields with.
+fn trim_metaplex_string(s: &str) -> String {
+    s.trim_end_matches('\0').trim().to_string()
+}
+
+/// Converts a deserialized Metaplex `Metadata` account into the proto
+/// `MetaplexTokenMetadata` message.
+fn metaplex_metadata_to_proto(metadata: &MetaplexMetadataAccount) -> MetaplexTokenMetadata {
+    let creators = metadata
+        .creators
+        .as_ref()
+        .map(|creators| {
+            creators
+                .iter()
+                .map(|c| MetaplexCreator {
+                    address: c.address.to_string(),
+                    verified: c.verified,
+                    share: u32::from(c.share),
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+
+    let collection = metadata.collection.as_ref().map(|c| MetaplexCollection {
+        verified: c.verified,
+        key: c.key.to_string(),
+    });
+
+    let uses = metadata.uses.as_ref().map(|u| {
+        let use_method = match u.use_method {
+            mpl_token_metadata::types::UseMethod::Burn => metaplex_uses::UseMethod::Burn as i32,
+            mpl_token_metadata::types::UseMethod::Multiple => {
+                metaplex_uses::UseMethod::Multiple as i32
+            }
+            mpl_token_metadata::types::UseMethod::Single => metaplex_uses::UseMethod::Single as i32,
+        };
+        MetaplexUses {
+            use_method,
+            remaining: u.remaining,
+            total: u.total,
+        }
+    });
+
+    MetaplexTokenMetadata {
+        name: trim_metaplex_string(&metadata.name),
+        symbol: trim_metaplex_string(&metadata.symbol),
+        uri: trim_metaplex_string(&metadata.uri),
+        seller_fee_basis_points: u32::from(metadata.seller_fee_basis_points),
+        creators,
+        collection,
+        uses,
+    }
+}
+
 impl TokenProgramServiceImpl {
     /// Parses mint account data into structured format.
     ///
@@ -25,6 +84,10 @@ impl TokenProgramServiceImpl {
     /// checked to ensure it belongs to a known token program, and the appropriate
     /// unpacking strategy is used (Token-2022 mints may contain extension data
     /// beyond the base 82-byte Mint layout).
+    ///
+    /// For legacy SPL Token mints, the standard Metaplex metadata PDA is derived
+    /// and fetched. If it exists, the metadata is returned in the
+    /// `metaplex_metadata` field.
     #[allow(clippy::unused_async)]
     pub(crate) async fn handle_parse_mint(
         &self,
@@ -59,18 +122,22 @@ impl TokenProgramServiceImpl {
         // Use StateWithExtensions for Token-2022 accounts which may have extension
         // data beyond the base 82-byte Mint layout; use Mint::unpack for legacy
         // SPL accounts which are always exactly 82 bytes.
-        let (mint, extensions) = if account.owner == TOKEN_2022_PROGRAM_ID {
+        let (mint, extensions, metaplex_metadata) = if account.owner == TOKEN_2022_PROGRAM_ID {
             let state = StateWithExtensions::<Mint>::unpack(&account.data).map_err(|e| {
                 Status::invalid_argument(format!("Failed to parse Token-2022 mint: {e}"))
             })?;
 
             let extensions = extract_token2022_extensions(&state, &account_pubkey);
-            (state.base, extensions)
+            (state.base, extensions, None)
         } else {
             let mint = Mint::unpack(&account.data).map_err(|e| {
                 Status::invalid_argument(format!("Failed to parse mint account: {e}"))
             })?;
-            (mint, Vec::new())
+
+            // For SPL mints, attempt to fetch the associated Metaplex metadata PDA.
+            let metaplex_metadata = self.try_fetch_metaplex_metadata(&account_pubkey);
+
+            (mint, Vec::new(), metaplex_metadata)
         };
 
         Ok(Response::new(ParseMintResponse {
@@ -89,6 +156,39 @@ impl TokenProgramServiceImpl {
             }),
             token_program: token_program.into(),
             extensions,
+            metaplex_metadata,
         }))
+    }
+
+    /// Derives the Metaplex metadata PDA for the given mint and attempts to
+    /// fetch and deserialize it. Returns `None` if the account does not exist
+    /// or cannot be deserialized (i.e. no metadata was ever created).
+    fn try_fetch_metaplex_metadata(&self, mint_pubkey: &Pubkey) -> Option<MetaplexTokenMetadata> {
+        // Derive the metadata PDA using the standard Metaplex seed convention.
+        let (metadata_pda, _) = Pubkey::find_program_address(
+            &[
+                b"metadata",
+                METADATA_PROGRAM_ID.as_ref(),
+                mint_pubkey.as_ref(),
+            ],
+            &METADATA_PROGRAM_ID,
+        );
+
+        // Attempt to fetch the account — if it doesn't exist, return None.
+        let account = self
+            .rpc_client
+            .get_account_with_commitment(&metadata_pda, CommitmentConfig::confirmed())
+            .ok()?
+            .value?;
+
+        // Verify the account is owned by the Metaplex Token Metadata program.
+        if account.owner != METADATA_PROGRAM_ID {
+            return None;
+        }
+
+        // Deserialize the metadata account data.
+        let metadata = MetaplexMetadataAccount::safe_deserialize(&account.data).ok()?;
+
+        Some(metaplex_metadata_to_proto(&metadata))
     }
 }

@@ -305,6 +305,17 @@ pub struct ParseMintResponse {
     /// Only populated for Token-2022 mints that have extensions configured.
     #[prost(message, repeated, tag="3")]
     pub extensions: ::prost::alloc::vec::Vec<Token2022Extension>,
+    /// Metaplex Token Metadata associated with the mint.
+    ///
+    /// Only populated for legacy SPL Token mints that have an associated Metaplex
+    /// metadata PDA (i.e. created via CreateSPLTokenMint with metadata provided).
+    /// The metadata PDA is derived using the standard Metaplex seed convention:
+    ///    \["metadata", METADATA_PROGRAM_ID, mint_pubkey\].
+    ///
+    /// For Token-2022 mints this field is always absent — metadata is instead
+    /// returned inline via the extensions field.
+    #[prost(message, optional, tag="4")]
+    pub metaplex_metadata: ::core::option::Option<MetaplexTokenMetadata>,
 }
 /// Structured mint account information
 #[allow(clippy::derive_partial_eq_without_eq)]

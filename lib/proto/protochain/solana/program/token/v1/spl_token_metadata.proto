@@ -25,10 +25,10 @@ message MetaplexTokenMetadata {
   repeated MetaplexCreator creators = 5;
 
   // Optional collection information grouping this asset.
-  optional MetaplexCollection collection = 6;
+  MetaplexCollection collection = 6;
 
   // Optional usage restrictions/rules (primarily for gaming or limited-use assets).
-  optional MetaplexUses uses = 7;
+  MetaplexUses uses = 7;
 }
 
 // Creator information for royalties.

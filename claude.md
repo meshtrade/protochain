@@ -47,6 +47,32 @@ After making ANY code changes, you MUST run appropriate linting:
 
 ---
 
+## 🚨 **CRITICAL: Protobuf Style Guide** 🚨
+
+### NEVER use `optional` on message fields in proto3
+
+**`optional` is a deprecated bad-practice proto3 feature — NEVER use it in this project.**
+
+In proto3, message-type fields already have presence semantics (nil/None when absent). Adding `optional` generates unnecessary synthetic `oneof` wrappers that bloat the generated code and confuse consumers.
+
+**🚫 WRONG — NEVER do this:**
+```protobuf
+optional MetaplexTokenMetadata metadata = 6;
+optional MetaplexCollection collection = 7;
+```
+
+**✅ CORRECT — always use plain message fields:**
+```protobuf
+MetaplexTokenMetadata metadata = 6;
+MetaplexCollection collection = 7;
+```
+
+**When a field is truly absent, the message field will be nil/None/null in all languages — no `optional` keyword needed.**
+
+`optional` on scalar fields (string, int32, bool, etc.) is equally banned. If you need presence semantics for a scalar, use a wrapper message (e.g. `google.protobuf.StringValue`) or a sentinel value. In practice, the proto3 zero-value convention should be preferred.
+
+---
+
 ## 🎯 Project Mission
 Protochain provides a language-agnostic gRPC API layer over blockchain operations. It wraps the best-in-class blockchain SDKs (primarily Rust) with Protocol Buffer service definitions, enabling automatic SDK generation for any language. This solves the fundamental challenge where your backend needs to be in one language, but the best blockchain SDK is in another.
 

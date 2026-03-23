@@ -145,7 +145,7 @@ message CreateSPLTokenMintRequest {
 
   // Optional Metaplex metadata to attach to the mint via the Metaplex Token Metadata program.
   // When provided, a CreateMetadataAccountV3 instruction is appended after initialize_mint.
-  optional MetaplexTokenMetadata metadata = 6;
+  MetaplexTokenMetadata metadata = 6;
 }
 
 // Response containing the complete instruction set for SPL Token mint creation.
@@ -177,6 +177,17 @@ message ParseMintResponse {
   // Extensions present on the mint account.
   // Only populated for Token-2022 mints that have extensions configured.
   repeated protochain.solana.program.token.v1.Token2022Extension extensions = 3;
+
+  // Metaplex Token Metadata associated with the mint.
+  //
+  // Only populated for legacy SPL Token mints that have an associated Metaplex
+  // metadata PDA (i.e. created via CreateSPLTokenMint with metadata provided).
+  // The metadata PDA is derived using the standard Metaplex seed convention:
+  //   ["metadata", METADATA_PROGRAM_ID, mint_pubkey].
+  //
+  // For Token-2022 mints this field is always absent — metadata is instead
+  // returned inline via the extensions field.
+  MetaplexTokenMetadata metaplex_metadata = 4;
 }
 
 // Structured mint account information
