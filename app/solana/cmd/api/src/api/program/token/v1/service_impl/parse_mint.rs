@@ -135,7 +135,7 @@ impl TokenProgramServiceImpl {
             })?;
 
             // For SPL mints, attempt to fetch the associated Metaplex metadata PDA.
-            let metaplex_metadata = self.try_fetch_metaplex_metadata(&account_pubkey).await;
+            let metaplex_metadata = self.fetch_metaplex_metadata(&account_pubkey).await;
 
             (mint, Vec::new(), metaplex_metadata)
         };
@@ -163,10 +163,7 @@ impl TokenProgramServiceImpl {
     /// Derives the Metaplex metadata PDA for the given mint and attempts to
     /// fetch and deserialize it. Returns `None` if the account does not exist
     /// or cannot be deserialized (i.e. no metadata was ever created).
-    async fn try_fetch_metaplex_metadata(
-        &self,
-        mint_pubkey: &Pubkey,
-    ) -> Option<MetaplexTokenMetadata> {
+    async fn fetch_metaplex_metadata(&self, mint_pubkey: &Pubkey) -> Option<MetaplexTokenMetadata> {
         // Derive the metadata PDA using the standard Metaplex seed convention.
         let (metadata_pda, _) = Pubkey::find_program_address(
             &[
