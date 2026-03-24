@@ -1,72 +1,22 @@
 //! Validation and conversion helpers for the Token Program service.
 
-use std::collections::HashSet;
 use std::str::FromStr;
 
 use tonic::Status;
 
 use protochain_api::protochain::solana::program::token::v1::{
-    token2022_extension, token2022_holding_account_extension, Token2022Extension,
-    Token2022HoldingAccountExtension,
+    token2022_extension, Token2022Extension,
 };
-use spl_token_2022::{
-    extension::ExtensionType,
-    state::{Account, Mint},
-};
+use spl_token_2022::{extension::ExtensionType, state::Mint};
 
 use spl_pod::optional_keys::OptionalNonZeroPubkey;
 use spl_token_metadata_interface::state::TokenMetadata;
 
+use protochain_api::protochain::solana::r#type::v1::TokenProgram;
 use solana_sdk::program_pack::Pack;
 use solana_sdk::pubkey::Pubkey;
-
-// ---------------------------------------------------------------------------
-//  Extension validation
-// ---------------------------------------------------------------------------
-
-/// Validates that the given extension list contains no duplicates.
-#[allow(clippy::result_large_err)]
-pub(crate) fn validate_no_duplicate_extensions(
-    extensions: &[Token2022Extension],
-) -> Result<(), Status> {
-    let mut seen: HashSet<&str> = HashSet::new();
-    for ext in extensions {
-        let key = match ext
-            .extension
-            .as_ref()
-            .ok_or_else(|| Status::invalid_argument("Extension must have a type set"))?
-        {
-            token2022_extension::Extension::Metadata(_) => "Metadata",
-        };
-        if !seen.insert(key) {
-            return Err(Status::invalid_argument(format!("Duplicate extension: {key}")));
-        }
-    }
-    Ok(())
-}
-
-/// Validates that the given holding account extension list contains no duplicates.
-#[allow(clippy::result_large_err)]
-pub(crate) fn validate_no_duplicate_holding_account_extensions(
-    extensions: &[Token2022HoldingAccountExtension],
-) -> Result<(), Status> {
-    let mut seen: HashSet<&str> = HashSet::new();
-    for ext in extensions {
-        let key = match ext
-            .extension
-            .as_ref()
-            .ok_or_else(|| Status::invalid_argument("Extension must have a type set"))?
-        {
-            token2022_holding_account_extension::Extension::MemoTransfer(_) => "MemoTransfer",
-        };
-        if !seen.insert(key) {
-            return Err(Status::invalid_argument(format!(
-                "Duplicate holding account extension: {key}"
-            )));
-        }
-    }
-    Ok(())
-}
+use spl_token::id as spl_token_id;
+use spl_token_2022::id as spl_token_2022_id;
 
 // ---------------------------------------------------------------------------
 //  Decimal validation
@@ -245,42 +195,110 @@ pub(crate) fn mint_total_space_for_rent(
     Ok(base_space + extra_variable_len)
 }
 
-/// Collects the SDK `ExtensionType` variants requested by the holding account
-/// extensions, used for calculating account size and building reallocate
-/// instructions.
-#[allow(clippy::result_large_err)]
-pub(crate) fn holding_account_extension_types(
-    extensions: &[Token2022HoldingAccountExtension],
-) -> Result<Vec<ExtensionType>, Status> {
-    let mut types = Vec::with_capacity(extensions.len());
-    for ext in extensions {
-        match ext
-            .extension
-            .as_ref()
-            .ok_or_else(|| Status::invalid_argument("Extension must have a type set"))?
-        {
-            token2022_holding_account_extension::Extension::MemoTransfer(_) => {
-                types.push(ExtensionType::MemoTransfer);
-            }
-        }
+// ---------------------------------------------------------------------------
+//  Token program conversion
+// ---------------------------------------------------------------------------
+
+/// Converts a Solana SDK token program ID to the corresponding protobuf `TokenProgram`
+///
+/// Maps a Solana token program ID back to its protobuf representation.
+///
+/// # Arguments
+/// * `program_id` - The Solana token program ID
+///
+/// # Returns
+/// `TokenProgram::Unspecified` if the program ID doesn't match any known token programs
+pub fn sdk_token_program_to_proto(program_id: &Pubkey) -> TokenProgram {
+    if program_id == &spl_token_id() {
+        TokenProgram::Legacy
+    } else if program_id == &spl_token_2022_id() {
+        TokenProgram::TokenProgram2022
+    } else {
+        TokenProgram::Unspecified
     }
-    Ok(types)
 }
 
-/// Calculates the total account size for a Token-2022 holding account with the
-/// given extensions.
-///
-/// Returns `Account::LEN` when no extensions are provided.
-#[allow(clippy::result_large_err)]
-pub(crate) fn holding_account_total_space(
-    extensions: &[Token2022HoldingAccountExtension],
-) -> Result<usize, Status> {
-    if extensions.is_empty() {
-        return Ok(Account::LEN);
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Converts a protobuf `TokenProgram` enum to the corresponding Solana SDK program ID.
+    fn proto_token_program_to_sdk(token_program: TokenProgram) -> Result<Pubkey, String> {
+        match token_program {
+            TokenProgram::Unspecified => {
+                Err("TokenProgram must be specified (cannot be UNSPECIFIED)".to_string())
+            }
+            TokenProgram::Legacy => Ok(spl_token_id()),
+            TokenProgram::TokenProgram2022 => Ok(spl_token_2022_id()),
+        }
     }
 
-    let sdk_types = holding_account_extension_types(extensions)?;
-    ExtensionType::try_calculate_account_len::<Account>(&sdk_types).map_err(|e| {
-        Status::internal(format!("failed to calculate holding account length for extensions: {e}"))
-    })
+    #[test]
+    fn test_proto_to_sdk_legacy() {
+        let result = proto_token_program_to_sdk(TokenProgram::Legacy);
+        assert!(result.is_ok());
+        let Ok(v) = result else {
+            unreachable!("Already asserted Ok")
+        };
+        assert_eq!(v, spl_token_id());
+    }
+
+    #[test]
+    fn test_proto_to_sdk_token_2022() {
+        let result = proto_token_program_to_sdk(TokenProgram::TokenProgram2022);
+        assert!(result.is_ok());
+        let Ok(v) = result else {
+            unreachable!("Already asserted Ok")
+        };
+        assert_eq!(v, spl_token_2022_id());
+    }
+
+    #[test]
+    fn test_proto_to_sdk_unspecified() {
+        let result = proto_token_program_to_sdk(TokenProgram::Unspecified);
+        assert!(result.is_err());
+        let Err(err) = result else {
+            unreachable!("Already asserted Err")
+        };
+        assert!(err.contains("TokenProgram must be specified"));
+    }
+
+    #[test]
+    fn test_sdk_to_proto_legacy() {
+        let result = sdk_token_program_to_proto(&spl_token_id());
+        assert_eq!(result, TokenProgram::Legacy);
+    }
+
+    #[test]
+    fn test_sdk_to_proto_token_2022() {
+        let result = sdk_token_program_to_proto(&spl_token_2022_id());
+        assert_eq!(result, TokenProgram::TokenProgram2022);
+    }
+
+    #[test]
+    fn test_sdk_to_proto_unknown() {
+        let program_id = Pubkey::new_unique();
+        let result = sdk_token_program_to_proto(&program_id);
+        assert_eq!(result, TokenProgram::Unspecified);
+    }
+
+    #[test]
+    fn test_roundtrip_legacy() {
+        let original = TokenProgram::Legacy;
+        let Ok(program_id) = proto_token_program_to_sdk(original) else {
+            unreachable!("Legacy should convert successfully")
+        };
+        let converted = sdk_token_program_to_proto(&program_id);
+        assert_eq!(original, converted);
+    }
+
+    #[test]
+    fn test_roundtrip_token_2022() {
+        let original = TokenProgram::TokenProgram2022;
+        let Ok(program_id) = proto_token_program_to_sdk(original) else {
+            unreachable!("TokenProgram2022 should convert successfully")
+        };
+        let converted = sdk_token_program_to_proto(&program_id);
+        assert_eq!(original, converted);
+    }
 }

@@ -19,9 +19,9 @@ use spl_token_2022::{instruction::initialize_mint2, state::Mint, ID as TOKEN_202
 use crate::api::common::solana_conversions::sdk_instruction_to_proto;
 
 use super::super::extensions::build_token2022_mint_instructions;
+use super::super::extensions::helpers::validate_no_duplicate_extensions;
 use super::super::helpers::{
     mint_create_account_space, mint_total_space_for_rent, validate_decimals,
-    validate_no_duplicate_extensions,
 };
 use super::super::metaplex::build_create_metaplex_metadata_instruction;
 use super::TokenProgramServiceImpl;

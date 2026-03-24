@@ -3,6 +3,7 @@
 //! Each supported extension lives in its own sub-module. The top-level helpers
 //! here orchestrate across all extensions.
 
+pub(crate) mod helpers;
 mod metadata;
 
 use tonic::Status;

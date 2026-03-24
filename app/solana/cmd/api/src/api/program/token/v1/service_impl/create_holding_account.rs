@@ -24,7 +24,7 @@ use spl_token_2022::{
 
 use crate::api::common::solana_conversions::sdk_instruction_to_proto;
 
-use super::super::helpers::{
+use super::super::extensions::helpers::{
     holding_account_total_space, validate_no_duplicate_holding_account_extensions,
 };
 use super::TokenProgramServiceImpl;

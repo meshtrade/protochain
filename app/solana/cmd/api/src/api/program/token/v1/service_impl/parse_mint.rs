@@ -18,7 +18,7 @@ use spl_token::ID as SPL_TOKEN_PROGRAM_ID;
 use spl_token_2022::{extension::StateWithExtensions, state::Mint, ID as TOKEN_2022_PROGRAM_ID};
 
 use crate::api::program::token::v1::extensions::extract_token2022_extensions;
-use crate::api::program::token::v1::token_program::sdk_token_program_to_proto;
+use crate::api::program::token::v1::helpers::sdk_token_program_to_proto;
 
 use super::TokenProgramServiceImpl;
 
