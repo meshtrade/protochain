@@ -11,7 +11,7 @@ use protochain_api::protochain::solana::transaction::v1::{
     CompileTransactionRequest, CompileTransactionResponse, TransactionState,
 };
 
-#[allow(clippy::result_large_err, clippy::unused_self)]
+#[allow(clippy::result_large_err)]
 impl super::TransactionServiceImpl {
     /// Compiles a draft transaction with instructions into executable transaction bytecode
     ///
@@ -39,7 +39,7 @@ impl super::TransactionServiceImpl {
     /// - Instructions are converted (not cloned) to minimize allocations
     /// - Bincode provides zero-copy serialization where possible
     /// - Base58 encoding only happens once at the end
-    pub(super) fn handle_compile_transaction(
+    pub(super) async fn handle_compile_transaction(
         &self,
         request: Request<CompileTransactionRequest>,
     ) -> Result<Response<CompileTransactionResponse>, Status> {
@@ -87,6 +87,7 @@ impl super::TransactionServiceImpl {
             // Fetch latest blockhash from network
             self.rpc_client
                 .get_latest_blockhash()
+                .await
                 .map_err(|e| Status::internal(format!("Failed to get latest blockhash: {e}")))?
         } else {
             // Use provided blockhash

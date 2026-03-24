@@ -28,7 +28,7 @@ use protochain_api::protochain::solana::account::v1::{
 };
 use protochain_api::protochain::solana::r#type::v1::CommitmentLevel;
 
-use solana_client::rpc_client::RpcClient;
+use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_commitment_config::CommitmentConfig;
 
 // ---------------------------------------------------------------------------
@@ -77,7 +77,7 @@ impl AccountService for AccountServiceImpl {
         &self,
         request: Request<GetAccountRequest>,
     ) -> Result<Response<GetAccountResponse>, Status> {
-        self.handle_get_account(request)
+        self.handle_get_account(request).await
     }
 
     async fn generate_new_key_pair(
@@ -98,7 +98,7 @@ impl AccountService for AccountServiceImpl {
         &self,
         request: Request<GetTokenAccountBalanceRequest>,
     ) -> Result<Response<GetTokenAccountBalanceResponse>, Status> {
-        self.handle_get_token_account_balance(request)
+        self.handle_get_token_account_balance(request).await
     }
 
     async fn get_associated_token_address(

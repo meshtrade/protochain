@@ -1,4 +1,4 @@
-use solana_client::rpc_client::RpcClient;
+use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_client::rpc_config::RpcTransactionConfig;
 use solana_commitment_config::CommitmentConfig;
 use solana_sdk::signature::Signature;
@@ -57,14 +57,17 @@ pub async fn wait_for_transaction_success(
         }
 
         // Query the transaction from the network
-        match rpc_client.get_transaction_with_config(
-            signature,
-            RpcTransactionConfig {
-                encoding: Some(UiTransactionEncoding::Json),
-                commitment: Some(commitment),
-                max_supported_transaction_version: Some(0),
-            },
-        ) {
+        match rpc_client
+            .get_transaction_with_config(
+                signature,
+                RpcTransactionConfig {
+                    encoding: Some(UiTransactionEncoding::Json),
+                    commitment: Some(commitment),
+                    max_supported_transaction_version: Some(0),
+                },
+            )
+            .await
+        {
             Ok(confirmed_transaction) => {
                 info!(
                     signature = %signature,

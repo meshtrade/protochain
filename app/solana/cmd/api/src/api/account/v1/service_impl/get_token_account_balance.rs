@@ -12,10 +12,10 @@ use solana_sdk::pubkey::Pubkey;
 
 use super::AccountServiceImpl;
 
-#[allow(clippy::result_large_err, clippy::unused_self)]
+#[allow(clippy::result_large_err)]
 impl AccountServiceImpl {
     /// Retrieves the token balance for a given SPL token account.
-    pub(super) fn handle_get_token_account_balance(
+    pub(super) async fn handle_get_token_account_balance(
         &self,
         request: Request<GetTokenAccountBalanceRequest>,
     ) -> Result<Response<GetTokenAccountBalanceResponse>, Status> {
@@ -29,6 +29,7 @@ impl AccountServiceImpl {
         let balance = self
             .rpc_client
             .get_token_account_balance(&pubkey)
+            .await
             .map_err(|e| {
                 Status::internal(format!("Could not retrieve token account balance: {e}"))
             })?;

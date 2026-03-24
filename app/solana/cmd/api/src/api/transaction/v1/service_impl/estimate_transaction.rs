@@ -8,7 +8,7 @@ use protochain_api::protochain::solana::transaction::v1::{
     EstimateTransactionRequest, EstimateTransactionResponse,
 };
 
-#[allow(clippy::result_large_err, clippy::unused_self)]
+#[allow(clippy::result_large_err)]
 impl super::TransactionServiceImpl {
     /// Estimates compute units and transaction fees for a compiled transaction
     ///
@@ -33,7 +33,7 @@ impl super::TransactionServiceImpl {
     ///
     /// The estimation accuracy helps users avoid transaction failures due to
     /// insufficient fees or compute budget exhaustion.
-    pub(super) fn handle_estimate_transaction(
+    pub(super) async fn handle_estimate_transaction(
         &self,
         request: Request<EstimateTransactionRequest>,
     ) -> Result<Response<EstimateTransactionResponse>, Status> {
@@ -72,8 +72,9 @@ impl super::TransactionServiceImpl {
         let commitment = super::commitment_level_to_config(req.commitment_level);
 
         // Use simulation to get accurate compute unit estimation with configurable commitment level
-        let (compute_units, _logs) = if let Ok(simulation_result) =
-            self.rpc_client.simulate_transaction_with_config(
+        let (compute_units, _logs) = if let Ok(simulation_result) = self
+            .rpc_client
+            .simulate_transaction_with_config(
                 &solana_transaction,
                 solana_client::rpc_config::RpcSimulateTransactionConfig {
                     sig_verify: false,
@@ -84,7 +85,9 @@ impl super::TransactionServiceImpl {
                     min_context_slot: None,
                     inner_instructions: false,
                 },
-            ) {
+            )
+            .await
+        {
             // Handle both None and 0 cases by providing reasonable fallback
             let compute_units = match simulation_result.value.units_consumed {
                 Some(units) if units > 0 => units,

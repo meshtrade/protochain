@@ -8,7 +8,7 @@ use protochain_api::protochain::solana::transaction::v1::{
     SimulateTransactionRequest, SimulateTransactionResponse,
 };
 
-#[allow(clippy::result_large_err, clippy::unused_self)]
+#[allow(clippy::result_large_err)]
 impl super::TransactionServiceImpl {
     /// Simulates a compiled transaction execution without blockchain submission
     ///
@@ -34,7 +34,7 @@ impl super::TransactionServiceImpl {
     ///
     /// Note: Simulation uses unsigned transaction since signatures aren't validated.
     /// This allows simulation of partially signed transactions during development.
-    pub(super) fn handle_simulate_transaction(
+    pub(super) async fn handle_simulate_transaction(
         &self,
         request: Request<SimulateTransactionRequest>,
     ) -> Result<Response<SimulateTransactionResponse>, Status> {
@@ -73,18 +73,22 @@ impl super::TransactionServiceImpl {
         let commitment = super::commitment_level_to_config(req.commitment_level);
 
         // Simulate the transaction using RPC with configurable commitment level
-        match self.rpc_client.simulate_transaction_with_config(
-            &solana_transaction,
-            solana_client::rpc_config::RpcSimulateTransactionConfig {
-                sig_verify: false,
-                replace_recent_blockhash: false,
-                commitment: Some(commitment),
-                encoding: None,
-                accounts: None,
-                min_context_slot: None,
-                inner_instructions: false,
-            },
-        ) {
+        match self
+            .rpc_client
+            .simulate_transaction_with_config(
+                &solana_transaction,
+                solana_client::rpc_config::RpcSimulateTransactionConfig {
+                    sig_verify: false,
+                    replace_recent_blockhash: false,
+                    commitment: Some(commitment),
+                    encoding: None,
+                    accounts: None,
+                    min_context_slot: None,
+                    inner_instructions: false,
+                },
+            )
+            .await
+        {
             Ok(simulation_result) => {
                 let success = simulation_result.value.err.is_none();
                 let error = simulation_result

@@ -13,10 +13,10 @@ use solana_sdk::pubkey::Pubkey;
 use super::commitment_level_to_config;
 use super::AccountServiceImpl;
 
-#[allow(clippy::result_large_err, clippy::unused_self)]
+#[allow(clippy::result_large_err)]
 impl AccountServiceImpl {
     /// Fetches account data from the Solana blockchain with configurable commitment level.
-    pub(super) fn handle_get_account(
+    pub(super) async fn handle_get_account(
         &self,
         request: Request<GetAccountRequest>,
     ) -> Result<Response<GetAccountResponse>, Status> {
@@ -64,6 +64,7 @@ impl AccountServiceImpl {
         match self
             .rpc_client
             .get_account_with_commitment(&pubkey, commitment)
+            .await
         {
             Ok(response) => {
                 if let Some(account) = response.value {

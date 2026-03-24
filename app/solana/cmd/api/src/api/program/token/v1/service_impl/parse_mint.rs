@@ -88,7 +88,6 @@ impl TokenProgramServiceImpl {
     /// For legacy SPL Token mints, the standard Metaplex metadata PDA is derived
     /// and fetched. If it exists, the metadata is returned in the
     /// `metaplex_metadata` field.
-    #[allow(clippy::unused_async)]
     pub(crate) async fn handle_parse_mint(
         &self,
         request: Request<ParseMintRequest>,
@@ -103,6 +102,7 @@ impl TokenProgramServiceImpl {
         let account = self
             .rpc_client
             .get_account_with_commitment(&account_pubkey, CommitmentConfig::confirmed())
+            .await
             .map_err(|e| Status::internal(format!("Failed to get account: {e}")))?
             .value
             .ok_or_else(|| Status::not_found("Account not found"))?;
@@ -135,7 +135,7 @@ impl TokenProgramServiceImpl {
             })?;
 
             // For SPL mints, attempt to fetch the associated Metaplex metadata PDA.
-            let metaplex_metadata = self.try_fetch_metaplex_metadata(&account_pubkey);
+            let metaplex_metadata = self.try_fetch_metaplex_metadata(&account_pubkey).await;
 
             (mint, Vec::new(), metaplex_metadata)
         };
@@ -163,7 +163,10 @@ impl TokenProgramServiceImpl {
     /// Derives the Metaplex metadata PDA for the given mint and attempts to
     /// fetch and deserialize it. Returns `None` if the account does not exist
     /// or cannot be deserialized (i.e. no metadata was ever created).
-    fn try_fetch_metaplex_metadata(&self, mint_pubkey: &Pubkey) -> Option<MetaplexTokenMetadata> {
+    async fn try_fetch_metaplex_metadata(
+        &self,
+        mint_pubkey: &Pubkey,
+    ) -> Option<MetaplexTokenMetadata> {
         // Derive the metadata PDA using the standard Metaplex seed convention.
         let (metadata_pda, _) = Pubkey::find_program_address(
             &[
@@ -178,6 +181,7 @@ impl TokenProgramServiceImpl {
         let account = self
             .rpc_client
             .get_account_with_commitment(&metadata_pda, CommitmentConfig::confirmed())
+            .await
             .ok()?
             .value?;
 

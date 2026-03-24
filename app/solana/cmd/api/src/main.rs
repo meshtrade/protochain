@@ -112,7 +112,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Perform Solana RPC health check if enabled
     if config.solana.health_check_on_startup {
         debug!(rpc_url = %config.solana.rpc_url, "Performing Solana RPC health check");
-        if let Err(e) = validate_solana_connection(&config.solana.rpc_url) {
+        if let Err(e) = validate_solana_connection(&config.solana.rpc_url).await {
             error!(
                 error = %e,
                 rpc_url = %config.solana.rpc_url,

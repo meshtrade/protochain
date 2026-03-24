@@ -64,6 +64,7 @@ impl AccountServiceImpl {
         let signature = self
             .rpc_client
             .request_airdrop(&address, amount)
+            .await
             .map_err(|e| Status::internal(format!("Airdrop request failed: {e}")))?;
 
         // Wait for transaction success validation (not just confirmation)

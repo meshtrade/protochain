@@ -8,7 +8,7 @@ use protochain_api::protochain::solana::transaction::v1::{
     CheckIfTransactionIsExpiredRequest, CheckIfTransactionIsExpiredResponse,
 };
 
-#[allow(clippy::result_large_err, clippy::unused_self)]
+#[allow(clippy::result_large_err)]
 impl super::TransactionServiceImpl {
     /// Checks if a transaction's blockhash has expired on the Solana blockchain
     ///
@@ -37,7 +37,7 @@ impl super::TransactionServiceImpl {
     /// - Uses `is_blockhash_valid` which checks against recent blockhash list
     /// - Commitment level defaults to CONFIRMED (standard finality assumption)
     /// - Returns false if network cannot determine validity (safe for expiration)
-    pub(super) fn handle_check_if_transaction_is_expired(
+    pub(super) async fn handle_check_if_transaction_is_expired(
         &self,
         request: Request<CheckIfTransactionIsExpiredRequest>,
     ) -> Result<Response<CheckIfTransactionIsExpiredResponse>, Status> {
@@ -59,6 +59,7 @@ impl super::TransactionServiceImpl {
         let is_valid = self
             .rpc_client
             .is_blockhash_valid(&blockhash, CommitmentConfig::finalized())
+            .await
             .map_err(|e| Status::internal(format!("Failed to check blockhash validity: {e}")))?;
 
         // A transaction is expired if the blockhash is NOT valid

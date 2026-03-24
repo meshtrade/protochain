@@ -8,7 +8,7 @@ mod simulate_transaction;
 mod submit_transaction;
 
 use crate::websocket::WebSocketManager;
-use solana_client::rpc_client::RpcClient;
+use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_commitment_config::CommitmentConfig;
 use solana_rpc_client_api::{
     client_error::{Error as ClientError, ErrorKind as ClientErrorKind},
@@ -319,21 +319,21 @@ impl TransactionService for TransactionServiceImpl {
         &self,
         request: Request<CompileTransactionRequest>,
     ) -> Result<Response<CompileTransactionResponse>, Status> {
-        self.handle_compile_transaction(request)
+        self.handle_compile_transaction(request).await
     }
 
     async fn estimate_transaction(
         &self,
         request: Request<EstimateTransactionRequest>,
     ) -> Result<Response<EstimateTransactionResponse>, Status> {
-        self.handle_estimate_transaction(request)
+        self.handle_estimate_transaction(request).await
     }
 
     async fn simulate_transaction(
         &self,
         request: Request<SimulateTransactionRequest>,
     ) -> Result<Response<SimulateTransactionResponse>, Status> {
-        self.handle_simulate_transaction(request)
+        self.handle_simulate_transaction(request).await
     }
 
     async fn sign_transaction(
@@ -347,21 +347,21 @@ impl TransactionService for TransactionServiceImpl {
         &self,
         request: Request<CheckIfTransactionIsExpiredRequest>,
     ) -> Result<Response<CheckIfTransactionIsExpiredResponse>, Status> {
-        self.handle_check_if_transaction_is_expired(request)
+        self.handle_check_if_transaction_is_expired(request).await
     }
 
     async fn submit_transaction(
         &self,
         request: Request<SubmitTransactionRequest>,
     ) -> Result<Response<SubmitTransactionResponse>, Status> {
-        self.handle_submit_transaction(request)
+        self.handle_submit_transaction(request).await
     }
 
     async fn get_transaction(
         &self,
         request: Request<GetTransactionRequest>,
     ) -> Result<Response<GetTransactionResponse>, Status> {
-        self.handle_get_transaction(request)
+        self.handle_get_transaction(request).await
     }
 
     async fn monitor_transaction(

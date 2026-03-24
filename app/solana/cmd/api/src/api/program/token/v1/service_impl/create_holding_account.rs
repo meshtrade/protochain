@@ -35,7 +35,6 @@ impl TokenProgramServiceImpl {
     /// Combines ATA creation, rent calculation, and extension-init instructions
     /// into a single response. For each requested extension, appends the
     /// necessary reallocate + extension-init instructions after the ATA creation.
-    #[allow(clippy::unused_async)]
     pub(crate) async fn handle_create_token2022_holding_account(
         &self,
         request: Request<CreateToken2022HoldingAccountRequest>,
@@ -66,6 +65,7 @@ impl TokenProgramServiceImpl {
         let lamports = self
             .rpc_client
             .get_minimum_balance_for_rent_exemption(total_space)
+            .await
             .map_err(|e| {
                 Status::internal(format!("failed to get minimum balance for holding account: {e}"))
             })?;
@@ -141,7 +141,6 @@ impl TokenProgramServiceImpl {
     /// Creates a legacy SPL Token holding account (ATA) in one call.
     ///
     /// Returns a single ATA creation instruction and the rent-exempt lamport cost.
-    #[allow(clippy::unused_async)]
     pub(crate) async fn handle_create_spl_token_holding_account(
         &self,
         request: Request<CreateSplTokenHoldingAccountRequest>,
@@ -169,6 +168,7 @@ impl TokenProgramServiceImpl {
         let lamports = self
             .rpc_client
             .get_minimum_balance_for_rent_exemption(Account::LEN)
+            .await
             .map_err(|e| {
                 Status::internal(format!("failed to get minimum balance for holding account: {e}"))
             })?;

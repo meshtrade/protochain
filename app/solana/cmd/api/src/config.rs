@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use solana_client::rpc_client::RpcClient;
+use solana_client::nonblocking::rpc_client::RpcClient;
 use std::path::PathBuf;
 
 /// Main application configuration structure
@@ -142,13 +142,13 @@ pub fn load_config() -> Result<Config, String> {
 }
 
 /// Validates the Solana RPC connection by performing a health check
-pub fn validate_solana_connection(rpc_url: &str) -> Result<(), String> {
+pub async fn validate_solana_connection(rpc_url: &str) -> Result<(), String> {
     println!("🔍 Health check: Testing connection to Solana RPC at {rpc_url}");
 
     let client = RpcClient::new(rpc_url.to_string());
 
     // Perform health check
-    match client.get_version() {
+    match client.get_version().await {
         Ok(version) => {
             println!("✅ Solana RPC connection successful!");
             println!("   - RPC URL: {rpc_url}");

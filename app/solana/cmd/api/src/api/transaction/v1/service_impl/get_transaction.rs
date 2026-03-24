@@ -11,7 +11,7 @@ use protochain_api::protochain::solana::transaction::v1::{
     GetTransactionRequest, GetTransactionResponse, Transaction, TransactionState,
 };
 
-#[allow(clippy::result_large_err, clippy::unused_self)]
+#[allow(clippy::result_large_err)]
 impl super::TransactionServiceImpl {
     /// Retrieves a previously submitted transaction from the blockchain by signature
     ///
@@ -45,7 +45,7 @@ impl super::TransactionServiceImpl {
     /// - Historical transaction analysis
     /// - Audit trail reconstruction
     /// - Debugging failed or successful transactions
-    pub(super) fn handle_get_transaction(
+    pub(super) async fn handle_get_transaction(
         &self,
         request: Request<GetTransactionRequest>,
     ) -> Result<Response<GetTransactionResponse>, Status> {
@@ -64,14 +64,18 @@ impl super::TransactionServiceImpl {
         let commitment = super::commitment_level_to_config(req.commitment_level);
 
         // Query the transaction from the network with configurable commitment level
-        match self.rpc_client.get_transaction_with_config(
-            &signature,
-            RpcTransactionConfig {
-                encoding: Some(UiTransactionEncoding::Base58),
-                commitment: Some(commitment),
-                max_supported_transaction_version: Some(0),
-            },
-        ) {
+        match self
+            .rpc_client
+            .get_transaction_with_config(
+                &signature,
+                RpcTransactionConfig {
+                    encoding: Some(UiTransactionEncoding::Base58),
+                    commitment: Some(commitment),
+                    max_supported_transaction_version: Some(0),
+                },
+            )
+            .await
+        {
             Ok(confirmed_transaction) => {
                 // Extract transaction data
                 let transaction_data = match confirmed_transaction.transaction.transaction {

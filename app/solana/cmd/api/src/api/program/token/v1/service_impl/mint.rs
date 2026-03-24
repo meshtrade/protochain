@@ -28,7 +28,6 @@ impl TokenProgramServiceImpl {
     /// the supplied owner public key and the mint.
     ///
     /// Multi-sig mint authorities are not yet supported.
-    #[allow(clippy::unused_async)]
     pub(crate) async fn handle_mint(
         &self,
         request: Request<MintRequest>,
@@ -57,6 +56,7 @@ impl TokenProgramServiceImpl {
         let account = self
             .rpc_client
             .get_account_with_commitment(&mint_pubkey, CommitmentConfig::confirmed())
+            .await
             .map_err(|e| Status::internal(format!("Failed to get mint account: {e}")))?
             .value
             .ok_or_else(|| Status::not_found("Mint account not found"))?;

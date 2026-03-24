@@ -26,7 +26,7 @@ use protochain_api::protochain::solana::program::token::v1::{
     ParseMintRequest, ParseMintResponse,
 };
 
-use solana_client::rpc_client::RpcClient;
+use solana_client::nonblocking::rpc_client::RpcClient;
 
 use crate::api::program::system::v1::SystemProgramServiceImpl;
 

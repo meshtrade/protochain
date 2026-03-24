@@ -70,6 +70,7 @@ impl TokenProgramServiceImpl {
         let lamports = self
             .rpc_client
             .get_minimum_balance_for_rent_exemption(rent_space)
+            .await
             .map_err(|e| {
                 Status::internal(format!("failed to get minimum balance for mint account: {e}"))
             })?;
@@ -150,6 +151,7 @@ impl TokenProgramServiceImpl {
         let lamports = self
             .rpc_client
             .get_minimum_balance_for_rent_exemption(space)
+            .await
             .map_err(|e| {
                 Status::internal(format!("failed to get minimum balance for mint account: {e}"))
             })?;

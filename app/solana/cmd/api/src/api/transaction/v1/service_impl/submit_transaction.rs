@@ -10,7 +10,7 @@ use protochain_api::protochain::solana::transaction::v1::{
     SubmitTransactionRequest, SubmitTransactionResponse, TransactionState,
 };
 
-#[allow(clippy::result_large_err, clippy::unused_self)]
+#[allow(clippy::result_large_err)]
 impl super::TransactionServiceImpl {
     /// Asynchronously submits a fully signed transaction to the Solana blockchain network
     ///
@@ -42,7 +42,7 @@ impl super::TransactionServiceImpl {
     ///
     /// NOTE: Successful submission only means the transaction was sent to the network,
     /// not that it was confirmed or executed. Use `MonitorTransaction` for confirmation.
-    pub(super) fn handle_submit_transaction(
+    pub(super) async fn handle_submit_transaction(
         &self,
         request: Request<SubmitTransactionRequest>,
     ) -> Result<Response<SubmitTransactionResponse>, Status> {
@@ -115,8 +115,9 @@ impl super::TransactionServiceImpl {
         );
 
         // Submit the transaction with proper configuration
-        let (signature_result, submission_result, structured_error) =
-            match self.rpc_client.send_transaction_with_config(
+        let (signature_result, submission_result, structured_error) = match self
+            .rpc_client
+            .send_transaction_with_config(
                 &solana_transaction,
                 solana_client::rpc_config::RpcSendTransactionConfig {
                     skip_preflight: false,
@@ -125,52 +126,54 @@ impl super::TransactionServiceImpl {
                     max_retries: Some(3),
                     min_context_slot: None,
                 },
-            ) {
-                Ok(signature) => {
-                    info!(
-                        signature = %signature,
-                        fee_payer = %transaction.fee_payer,
-                        commitment_level = ?commitment,
-                        "Transaction submitted successfully (asynchronously)"
-                    );
+            )
+            .await
+        {
+            Ok(signature) => {
+                info!(
+                    signature = %signature,
+                    fee_payer = %transaction.fee_payer,
+                    commitment_level = ?commitment,
+                    "Transaction submitted successfully (asynchronously)"
+                );
 
-                    // Return immediately after submission without waiting for confirmation
-                    // Clients can use MonitorTransaction to poll for confirmation if desired
-                    (signature.to_string(), super::SubmissionResult::Submitted, None)
-                }
-                Err(e) => {
-                    let classification = super::classify_submission_error(&e);
+                // Return immediately after submission without waiting for confirmation
+                // Clients can use MonitorTransaction to poll for confirmation if desired
+                (signature.to_string(), super::SubmissionResult::Submitted, None)
+            }
+            Err(e) => {
+                let classification = super::classify_submission_error(&e);
 
-                    // Get current slot for blockhash resolution
-                    let current_slot = self.rpc_client.get_slot().unwrap_or(0);
+                // Get current slot for blockhash resolution
+                let current_slot = self.rpc_client.get_slot().await.unwrap_or(0);
 
-                    // Parse blockhash from transaction for resolution strategy
-                    let transaction_blockhash = transaction
-                        .recent_blockhash
-                        .parse()
-                        .unwrap_or_else(|_| solana_sdk::hash::Hash::default());
+                // Parse blockhash from transaction for resolution strategy
+                let transaction_blockhash = transaction
+                    .recent_blockhash
+                    .parse()
+                    .unwrap_or_else(|_| solana_sdk::hash::Hash::default());
 
-                    // Build comprehensive structured error
-                    let structured_err = error_builder::build_structured_error(
-                        &e,
-                        classification,
-                        &transaction_blockhash,
-                        current_slot,
-                    );
+                // Build comprehensive structured error
+                let structured_err = error_builder::build_structured_error(
+                    &e,
+                    classification,
+                    &transaction_blockhash,
+                    current_slot,
+                );
 
-                    error!(
-                        error = %e,
-                        fee_payer = %transaction.fee_payer,
-                        commitment_level = ?commitment,
-                        classification = ?classification,
-                        certainty = ?structured_err.certainty,
-                        retryable = structured_err.retryable,
-                        "Transaction submission failed"
-                    );
+                error!(
+                    error = %e,
+                    fee_payer = %transaction.fee_payer,
+                    commitment_level = ?commitment,
+                    classification = ?classification,
+                    certainty = ?structured_err.certainty,
+                    retryable = structured_err.retryable,
+                    "Transaction submission failed"
+                );
 
-                    (String::new(), classification, Some(structured_err))
-                }
-            };
+                (String::new(), classification, Some(structured_err))
+            }
+        };
 
         Ok(Response::new(SubmitTransactionResponse {
             signature: signature_result,
