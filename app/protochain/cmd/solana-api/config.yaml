@@ -61,5 +61,5 @@ static_resources:
               - endpoint:
                   address:
                     socket_address:
-                      address: BACKEND_ADDRESS_PLACEHOLDER
-                      port_value: BACKEND_PORT_PLACEHOLDER
+                      address: SOLANA_API_ADDRESS_PLACEHOLDER
+                      port_value: SOLANA_API_PORT_PLACEHOLDER
