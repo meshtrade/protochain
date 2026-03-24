@@ -90,8 +90,7 @@ pub async fn wait_for_transaction_success(
                                 error = ?transaction_error,
                                 "❌ Transaction failed during execution"
                             );
-                            let sdk_error: TransactionError = transaction_error.into();
-                            return Err(classify_transaction_failure(&sdk_error));
+                            return Err(classify_transaction_failure(&transaction_error.into()));
                         }
                     }
                 }
