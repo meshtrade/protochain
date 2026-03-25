@@ -160,30 +160,32 @@ buf --version      # Protocol buffer tools
 
 ### Running the Test Environment
 
-**Option A: Full Stack (just want to run tests)**
+**Option A: Local Development (recommended for day-to-day work)**
 ```bash
-# Start surfpool validator + envoy + API
-docker compose up -d
+# Start only the surfpool validator via Docker
+docker compose up surfpool -d
+
+# Run the Rust backend locally (fast rebuilds, instant restarts)
+cargo run -p protochain-solana-api
 
 # Run integration tests
 cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
 
-# Stop everything
+# Stop surfpool when done
 docker compose down
 ```
 
-**Option B: Hybrid Development (iterating on the Rust backend)**
+> **Why local?** Building the Rust API inside Docker is slow — especially cross-platform. Always develop and iterate with `cargo run` locally. Use Docker only for the surfpool validator.
+
+**Option B: Full Stack Docker (testing the published Docker image)**
 ```bash
-# Start only the surfpool validator
-docker compose up surfpool -d
+# Pulls the pre-built image from GHCR — does NOT build locally
+docker compose up -d
 
-# Run backend locally (restart freely during development)
-cargo run -p protochain-solana-api
-
-# Run tests
+# Run integration tests against the containerized API
 cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
 
-# Stop surfpool when done
+# Stop everything
 docker compose down
 ```
 

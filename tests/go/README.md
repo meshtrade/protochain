@@ -4,26 +4,29 @@ Go integration tests that validate the Protochain Solana gRPC API using the gene
 
 ## Running Tests
 
-### Full Stack (just want to run tests)
+### Local Development (recommended)
 
 ```bash
-docker compose up -d
-cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
-docker compose down
-```
-
-### Hybrid Development (iterating on the Rust backend)
-
-```bash
-# Start only surfpool validator
+# Start only the surfpool validator via Docker
 docker compose up surfpool -d
 
-# Run backend locally (restart as needed)
+# Run the Rust backend locally (fast rebuilds, instant restarts)
 cargo run -p protochain-solana-api
 
 # Run tests
 cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
 
+docker compose down
+```
+
+> **Tip:** Always develop with `cargo run` locally. Building the API in Docker is slow and unnecessary for day-to-day work.
+
+### Full Stack Docker (testing the published image)
+
+```bash
+# Pulls the pre-built image from GHCR — does NOT build locally
+docker compose up -d
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
 docker compose down
 ```
 
