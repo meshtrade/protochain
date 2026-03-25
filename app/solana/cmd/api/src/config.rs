@@ -25,6 +25,8 @@ pub struct SolanaConfig {
     pub retry_attempts: u32,
     /// Whether to perform health check on startup
     pub health_check_on_startup: bool,
+    /// Interval in seconds for periodic Solana RPC health checks (0 to disable)
+    pub health_check_interval_seconds: u64,
 }
 
 /// gRPC server configuration
@@ -44,6 +46,7 @@ impl Default for SolanaConfig {
             timeout_seconds: 30,
             retry_attempts: 3,
             health_check_on_startup: true,
+            health_check_interval_seconds: 5,
         }
     }
 }
@@ -138,6 +141,16 @@ pub fn load_config() -> Result<Config, String> {
         );
     }
 
+    if let Ok(interval) = std::env::var("SOLANA_HEALTH_CHECK_INTERVAL_SECONDS") {
+        config.solana.health_check_interval_seconds = interval.parse().map_err(|e| {
+            format!("Invalid SOLANA_HEALTH_CHECK_INTERVAL_SECONDS environment variable: {e}")
+        })?;
+        println!(
+            "ℹ️  Override: SOLANA_HEALTH_CHECK_INTERVAL_SECONDS = {}",
+            config.solana.health_check_interval_seconds
+        );
+    }
+
     Ok(config)
 }
 
@@ -174,6 +187,7 @@ mod tests {
         assert_eq!(config.solana.timeout_seconds, 30);
         assert_eq!(config.solana.retry_attempts, 3);
         assert!(config.solana.health_check_on_startup);
+        assert_eq!(config.solana.health_check_interval_seconds, 5);
         assert_eq!(config.server.host, "127.0.0.1");
         assert_eq!(config.server.port, 50064);
     }

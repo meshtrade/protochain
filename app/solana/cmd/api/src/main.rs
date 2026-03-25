@@ -168,12 +168,49 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Clone service providers for graceful shutdown
     let service_providers_shutdown = Arc::clone(&service_providers);
 
-    // Create health check service
-    let (_health_reporter, health_service) = tonic_health::server::health_reporter();
+    // Create health check service with dynamic status reporting
+    let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
 
-    // The health reporter will automatically respond SERVING for all services
-    // since we've successfully initialized everything up to this point
+    // Set initial status to SERVING (startup health check already passed if enabled)
+    health_reporter
+        .set_service_status("", tonic_health::ServingStatus::Serving)
+        .await;
     info!("📋 Health check service initialized - ready to accept connections!");
+
+    // Spawn background health check loop that periodically verifies surfpool connectivity
+    let health_check_interval = config.solana.health_check_interval_seconds;
+    let health_check_task = if health_check_interval > 0 {
+        let rpc_client = service_providers.solana_clients.get_rpc_client();
+        info!(
+            interval_seconds = health_check_interval,
+            "🔄 Starting periodic Solana RPC health check"
+        );
+        Some(tokio::spawn(async move {
+            let mut interval = tokio::time::interval(Duration::from_secs(health_check_interval));
+            // First tick completes immediately — skip it since we just set SERVING above
+            interval.tick().await;
+            loop {
+                interval.tick().await;
+                match rpc_client.get_health().await {
+                    Ok(()) => {
+                        health_reporter
+                            .set_service_status("", tonic_health::ServingStatus::Serving)
+                            .await;
+                        debug!("Periodic health check: Solana RPC is healthy");
+                    }
+                    Err(e) => {
+                        health_reporter
+                            .set_service_status("", tonic_health::ServingStatus::NotServing)
+                            .await;
+                        warn!(error = %e, "Periodic health check: Solana RPC is unreachable — marking NOT_SERVING");
+                    }
+                }
+            }
+        }))
+    } else {
+        info!("Periodic Solana RPC health check disabled (interval = 0)");
+        None
+    };
 
     // Set up graceful shutdown
     let server = Server::builder()
@@ -196,9 +233,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             info!("🛑 Shutdown signal received");
             info!("🧹 Cleaning up resources...");
 
-            // Abort cleanup task
+            // Abort background tasks
             cleanup_task.abort();
-            debug!("WebSocket cleanup task aborted");
+            if let Some(task) = health_check_task {
+                task.abort();
+            }
+            debug!("Background tasks aborted");
 
             // Shutdown WebSocket manager
             service_providers_shutdown.websocket_manager.shutdown();
