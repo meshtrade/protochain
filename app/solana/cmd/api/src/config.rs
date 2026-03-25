@@ -26,7 +26,6 @@ pub struct SolanaConfig {
     /// Whether to perform health check on startup
     pub health_check_on_startup: bool,
     /// Interval in seconds for periodic Solana RPC health checks (0 to disable)
-    #[serde(default = "default_health_check_interval_seconds")]
     pub health_check_interval_seconds: u64,
 }
 
@@ -59,10 +58,6 @@ impl Default for ServerConfig {
             port: 50064,
         }
     }
-}
-
-const fn default_health_check_interval_seconds() -> u64 {
-    5
 }
 
 /// Loads configuration with the following precedence:
