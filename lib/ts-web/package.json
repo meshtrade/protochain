@@ -1,0 +1,116 @@
+{
+  "name": "@protochain/ts-web",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "description": "Protochain TypeScript SDK (browser optimized)",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.js"
+    },
+    "./solana/account/v1": {
+      "types": "./dist/protochain/solana/account/v1/index.d.ts",
+      "require": "./dist/protochain/solana/account/v1/index.js",
+      "import": "./dist/protochain/solana/account/v1/index.js"
+    },
+    "./solana/transaction/v1": {
+      "types": "./dist/protochain/solana/transaction/v1/index.d.ts",
+      "require": "./dist/protochain/solana/transaction/v1/index.js",
+      "import": "./dist/protochain/solana/transaction/v1/index.js"
+    },
+    "./solana/program/system/v1": {
+      "types": "./dist/protochain/solana/program/system/v1/index.d.ts",
+      "require": "./dist/protochain/solana/program/system/v1/index.js",
+      "import": "./dist/protochain/solana/program/system/v1/index.js"
+    },
+    "./solana/program/token/v1": {
+      "types": "./dist/protochain/solana/program/token/v1/index.d.ts",
+      "require": "./dist/protochain/solana/program/token/v1/index.js",
+      "import": "./dist/protochain/solana/program/token/v1/index.js"
+    },
+    "./solana/rpc_client/v1": {
+      "types": "./dist/protochain/solana/rpc_client/v1/index.d.ts",
+      "require": "./dist/protochain/solana/rpc_client/v1/index.js",
+      "import": "./dist/protochain/solana/rpc_client/v1/index.js"
+    },
+    "./solana/type/v1": {
+      "types": "./dist/protochain/solana/type/v1/index.d.ts",
+      "require": "./dist/protochain/solana/type/v1/index.js",
+      "import": "./dist/protochain/solana/type/v1/index.js"
+    },
+    "./config": {
+      "types": "./dist/protochain/config/index.d.ts",
+      "require": "./dist/protochain/config/index.js",
+      "import": "./dist/protochain/config/index.js"
+    },
+    "./interceptors": {
+      "types": "./dist/protochain/interceptors/index.d.ts",
+      "require": "./dist/protochain/interceptors/index.js",
+      "import": "./dist/protochain/interceptors/index.js"
+    },
+    "./*": {
+      "types": "./dist/protochain/*.d.ts",
+      "require": "./dist/protochain/*.js",
+      "import": "./dist/protochain/*.js"
+    }
+  },
+  "scripts": {
+    "clean": "rm -rf dist && rm -rf node_modules/.cache",
+    "build:ts": "tsc --project tsconfig.build.json",
+    "build": "yarn clean && yarn build:ts",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsc --watch",
+    "prepublishOnly": "yarn build",
+    "lint": "eslint src --ext .ts,.tsx --max-warnings=0",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,json,md}\" --ignore-path .prettierignore",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,json,md}\" --ignore-path .prettierignore"
+  },
+  "dependencies": {
+    "@connectrpc/connect": "^2.0.0",
+    "@connectrpc/connect-web": "^2.0.0"
+  },
+  "peerDependencies": {
+    "@bufbuild/protobuf": "^2.7.0"
+  },
+  "devDependencies": {
+    "@bufbuild/protobuf": "^2.11.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "prettier": "^3.2.5",
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md"
+  ],
+  "keywords": [
+    "protobuf",
+    "grpc",
+    "typescript",
+    "protochain",
+    "solana",
+    "blockchain"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meshtrade/protochain",
+    "directory": "lib/ts-web"
+  },
+  "author": "Bernard Bussy <bernard@meshtrade.co>",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+}

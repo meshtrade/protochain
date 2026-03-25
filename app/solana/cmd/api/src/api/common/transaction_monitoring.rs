@@ -1,8 +1,10 @@
-use solana_client::rpc_client::RpcClient;
+use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_client::rpc_config::RpcTransactionConfig;
-use solana_sdk::commitment_config::CommitmentConfig;
+use solana_commitment_config::CommitmentConfig;
 use solana_sdk::signature::Signature;
 use solana_sdk::transaction::TransactionError;
+// solana-transaction-status is behind `agave-unstable-api` — see workspace Cargo.toml for
+// rationale.  Only UiTransactionEncoding (an encoding-format enum) is used here.
 use solana_transaction_status::UiTransactionEncoding;
 use std::str::FromStr;
 use std::sync::Arc;
@@ -55,14 +57,17 @@ pub async fn wait_for_transaction_success(
         }
 
         // Query the transaction from the network
-        match rpc_client.get_transaction_with_config(
-            signature,
-            RpcTransactionConfig {
-                encoding: Some(UiTransactionEncoding::Json),
-                commitment: Some(commitment),
-                max_supported_transaction_version: Some(0),
-            },
-        ) {
+        match rpc_client
+            .get_transaction_with_config(
+                signature,
+                RpcTransactionConfig {
+                    encoding: Some(UiTransactionEncoding::Json),
+                    commitment: Some(commitment),
+                    max_supported_transaction_version: Some(0),
+                },
+            )
+            .await
+        {
             Ok(confirmed_transaction) => {
                 info!(
                     signature = %signature,
@@ -88,7 +93,7 @@ pub async fn wait_for_transaction_success(
                                 error = ?transaction_error,
                                 "❌ Transaction failed during execution"
                             );
-                            return Err(classify_transaction_failure(&transaction_error));
+                            return Err(classify_transaction_failure(&transaction_error.into()));
                         }
                     }
                 }
@@ -286,7 +291,7 @@ fn classify_instruction_failure(
         )),
 
         // Account access and validation errors
-        InstructionError::NotEnoughAccountKeys => Status::invalid_argument(format!(
+        InstructionError::MissingAccount => Status::invalid_argument(format!(
             "Instruction {instruction_index} failed: not enough account keys provided. \
                 The instruction requires more accounts than were specified."
         )),

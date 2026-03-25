@@ -1,9 +1,0 @@
-dist/
-node_modules/
-src/protochain/
-*.min.js
-*.min.css
-coverage/
-.next/
-.cache/
-build/

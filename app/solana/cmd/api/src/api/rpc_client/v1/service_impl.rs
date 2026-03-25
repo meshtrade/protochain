@@ -6,7 +6,7 @@ use protochain_api::protochain::solana::rpc_client::v1::{
     GetMinimumBalanceForRentExemptionResponse,
 };
 
-use solana_client::rpc_client::RpcClient;
+use solana_client::nonblocking::rpc_client::RpcClient;
 
 /// RPC Client service implementation for wrapping Solana RPC client methods
 #[derive(Clone)]
@@ -35,10 +35,14 @@ impl RpcClientService for RpcClientServiceImpl {
         // The commitment level parameter is accepted for API consistency but not used
 
         // Call the underlying Solana RPC client method
-        match self.rpc_client.get_minimum_balance_for_rent_exemption(
-            usize::try_from(req.data_length)
-                .map_err(|e| Status::invalid_argument(format!("Invalid data length: {e}")))?,
-        ) {
+        match self
+            .rpc_client
+            .get_minimum_balance_for_rent_exemption(
+                usize::try_from(req.data_length)
+                    .map_err(|e| Status::invalid_argument(format!("Invalid data length: {e}")))?,
+            )
+            .await
+        {
             Ok(balance) => {
                 let response = GetMinimumBalanceForRentExemptionResponse { balance };
                 Ok(Response::new(response))

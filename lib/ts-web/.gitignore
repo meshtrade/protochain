@@ -1,0 +1,23 @@
+# Generated protobuf files (pattern-based, works across all chains e.g. solana, sui)
+*_pb.ts
+*_protochaints.ts
+
+# Build artifacts
+dist/
+*.tsbuildinfo
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

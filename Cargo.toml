@@ -42,11 +42,24 @@ tonic-reflection = "0.12"
 tonic-health = "0.12"
 prost = "0.13"
 async-trait = "0.1"
-solana-client = "1.18"
-solana-sdk = "1.18"
-solana-transaction-status = "1.18"
-solana-pubsub-client = "1.18"
-solana-rpc-client-api = "1.18"
+solana-client = "4.0.0-beta.2"
+solana-sdk = "3"
+# `agave-unstable-api` gates the entire solana-transaction-status crate in v4+; it is not
+# covered by Agave's backward-compatibility policy, so breaking changes can land in minor/patch
+# releases.  We accept that risk here because:
+#   1. There is no stable alternative — solana-sdk does not expose transaction-status metadata
+#      (logs, balances, compute units, encoding helpers).
+#   2. Our surface is intentionally small: only `UiTransactionEncoding`, `EncodedTransaction`,
+#      and `OptionSerializer` are imported.  We are not coupled to the heavier parsed-instruction
+#      or account-data APIs that are most likely to churn.
+#   3. The overall dependency set is already on 4.0.0-beta.x, so we are not adding instability
+#      that isn't already present.
+# Action on breakage: update imports; the types we use are stable-feeling encoding helpers that
+# are unlikely to be removed, only potentially moved to solana-rpc-client-api in future.
+solana-transaction-status = { version = "4.0.0-beta.2", features = ["agave-unstable-api"] }
+solana-pubsub-client = "4.0.0-beta.2"
+solana-rpc-client-api = "4.0.0-beta.2"
+solana-commitment-config = "3.1.1"
 serde_json = "1.0"
 futures-util = "0.3"
 tokio-stream = "0.1"

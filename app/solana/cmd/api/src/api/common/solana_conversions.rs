@@ -103,7 +103,8 @@ pub fn proto_account_meta_to_sdk(account_meta: &SolanaAccountMeta) -> Result<Acc
 #[allow(clippy::unwrap_used)] // unwrap is acceptable in tests for cleaner assertions
 mod tests {
     use super::*;
-    use solana_sdk::{pubkey::Pubkey, system_instruction, system_program};
+    use solana_sdk::pubkey::Pubkey;
+    use solana_system_interface::{instruction as system_instruction, program as system_program};
 
     #[test]
     fn test_instruction_conversion_roundtrip() {

@@ -35,6 +35,16 @@ fi
 echo "✅ Protobuf definitions validated"
 echo ""
 
+echo "🏃 Building TypeScript protoc plugin..."
+cd "${PROJECT_ROOT}/tool/protoc-gen/cmd/protochain_ts_web"
+if [ ! -d "node_modules" ]; then
+    yarn install --frozen-lockfile 2>/dev/null || yarn install
+fi
+yarn build
+cd "${PROJECT_ROOT}"
+echo "✅ TypeScript protoc plugin built"
+echo ""
+
 echo "🏃 Generating code from protobuf definitions..."
 # Change to project root to ensure relative paths in buf.gen.yaml work correctly
 cd "${PROJECT_ROOT}"
@@ -44,10 +54,15 @@ if ! buf generate "lib/proto" --template "lib/_code_gen/buf.gen.yaml"; then
 fi
 
 echo ""
+echo "🏃 Generating TypeScript index files..."
+node "${PROJECT_ROOT}/tool/ts-index-generation/generate-index-files.js"
+echo "✅ TypeScript index files generated"
+
+echo ""
 echo "✅ All code generation complete!"
 echo ""
 echo "Generated files:"
 echo "  • Go:         lib/go/protochain/"
 echo "  • Rust:       lib/rust/src/"
-echo "  • TypeScript: lib/ts/src/"
+echo "  • TypeScript: lib/ts-web/src/"
 echo ""

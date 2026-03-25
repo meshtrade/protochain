@@ -1,103 +1,52 @@
-# Protochain - Docker Compose for Local Development
-# Orchestrates the full stack: Solana validator + Protochain API
-
-version: '3.8'
-
 services:
-  # Solana Test Validator (for local development)
-  solana-validator:
-    image: solanalabs/solana:v1.18.15
-    container_name: protochain-solana-validator
+  surfpool:
+    image: surfpool/surfpool:latest
+    container_name: surfpool
     command: >
-      solana-test-validator
-      --ledger /solana-ledger
-      --bind-address 0.0.0.0
-      --rpc-bind-address 0.0.0.0
-      --rpc-port 8899
-      --reset
-      --quiet
+      start
+      --no-tui
+      --host 0.0.0.0
+      --port 8899
+      --ws-port 8900
     ports:
-      - "8899:8899"     # RPC port
-      - "8900:8900"     # WebSocket port
-    volumes:
-      - solana_ledger:/solana-ledger
+      - "8899:8899"
+      - "8900:8900"
+      - "18488:18488"
     healthcheck:
-      test: ["CMD", "solana", "cluster-version", "--url", "http://localhost:8899"]
-      interval: 10s
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/8899' 2>/dev/null || exit 1"]
+      interval: 5s
       timeout: 5s
-      retries: 5
-      start_period: 30s
+      retries: 10
+      start_period: 10s
     networks:
       - protochain
 
-  # Protochain Solana API
-  protochain-api:
+  protochain-solana-api:
     build:
       context: .
-      dockerfile: app/solana/ci/Dockerfile
+      dockerfile: app/protochain/ci/solana-api/Dockerfile
     container_name: protochain-solana-api
     ports:
-      - "50051:50051"   # gRPC port
+      - "50064:50064"
     environment:
-      # Solana Configuration
-      SOLANA_RPC_URL: http://solana-validator:8899
-      SOLANA_WEBSOCKET_URL: ws://solana-validator:8900
+      SOLANA_RPC_URL: http://surfpool:8899
+      SOLANA_WEBSOCKET_URL: ws://surfpool:8900
       SOLANA_TIMEOUT_SECONDS: 30
       SOLANA_RETRY_ATTEMPTS: 3
       SOLANA_HEALTH_CHECK_ON_STARTUP: "true"
-
-      # Server Configuration
-      SERVER_HOST: 0.0.0.0
+      ENVOY_ADDRESS: 0.0.0.0
+      ENVOY_PORT: 50064
+      SERVER_HOST: 127.0.0.1
       SERVER_PORT: 50051
-
-      # Logging Configuration
       RUST_LOG: info,protochain_solana_api=info
       PROTOCHAIN_JSON_LOGS: "true"
     depends_on:
-      solana-validator:
+      surfpool:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/50051' || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 45s
     restart: unless-stopped
     networks:
       - protochain
 
-volumes:
-  solana_ledger:
-    driver: local
-
 networks:
   protochain:
     driver: bridge
-
-# Usage Examples:
-#
-# Start the full stack:
-#   docker-compose up -d
-#
-# View logs:
-#   docker-compose logs -f
-#   docker-compose logs -f protochain-api
-#   docker-compose logs -f solana-validator
-#
-# Stop everything:
-#   docker-compose down
-#
-# Rebuild and restart:
-#   docker-compose up --build -d
-#
-# Access services:
-#   - Solana RPC: http://localhost:8899
-#   - Protochain gRPC: localhost:50051
-#
-# Run integration tests against this stack:
-#   cd tests/go
-#   RUN_INTEGRATION_TESTS=1 go test -v
-#
-# Connect to running validator with Solana CLI:
-#   solana config set --url http://localhost:8899
-#   solana balance --url http://localhost:8899 [ADDRESS]

@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package protochain.solana.program.token.v1;
+
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1";
+
+// Corresponds to the Metaplex DataV2 Rust struct used for on-chain metadata.
+// See: https://github.com/metaplex-foundation/mpl-token-metadata
+message MetaplexTokenMetadata {
+  // The full name of the token (e.g. "USD Coin").
+  string name = 1;
+
+  // The ticker/symbol of the token (e.g. "USDC").
+  string symbol = 2;
+
+  // URL pointing to an off-chain JSON file (Arweave, IPFS, or HTTPS).
+  // Follows the Metaplex standard for displaying images and descriptions in wallets.
+  // See: https://developers.metaplex.com/smart-contracts/token-metadata/token-standard
+  string uri = 3;
+
+  // Royalties in basis points (100 = 1%).
+  uint32 seller_fee_basis_points = 4;
+
+  // List of creators and their royalty shares.
+  repeated MetaplexCreator creators = 5;
+
+  // Optional collection information grouping this asset.
+  MetaplexCollection collection = 6;
+
+  // Optional usage restrictions/rules (primarily for gaming or limited-use assets).
+  MetaplexUses uses = 7;
+}
+
+// Creator information for royalties.
+message MetaplexCreator {
+  // The public key of the creator (Base58 encoded string).
+  string address = 1;
+
+  // Whether the creator has signed the metadata (verified).
+  bool verified = 2;
+
+  // The percentage of royalties this creator receives (0-100).
+  uint32 share = 3;
+}
+
+// Collection grouping info.
+message MetaplexCollection {
+  // Whether the collection has been verified by the authority.
+  bool verified = 1;
+
+  // The mint address of the collection parent NFT (Base58 encoded string).
+  string key = 2;
+}
+
+// Usage rules for the asset.
+message MetaplexUses {
+  enum UseMethod {
+    // Default unspecified value.
+    USE_METHOD_UNSPECIFIED = 0;
+    // The asset is burned after use.
+    USE_METHOD_BURN = 1;
+    // The asset can be used multiple times.
+    USE_METHOD_MULTIPLE = 2;
+    // The asset can be used once.
+    USE_METHOD_SINGLE = 3;
+  }
+
+  // How the asset is consumed.
+  UseMethod use_method = 1;
+
+  // Remaining number of uses.
+  uint64 remaining = 2;
+
+  // Total allowed uses.
+  uint64 total = 3;
+}

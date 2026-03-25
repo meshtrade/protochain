@@ -53,9 +53,8 @@ jobs:
             typescript:
               - 'package.json'
               - 'yarn.lock'
-              - 'lib/ts/**'
-              - 'tests/ts/**'
-              - 'ui/**'
+              - 'lib/ts-web/**'
+              - 'tool/protoc-gen/cmd/protochain_ts_web/**'
               - 'scripts/lint/ts.sh'
 
   proto:
@@ -71,6 +70,18 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
 
       - name: Setup buf
         uses: bufbuild/buf-setup-action@v1
@@ -107,7 +118,7 @@ jobs:
 
       - name: Install linters
         run: |
-          go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
           go install golang.org/x/tools/cmd/goimports@latest
 
       - name: Run golangci-lint
@@ -127,7 +138,7 @@ jobs:
 
       - name: Run Go unit tests
         run: |
-          go test ./tool/...
+          go test ./lib/go/...
 
   rust:
     name: Rust Lint + Unit Tests
@@ -150,13 +161,18 @@ jobs:
         run: cargo fmt --all --check
 
       - name: Run clippy
-        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+        run: cargo clippy --workspace --all-targets -- -D warnings
 
       - name: Run workspace unit tests
-        run: cargo test --workspace --all-features
+        # RUSTFLAGS=-Clink-arg=-zmuldefs works around a duplicate `entrypoint`
+        # symbol from spl-token-2022 and spl-associated-token-account on Linux.
+        # Both crates unconditionally compile solana-program-entrypoint even
+        # with default-features=false; the duplicate is harmless (identical
+        # weak symbols) but lld on Linux treats it as a hard error.
+        run: RUSTFLAGS="${RUSTFLAGS:+$RUSTFLAGS }-Clink-arg=-zmuldefs" cargo test --workspace
 
       - name: Check generated Rust SDK crate builds
-        run: cargo test --manifest-path lib/rust/Cargo.toml --all-features --lib
+        run: cargo test --manifest-path lib/rust/Cargo.toml --lib
 
   typescript:
     name: TypeScript Lint + Type Checks
@@ -176,11 +192,22 @@ jobs:
       - name: Enable corepack
         run: corepack enable
 
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Setup buf
+        uses: bufbuild/buf-setup-action@v1
+
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Generate TypeScript SDK from protos
+        run: ./scripts/code-gen/generate/all.sh
+
       - name: Build TypeScript SDK
-        run: yarn workspace @protochain/api build
+        run: yarn workspace @protochain/ts-web build
 
       - name: Lint all workspaces
         run: yarn workspaces run lint

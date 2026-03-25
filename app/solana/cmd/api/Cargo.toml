@@ -41,9 +41,18 @@ bs58 = "0.5"
 hex = "0.4"
 # Exclude default features to avoid on-chain program entrypoint symbol conflicts
 # Note: Use versions that are compatible and exclude default features which include the entrypoint
-spl-token-2022 = { version = "3.0.5", default-features = false, features = ["serde-traits"] }
-spl-token = { version = "4", default-features = false }
-spl-associated-token-account = { version = "=3.0.2", default-features = false }
+spl-token-2022 = { version = "10", default-features = false, features = ["serde-traits"] }
+spl-token = { version = "9", default-features = false }
+spl-associated-token-account = { version = "8", default-features = false }
+spl-token-metadata-interface = "0.8"
+spl-pod = "0.7"
+# TODO(HIGH PRIORITY): Replace with crates.io version as soon as mpl-token-metadata
+# publishes a release with solana-program v3.x support. The published v5.1.1 depends
+# on solana-program v2.x which is incompatible with our solana-sdk v3.x types.
+# The main branch already has the v3 update — swap to a version pin when available:
+#   mpl-token-metadata = "X.Y.Z"
+# Tracking: https://github.com/metaplex-foundation/mpl-token-metadata/releases
+mpl-token-metadata = { git = "https://github.com/metaplex-foundation/mpl-token-metadata", rev = "c314930196b6b16e1ba8fefdf206e9af7b0e4c37" }
 
 # WebSocket support with native TLS for WSS (secure WebSocket) connections
 # Note: rustls via tokio-tungstenite does NOT work reliably for WSS in practice.
@@ -56,6 +65,8 @@ native-tls = "0.2"
 # Reference the API crate within the workspace (updated path for new location)
 protochain-api = { path = "../../../../lib/rust" }
 url = "2.5.7"
-solana-system-interface = { version = "3.0.0", features = ["bincode"] }
-solana-address = "2.0.0"
-solana-instruction = "3.1.0"
+solana-system-interface = { version = "3.1.0", features = ["bincode"] }
+solana-address = "2.3.0"
+solana-instruction = "3.2.0"
+solana-commitment-config.workspace = true
+rust_decimal = "1.40"

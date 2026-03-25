@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package protochain.solana.program.token.v1;
+
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1";
+
+// Configuration for Token-2022 Metadata Extension
+message Token2022ExtensionMetadata {
+  // The account that serves as the "source of truth" for metadata.
+  // For the most common modern setup, this can be left empty to default
+  // to the mint_pub_key.
+  string metadata_address = 1;
+
+  // The authority allowed to sign and update the metadata fields
+  // (name, symbol, uri, etc).
+  // If not provided, this defaults to the mint_authority_pub_key.
+  string update_authority_pub_key = 2;
+
+  // The full name of the token (e.g. "USD Coin").
+  string name = 3;
+
+  // The ticker/symbol of the token (e.g. "USDC").
+  string symbol = 4;
+
+  // URL pointing to an off-chain JSON file (IPFS/Arweave/HTTPS).
+  // Follows the Metaplex standard for displaying images and descriptions in wallets.
+  // See: https://developers.metaplex.com/smart-contracts/token-metadata/token-standard
+  string uri = 5;
+
+  // Custom key-value pairs stored directly on the blockchain.
+  // Use this for data that smart contracts need to read (e.g., "rarity": "mythic").
+  // Note: Adding many items increases the rent cost of the Mint account.
+  map<string, string> additional_metadata = 6;
+}

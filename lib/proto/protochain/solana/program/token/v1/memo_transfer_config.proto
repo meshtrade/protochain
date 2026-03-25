@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package protochain.solana.program.token.v1;
+
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1";
+
+// Configuration for the Token-2022 Memo Transfer extension on a holding account.
+//
+// When enabled, every inbound SPL token transfer into the account must include
+// a memo instruction in the same transaction. Transfers without a memo will be
+// rejected by the Token-2022 program at runtime.
+message MemoTransferConfig {
+  // When true, require every inbound transfer into the account to include a memo.
+  bool require_incoming_memo = 1;
+}

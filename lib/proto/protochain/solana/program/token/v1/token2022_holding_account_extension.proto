@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package protochain.solana.program.token.v1;
+
+import "protochain/solana/program/token/v1/memo_transfer_config.proto";
+
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1";
+
+// Wrapper for Token-2022 extensions that can be enabled on a holding account
+// (Associated Token Account).
+//
+// Each extension must be requested at account creation time via the
+// CreateToken2022HoldingAccount RPC. Extensions not included during creation
+// cannot be added later without reallocating the account.
+message Token2022HoldingAccountExtension {
+  oneof extension {
+    // Memo Transfer extension: requires every inbound transfer to include a memo.
+    MemoTransferConfig memo_transfer = 1;
+    // Future holding account extensions go here, e.g.:
+    // CpiGuardConfig cpi_guard = 2;
+    // ImmutableOwnerConfig immutable_owner = 3;
+  }
+}

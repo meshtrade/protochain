@@ -1,0 +1,157 @@
+name: Deploy @protochain/ts-web to npm via OIDC Trusted Publishing
+
+on:
+  push:
+    tags:
+      - 'ts-web/v*.*.*'
+
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.2.3)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+  pull-requests: write
+
+jobs:
+  npm-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Upgrade npm to support OIDC
+        run: |
+          echo "Current npm version: $(npm --version)"
+          npm install -g npm@latest
+          echo "Updated npm version: $(npm --version)"
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            lib/ts-web/node_modules
+            tool/protoc-gen/cmd/protochain_ts_web/node_modules
+          key: ${{ runner.os }}-ts-web-deps-${{ hashFiles('yarn.lock', 'lib/ts-web/yarn.lock', 'lib/ts-web/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-ts-web-deps-
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Setup buf CLI
+        uses: bufbuild/buf-setup-action@v1
+        with:
+          github_token: ${{ github.token }}
+
+      - name: Generate TypeScript code from protobuf
+        run: ./scripts/code-gen/generate/ts-web.sh
+
+      - name: Run TypeScript linting
+        working-directory: ./lib/ts-web
+        run: yarn lint
+
+      - name: Run TypeScript type checking
+        working-directory: ./lib/ts-web
+        run: yarn typecheck
+
+      - name: Extract version from tag or input
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            VERSION=$(echo "${{ github.ref_name }}" | sed 's/^ts-web\/v//')
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "Extracted version from tag: $VERSION"
+          else
+            VERSION="${{ inputs.version }}"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "Using manual version input: $VERSION"
+          fi
+
+      - name: Update package.json version
+        working-directory: ./lib/ts-web
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo "Setting @protochain/ts-web version to: $VERSION"
+          node -e "const fs=require('fs'); const p=JSON.parse(fs.readFileSync('package.json','utf8')); p.version='$VERSION'; fs.writeFileSync('package.json', JSON.stringify(p, null, 2)+'\n');"
+          grep '"version":' package.json
+
+      - name: Build TypeScript SDK
+        working-directory: ./lib/ts-web
+        run: yarn build
+
+      - name: Verify build artifacts
+        working-directory: ./lib/ts-web
+        run: ls -la dist/ | head -20
+
+      - name: Publish to npm via OIDC Trusted Publishing
+        working-directory: ./lib/ts-web
+        run: |
+          echo "Publishing @protochain/ts-web to npm via OIDC..."
+          echo "npm version: $(npm --version)"
+          npm publish --access public
+
+      - name: Success notification
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          echo ""
+          echo "############################################################"
+          echo "#                                                          #"
+          echo "#  @protochain/ts-web v$VERSION published!                 #"
+          echo "#                                                          #"
+          echo "#  https://www.npmjs.com/package/@protochain/ts-web        #"
+          echo "#  Authentication: OIDC (no long-lived tokens)             #"
+          echo "#                                                          #"
+          echo "############################################################"
+
+      - name: Create PR with version update
+        if: success()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          BRANCH_NAME="chore/ts-web-npm-version-$VERSION"
+
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "$BRANCH_NAME"
+          git add lib/ts-web/package.json
+          git commit -m "$(cat <<EOF
+          chore: update @protochain/ts-web version to $VERSION
+
+          After successful deployment to npm registry via OIDC.
+          Tag: ts-web/v$VERSION
+          Package: @protochain/ts-web@$VERSION
+          EOF
+          )"
+
+          git push origin "$BRANCH_NAME"
+
+          gh pr create \
+            --title "chore: update @protochain/ts-web version to $VERSION" \
+            --body "$(cat <<'PREOF'
+          ## Summary
+          - Updates @protochain/ts-web version after successful npm deployment via OIDC
+
+          ## Details
+          - Package published to npm using OIDC Trusted Publishing
+          - Version updated in `lib/ts-web/package.json`
+          PREOF
+          )" \
+            --base main \
+            --head "$BRANCH_NAME"
+
+          echo "PR created successfully!"

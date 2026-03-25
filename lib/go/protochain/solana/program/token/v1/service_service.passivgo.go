@@ -108,19 +108,19 @@ func NewServiceService(opts ...common.ServiceOption) (ServiceServiceClientInterf
 	return &serviceService{BaseGRPCClient: base}, nil
 }
 
-// InitialiseMint executes the InitialiseMint RPC method with automatic
+// CreateToken2022Mint executes the CreateToken2022Mint RPC method with automatic
 // client-side validation, timeout handling, distributed tracing, and authentication.
-func (s *serviceService) InitialiseMint(ctx context.Context, request *InitialiseMintRequest) (*InitialiseMintResponse, error) {
-	return common.Execute(s.Executor(), ctx, "InitialiseMint", request, func(ctx context.Context) (*InitialiseMintResponse, error) {
-		return s.GrpcClient().InitialiseMint(ctx, request)
+func (s *serviceService) CreateToken2022Mint(ctx context.Context, request *CreateToken2022MintRequest) (*CreateToken2022MintResponse, error) {
+	return common.Execute(s.Executor(), ctx, "CreateToken2022Mint", request, func(ctx context.Context) (*CreateToken2022MintResponse, error) {
+		return s.GrpcClient().CreateToken2022Mint(ctx, request)
 	})
 }
 
-// GetCurrentMinRentForTokenAccount executes the GetCurrentMinRentForTokenAccount RPC method with automatic
+// CreateSPLTokenMint executes the CreateSPLTokenMint RPC method with automatic
 // client-side validation, timeout handling, distributed tracing, and authentication.
-func (s *serviceService) GetCurrentMinRentForTokenAccount(ctx context.Context, request *GetCurrentMinRentForTokenAccountRequest) (*GetCurrentMinRentForTokenAccountResponse, error) {
-	return common.Execute(s.Executor(), ctx, "GetCurrentMinRentForTokenAccount", request, func(ctx context.Context) (*GetCurrentMinRentForTokenAccountResponse, error) {
-		return s.GrpcClient().GetCurrentMinRentForTokenAccount(ctx, request)
+func (s *serviceService) CreateSPLTokenMint(ctx context.Context, request *CreateSPLTokenMintRequest) (*CreateSPLTokenMintResponse, error) {
+	return common.Execute(s.Executor(), ctx, "CreateSPLTokenMint", request, func(ctx context.Context) (*CreateSPLTokenMintResponse, error) {
+		return s.GrpcClient().CreateSPLTokenMint(ctx, request)
 	})
 }
 
@@ -132,27 +132,19 @@ func (s *serviceService) ParseMint(ctx context.Context, request *ParseMintReques
 	})
 }
 
-// GetCurrentMinRentForHoldingAccount executes the GetCurrentMinRentForHoldingAccount RPC method with automatic
+// CreateToken2022HoldingAccount executes the CreateToken2022HoldingAccount RPC method with automatic
 // client-side validation, timeout handling, distributed tracing, and authentication.
-func (s *serviceService) GetCurrentMinRentForHoldingAccount(ctx context.Context, request *GetCurrentMinRentForHoldingAccountRequest) (*GetCurrentMinRentForHoldingAccountResponse, error) {
-	return common.Execute(s.Executor(), ctx, "GetCurrentMinRentForHoldingAccount", request, func(ctx context.Context) (*GetCurrentMinRentForHoldingAccountResponse, error) {
-		return s.GrpcClient().GetCurrentMinRentForHoldingAccount(ctx, request)
+func (s *serviceService) CreateToken2022HoldingAccount(ctx context.Context, request *CreateToken2022HoldingAccountRequest) (*CreateToken2022HoldingAccountResponse, error) {
+	return common.Execute(s.Executor(), ctx, "CreateToken2022HoldingAccount", request, func(ctx context.Context) (*CreateToken2022HoldingAccountResponse, error) {
+		return s.GrpcClient().CreateToken2022HoldingAccount(ctx, request)
 	})
 }
 
-// CreateMint executes the CreateMint RPC method with automatic
+// CreateSPLTokenHoldingAccount executes the CreateSPLTokenHoldingAccount RPC method with automatic
 // client-side validation, timeout handling, distributed tracing, and authentication.
-func (s *serviceService) CreateMint(ctx context.Context, request *CreateMintRequest) (*CreateMintResponse, error) {
-	return common.Execute(s.Executor(), ctx, "CreateMint", request, func(ctx context.Context) (*CreateMintResponse, error) {
-		return s.GrpcClient().CreateMint(ctx, request)
-	})
-}
-
-// CreateHoldingAccount executes the CreateHoldingAccount RPC method with automatic
-// client-side validation, timeout handling, distributed tracing, and authentication.
-func (s *serviceService) CreateHoldingAccount(ctx context.Context, request *CreateHoldingAccountRequest) (*CreateHoldingAccountResponse, error) {
-	return common.Execute(s.Executor(), ctx, "CreateHoldingAccount", request, func(ctx context.Context) (*CreateHoldingAccountResponse, error) {
-		return s.GrpcClient().CreateHoldingAccount(ctx, request)
+func (s *serviceService) CreateSPLTokenHoldingAccount(ctx context.Context, request *CreateSPLTokenHoldingAccountRequest) (*CreateSPLTokenHoldingAccountResponse, error) {
+	return common.Execute(s.Executor(), ctx, "CreateSPLTokenHoldingAccount", request, func(ctx context.Context) (*CreateSPLTokenHoldingAccountResponse, error) {
+		return s.GrpcClient().CreateSPLTokenHoldingAccount(ctx, request)
 	})
 }
 

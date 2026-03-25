@@ -38,7 +38,7 @@ DRAFT → COMPILED → PARTIALLY_SIGNED → FULLY_SIGNED → SUBMITTED
 ### Multi-Language SDK Generation
 - **Rust** (`lib/rust/`): Generated with tonic/prost for backend implementation
 - **Go** (`lib/go/`): Generated with custom interfaces via protoc-gen-protochaingo
-- **TypeScript** (`lib/ts/`): Generated with @bufbuild/protobuf for browser/Node.js
+- **TypeScript** (`lib/ts-web/`): Generated with @bufbuild/protobuf for browser/Node.js ([`@protochain/ts-web`](https://www.npmjs.com/package/@protochain/ts-web))
 
 ## 📁 Repository Structure
 
@@ -48,7 +48,10 @@ protochain/
 │   └── protochain/solana/
 │       ├── account/v1/           # Account management services
 │       ├── transaction/v1/       # Transaction lifecycle services
-│       ├── program/system/v1/    # System program wrappers
+│       ├── program/
+│       │   ├── system/v1/       # System program wrappers
+│       │   └── token/v1/        # SPL Token & Token-2022 wrappers
+│       ├── rpc_client/v1/       # Direct RPC client service
 │       └── type/v1/              # Shared type definitions
 │
 ├── app/                          # 🏗️ Multi-App Architecture
@@ -59,7 +62,10 @@ protochain/
 │   │           └── src/api/     # Service implementations
 │   │               ├── account/v1/      # Account service logic
 │   │               ├── transaction/v1/  # Transaction state machine
-│   │               └── program/system/v1/ # System program conversions
+│   │               ├── program/
+│   │               │   ├── system/v1/  # System program conversions
+│   │               │   └── token/v1/   # Token program operations
+│   │               └── rpc_client/v1/  # Direct RPC operations
 │   │
 │   └── template/               # Template for new applications
 │       └── cmd/
@@ -71,7 +77,7 @@ protochain/
 ├── lib/                         # 📦 Generated Multi-Language SDKs
 │   ├── rust/src/               # Generated Rust bindings
 │   ├── go/protochain/           # Generated Go SDK + interfaces
-│   └── ts/src/               # Generated TypeScript SDK
+│   └── ts-web/src/              # Generated TypeScript SDK (@protochain/ts-web)
 │
 ├── tests/go/                   # 🧪 Integration Test Suite
 │   ├── streaming_e2e_test.go  # Real blockchain integration tests
@@ -80,8 +86,7 @@ protochain/
 │
 ├── scripts/                    # 🔧 Development Automation
 │   ├── code-gen/generate/all.sh # Generate all SDKs
-│   ├── tests/start-validator.sh # Local Solana validator
-│   ├── tests/start-backend.sh  # Start gRPC backend
+│   ├── tests/start-backend.sh  # Start gRPC backend natively
 │   └── lint/                   # Code quality scripts
 │
 └── CLAUDE.md                   # 📖 Comprehensive development guide
@@ -149,72 +154,56 @@ ProtoChain features a **multi-app architecture** that allows multiple applicatio
 # Required tools
 rustc --version    # Rust 1.70+
 go version         # Go 1.21+
-solana --version   # Solana CLI tools
+docker --version   # Docker (for surfpool validator)
 buf --version      # Protocol buffer tools
+```
+
+### Running the Test Environment
+
+**Option A: Full Stack (just want to run tests)**
+```bash
+# Start surfpool validator + envoy + API
+docker compose up -d
+
+# Run integration tests
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
+
+# Stop everything
+docker compose down
+```
+
+**Option B: Hybrid Development (iterating on the Rust backend)**
+```bash
+# Start only the surfpool validator
+docker compose up surfpool -d
+
+# Run backend locally (restart freely during development)
+cargo run -p protochain-solana-api
+
+# Run tests
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
+
+# Stop surfpool when done
+docker compose down
 ```
 
 ### Development Workflow
 
-#### Option 1: Docker Compose (Recommended)
+1. **Make Proto Changes**
 ```bash
-# Start full stack (validator + API)
-./scripts/tests/start-docker.sh
-
-# Stop full stack
-./scripts/tests/stop-docker.sh
-```
-
-#### Option 2: Hybrid Development (Most Common)
-```bash
-# Start only Solana validator in Docker
-./scripts/tests/start-validator-docker.sh
-
-# Start backend locally for development (restart as needed)
-cargo run -p protochain-solana-api
-
-# Stop validator when done
-./scripts/tests/stop-validator-docker.sh
-```
-
-#### Option 3: Native Development
-```bash
-# Terminal 1: Start Solana validator
-./scripts/tests/start-validator.sh
-
-# Terminal 2: Start gRPC backend
-./scripts/tests/start-backend.sh
-```
-
-2. **Make Proto Changes**
-```bash
-# Edit proto files in lib/proto/protochain/solana/
 vim lib/proto/protochain/solana/account/v1/service.proto
-
-# Validate and generate code
 buf lint
 ./scripts/code-gen/generate/all.sh
 ```
 
-3. **Implement & Test**
+2. **Implement & Test**
 ```bash
-# Update Rust implementation
 vim app/solana/cmd/api/src/api/account/v1/service_impl.rs
-
-# Run tests
 cargo test                    # Rust unit tests
-cd tests/go && go test -v     # Go integration tests (auto-detects services)
+cd tests/go && go test -v     # Go integration tests
 ```
 
-4. **Try Template App**
-```bash
-# Run the template app to understand the structure
-go run ./app/template/cmd/some-executable/main.go
-
-# Test with arguments
-go run ./app/template/cmd/some-executable/main.go test arg
-```
-
-5. **Quality Assurance**
+3. **Quality Assurance**
 ```bash
 # MANDATORY: Run linting after ANY code changes
 ./scripts/lint/all.sh         # All languages

@@ -69,7 +69,7 @@ pub fn build_structured_error(
 fn classify_error_with_certainty(
     client_error: &ClientError,
 ) -> (TransactionErrorCode, TransactionSubmissionCertainty) {
-    match &client_error.kind {
+    match &*client_error.kind {
         // Preflight failures - CERTAIN transaction was NOT sent
         ClientErrorKind::RpcError(RpcError::RpcResponseError {
             data: RpcResponseErrorData::SendTransactionPreflightFailure(simulation_result),
@@ -81,7 +81,7 @@ fn classify_error_with_certainty(
                 .err
                 .as_ref()
                 .map_or(TransactionErrorCode::InvalidTransaction, |tx_error| {
-                    classify_transaction_error(tx_error)
+                    classify_transaction_error(&SdkTransactionError::from(tx_error.clone()))
                 });
 
             (error_code, certainty)
@@ -143,8 +143,8 @@ fn classify_error_with_certainty(
             TransactionSubmissionCertainty::UnknownResolvable,
         ),
 
-        // Custom errors - fallback to unknown with indeterminate certainty
-        ClientErrorKind::Custom(_) => {
+        // Custom/middleware errors - fallback to unknown with indeterminate certainty
+        ClientErrorKind::Custom(_) | ClientErrorKind::Middleware(_) => {
             (TransactionErrorCode::Unknown, TransactionSubmissionCertainty::Unknown)
         }
     }
@@ -222,7 +222,9 @@ const fn classify_transaction_error(
         | SdkTransactionError::InvalidLoadedAccountsDataSizeLimit
         | SdkTransactionError::ResanitizationNeeded
         | SdkTransactionError::ProgramExecutionTemporarilyRestricted { .. }
-        | SdkTransactionError::AlreadyProcessed => TransactionErrorCode::InvalidTransaction,
+        | SdkTransactionError::AlreadyProcessed
+        | SdkTransactionError::ProgramCacheHitMaxLimit
+        | SdkTransactionError::CommitCancelled => TransactionErrorCode::InvalidTransaction,
     }
 }
 
@@ -281,7 +283,7 @@ pub const fn determine_retryability(code: TransactionErrorCode) -> bool {
 /// Provides rich debugging information while maintaining structured format
 /// for programmatic parsing if needed
 pub fn extract_error_details(client_error: &ClientError) -> String {
-    let details = match &client_error.kind {
+    let details = match &*client_error.kind {
         ClientErrorKind::RpcError(RpcError::RpcResponseError { data, .. }) => match data {
             RpcResponseErrorData::SendTransactionPreflightFailure(simulation_result) => {
                 serde_json::json!({
@@ -351,6 +353,12 @@ pub fn extract_error_details(client_error: &ClientError) -> String {
             serde_json::json!({
                 "type": "custom_error",
                 "error": custom_error
+            })
+        }
+        ClientErrorKind::Middleware(middleware_error) => {
+            serde_json::json!({
+                "type": "middleware_error",
+                "error": format!("{middleware_error:?}")
             })
         }
     };

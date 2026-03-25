@@ -1,4 +1,4 @@
-use solana_client::rpc_client::RpcClient;
+use solana_client::nonblocking::rpc_client::RpcClient;
 use std::sync::Arc;
 
 /// Service provider container for Solana client instances

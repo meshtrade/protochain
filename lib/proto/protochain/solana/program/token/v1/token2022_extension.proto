@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package protochain.solana.program.token.v1;
+
+import "protochain/solana/program/token/v1/token2022_extension_metadata.proto";
+
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1";
+
+// Wrapper for Token-2022 extensions.
+message Token2022Extension {
+  oneof extension {
+    protochain.solana.program.token.v1.Token2022ExtensionMetadata metadata = 1;
+    // Other extension support COMING SOON!
+    // protochain.solana.program.token.v1.TransferHookConfig transfer_hook = 2;
+    // protochain.solana.program.token.v1.TransferFeeConfig transfer_fee = 3;
+    // protochain.solana.program.token.v1.InterestBearingConfig interest_bearing = 4;
+    // string permanent_delegate_pub_key = 5;
+  }
+}

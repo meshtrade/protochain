@@ -6,27 +6,75 @@ import (
 	context "context"
 )
 
-// Token Program service for creating SPL Token 2022 instructions
+// Token Program service for creating SPL Token and Token-2022 instructions.
+//
+// Mint creation methods (CreateToken2022Mint, CreateSPLTokenMint) return the
+// complete set of instructions needed to create and initialise a mint account
+// in a single call — including the System::CreateAccount instruction, rent
+// calculation, and any extension/metadata setup. This removes the need for
+// callers to separately query rent, build a system create instruction, and
+// then initialise the mint.
+//
+// Holding account creation methods (CreateToken2022HoldingAccount,
+// CreateSPLTokenHoldingAccount) follow the same pattern — returning the
+// complete instruction set and rent-exempt lamport cost in one call.
 type ServiceInterface interface {
-	// Creates an InitialiseMint instruction for Token 2022 program
-	InitialiseMint(ctx context.Context, request *InitialiseMintRequest) (*InitialiseMintResponse, error)
+	// Creates a fully initialised Token-2022 mint account in one call.
+	//
+	// Returns the complete ordered instruction set:
+	//   1. System::CreateAccount  — allocates and funds the mint account
+	//   2. Extension pre-init instructions (e.g. initialize_metadata_pointer)
+	//   3. initialize_mint
+	//   4. Extension post-init instructions (e.g. initialize_token_metadata, update_field × N)
+	//
+	// The response also includes the lamports deposited and the space allocated
+	// for the account, so callers know the cost without a separate query.
+	CreateToken2022Mint(ctx context.Context, request *CreateToken2022MintRequest) (*CreateToken2022MintResponse, error)
 
-	// Gets current minimum rent for a token account (mint size)
-	GetCurrentMinRentForTokenAccount(ctx context.Context, request *GetCurrentMinRentForTokenAccountRequest) (*GetCurrentMinRentForTokenAccountResponse, error)
+	// Creates a fully initialised legacy SPL Token mint account in one call.
+	//
+	// Returns the complete ordered instruction set:
+	//   1. System::CreateAccount  — allocates and funds the mint account (always 82 bytes)
+	//   2. initialize_mint
+	//   3. (optional) CreateMetadataAccountV3 — Metaplex on-chain metadata PDA
+	//
+	// The response also includes the lamports deposited and the space allocated.
+	CreateSPLTokenMint(ctx context.Context, request *CreateSPLTokenMintRequest) (*CreateSPLTokenMintResponse, error)
 
 	// Parses mint account data into structured format
+	//
+	// Token Program Agnostic. Response indicates if mint is for Token2022 or SPL tokens.
 	ParseMint(ctx context.Context, request *ParseMintRequest) (*ParseMintResponse, error)
 
-	// Gets current minimum rent for a token holding account, optionally accounting for memo transfer extension size when memo_transfer_config is provided.
-	GetCurrentMinRentForHoldingAccount(ctx context.Context, request *GetCurrentMinRentForHoldingAccountRequest) (*GetCurrentMinRentForHoldingAccountResponse, error)
+	// Creates a Token-2022 holding account (Associated Token Account) in one call.
+	//
+	// Returns the complete ordered instruction set:
+	//   1. Create Associated Token Account (ATA)
+	//   2. For each requested extension: reallocate + extension-init instructions
+	//      (e.g. for MemoTransfer: reallocate for MemoTransfer + enable_required_transfer_memos)
+	//
+	// The response also includes the lamports required for rent exemption,
+	// accounting for the final account size with all requested extensions.
+	CreateToken2022HoldingAccount(ctx context.Context, request *CreateToken2022HoldingAccountRequest) (*CreateToken2022HoldingAccountResponse, error)
 
-	// Creates both system account creation and mint initialization instructions. Memo transfer is not applicable to mint accounts.
-	CreateMint(ctx context.Context, request *CreateMintRequest) (*CreateMintResponse, error)
+	// Creates a legacy SPL Token holding account (Associated Token Account) in one call.
+	//
+	// Returns a single ATA creation instruction along with the lamports required
+	// for rent exemption.
+	CreateSPLTokenHoldingAccount(ctx context.Context, request *CreateSPLTokenHoldingAccountRequest) (*CreateSPLTokenHoldingAccountResponse, error)
 
-	// Creates holding account initialization instructions. Adds memo-enable instruction when requested.
-	CreateHoldingAccount(ctx context.Context, request *CreateHoldingAccountRequest) (*CreateHoldingAccountResponse, error)
-
-	// Mint tokens to an existing token account using MintToChecked instruction
+	// Mints tokens to a destination account using the MintToChecked instruction.
+	//
+	// Token Program Agnostic — the service reads the mint account on-chain to
+	// determine the owning token program, the mint authority, and the decimal
+	// precision.  Callers only need to supply the mint address, the destination
+	// owner's system account address, and the human-readable token amount.
+	//
+	// The Associated Token Account (ATA) for the destination owner is derived
+	// automatically from the mint and the owner address.
+	//
+	// NOTE: Multi-sig mint authorities are not yet supported.  The on-chain mint
+	// authority must be a single key-pair signer.
 	Mint(ctx context.Context, request *MintRequest) (*MintResponse, error)
 }
 

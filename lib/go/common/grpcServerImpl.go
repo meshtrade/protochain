@@ -161,14 +161,14 @@ func (g *GRPCServerImpl) StartServer() error {
 	}
 
 	// start the grpc server listening on the port
-	return g.Server.Serve(lis)
+	return g.Serve(lis)
 }
 
 // StopServer implements GRPCServer.
 func (g *GRPCServerImpl) StopServer() error {
 	log.Debug().Msg("stopping gRPC server")
 
-	g.Server.GracefulStop()
+	g.GracefulStop()
 
 	return nil
 }

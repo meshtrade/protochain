@@ -2,57 +2,163 @@ syntax = "proto3";
 
 package protochain.solana.program.token.v1;
 
+import "protochain/solana/program/token/v1/spl_token_metadata.proto";
+import "protochain/solana/program/token/v1/token2022_extension.proto";
+import "protochain/solana/program/token/v1/token2022_holding_account_extension.proto";
 import "protochain/solana/transaction/v1/instruction.proto";
 import "protochain/solana/type/v1/token_program.proto";
 
 option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1";
 
-// Token Program service for creating SPL Token 2022 instructions
+// Token Program service for creating SPL Token and Token-2022 instructions.
+//
+// Mint creation methods (CreateToken2022Mint, CreateSPLTokenMint) return the
+// complete set of instructions needed to create and initialise a mint account
+// in a single call — including the System::CreateAccount instruction, rent
+// calculation, and any extension/metadata setup. This removes the need for
+// callers to separately query rent, build a system create instruction, and
+// then initialise the mint.
+//
+// Holding account creation methods (CreateToken2022HoldingAccount,
+// CreateSPLTokenHoldingAccount) follow the same pattern — returning the
+// complete instruction set and rent-exempt lamport cost in one call.
 service Service {
-  // Creates an InitialiseMint instruction for Token 2022 program
-  rpc InitialiseMint(InitialiseMintRequest) returns (InitialiseMintResponse);
+  // Creates a fully initialised Token-2022 mint account in one call.
+  //
+  // Returns the complete ordered instruction set:
+  //   1. System::CreateAccount  — allocates and funds the mint account
+  //   2. Extension pre-init instructions (e.g. initialize_metadata_pointer)
+  //   3. initialize_mint
+  //   4. Extension post-init instructions (e.g. initialize_token_metadata, update_field × N)
+  //
+  // The response also includes the lamports deposited and the space allocated
+  // for the account, so callers know the cost without a separate query.
+  rpc CreateToken2022Mint(CreateToken2022MintRequest) returns (CreateToken2022MintResponse);
 
-  // Gets current minimum rent for a token account (mint size)
-  rpc GetCurrentMinRentForTokenAccount(GetCurrentMinRentForTokenAccountRequest) returns (GetCurrentMinRentForTokenAccountResponse);
+  // Creates a fully initialised legacy SPL Token mint account in one call.
+  //
+  // Returns the complete ordered instruction set:
+  //   1. System::CreateAccount  — allocates and funds the mint account (always 82 bytes)
+  //   2. initialize_mint
+  //   3. (optional) CreateMetadataAccountV3 — Metaplex on-chain metadata PDA
+  //
+  // The response also includes the lamports deposited and the space allocated.
+  rpc CreateSPLTokenMint(CreateSPLTokenMintRequest) returns (CreateSPLTokenMintResponse);
 
   // Parses mint account data into structured format
+  //
+  // Token Program Agnostic. Response indicates if mint is for Token2022 or SPL tokens.
   rpc ParseMint(ParseMintRequest) returns (ParseMintResponse);
 
-  // Gets current minimum rent for a token holding account, optionally accounting for memo transfer extension size when memo_transfer_config is provided.
-  rpc GetCurrentMinRentForHoldingAccount(GetCurrentMinRentForHoldingAccountRequest) returns (GetCurrentMinRentForHoldingAccountResponse);
+  // Creates a Token-2022 holding account (Associated Token Account) in one call.
+  //
+  // Returns the complete ordered instruction set:
+  //   1. Create Associated Token Account (ATA)
+  //   2. For each requested extension: reallocate + extension-init instructions
+  //      (e.g. for MemoTransfer: reallocate for MemoTransfer + enable_required_transfer_memos)
+  //
+  // The response also includes the lamports required for rent exemption,
+  // accounting for the final account size with all requested extensions.
+  rpc CreateToken2022HoldingAccount(CreateToken2022HoldingAccountRequest) returns (CreateToken2022HoldingAccountResponse);
 
-  // Creates both system account creation and mint initialization instructions. Memo transfer is not applicable to mint accounts.
-  rpc CreateMint(CreateMintRequest) returns (CreateMintResponse);
+  // Creates a legacy SPL Token holding account (Associated Token Account) in one call.
+  //
+  // Returns a single ATA creation instruction along with the lamports required
+  // for rent exemption.
+  rpc CreateSPLTokenHoldingAccount(CreateSPLTokenHoldingAccountRequest) returns (CreateSPLTokenHoldingAccountResponse);
 
-  // Creates holding account initialization instructions. Adds memo-enable instruction when requested.
-  rpc CreateHoldingAccount(CreateHoldingAccountRequest) returns (CreateHoldingAccountResponse);
-
-  // Mint tokens to an existing token account using MintToChecked instruction
+  // Mints tokens to a destination account using the MintToChecked instruction.
+  //
+  // Token Program Agnostic — the service reads the mint account on-chain to
+  // determine the owning token program, the mint authority, and the decimal
+  // precision.  Callers only need to supply the mint address, the destination
+  // owner's system account address, and the human-readable token amount.
+  //
+  // The Associated Token Account (ATA) for the destination owner is derived
+  // automatically from the mint and the owner address.
+  //
+  // NOTE: Multi-sig mint authorities are not yet supported.  The on-chain mint
+  // authority must be a single key-pair signer.
   rpc Mint(MintRequest) returns (MintResponse);
 }
 
-// Request to create InitialiseMint instruction
-message InitialiseMintRequest {
-  string mint_pub_key = 1;
-  string mint_authority_pub_key = 2;
-  string freeze_authority_pub_key = 3;
-  uint32 decimals = 4;
-  protochain.solana.type.v1.TokenProgram token_program = 5;
+// Request to create and fully initialise a Token-2022 mint account.
+message CreateToken2022MintRequest {
+  // The public key of the account that will pay for account creation (signer).
+  string payer_pub_key = 1;
+
+  // The public key of the Mint account to be created and initialized (signer).
+  string mint_pub_key = 2;
+
+  // The authority that can mint new tokens.
+  string mint_authority_pub_key = 3;
+
+  // Optional authority that can freeze token accounts.
+  // Leave empty to disable freeze functionality.
+  string freeze_authority_pub_key = 4;
+
+  // Number of base 10 digits to the right of the decimal place.
+  // Common values: 9 for SOL-like tokens, 6 for USDC-like tokens, 0 for NFTs.
+  uint32 decimals = 5;
+
+  // Ordered list of extensions to enable on the mint.
+  // NOTE: If extensions are not included here during initialization,
+  // they cannot be added to the mint account later.
+  repeated protochain.solana.program.token.v1.Token2022Extension extensions = 6;
 }
 
-// Response containing InitialiseMint instruction
-message InitialiseMintResponse {
-  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+// Response containing the complete instruction set for Token-2022 mint creation.
+message CreateToken2022MintResponse {
+  // Ordered instructions to include in a transaction.
+  // Includes System::CreateAccount followed by all Token-2022 initialisation instructions.
+  repeated protochain.solana.transaction.v1.SolanaInstruction instructions = 1;
+
+  // Lamports deposited into the mint account for rent exemption.
+  // Covers the full final account size including variable-length extension data
+  // (e.g. token metadata) that Token-2022 allocates via realloc after creation.
+  uint64 lamports = 2;
+
+  // Initial account space in bytes passed to System::CreateAccount.
+  // Covers the base mint layout and fixed-size extension pods only.
+  // Token-2022 may realloc beyond this size for variable-length extensions.
+  uint64 space = 3;
 }
 
-// Request to get current rent for token account
-message GetCurrentMinRentForTokenAccountRequest {
-  // No parameters needed - uses fixed Mint::LEN size
+// Request to create and fully initialise a legacy SPL Token mint account.
+message CreateSPLTokenMintRequest {
+  // The public key of the account that will pay for account creation (signer).
+  string payer_pub_key = 1;
+
+  // The public key of the Mint account to be created and initialized (signer).
+  string mint_pub_key = 2;
+
+  // The authority that can mint new tokens.
+  string mint_authority_pub_key = 3;
+
+  // Optional authority that can freeze token accounts.
+  // Leave empty to disable freeze functionality.
+  string freeze_authority_pub_key = 4;
+
+  // Number of base 10 digits to the right of the decimal place.
+  // Common values: 9 for SOL-like tokens, 6 for USDC-like tokens, 0 for NFTs.
+  uint32 decimals = 5;
+
+  // Optional Metaplex metadata to attach to the mint via the Metaplex Token Metadata program.
+  // When provided, a CreateMetadataAccountV3 instruction is appended after initialize_mint.
+  MetaplexTokenMetadata metadata = 6;
 }
 
-// Response with current rent amount
-message GetCurrentMinRentForTokenAccountResponse {
-  uint64 lamports = 1;
+// Response containing the complete instruction set for SPL Token mint creation.
+message CreateSPLTokenMintResponse {
+  // Ordered instructions to include in a transaction.
+  // Includes System::CreateAccount, initialize_mint, and optionally CreateMetadataAccountV3.
+  repeated protochain.solana.transaction.v1.SolanaInstruction instructions = 1;
+
+  // Lamports deposited into the mint account for rent exemption.
+  uint64 lamports = 2;
+
+  // Account space in bytes passed to System::CreateAccount (always 82 bytes for SPL Token mints).
+  uint64 space = 3;
 }
 
 // Request to parse mint account
@@ -60,9 +166,28 @@ message ParseMintRequest {
   string account_address = 1;
 }
 
-// Response with parsed mint data
+// Response with parsed mint data.
 message ParseMintResponse {
+  // Base mint account fields (authority, decimals, supply, etc.).
   MintInfo mint = 1;
+
+  // The token program that owns this mint account (Legacy SPL Token or Token-2022).
+  protochain.solana.type.v1.TokenProgram token_program = 2;
+
+  // Extensions present on the mint account.
+  // Only populated for Token-2022 mints that have extensions configured.
+  repeated protochain.solana.program.token.v1.Token2022Extension extensions = 3;
+
+  // Metaplex Token Metadata associated with the mint.
+  //
+  // Only populated for legacy SPL Token mints that have an associated Metaplex
+  // metadata PDA (i.e. created via CreateSPLTokenMint with metadata provided).
+  // The metadata PDA is derived using the standard Metaplex seed convention:
+  //   ["metadata", METADATA_PROGRAM_ID, mint_pubkey].
+  //
+  // For Token-2022 mints this field is always absent — metadata is instead
+  // returned inline via the extensions field.
+  MetaplexTokenMetadata metaplex_metadata = 4;
 }
 
 // Structured mint account information
@@ -74,60 +199,90 @@ message MintInfo {
   bool is_initialized = 5;
 }
 
-message MemoTransferConfig {
-  // Require every inbound transfer into the account to include a memo.
-  bool require_incoming_memo = 1;
+// Request to create a Token-2022 holding account (Associated Token Account)
+// with optional extensions.
+message CreateToken2022HoldingAccountRequest {
+  // The public key of the account that will pay for account creation (signer).
+  string payer_pub_key = 1;
+
+  // The public key of the wallet that will own the holding account
+  // (controls the token balance).
+  string owner_pub_key = 2;
+
+  // The public key of the mint this holding account will hold tokens for.
+  string mint_pub_key = 3;
+
+  // Ordered list of Token-2022 extensions to enable on the holding account.
+  // Extensions that are not included here during creation cannot be added
+  // later without reallocating the account.
+  repeated Token2022HoldingAccountExtension extensions = 4;
 }
 
-// Request to get current rent for holding account
-message GetCurrentMinRentForHoldingAccountRequest {
-  MemoTransferConfig memo_transfer_config = 1; // optional, defaults to false
-}
-
-// Response with current rent amount for holding account
-message GetCurrentMinRentForHoldingAccountResponse {
-  uint64 lamports = 1;
-}
-
-// Request to create and initialize a holding account in one call
-message CreateHoldingAccountRequest {
-  string payer = 1; // Account paying for creation (signer)
-  string owner_pub_key = 2; // Owner of the holding account
-  string mint_pub_key = 3; // Mint this account will hold
-  protochain.solana.type.v1.TokenProgram token_program = 4;
-  MemoTransferConfig memo_transfer_config = 5; // optional, defaults to false
-}
-
-// Response containing both create and initialize instructions
-message CreateHoldingAccountResponse {
+// Response containing the complete instruction set for Token-2022 holding
+// account creation.
+message CreateToken2022HoldingAccountResponse {
+  // Ordered instructions to include in a transaction.
+  // Includes ATA creation and optionally reallocate + extension-init
+  // instructions for each requested extension.
   repeated protochain.solana.transaction.v1.SolanaInstruction instructions = 1;
+
+  // Lamports required for the holding account to be rent-exempt.
+  // Accounts for the base token account size plus any requested extensions.
+  uint64 lamports = 2;
 }
 
-// Request to create and initialize a mint account in one call
-message CreateMintRequest {
-  // System program create fields
-  string payer = 1; // Account paying for creation (signer)
+// Request to create a legacy SPL Token holding account (Associated Token Account).
+message CreateSPLTokenHoldingAccountRequest {
+  // The public key of the account that will pay for account creation (signer).
+  string payer_pub_key = 1;
 
-  // Token program initialize mint fields
-  string mint_pub_key = 2; // Same as new_account for validation
-  string mint_authority_pub_key = 3; // Mint authority
-  string freeze_authority_pub_key = 4; // Freeze authority (optional)
-  uint32 decimals = 5; // Mint decimals
-  protochain.solana.type.v1.TokenProgram token_program = 6;
+  // The public key of the wallet that will own the holding account
+  // (controls the token balance).
+  string owner_pub_key = 2;
+
+  // The public key of the mint this holding account will hold tokens for.
+  string mint_pub_key = 3;
 }
 
-// Response containing both create and initialize instructions
-message CreateMintResponse {
+// Response containing the instruction set for SPL Token holding account creation.
+message CreateSPLTokenHoldingAccountResponse {
+  // A single ATA creation instruction.
   repeated protochain.solana.transaction.v1.SolanaInstruction instructions = 1;
+
+  // Lamports required for the holding account to be rent-exempt.
+  uint64 lamports = 2;
 }
 
-// Request to mint tokens to a token account
+// Request to mint tokens to a destination account.
+//
+// The service retrieves the mint account on-chain to resolve the mint
+// authority, decimal precision, and owning token program — so callers do not
+// need to supply those values.
+//
+// NOTE: Multi-sig mint authorities are not yet supported.
 message MintRequest {
-  string mint_pub_key = 1; // The mint to mint from
-  string destination_account_pub_key = 2; // Token account to mint to
-  string mint_authority_pub_key = 3; // Authority that can mint tokens
-  string amount = 4; // Amount to mint (as string to handle large numbers)
-  uint32 decimals = 5; // Expected decimals for validation
+  // Public key of the token mint to mint from.
+  string mint_pub_key = 1;
+
+  // Public key of the **system account** (wallet) that owns the destination
+  // token account.  The Associated Token Account (ATA) is derived
+  // automatically from this owner and the mint.
+  //
+  // Do NOT pass the ATA address itself — pass the owner's system account.
+  string destination_owner_pub_key = 2;
+
+  // Human-readable token amount as a decimal string.
+  //
+  // Express the amount in whole-token units (e.g. "1.5" for one-and-a-half
+  // tokens).  The service converts this to the on-chain base-unit
+  // representation using the mint's decimal precision.
+  //
+  // Examples (assuming 6 decimals):
+  //   "1.0"     → 1 000 000 base units
+  //   "0.5"     → 500 000 base units
+  //   "1000"    → 1 000 000 000 base units
+  //   "0.000001"→ 1 base unit
+  string amount = 4;
 }
 
 // Response containing Mint instruction
