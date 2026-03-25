@@ -280,30 +280,32 @@ vim tests/go/composable_e2e_test.go
 
 #### 6️⃣ Run Full Stack Testing
 
-**Option A: Docker Compose (Full Stack — recommended for just running tests)**
+**Option A: Local Development (recommended for day-to-day work)**
 ```bash
-# Start surfpool validator + envoy + API
-docker compose up -d
-
-# Run integration tests
-cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
-
-# Stop everything
-docker compose down
-```
-
-**Option B: Hybrid Development (for iterating on the Rust backend)**
-```bash
-# Start only the surfpool validator
+# Start only the surfpool validator via Docker
 docker compose up surfpool -d
 
-# Run backend locally (restart freely during development)
+# Run the Rust backend locally (fast rebuilds, instant restarts)
 cargo run -p protochain-solana-api
 
 # Run integration tests
 cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
 
 # Stop surfpool when done
+docker compose down
+```
+
+> **IMPORTANT:** Always develop with `cargo run` locally. Building the API in Docker is slow and unnecessary for development. Use Docker only for the surfpool validator.
+
+**Option B: Full Stack Docker (testing the published Docker image)**
+```bash
+# Pulls the pre-built image from GHCR — does NOT build locally
+docker compose up -d
+
+# Run integration tests against the containerized API
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
+
+# Stop everything
 docker compose down
 ```
 
@@ -732,36 +734,37 @@ grep -r -E "[0-9a-fA-F]{64}" tests/go/ --include="*.go"
 
 ## 🐳 Docker Development Guide
 
-The project uses Docker Compose with [Surfpool](https://github.com/solana-foundation/surfpool) as the Solana validator and an Envoy-fronted Rust API image.
+The project uses Docker Compose with [Surfpool](https://github.com/solana-foundation/surfpool) as the Solana validator. The API image is pre-built and published to GHCR via CI — `docker compose` pulls it, it does NOT build locally.
 
-### Full Stack (recommended for running tests)
+> **IMPORTANT:** Never try to build the Rust API in Docker locally — it is slow and painful. Always use `cargo run` for local development. Docker Compose is configured to pull the pre-built image from `ghcr.io/meshtrade/protochain/protochain-solana-api:latest`.
+
+### Local Development (recommended for day-to-day work)
 ```bash
-# Start surfpool validator + envoy + API
-docker compose up -d
-
-# View logs
-docker compose logs -f
-docker compose logs -f protochain-solana-api
-
-# Run integration tests
-cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
-
-# Stop everything
-docker compose down
-```
-
-### Hybrid Development (for iterating on the Rust backend)
-```bash
-# Start only surfpool validator
+# Start only the surfpool validator via Docker
 docker compose up surfpool -d
 
-# Develop backend locally (restart freely)
+# Run the Rust backend locally (fast rebuilds, instant restarts)
 cargo run -p protochain-solana-api
 
-# Run tests against local backend (default port 50064)
+# Run tests
 cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
 
 # Stop surfpool when done
+docker compose down
+```
+
+### Full Stack Docker (testing the published image)
+```bash
+# Pulls the pre-built image from GHCR — does NOT build locally
+docker compose up -d
+
+# View logs
+docker compose logs -f protochain-solana-api
+
+# Run integration tests against the containerized API
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v
+
+# Stop everything
 docker compose down
 ```
 
@@ -792,16 +795,16 @@ buf lint                                    # Validate protos
 cargo run -p protochain-solana-api        # Run backend locally
 cargo test                                 # Run Rust unit tests
 
-# Testing - Full Stack
-docker compose up -d                      # Start surfpool + envoy + API
-cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v  # Run integration tests
-docker compose down                       # Stop everything
-
-# Testing - Hybrid (iterate on Rust backend)
+# Testing - Local Development (recommended)
 docker compose up surfpool -d             # Start only surfpool validator
-cargo run -p protochain-solana-api        # Run backend locally
+cargo run -p protochain-solana-api        # Run backend locally (fast!)
 cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v  # Run tests
 docker compose down                       # Stop surfpool
+
+# Testing - Full Stack Docker (testing the published image)
+docker compose up -d                      # Pull pre-built image from GHCR
+cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v  # Run integration tests
+docker compose down                       # Stop everything
 
 # Specific test
 cd tests/go && RUN_INTEGRATION_TESTS=1 go test -v -run "TestTokenProgramE2ESuite/Test_02"
