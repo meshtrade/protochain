@@ -1,6 +1,6 @@
 services:
   surfpool:
-    image: surfpool/surfpool:latest
+    image: surfpool/surfpool:1.1.1
     container_name: surfpool
     command: >
       start
@@ -22,7 +22,7 @@ services:
       - protochain
 
   protochain-solana-api:
-    image: ghcr.io/meshtrade/protochain/protochain-solana-api:latest
+    image: ghcr.io/meshtrade/protochain/protochain-solana-api:1.0.0
     container_name: protochain-solana-api
     ports:
       - "50064:50064"
@@ -38,6 +38,12 @@ services:
       SERVER_PORT: 50051
       RUST_LOG: info,protochain_solana_api=info
       PROTOCHAIN_JSON_LOGS: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/50064' 2>/dev/null || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     depends_on:
       surfpool:
         condition: service_healthy
