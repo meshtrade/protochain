@@ -22,9 +22,7 @@ services:
       - protochain
 
   protochain-solana-api:
-    build:
-      context: .
-      dockerfile: app/protochain/ci/solana-api/Dockerfile
+    image: ghcr.io/meshtrade/protochain/protochain-solana-api:latest
     container_name: protochain-solana-api
     ports:
       - "50064:50064"
