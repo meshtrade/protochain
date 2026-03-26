@@ -67,7 +67,9 @@
     "lint": "eslint src --ext .ts,.tsx --max-warnings=0",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,json,md}\" --ignore-path .prettierignore",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,json,md}\" --ignore-path .prettierignore"
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,json,md}\" --ignore-path .prettierignore",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@connectrpc/connect": "^2.0.0",
@@ -85,7 +87,8 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
     "prettier": "^3.2.5",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^4.1.2"
   },
   "files": [
     "dist/**/*",

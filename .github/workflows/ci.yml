@@ -214,3 +214,6 @@ jobs:
 
       - name: Typecheck all workspaces
         run: yarn workspaces run typecheck
+
+      - name: Run unit tests
+        run: yarn workspace @protochain/ts-web test
