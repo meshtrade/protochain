@@ -11,9 +11,9 @@
 // ===================================================================
 
 // Generated exports
-export * from './account_pb';
-export * from './service_pb';
-export * from './service_web_protochaints';
+export * from "./account_pb";
+export * from "./service_pb";
+export * from "./service_web_protochaints";
 
 // ===================================================================
 // END OF AUTO-GENERATED SECTION
