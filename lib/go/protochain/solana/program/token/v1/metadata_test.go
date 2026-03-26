@@ -87,9 +87,9 @@ func mustParse(t *testing.T, data string) *UniversalTokenMetadata {
 	return m
 }
 
-func ptrBool(v bool) *bool       { return &v }
+func ptrBool(v bool) *bool          { return &v }
 func ptrFloat64(v float64) *float64 { return &v }
-func ptrInt(v int) *int          { return &v }
+func ptrInt(v int) *int             { return &v }
 
 // ---------------------------------------------------------------------------
 // Tests – Fungible (USDC)
