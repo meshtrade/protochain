@@ -13,7 +13,6 @@
 // Generated exports
 export * from "./commitment_level_pb";
 export * from "./keypair_pb";
-export * from "./token_program_pb";
 
 // ===================================================================
 // END OF AUTO-GENERATED SECTION

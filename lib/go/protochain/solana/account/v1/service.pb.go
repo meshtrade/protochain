@@ -7,6 +7,7 @@
 package account_v1
 
 import (
+	v11 "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1"
 	v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/type/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -416,9 +417,9 @@ func (x *GetTokenAccountBalanceResponse) GetDecimals() uint32 {
 
 type GetAssociatedTokenAddressRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	OwnerAddress  string                 `protobuf:"bytes,1,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`                                              // Address of owner of the token account (Base58)
-	MintAddress   string                 `protobuf:"bytes,2,opt,name=mint_address,json=mintAddress,proto3" json:"mint_address,omitempty"`                                                 // Address of the mint account that minted the token
-	TokenProgram  v1.TokenProgram        `protobuf:"varint,3,opt,name=token_program,json=tokenProgram,proto3,enum=protochain.solana.type.v1.TokenProgram" json:"token_program,omitempty"` // Token Program on token account
+	OwnerAddress  string                 `protobuf:"bytes,1,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`                                                       // Address of owner of the token account (Base58)
+	MintAddress   string                 `protobuf:"bytes,2,opt,name=mint_address,json=mintAddress,proto3" json:"mint_address,omitempty"`                                                          // Address of the mint account that minted the token
+	TokenProgram  v11.TokenProgram       `protobuf:"varint,3,opt,name=token_program,json=tokenProgram,proto3,enum=protochain.solana.program.token.v1.TokenProgram" json:"token_program,omitempty"` // Token Program on token account
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -467,11 +468,11 @@ func (x *GetAssociatedTokenAddressRequest) GetMintAddress() string {
 	return ""
 }
 
-func (x *GetAssociatedTokenAddressRequest) GetTokenProgram() v1.TokenProgram {
+func (x *GetAssociatedTokenAddressRequest) GetTokenProgram() v11.TokenProgram {
 	if x != nil {
 		return x.TokenProgram
 	}
-	return v1.TokenProgram(0)
+	return v11.TokenProgram(0)
 }
 
 type GetAssociatedTokenAddressResponse struct {
@@ -522,7 +523,7 @@ var File_protochain_solana_account_v1_service_proto protoreflect.FileDescriptor
 
 const file_protochain_solana_account_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"*protochain/solana/account/v1/service.proto\x12\x1cprotochain.solana.account.v1\x1a*protochain/solana/account/v1/account.proto\x1a0protochain/solana/type/v1/commitment_level.proto\x1a'protochain/solana/type/v1/keypair.proto\x1a-protochain/solana/type/v1/token_program.proto\"\x84\x01\n" +
+	"*protochain/solana/account/v1/service.proto\x12\x1cprotochain.solana.account.v1\x1a*protochain/solana/account/v1/account.proto\x1a0protochain/solana/type/v1/commitment_level.proto\x1a'protochain/solana/type/v1/keypair.proto\x1a6protochain/solana/program/token/v1/token_program.proto\"\x84\x01\n" +
 	"\x11GetAccountRequest\x12\x18\n" +
 	"\aaddress\x18\x01 \x01(\tR\aaddress\x12U\n" +
 	"\x10commitment_level\x18\x02 \x01(\x0e2*.protochain.solana.type.v1.CommitmentLevelR\x0fcommitmentLevel\"/\n" +
@@ -543,11 +544,11 @@ const file_protochain_solana_account_v1_service_proto_rawDesc = "" +
 	"\x10commitment_level\x18\x02 \x01(\x0e2*.protochain.solana.type.v1.CommitmentLevelR\x0fcommitmentLevel\"T\n" +
 	"\x1eGetTokenAccountBalanceResponse\x12\x16\n" +
 	"\x06amount\x18\x01 \x01(\tR\x06amount\x12\x1a\n" +
-	"\bdecimals\x18\x02 \x01(\rR\bdecimals\"\xb8\x01\n" +
+	"\bdecimals\x18\x02 \x01(\rR\bdecimals\"\xc1\x01\n" +
 	" GetAssociatedTokenAddressRequest\x12#\n" +
 	"\rowner_address\x18\x01 \x01(\tR\fownerAddress\x12!\n" +
-	"\fmint_address\x18\x02 \x01(\tR\vmintAddress\x12L\n" +
-	"\rtoken_program\x18\x03 \x01(\x0e2'.protochain.solana.type.v1.TokenProgramR\ftokenProgram\"=\n" +
+	"\fmint_address\x18\x02 \x01(\tR\vmintAddress\x12U\n" +
+	"\rtoken_program\x18\x03 \x01(\x0e20.protochain.solana.program.token.v1.TokenProgramR\ftokenProgram\"=\n" +
 	"!GetAssociatedTokenAddressResponse\x12\x18\n" +
 	"\aaddress\x18\x01 \x01(\tR\aaddress2\xaa\x05\n" +
 	"\aService\x12o\n" +
@@ -586,7 +587,7 @@ var file_protochain_solana_account_v1_service_proto_goTypes = []any{
 	(v1.CommitmentLevel)(0),                   // 10: protochain.solana.type.v1.CommitmentLevel
 	(*v1.KeyPair)(nil),                        // 11: protochain.solana.type.v1.KeyPair
 	(*Account)(nil),                           // 12: protochain.solana.account.v1.Account
-	(v1.TokenProgram)(0),                      // 13: protochain.solana.type.v1.TokenProgram
+	(v11.TokenProgram)(0),                     // 13: protochain.solana.program.token.v1.TokenProgram
 }
 var file_protochain_solana_account_v1_service_proto_depIdxs = []int32{
 	10, // 0: protochain.solana.account.v1.GetAccountRequest.commitment_level:type_name -> protochain.solana.type.v1.CommitmentLevel
@@ -594,7 +595,7 @@ var file_protochain_solana_account_v1_service_proto_depIdxs = []int32{
 	10, // 2: protochain.solana.account.v1.FundNativeRequest.commitment_level:type_name -> protochain.solana.type.v1.CommitmentLevel
 	12, // 3: protochain.solana.account.v1.GetAccountResponse.account:type_name -> protochain.solana.account.v1.Account
 	10, // 4: protochain.solana.account.v1.GetTokenAccountBalanceRequest.commitment_level:type_name -> protochain.solana.type.v1.CommitmentLevel
-	13, // 5: protochain.solana.account.v1.GetAssociatedTokenAddressRequest.token_program:type_name -> protochain.solana.type.v1.TokenProgram
+	13, // 5: protochain.solana.account.v1.GetAssociatedTokenAddressRequest.token_program:type_name -> protochain.solana.program.token.v1.TokenProgram
 	0,  // 6: protochain.solana.account.v1.Service.GetAccount:input_type -> protochain.solana.account.v1.GetAccountRequest
 	1,  // 7: protochain.solana.account.v1.Service.GenerateNewKeyPair:input_type -> protochain.solana.account.v1.GenerateNewKeyPairRequest
 	3,  // 8: protochain.solana.account.v1.Service.FundNative:input_type -> protochain.solana.account.v1.FundNativeRequest

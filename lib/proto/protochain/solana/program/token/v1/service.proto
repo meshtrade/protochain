@@ -6,7 +6,7 @@ import "protochain/solana/program/token/v1/spl_token_metadata.proto";
 import "protochain/solana/program/token/v1/token2022_extension.proto";
 import "protochain/solana/program/token/v1/token2022_holding_account_extension.proto";
 import "protochain/solana/transaction/v1/instruction.proto";
-import "protochain/solana/type/v1/token_program.proto";
+import "protochain/solana/program/token/v1/token_program.proto";
 
 option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1";
 
@@ -172,7 +172,7 @@ message ParseMintResponse {
   MintInfo mint = 1;
 
   // The token program that owns this mint account (Legacy SPL Token or Token-2022).
-  protochain.solana.type.v1.TokenProgram token_program = 2;
+  protochain.solana.program.token.v1.TokenProgram token_program = 2;
 
   // Extensions present on the mint account.
   // Only populated for Token-2022 mints that have extensions configured.

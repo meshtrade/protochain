@@ -177,7 +177,7 @@ func (suite *TokenProgramE2ETestSuite) Test_01_CreateMint_TOKEN2022() {
 	suite.Assert().True(parsedMint.Mint.IsInitialized, "Mint should be initialized")
 
 	// Verify token_program is Token-2022
-	suite.Assert().Equal(type_v1.TokenProgram_TOKEN_PROGRAM_2022, parsedMint.TokenProgram,
+	suite.Assert().Equal(token_v1.TokenProgram_TOKEN_PROGRAM_2022, parsedMint.TokenProgram,
 		"Token program should be TOKEN_PROGRAM_2022")
 
 	// Verify extensions match the metadata configured during initialization
@@ -302,8 +302,8 @@ func (suite *TokenProgramE2ETestSuite) Test_02_CreateMint_SPL() {
 	suite.Assert().True(parsedMint.Mint.IsInitialized, "Mint should be initialized")
 
 	// Verify token_program is Legacy SPL Token
-	suite.Assert().Equal(type_v1.TokenProgram_TOKEN_PROGRAM_LEGACY, parsedMint.TokenProgram,
-		"Token program should be TOKEN_PROGRAM_LEGACY")
+	suite.Assert().Equal(token_v1.TokenProgram_TOKEN_PROGRAM_SPL, parsedMint.TokenProgram,
+		"Token program should be TOKEN_PROGRAM_SPL")
 
 	// Legacy mints should have no extensions (metadata is stored in a separate PDA, not on the mint)
 	suite.Assert().Empty(parsedMint.Extensions, "Legacy SPL mint should have no extensions")
@@ -420,8 +420,8 @@ func (suite *TokenProgramE2ETestSuite) Test_03_CreateMint_SPL_NO_META_DATA() {
 	suite.Assert().True(parsedMint.Mint.IsInitialized, "Mint should be initialized")
 
 	// Verify token_program is Legacy SPL Token
-	suite.Assert().Equal(type_v1.TokenProgram_TOKEN_PROGRAM_LEGACY, parsedMint.TokenProgram,
-		"Token program should be TOKEN_PROGRAM_LEGACY")
+	suite.Assert().Equal(token_v1.TokenProgram_TOKEN_PROGRAM_SPL, parsedMint.TokenProgram,
+		"Token program should be TOKEN_PROGRAM_SPL")
 
 	// Legacy mints should have no extensions
 	suite.Assert().Empty(parsedMint.Extensions, "Legacy SPL mint should have no extensions")
@@ -733,7 +733,7 @@ func (suite *TokenProgramE2ETestSuite) Test_05_Token_e2e() {
 		&account_v1.GetAssociatedTokenAddressRequest{
 			OwnerAddress: walletAccKeyResp.KeyPair.PublicKey,
 			MintAddress:  mintKeyResp.KeyPair.PublicKey,
-			TokenProgram: type_v1.TokenProgram_TOKEN_PROGRAM_2022,
+			TokenProgram: token_v1.TokenProgram_TOKEN_PROGRAM_2022,
 		},
 	)
 	suite.Require().NoError(err, "Should get associated token account")
