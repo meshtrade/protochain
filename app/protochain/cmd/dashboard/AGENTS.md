@@ -85,6 +85,14 @@ These rules govern how an agent should work on this codebase. Read `initial-spec
 - The standard testing flow is: `docker compose up -d` then `yarn workspace @protochain/dashboard dev` and test with Playwright MCP against `http://localhost:3000`.
 - The docker-compose stack exposes the API on `http://localhost:50064` behind Envoy.
 
+### Screenshots
+
+- **All Playwright screenshots MUST be saved to `.screenshots/`** inside the dashboard directory (`app/protochain/cmd/dashboard/.screenshots/`).
+- When calling `browser_take_screenshot`, ALWAYS set `filename` to `.screenshots/<descriptive-name>.png` (e.g. `.screenshots/fund-native-dark.png`).
+- The `.screenshots/` directory is gitignored — files there will never be committed.
+- Do NOT save screenshots to the repo root, `src/`, or any other tracked directory.
+- The `.playwright-mcp/` directory is also gitignored — no cleanup needed.
+
 ## What NOT to Do
 
 - Do NOT modify files in `lib/ts-web/` — that is generated code.
