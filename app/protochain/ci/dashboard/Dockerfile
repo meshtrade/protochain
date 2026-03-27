@@ -47,8 +47,11 @@ COPY --from=deps /app/app/protochain/cmd/dashboard/node_modules ./app/protochain
 # Copy workspace root config
 COPY package.json yarn.lock ./
 
-# Copy the ts-web library (workspace dependency — needed at build time)
+# Copy the ts-web library source (workspace dependency)
 COPY lib/ts-web/ lib/ts-web/
+
+# Build ts-web (dist/ is not committed — must compile from source)
+RUN yarn workspace @protochain/ts-web build
 
 # Copy the dashboard source
 COPY app/protochain/cmd/dashboard/ app/protochain/cmd/dashboard/
