@@ -51,6 +51,21 @@ services:
     networks:
       - protochain
 
+  protochain-dashboard:
+    image: ghcr.io/meshtrade/protochain/protochain-dashboard:latest
+    container_name: protochain-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+    depends_on:
+      protochain-solana-api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - protochain
+
 networks:
   protochain:
     driver: bridge
