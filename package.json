@@ -2,7 +2,8 @@
   "name": "protochain",
   "private": true,
   "workspaces": [
-    "lib/ts-web"
+    "lib/ts-web",
+    "app/protochain/cmd/dashboard"
   ],
   "packageManager": "yarn@1.22.22"
 }
