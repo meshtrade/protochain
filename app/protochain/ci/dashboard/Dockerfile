@@ -3,6 +3,11 @@
 #
 # Build context: repository root (required for yarn workspace resolution)
 #
+# PREREQUISITE: The @protochain/ts-web generated source files (_pb.ts,
+# _protochaints.ts) must exist before running this build. In CI, the workflow
+# runs code generation first. For local builds:
+#
+#   ./scripts/code-gen/generate/all.sh   # generates the _pb.ts files
 #   docker build -f app/protochain/ci/dashboard/Dockerfile -t protochain-dashboard .
 #
 # Run:
@@ -47,10 +52,10 @@ COPY --from=deps /app/app/protochain/cmd/dashboard/node_modules ./app/protochain
 # Copy workspace root config
 COPY package.json yarn.lock ./
 
-# Copy the ts-web library source (workspace dependency)
+# Copy the ts-web library source (includes generated _pb.ts files from CI)
 COPY lib/ts-web/ lib/ts-web/
 
-# Build ts-web (dist/ is not committed — must compile from source)
+# Build ts-web (compile TS source → dist/)
 RUN yarn workspace @protochain/ts-web build
 
 # Copy the dashboard source

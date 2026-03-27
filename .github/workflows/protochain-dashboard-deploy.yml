@@ -60,6 +60,39 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # -------------------------------------------------------------------
+      # Generate TypeScript protobuf bindings (_pb.ts + _protochaints.ts)
+      # These are not committed — must be generated before Docker build.
+      # -------------------------------------------------------------------
+      - name: Install buf
+        uses: bufbuild/buf-setup-action@v1
+
+      - name: Set up Node.js (for custom protoc plugin)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Build custom TS protoc plugin
+        run: |
+          cd tool/protoc-gen/cmd/protochain_ts_web
+          yarn install --frozen-lockfile 2>/dev/null || yarn install
+          yarn build
+
+      - name: Generate TypeScript protobuf code
+        run: |
+          buf lint lib/proto
+          buf generate lib/proto --template lib/_code_gen/buf.gen.yaml --path lib/proto/protochain/solana
+
+      - name: Verify generated files exist
+        run: |
+          test -f lib/ts-web/src/protochain/solana/account/v1/account_pb.ts
+          test -f lib/ts-web/src/protochain/solana/account/v1/service_web_protochaints.ts
+          echo "✅ Generated TS files verified"
+
+      # -------------------------------------------------------------------
+      # Docker build + push
+      # -------------------------------------------------------------------
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
