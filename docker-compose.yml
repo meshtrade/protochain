@@ -22,7 +22,7 @@ services:
       - protochain
 
   protochain-solana-api:
-    image: ghcr.io/meshtrade/protochain/protochain-solana-api:1.0.0
+    image: ghcr.io/meshtrade/protochain/protochain-solana-api:1.3.0
     container_name: protochain-solana-api
     ports:
       - "50064:50064"
