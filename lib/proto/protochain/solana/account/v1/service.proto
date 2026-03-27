@@ -5,7 +5,7 @@ package protochain.solana.account.v1;
 import "protochain/solana/account/v1/account.proto";
 import "protochain/solana/type/v1/commitment_level.proto";
 import "protochain/solana/type/v1/keypair.proto";
-import "protochain/solana/type/v1/token_program.proto";
+import "protochain/solana/program/token/v1/token_program.proto";
 
 option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/account/v1;account_v1";
 
@@ -66,7 +66,7 @@ message GetTokenAccountBalanceResponse {
 message GetAssociatedTokenAddressRequest {
   string owner_address = 1; // Address of owner of the token account (Base58)
   string mint_address = 2; // Address of the mint account that minted the token
-  protochain.solana.type.v1.TokenProgram token_program = 3; // Token Program on token account
+  protochain.solana.program.token.v1.TokenProgram token_program = 3; // Token Program on token account
 }
 
 message GetAssociatedTokenAddressResponse {

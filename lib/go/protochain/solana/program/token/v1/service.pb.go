@@ -8,7 +8,6 @@ package token_v1
 
 import (
 	v1 "github.com/meshtrade/protochain/lib/go/protochain/solana/transaction/v1"
-	v11 "github.com/meshtrade/protochain/lib/go/protochain/solana/type/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -397,7 +396,7 @@ type ParseMintResponse struct {
 	// Base mint account fields (authority, decimals, supply, etc.).
 	Mint *MintInfo `protobuf:"bytes,1,opt,name=mint,proto3" json:"mint,omitempty"`
 	// The token program that owns this mint account (Legacy SPL Token or Token-2022).
-	TokenProgram v11.TokenProgram `protobuf:"varint,2,opt,name=token_program,json=tokenProgram,proto3,enum=protochain.solana.type.v1.TokenProgram" json:"token_program,omitempty"`
+	TokenProgram TokenProgram `protobuf:"varint,2,opt,name=token_program,json=tokenProgram,proto3,enum=protochain.solana.program.token.v1.TokenProgram" json:"token_program,omitempty"`
 	// Extensions present on the mint account.
 	// Only populated for Token-2022 mints that have extensions configured.
 	Extensions []*Token2022Extension `protobuf:"bytes,3,rep,name=extensions,proto3" json:"extensions,omitempty"`
@@ -453,11 +452,11 @@ func (x *ParseMintResponse) GetMint() *MintInfo {
 	return nil
 }
 
-func (x *ParseMintResponse) GetTokenProgram() v11.TokenProgram {
+func (x *ParseMintResponse) GetTokenProgram() TokenProgram {
 	if x != nil {
 		return x.TokenProgram
 	}
-	return v11.TokenProgram(0)
+	return TokenProgram_TOKEN_PROGRAM_UNSPECIFIED
 }
 
 func (x *ParseMintResponse) GetExtensions() []*Token2022Extension {
@@ -941,7 +940,7 @@ var File_protochain_solana_program_token_v1_service_proto protoreflect.FileDescr
 
 const file_protochain_solana_program_token_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"0protochain/solana/program/token/v1/service.proto\x12\"protochain.solana.program.token.v1\x1a;protochain/solana/program/token/v1/spl_token_metadata.proto\x1a<protochain/solana/program/token/v1/token2022_extension.proto\x1aLprotochain/solana/program/token/v1/token2022_holding_account_extension.proto\x1a2protochain/solana/transaction/v1/instruction.proto\x1a-protochain/solana/type/v1/token_program.proto\"\xc4\x02\n" +
+	"0protochain/solana/program/token/v1/service.proto\x12\"protochain.solana.program.token.v1\x1a;protochain/solana/program/token/v1/spl_token_metadata.proto\x1a<protochain/solana/program/token/v1/token2022_extension.proto\x1aLprotochain/solana/program/token/v1/token2022_holding_account_extension.proto\x1a2protochain/solana/transaction/v1/instruction.proto\x1a6protochain/solana/program/token/v1/token_program.proto\"\xc4\x02\n" +
 	"\x1aCreateToken2022MintRequest\x12\"\n" +
 	"\rpayer_pub_key\x18\x01 \x01(\tR\vpayerPubKey\x12 \n" +
 	"\fmint_pub_key\x18\x02 \x01(\tR\n" +
@@ -969,10 +968,10 @@ const file_protochain_solana_program_token_v1_service_proto_rawDesc = "" +
 	"\blamports\x18\x02 \x01(\x04R\blamports\x12\x14\n" +
 	"\x05space\x18\x03 \x01(\x04R\x05space\";\n" +
 	"\x10ParseMintRequest\x12'\n" +
-	"\x0faccount_address\x18\x01 \x01(\tR\x0eaccountAddress\"\xe3\x02\n" +
+	"\x0faccount_address\x18\x01 \x01(\tR\x0eaccountAddress\"\xec\x02\n" +
 	"\x11ParseMintResponse\x12@\n" +
-	"\x04mint\x18\x01 \x01(\v2,.protochain.solana.program.token.v1.MintInfoR\x04mint\x12L\n" +
-	"\rtoken_program\x18\x02 \x01(\x0e2'.protochain.solana.type.v1.TokenProgramR\ftokenProgram\x12V\n" +
+	"\x04mint\x18\x01 \x01(\v2,.protochain.solana.program.token.v1.MintInfoR\x04mint\x12U\n" +
+	"\rtoken_program\x18\x02 \x01(\x0e20.protochain.solana.program.token.v1.TokenProgramR\ftokenProgram\x12V\n" +
 	"\n" +
 	"extensions\x18\x03 \x03(\v26.protochain.solana.program.token.v1.Token2022ExtensionR\n" +
 	"extensions\x12f\n" +
@@ -1047,7 +1046,7 @@ var file_protochain_solana_program_token_v1_service_proto_goTypes = []any{
 	(*Token2022Extension)(nil),                    // 13: protochain.solana.program.token.v1.Token2022Extension
 	(*v1.SolanaInstruction)(nil),                  // 14: protochain.solana.transaction.v1.SolanaInstruction
 	(*MetaplexTokenMetadata)(nil),                 // 15: protochain.solana.program.token.v1.MetaplexTokenMetadata
-	(v11.TokenProgram)(0),                         // 16: protochain.solana.type.v1.TokenProgram
+	(TokenProgram)(0),                             // 16: protochain.solana.program.token.v1.TokenProgram
 	(*Token2022HoldingAccountExtension)(nil),      // 17: protochain.solana.program.token.v1.Token2022HoldingAccountExtension
 }
 var file_protochain_solana_program_token_v1_service_proto_depIdxs = []int32{
@@ -1056,7 +1055,7 @@ var file_protochain_solana_program_token_v1_service_proto_depIdxs = []int32{
 	15, // 2: protochain.solana.program.token.v1.CreateSPLTokenMintRequest.metadata:type_name -> protochain.solana.program.token.v1.MetaplexTokenMetadata
 	14, // 3: protochain.solana.program.token.v1.CreateSPLTokenMintResponse.instructions:type_name -> protochain.solana.transaction.v1.SolanaInstruction
 	6,  // 4: protochain.solana.program.token.v1.ParseMintResponse.mint:type_name -> protochain.solana.program.token.v1.MintInfo
-	16, // 5: protochain.solana.program.token.v1.ParseMintResponse.token_program:type_name -> protochain.solana.type.v1.TokenProgram
+	16, // 5: protochain.solana.program.token.v1.ParseMintResponse.token_program:type_name -> protochain.solana.program.token.v1.TokenProgram
 	13, // 6: protochain.solana.program.token.v1.ParseMintResponse.extensions:type_name -> protochain.solana.program.token.v1.Token2022Extension
 	15, // 7: protochain.solana.program.token.v1.ParseMintResponse.metaplex_metadata:type_name -> protochain.solana.program.token.v1.MetaplexTokenMetadata
 	17, // 8: protochain.solana.program.token.v1.CreateToken2022HoldingAccountRequest.extensions:type_name -> protochain.solana.program.token.v1.Token2022HoldingAccountExtension
@@ -1090,6 +1089,7 @@ func file_protochain_solana_program_token_v1_service_proto_init() {
 	file_protochain_solana_program_token_v1_spl_token_metadata_proto_init()
 	file_protochain_solana_program_token_v1_token2022_extension_proto_init()
 	file_protochain_solana_program_token_v1_token2022_holding_account_extension_proto_init()
+	file_protochain_solana_program_token_v1_token_program_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

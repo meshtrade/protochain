@@ -103,7 +103,7 @@ pub struct GetAssociatedTokenAddressRequest {
     #[prost(string, tag="2")]
     pub mint_address: ::prost::alloc::string::String,
     /// Token Program on token account
-    #[prost(enumeration="super::super::r#type::v1::TokenProgram", tag="3")]
+    #[prost(enumeration="super::super::program::token::v1::TokenProgram", tag="3")]
     pub token_program: i32,
 }
 #[allow(clippy::derive_partial_eq_without_eq)]

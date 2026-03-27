@@ -12,7 +12,7 @@ use spl_token_2022::{extension::ExtensionType, state::Mint};
 use spl_pod::optional_keys::OptionalNonZeroPubkey;
 use spl_token_metadata_interface::state::TokenMetadata;
 
-use protochain_api::protochain::solana::r#type::v1::TokenProgram;
+use protochain_api::protochain::solana::program::token::v1::TokenProgram;
 use solana_sdk::program_pack::Pack;
 use solana_sdk::pubkey::Pubkey;
 use spl_token::id as spl_token_id;
@@ -210,7 +210,7 @@ pub(crate) fn mint_total_space_for_rent(
 /// `TokenProgram::Unspecified` if the program ID doesn't match any known token programs
 pub fn sdk_token_program_to_proto(program_id: &Pubkey) -> TokenProgram {
     if program_id == &spl_token_id() {
-        TokenProgram::Legacy
+        TokenProgram::Spl
     } else if program_id == &spl_token_2022_id() {
         TokenProgram::TokenProgram2022
     } else {
@@ -228,14 +228,14 @@ mod tests {
             TokenProgram::Unspecified => {
                 Err("TokenProgram must be specified (cannot be UNSPECIFIED)".to_string())
             }
-            TokenProgram::Legacy => Ok(spl_token_id()),
+            TokenProgram::Spl => Ok(spl_token_id()),
             TokenProgram::TokenProgram2022 => Ok(spl_token_2022_id()),
         }
     }
 
     #[test]
     fn test_proto_to_sdk_legacy() {
-        let result = proto_token_program_to_sdk(TokenProgram::Legacy);
+        let result = proto_token_program_to_sdk(TokenProgram::Spl);
         assert!(result.is_ok());
         let Ok(v) = result else {
             unreachable!("Already asserted Ok")
@@ -266,7 +266,7 @@ mod tests {
     #[test]
     fn test_sdk_to_proto_legacy() {
         let result = sdk_token_program_to_proto(&spl_token_id());
-        assert_eq!(result, TokenProgram::Legacy);
+        assert_eq!(result, TokenProgram::Spl);
     }
 
     #[test]
@@ -284,7 +284,7 @@ mod tests {
 
     #[test]
     fn test_roundtrip_legacy() {
-        let original = TokenProgram::Legacy;
+        let original = TokenProgram::Spl;
         let Ok(program_id) = proto_token_program_to_sdk(original) else {
             unreachable!("Legacy should convert successfully")
         };

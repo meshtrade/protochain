@@ -57,39 +57,4 @@ pub struct KeyPair {
     #[prost(string, tag="2")]
     pub private_key: ::prost::alloc::string::String,
 }
-/// TokenProgram identifies which Solana token program to use for an operation.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum TokenProgram {
-    /// UNSPECIFIED is invalid and must not be used. Services will return an error if this value is received.
-    Unspecified = 0,
-    /// LEGACY refers to the original SPL Token program (spl-token).
-    /// Most existing tokens use this program.
-    Legacy = 1,
-    /// 2022 refers to the Token Extensions program (spl-token-2022), also known as Token-2022.
-    /// Supports additional features such as transfer fees, interest-bearing tokens, and more.
-    TokenProgram2022 = 2,
-}
-impl TokenProgram {
-    /// String value of the enum field names used in the ProtoBuf definition.
-    ///
-    /// The values are not transformed in any way and thus are considered stable
-    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
-        match self {
-            TokenProgram::Unspecified => "TOKEN_PROGRAM_UNSPECIFIED",
-            TokenProgram::Legacy => "TOKEN_PROGRAM_LEGACY",
-            TokenProgram::TokenProgram2022 => "TOKEN_PROGRAM_2022",
-        }
-    }
-    /// Creates an enum from field names used in the ProtoBuf definition.
-    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-        match value {
-            "TOKEN_PROGRAM_UNSPECIFIED" => Some(Self::Unspecified),
-            "TOKEN_PROGRAM_LEGACY" => Some(Self::Legacy),
-            "TOKEN_PROGRAM_2022" => Some(Self::TokenProgram2022),
-            _ => None,
-        }
-    }
-}
 // @@protoc_insertion_point(module)

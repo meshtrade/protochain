@@ -18,6 +18,7 @@ export * from "./spl_token_metadata_pb";
 export * from "./token2022_extension_metadata_pb";
 export * from "./token2022_extension_pb";
 export * from "./token2022_holding_account_extension_pb";
+export * from "./token_program_pb";
 
 // ===================================================================
 // END OF AUTO-GENERATED SECTION

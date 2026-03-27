@@ -7,7 +7,7 @@ use tonic::{Request, Response, Status};
 use protochain_api::protochain::solana::account::v1::{
     GetAssociatedTokenAddressRequest, GetAssociatedTokenAddressResponse,
 };
-use protochain_api::protochain::solana::r#type::v1::TokenProgram;
+use protochain_api::protochain::solana::program::token::v1::TokenProgram;
 
 use solana_sdk::pubkey::Pubkey;
 use spl_associated_token_account::get_associated_token_address_with_program_id;
@@ -36,7 +36,7 @@ impl AccountServiceImpl {
 
         // get program id from token_program_enum
         let token_program = match token_program_enum {
-            TokenProgram::Legacy => Ok(LEGACY_PROGRAM_ID),
+            TokenProgram::Spl => Ok(LEGACY_PROGRAM_ID),
             TokenProgram::TokenProgram2022 => Ok(TOKEN_2022_PROGRAM_ID),
             TokenProgram::Unspecified => {
                 Err(format!("unexpected token program id: {token_program_enum:?}"))
