@@ -54,6 +54,7 @@ jobs:
               - 'package.json'
               - 'yarn.lock'
               - 'lib/ts-web/**'
+              - 'app/protochain/cmd/solana-dashboard/**'
               - 'tool/protoc-gen/cmd/protochain_ts_web/**'
               - 'scripts/lint/ts.sh'
 
@@ -85,6 +86,8 @@ jobs:
 
       - name: Setup buf
         uses: bufbuild/buf-setup-action@v1
+        with:
+          github_token: ${{ github.token }}
 
       - name: Validate protobuf definitions
         run: buf lint lib/proto
@@ -199,6 +202,8 @@ jobs:
 
       - name: Setup buf
         uses: bufbuild/buf-setup-action@v1
+        with:
+          github_token: ${{ github.token }}
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
