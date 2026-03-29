@@ -1,9 +1,9 @@
-name: Deploy protochain-dashboard docker image
+name: Deploy protochain-solana-dashboard docker image
 
 on:
   push:
     tags:
-      - 'protochain-dashboard/v*.*.*'
+      - 'protochain-solana-dashboard/v*.*.*'
 
   workflow_dispatch:
     inputs:
@@ -14,7 +14,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/protochain-dashboard
+  IMAGE_NAME: ${{ github.repository }}/protochain-solana-dashboard
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -31,7 +31,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             VERSION="${{ github.event.inputs.version }}"
           else
-            VERSION="${GITHUB_REF_NAME#protochain-dashboard/v}"
+            VERSION="${GITHUB_REF_NAME#protochain-solana-dashboard/v}"
           fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "Extracted version: ${VERSION}"

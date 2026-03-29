@@ -1,5 +1,5 @@
 {
-  "name": "@protochain/dashboard",
+  "name": "@protochain/solana-dashboard",
   "version": "0.1.0",
   "private": true,
   "scripts": {

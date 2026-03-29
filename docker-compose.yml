@@ -51,9 +51,9 @@ services:
     networks:
       - protochain
 
-  protochain-dashboard:
-    image: ghcr.io/meshtrade/protochain/protochain-dashboard:latest
-    container_name: protochain-dashboard
+  protochain-solana-dashboard:
+    image: ghcr.io/meshtrade/protochain/protochain-solana-dashboard:latest
+    container_name: protochain-solana-dashboard
     ports:
       - "3000:3000"
     environment:

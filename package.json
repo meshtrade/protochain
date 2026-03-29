@@ -3,7 +3,7 @@
   "private": true,
   "workspaces": [
     "lib/ts-web",
-    "app/protochain/cmd/dashboard"
+    "app/protochain/cmd/solana-dashboard"
   ],
   "packageManager": "yarn@1.22.22"
 }
