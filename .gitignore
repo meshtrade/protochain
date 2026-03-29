@@ -35,3 +35,10 @@ yarn-error.log
 .serena/
 
 **scratch**
+
+# Playwright MCP artifacts
+.playwright-mcp/
+
+# Development screenshots (loose PNGs at repo root from Playwright)
+/*.png
+/*.jpeg
