@@ -252,7 +252,6 @@ const fn classify_transaction_error(
         | SdkTransactionError::InvalidLoadedAccountsDataSizeLimit
         | SdkTransactionError::ResanitizationNeeded
         | SdkTransactionError::ProgramExecutionTemporarilyRestricted { .. }
-        | SdkTransactionError::AlreadyProcessed
         | SdkTransactionError::ProgramCacheHitMaxLimit
         | SdkTransactionError::CommitCancelled => TransactionErrorCode::InvalidTransaction,
     }
