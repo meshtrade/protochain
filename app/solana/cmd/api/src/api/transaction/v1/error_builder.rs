@@ -109,12 +109,12 @@ fn classify_error_with_certainty(
             let classified_transaction_error = classify_transaction_error(transaction_error);
             if classified_transaction_error == TransactionErrorCode::AlreadyProcessed {
                 (
-                    classify_transaction_error(transaction_error),
+                    classified_transaction_error,
                     TransactionSubmissionCertainty::Submitted,
                 )
             } else {
                 (
-                    classify_transaction_error(transaction_error),
+                    classified_transaction_error,
                     TransactionSubmissionCertainty::NotSubmitted,
                 )
             }
