@@ -11,11 +11,11 @@
 // ===================================================================
 
 // Generated exports
-export * from "./error_pb";
-export * from "./instruction_pb";
-export * from "./service_pb";
-export * from "./service_web_protochaints";
-export * from "./transaction_pb";
+export * from './error_pb';
+export * from './instruction_pb';
+export * from './service_pb';
+export * from './service_web_protochaints';
+export * from './transaction_pb';
 
 // ===================================================================
 // END OF AUTO-GENERATED SECTION
