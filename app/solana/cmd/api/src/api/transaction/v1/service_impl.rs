@@ -81,7 +81,7 @@ impl TransactionServiceImpl {
 /// 5. Node health issues
 /// 6. Fallback to string analysis for unstructured errors
 ///
-/// Reference: Solana Agave codebase at /Users/bernardbussy/Projects/github.com/anza-xyz/agave
+/// Reference: Solana Agave codebase at <https://github.com/anza-xyz/agave>
 /// - rpc-client-api/src/client_error.rs: Main `ClientError` structure
 /// - rpc-client-types/src/request.rs: RPC error types and response data
 /// - transaction-status/src/lib.rs: `TransactionError` enum variants

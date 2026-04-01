@@ -1,6 +1,7 @@
 use protochain_api::protochain::solana::transaction::v1::{
     SubmissionResult, TransactionError, TransactionErrorCode, TransactionSubmissionCertainty,
 };
+use protochain_api::Transaction;
 use serde_json;
 use solana_rpc_client_api::client_error::Error as ClientError;
 use solana_rpc_client_api::{
@@ -8,7 +9,7 @@ use solana_rpc_client_api::{
     request::{RpcError, RpcResponseErrorData},
 };
 use solana_sdk::{
-    clock::Slot, hash::Hash, instruction::InstructionError,
+    clock::Slot, instruction::InstructionError,
     transaction::TransactionError as SdkTransactionError,
 };
 
@@ -34,9 +35,9 @@ use solana_sdk::{
 /// - Rich context details as JSON for advanced debugging
 pub fn build_structured_error(
     client_error: &ClientError,
-    _submission_result: SubmissionResult,
-    transaction_blockhash: &Hash,
+    submission_result: SubmissionResult,
     current_slot: Slot,
+    transaction: &Transaction,
 ) -> TransactionError {
     let expiry_slot = current_slot + 150; // Standard blockhash validity window
 
@@ -49,6 +50,21 @@ pub fn build_structured_error(
     // Build comprehensive error details
     let details = extract_error_details(client_error);
 
+    // Parse blockhash from transaction for resolution strategy
+    let transaction_blockhash = transaction
+        .recent_blockhash
+        .parse()
+        .unwrap_or_else(|_| solana_sdk::hash::Hash::default());
+
+    // Extract transaction signature if the transaction was submitted or indeterminate, so client can verify transaction state
+    let signature = if submission_result == SubmissionResult::Submitted
+        || submission_result == SubmissionResult::Indeterminate
+    {
+        &transaction.signature
+    } else {
+        ""
+    };
+
     TransactionError {
         code: error_code.into(),
         message: format!("Transaction submission failed: {client_error}"),
@@ -57,6 +73,7 @@ pub fn build_structured_error(
         certainty: certainty.into(),
         blockhash: transaction_blockhash.to_string(),
         blockhash_expiry_slot: expiry_slot,
+        signature: signature.to_string(),
     }
 }
 
@@ -70,13 +87,12 @@ fn classify_error_with_certainty(
     client_error: &ClientError,
 ) -> (TransactionErrorCode, TransactionSubmissionCertainty) {
     match &*client_error.kind {
-        // Preflight failures - CERTAIN transaction was NOT sent
+        // Preflight failures - generally CERTAIN transaction was NOT sent,
+        // except AlreadyProcessed which means it WAS previously submitted
         ClientErrorKind::RpcError(RpcError::RpcResponseError {
             data: RpcResponseErrorData::SendTransactionPreflightFailure(simulation_result),
             ..
         }) => {
-            let certainty = TransactionSubmissionCertainty::NotSubmitted;
-
             let error_code = simulation_result
                 .err
                 .as_ref()
@@ -84,13 +100,24 @@ fn classify_error_with_certainty(
                     classify_transaction_error(&SdkTransactionError::from(tx_error.clone()))
                 });
 
+            let certainty = if error_code == TransactionErrorCode::AlreadyProcessed {
+                TransactionSubmissionCertainty::Submitted
+            } else {
+                TransactionSubmissionCertainty::NotSubmitted
+            };
+
             (error_code, certainty)
         }
 
         // Direct transaction errors - usually from preflight or validation
         ClientErrorKind::TransactionError(transaction_error) => {
-            let certainty = TransactionSubmissionCertainty::NotSubmitted;
-            (classify_transaction_error(transaction_error), certainty)
+            let code = classify_transaction_error(transaction_error);
+            let certainty = if code == TransactionErrorCode::AlreadyProcessed {
+                TransactionSubmissionCertainty::Submitted
+            } else {
+                TransactionSubmissionCertainty::NotSubmitted
+            };
+            (code, certainty)
         }
 
         // Node health issues - INDETERMINATE (might have received it first)
@@ -170,6 +197,9 @@ const fn classify_transaction_error(
             TransactionErrorCode::SignatureVerificationFailed
         }
 
+        // Transaction already processed (PERMANENT - runtime will not process transaction again)
+        SdkTransactionError::AlreadyProcessed => TransactionErrorCode::AlreadyProcessed,
+
         // Network capacity issues (TEMPORARY - try next block)
         SdkTransactionError::WouldExceedMaxBlockCostLimit
         | SdkTransactionError::WouldExceedMaxAccountCostLimit
@@ -222,7 +252,6 @@ const fn classify_transaction_error(
         | SdkTransactionError::InvalidLoadedAccountsDataSizeLimit
         | SdkTransactionError::ResanitizationNeeded
         | SdkTransactionError::ProgramExecutionTemporarilyRestricted { .. }
-        | SdkTransactionError::AlreadyProcessed
         | SdkTransactionError::ProgramCacheHitMaxLimit
         | SdkTransactionError::CommitCancelled => TransactionErrorCode::InvalidTransaction,
     }
@@ -264,17 +293,32 @@ const fn classify_instruction_error(
 pub const fn determine_retryability(code: TransactionErrorCode) -> bool {
     matches!(
         code,
+        // Insufficient funds of an account part of the transaction at the time the transaction was submitted
+        // this is something that can change since the account may be
+        // funded before the block hash expires
         TransactionErrorCode::InsufficientFunds
+            // Account part of transaction is being used in a different
+            // transaction that is also being validated by the network
+            // at the time this transaction was submitted, so retrying 
+            // could work
             | TransactionErrorCode::AccountInUse
+            // Transaction's compute would exceed the current block's limit
+            // so it is preemptively rejected, so retrying could 
+            // work if a new block is created
             | TransactionErrorCode::WouldExceedBlockLimit
+            // During the transaction simulation step some non-determinstic
+            // failure caused an error, so it should be safe to retry
             | TransactionErrorCode::TransientSimulationFailure
-            | TransactionErrorCode::NetworkError
-            | TransactionErrorCode::Timeout
+            // The RPC node where the transaction is being submitted
+            // is possibly behind or in some other inconsistent state.
+            // Could possibly be busy catching up or the RPC provider
+            // might switch out the unhealthy node with a healthy node 
+            // so retrying might resolve the issue
             | TransactionErrorCode::NodeUnhealthy
+            // The RPC node has rate limited your submission request
+            // waiting before submitting again will possibly resolve the 
+            // error
             | TransactionErrorCode::RateLimited
-            | TransactionErrorCode::RpcError
-            | TransactionErrorCode::ConnectionFailed
-            | TransactionErrorCode::RequestFailed
     )
 }
 

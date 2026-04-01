@@ -36,6 +36,8 @@ const (
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_INVALID_SIGNATURE             TransactionErrorCode = 2  // Missing or invalid signatures
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_SIGNATURE_VERIFICATION_FAILED TransactionErrorCode = 3  // Signature verification failed
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_TRANSACTION_TOO_LARGE         TransactionErrorCode = 10 // Transaction exceeds size limits
+	// Transaction already completed — previously processed by the runtime
+	TransactionErrorCode_TRANSACTION_ERROR_CODE_ALREADY_PROCESSED TransactionErrorCode = 48 // Transaction already processed
 	// Account and validation errors
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_ACCOUNT_NOT_FOUND        TransactionErrorCode = 4  // Required account doesn't exist
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_INVALID_ACCOUNT          TransactionErrorCode = 5  // Account in invalid state
@@ -67,6 +69,7 @@ var (
 		2:  "TRANSACTION_ERROR_CODE_INVALID_SIGNATURE",
 		3:  "TRANSACTION_ERROR_CODE_SIGNATURE_VERIFICATION_FAILED",
 		10: "TRANSACTION_ERROR_CODE_TRANSACTION_TOO_LARGE",
+		48: "TRANSACTION_ERROR_CODE_ALREADY_PROCESSED",
 		4:  "TRANSACTION_ERROR_CODE_ACCOUNT_NOT_FOUND",
 		5:  "TRANSACTION_ERROR_CODE_INVALID_ACCOUNT",
 		9:  "TRANSACTION_ERROR_CODE_INVALID_BLOCKHASH_FORMAT",
@@ -93,6 +96,7 @@ var (
 		"TRANSACTION_ERROR_CODE_INVALID_SIGNATURE":              2,
 		"TRANSACTION_ERROR_CODE_SIGNATURE_VERIFICATION_FAILED":  3,
 		"TRANSACTION_ERROR_CODE_TRANSACTION_TOO_LARGE":          10,
+		"TRANSACTION_ERROR_CODE_ALREADY_PROCESSED":              48,
 		"TRANSACTION_ERROR_CODE_ACCOUNT_NOT_FOUND":              4,
 		"TRANSACTION_ERROR_CODE_INVALID_ACCOUNT":                5,
 		"TRANSACTION_ERROR_CODE_INVALID_BLOCKHASH_FORMAT":       9,
@@ -228,8 +232,10 @@ type TransactionError struct {
 	Blockhash string `protobuf:"bytes,6,opt,name=blockhash,proto3" json:"blockhash,omitempty"`
 	// Slot when blockhash expires (~150 blocks after creation)
 	BlockhashExpirySlot uint64 `protobuf:"varint,7,opt,name=blockhash_expiry_slot,json=blockhashExpirySlot,proto3" json:"blockhash_expiry_slot,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	// Signature of the transaction (set if the transaction was actually submitted)
+	Signature     string `protobuf:"bytes,8,opt,name=signature,proto3" json:"signature,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TransactionError) Reset() {
@@ -311,11 +317,18 @@ func (x *TransactionError) GetBlockhashExpirySlot() uint64 {
 	return 0
 }
 
+func (x *TransactionError) GetSignature() string {
+	if x != nil {
+		return x.Signature
+	}
+	return ""
+}
+
 var File_protochain_solana_transaction_v1_error_proto protoreflect.FileDescriptor
 
 const file_protochain_solana_transaction_v1_error_proto_rawDesc = "" +
 	"\n" +
-	",protochain/solana/transaction/v1/error.proto\x12 protochain.solana.transaction.v1\"\xe2\x02\n" +
+	",protochain/solana/transaction/v1/error.proto\x12 protochain.solana.transaction.v1\"\x80\x03\n" +
 	"\x10TransactionError\x12J\n" +
 	"\x04code\x18\x01 \x01(\x0e26.protochain.solana.transaction.v1.TransactionErrorCodeR\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x18\n" +
@@ -323,7 +336,8 @@ const file_protochain_solana_transaction_v1_error_proto_rawDesc = "" +
 	"\tretryable\x18\x04 \x01(\bR\tretryable\x12^\n" +
 	"\tcertainty\x18\x05 \x01(\x0e2@.protochain.solana.transaction.v1.TransactionSubmissionCertaintyR\tcertainty\x12\x1c\n" +
 	"\tblockhash\x18\x06 \x01(\tR\tblockhash\x122\n" +
-	"\x15blockhash_expiry_slot\x18\a \x01(\x04R\x13blockhashExpirySlot*\xe7\b\n" +
+	"\x15blockhash_expiry_slot\x18\a \x01(\x04R\x13blockhashExpirySlot\x12\x1c\n" +
+	"\tsignature\x18\b \x01(\tR\tsignature*\x95\t\n" +
 	"\x14TransactionErrorCode\x12&\n" +
 	"\"TRANSACTION_ERROR_CODE_UNSPECIFIED\x10\x00\x12.\n" +
 	"*TRANSACTION_ERROR_CODE_INVALID_TRANSACTION\x10\x01\x12,\n" +
@@ -331,6 +345,7 @@ const file_protochain_solana_transaction_v1_error_proto_rawDesc = "" +
 	"4TRANSACTION_ERROR_CODE_SIGNATURE_VERIFICATION_FAILED\x10\x03\x120\n" +
 	",TRANSACTION_ERROR_CODE_TRANSACTION_TOO_LARGE\x10\n" +
 	"\x12,\n" +
+	"(TRANSACTION_ERROR_CODE_ALREADY_PROCESSED\x100\x12,\n" +
 	"(TRANSACTION_ERROR_CODE_ACCOUNT_NOT_FOUND\x10\x04\x12*\n" +
 	"&TRANSACTION_ERROR_CODE_INVALID_ACCOUNT\x10\x05\x123\n" +
 	"/TRANSACTION_ERROR_CODE_INVALID_BLOCKHASH_FORMAT\x10\t\x12.\n" +
