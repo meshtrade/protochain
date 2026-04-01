@@ -1,3 +1,4 @@
+use protochain_api::SubmissionResult;
 use solana_sdk::{signature::Signature, transaction::Transaction as SolanaTransaction};
 use tonic::{Request, Response, Status};
 use tracing::{debug, error, info};
@@ -145,20 +146,14 @@ impl super::TransactionServiceImpl {
                 let classification = super::classify_submission_error(&e);
 
                 // Get current slot for blockhash resolution
-                let current_slot = self.rpc_client.get_slot().await.unwrap_or(0);
-
-                // Parse blockhash from transaction for resolution strategy
-                let transaction_blockhash = transaction
-                    .recent_blockhash
-                    .parse()
-                    .unwrap_or_else(|_| solana_sdk::hash::Hash::default());
+                let current_slot = self.rpc_client.get_slot().await.unwrap_or(0); 
 
                 // Build comprehensive structured error
                 let structured_err = error_builder::build_structured_error(
                     &e,
                     classification,
-                    &transaction_blockhash,
                     current_slot,
+                    &transaction,
                 );
 
                 error!(

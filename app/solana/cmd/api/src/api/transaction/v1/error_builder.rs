@@ -1,3 +1,4 @@
+use protochain_api::Transaction;
 use protochain_api::protochain::solana::transaction::v1::{
     SubmissionResult, TransactionError, TransactionErrorCode, TransactionSubmissionCertainty,
 };
@@ -8,7 +9,7 @@ use solana_rpc_client_api::{
     request::{RpcError, RpcResponseErrorData},
 };
 use solana_sdk::{
-    clock::Slot, hash::Hash, instruction::InstructionError,
+    clock::Slot, instruction::InstructionError,
     transaction::TransactionError as SdkTransactionError,
 };
 
@@ -34,9 +35,9 @@ use solana_sdk::{
 /// - Rich context details as JSON for advanced debugging
 pub fn build_structured_error(
     client_error: &ClientError,
-    _submission_result: SubmissionResult,
-    transaction_blockhash: &Hash,
+    submission_result: SubmissionResult,
     current_slot: Slot,
+    transaction: &Transaction,
 ) -> TransactionError {
     let expiry_slot = current_slot + 150; // Standard blockhash validity window
 
@@ -49,6 +50,19 @@ pub fn build_structured_error(
     // Build comprehensive error details
     let details = extract_error_details(client_error);
 
+    // Parse blockhash from transaction for resolution strategy
+    let transaction_blockhash = transaction
+        .recent_blockhash
+        .parse()
+        .unwrap_or_else(|_| solana_sdk::hash::Hash::default()); 
+
+    // Extract transaction signature if the transaction was submitted or indeterminate, so client can verify transaction state
+    let signature = if submission_result == SubmissionResult::Submitted || submission_result == SubmissionResult::Indeterminate {
+        &transaction.signature
+    } else {
+        ""
+    };
+
     TransactionError {
         code: error_code.into(),
         message: format!("Transaction submission failed: {client_error}"),
@@ -57,6 +71,7 @@ pub fn build_structured_error(
         certainty: certainty.into(),
         blockhash: transaction_blockhash.to_string(),
         blockhash_expiry_slot: expiry_slot,
+        signature: signature.to_string(),
     }
 }
 
@@ -89,8 +104,12 @@ fn classify_error_with_certainty(
 
         // Direct transaction errors - usually from preflight or validation
         ClientErrorKind::TransactionError(transaction_error) => {
-            let certainty = TransactionSubmissionCertainty::NotSubmitted;
-            (classify_transaction_error(transaction_error), certainty)
+            let classified_transaction_error = classify_transaction_error(transaction_error);
+            if classified_transaction_error == TransactionErrorCode::AlreadyProcessed {
+                (classify_transaction_error(transaction_error), TransactionSubmissionCertainty::Submitted)
+            } else {
+                (classify_transaction_error(transaction_error), TransactionSubmissionCertainty::NotSubmitted)
+            }
         }
 
         // Node health issues - INDETERMINATE (might have received it first)
@@ -168,6 +187,11 @@ const fn classify_transaction_error(
         // Signature and authorization errors (PERMANENT - need re-signing)
         SdkTransactionError::SignatureFailure | SdkTransactionError::MissingSignatureForFee => {
             TransactionErrorCode::SignatureVerificationFailed
+        }
+
+        // Transaction already processed (PERMANENT - runtime will not process transaction again)
+        SdkTransactionError::AlreadyProcessed => {
+            TransactionErrorCode::AlreadyProcessed
         }
 
         // Network capacity issues (TEMPORARY - try next block)

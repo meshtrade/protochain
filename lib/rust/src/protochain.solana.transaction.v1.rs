@@ -63,6 +63,9 @@ pub struct TransactionError {
     /// Slot when blockhash expires (~150 blocks after creation)
     #[prost(uint64, tag="7")]
     pub blockhash_expiry_slot: u64,
+    /// Signature of the transaction (set if the transaction was actually submitted)
+    #[prost(string, tag="8")]
+    pub signature: ::prost::alloc::string::String,
 }
 /// Comprehensive error codes for transaction submission failures
 ///
@@ -87,6 +90,10 @@ pub enum TransactionErrorCode {
     SignatureVerificationFailed = 3,
     /// Transaction exceeds size limits
     TransactionTooLarge = 10,
+    /// Transaction Error
+    ///
+    /// Transaction already processed 
+    AlreadyProcessed = 48,
     /// Account and validation errors
     ///
     /// Required account doesn't exist
@@ -148,6 +155,7 @@ impl TransactionErrorCode {
             TransactionErrorCode::InvalidSignature => "TRANSACTION_ERROR_CODE_INVALID_SIGNATURE",
             TransactionErrorCode::SignatureVerificationFailed => "TRANSACTION_ERROR_CODE_SIGNATURE_VERIFICATION_FAILED",
             TransactionErrorCode::TransactionTooLarge => "TRANSACTION_ERROR_CODE_TRANSACTION_TOO_LARGE",
+            TransactionErrorCode::AlreadyProcessed => "TRANSACTION_ERROR_CODE_ALREADY_PROCESSED",
             TransactionErrorCode::AccountNotFound => "TRANSACTION_ERROR_CODE_ACCOUNT_NOT_FOUND",
             TransactionErrorCode::InvalidAccount => "TRANSACTION_ERROR_CODE_INVALID_ACCOUNT",
             TransactionErrorCode::InvalidBlockhashFormat => "TRANSACTION_ERROR_CODE_INVALID_BLOCKHASH_FORMAT",
@@ -177,6 +185,7 @@ impl TransactionErrorCode {
             "TRANSACTION_ERROR_CODE_INVALID_SIGNATURE" => Some(Self::InvalidSignature),
             "TRANSACTION_ERROR_CODE_SIGNATURE_VERIFICATION_FAILED" => Some(Self::SignatureVerificationFailed),
             "TRANSACTION_ERROR_CODE_TRANSACTION_TOO_LARGE" => Some(Self::TransactionTooLarge),
+            "TRANSACTION_ERROR_CODE_ALREADY_PROCESSED" => Some(Self::AlreadyProcessed),
             "TRANSACTION_ERROR_CODE_ACCOUNT_NOT_FOUND" => Some(Self::AccountNotFound),
             "TRANSACTION_ERROR_CODE_INVALID_ACCOUNT" => Some(Self::InvalidAccount),
             "TRANSACTION_ERROR_CODE_INVALID_BLOCKHASH_FORMAT" => Some(Self::InvalidBlockhashFormat),
