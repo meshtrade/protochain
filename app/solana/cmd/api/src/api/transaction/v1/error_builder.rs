@@ -294,7 +294,7 @@ pub const fn determine_retryability(code: TransactionErrorCode) -> bool {
     matches!(
         code,
         // Insufficient funds of an account part of the transaction at the time the transaction was submitted
-        // this is something that can change since the account may be 
+        // this is something that can change since the account may be
         // funded before the block hash expires
         TransactionErrorCode::InsufficientFunds
             // Account part of transaction is being used in a different
