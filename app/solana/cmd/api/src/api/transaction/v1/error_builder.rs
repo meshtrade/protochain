@@ -107,7 +107,7 @@ fn classify_error_with_certainty(
         // Direct transaction errors - usually from preflight or validation
         ClientErrorKind::TransactionError(transaction_error) => {
             let classified_transaction_error = classify_transaction_error(transaction_error);
-            if classified_transaction_error == TransactionErrorCode::AlreadyProcessed {
+            if classified_transaction_error == TransactionErrorCode::AlreadyProcessed || classified_transaction_error == TransactionErrorCode::ComputationalBudgetExceeded {
                 (
                     classify_transaction_error(transaction_error),
                     TransactionSubmissionCertainty::Submitted,
@@ -232,8 +232,8 @@ const fn classify_transaction_error(
         SdkTransactionError::BlockhashNotFound => TransactionErrorCode::BlockhashNotFound,
 
         // Program execution and instruction errors
-        SdkTransactionError::InstructionError(instruction_index, instruction_error) => {
-            classify_instruction_error(*instruction_index, instruction_error)
+        SdkTransactionError::InstructionError(_, instruction_error) => {
+            classify_instruction_error(instruction_error)
         }
 
         // Transaction structure and validation errors (PERMANENT)
@@ -261,7 +261,6 @@ const fn classify_transaction_error(
 ///
 /// Provides detailed classification for errors that occur during program execution
 const fn classify_instruction_error(
-    _instruction_index: u8,
     instruction_error: &InstructionError,
 ) -> TransactionErrorCode {
     match instruction_error {
@@ -275,7 +274,7 @@ const fn classify_instruction_error(
 
         // Compute budget exhausted (TEMPORARY - network capacity issue)
         InstructionError::ComputationalBudgetExceeded => {
-            TransactionErrorCode::WouldExceedBlockLimit
+            TransactionErrorCode::ComputationalBudgetExceeded
         }
 
         // Program-specific custom error codes (PERMANENT - program logic issues)

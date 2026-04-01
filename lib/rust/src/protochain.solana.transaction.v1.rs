@@ -94,6 +94,8 @@ pub enum TransactionErrorCode {
     ///
     /// Transaction already processed 
     AlreadyProcessed = 48,
+    /// Transaction exceeded configured computational budget 
+    ComputationalBudgetExceeded = 49,
     /// Account and validation errors
     ///
     /// Required account doesn't exist
@@ -156,6 +158,7 @@ impl TransactionErrorCode {
             TransactionErrorCode::SignatureVerificationFailed => "TRANSACTION_ERROR_CODE_SIGNATURE_VERIFICATION_FAILED",
             TransactionErrorCode::TransactionTooLarge => "TRANSACTION_ERROR_CODE_TRANSACTION_TOO_LARGE",
             TransactionErrorCode::AlreadyProcessed => "TRANSACTION_ERROR_CODE_ALREADY_PROCESSED",
+            TransactionErrorCode::ComputationalBudgetExceeded => "TRANSACTION_ERROR_CODE_COMPUTATIONAL_BUDGET_EXCEEDED",
             TransactionErrorCode::AccountNotFound => "TRANSACTION_ERROR_CODE_ACCOUNT_NOT_FOUND",
             TransactionErrorCode::InvalidAccount => "TRANSACTION_ERROR_CODE_INVALID_ACCOUNT",
             TransactionErrorCode::InvalidBlockhashFormat => "TRANSACTION_ERROR_CODE_INVALID_BLOCKHASH_FORMAT",
@@ -186,6 +189,7 @@ impl TransactionErrorCode {
             "TRANSACTION_ERROR_CODE_SIGNATURE_VERIFICATION_FAILED" => Some(Self::SignatureVerificationFailed),
             "TRANSACTION_ERROR_CODE_TRANSACTION_TOO_LARGE" => Some(Self::TransactionTooLarge),
             "TRANSACTION_ERROR_CODE_ALREADY_PROCESSED" => Some(Self::AlreadyProcessed),
+            "TRANSACTION_ERROR_CODE_COMPUTATIONAL_BUDGET_EXCEEDED" => Some(Self::ComputationalBudgetExceeded),
             "TRANSACTION_ERROR_CODE_ACCOUNT_NOT_FOUND" => Some(Self::AccountNotFound),
             "TRANSACTION_ERROR_CODE_INVALID_ACCOUNT" => Some(Self::InvalidAccount),
             "TRANSACTION_ERROR_CODE_INVALID_BLOCKHASH_FORMAT" => Some(Self::InvalidBlockhashFormat),
@@ -588,8 +592,10 @@ pub enum SubmissionResult {
     FailedInsufficientFunds = 4,
     /// Transaction signature validation failed
     FailedInvalidSignature = 5,
-    /// NEW: State unknown - use structured_error for resolution
+    /// State unknown - use structured_error for resolution
     Indeterminate = 6,
+    /// Transaction exceeded the configured compute budget 
+    ComputationalBudgetExceeded = 7,
 }
 impl SubmissionResult {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -605,6 +611,7 @@ impl SubmissionResult {
             SubmissionResult::FailedInsufficientFunds => "SUBMISSION_RESULT_FAILED_INSUFFICIENT_FUNDS",
             SubmissionResult::FailedInvalidSignature => "SUBMISSION_RESULT_FAILED_INVALID_SIGNATURE",
             SubmissionResult::Indeterminate => "SUBMISSION_RESULT_INDETERMINATE",
+            SubmissionResult::ComputationalBudgetExceeded => "SUBMISSION_RESULT_COMPUTATIONAL_BUDGET_EXCEEDED",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -617,6 +624,7 @@ impl SubmissionResult {
             "SUBMISSION_RESULT_FAILED_INSUFFICIENT_FUNDS" => Some(Self::FailedInsufficientFunds),
             "SUBMISSION_RESULT_FAILED_INVALID_SIGNATURE" => Some(Self::FailedInvalidSignature),
             "SUBMISSION_RESULT_INDETERMINATE" => Some(Self::Indeterminate),
+            "SUBMISSION_RESULT_COMPUTATIONAL_BUDGET_EXCEEDED" => Some(Self::ComputationalBudgetExceeded),
             _ => None,
         }
     }

@@ -125,7 +125,8 @@ enum SubmissionResult {
   SUBMISSION_RESULT_FAILED_NETWORK_ERROR = 3; // Network/RPC error prevented submission
   SUBMISSION_RESULT_FAILED_INSUFFICIENT_FUNDS = 4; // Fee payer has insufficient balance
   SUBMISSION_RESULT_FAILED_INVALID_SIGNATURE = 5; // Transaction signature validation failed
-  SUBMISSION_RESULT_INDETERMINATE = 6; // NEW: State unknown - use structured_error for resolution
+  SUBMISSION_RESULT_INDETERMINATE = 6; // State unknown - use structured_error for resolution
+  SUBMISSION_RESULT_COMPUTATIONAL_BUDGET_EXCEEDED = 7; // Transaction exceeded the configured compute budget 
 }
 
 message GetTransactionRequest {

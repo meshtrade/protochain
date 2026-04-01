@@ -37,7 +37,8 @@ const (
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_SIGNATURE_VERIFICATION_FAILED TransactionErrorCode = 3  // Signature verification failed
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_TRANSACTION_TOO_LARGE         TransactionErrorCode = 10 // Transaction exceeds size limits
 	// Transaction Error
-	TransactionErrorCode_TRANSACTION_ERROR_CODE_ALREADY_PROCESSED TransactionErrorCode = 48 // Transaction already processed
+	TransactionErrorCode_TRANSACTION_ERROR_CODE_ALREADY_PROCESSED             TransactionErrorCode = 48 // Transaction already processed
+	TransactionErrorCode_TRANSACTION_ERROR_CODE_COMPUTATIONAL_BUDGET_EXCEEDED TransactionErrorCode = 49 // Transaction exceeded configured computational budget
 	// Account and validation errors
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_ACCOUNT_NOT_FOUND        TransactionErrorCode = 4  // Required account doesn't exist
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_INVALID_ACCOUNT          TransactionErrorCode = 5  // Account in invalid state
@@ -70,6 +71,7 @@ var (
 		3:  "TRANSACTION_ERROR_CODE_SIGNATURE_VERIFICATION_FAILED",
 		10: "TRANSACTION_ERROR_CODE_TRANSACTION_TOO_LARGE",
 		48: "TRANSACTION_ERROR_CODE_ALREADY_PROCESSED",
+		49: "TRANSACTION_ERROR_CODE_COMPUTATIONAL_BUDGET_EXCEEDED",
 		4:  "TRANSACTION_ERROR_CODE_ACCOUNT_NOT_FOUND",
 		5:  "TRANSACTION_ERROR_CODE_INVALID_ACCOUNT",
 		9:  "TRANSACTION_ERROR_CODE_INVALID_BLOCKHASH_FORMAT",
@@ -97,6 +99,7 @@ var (
 		"TRANSACTION_ERROR_CODE_SIGNATURE_VERIFICATION_FAILED":  3,
 		"TRANSACTION_ERROR_CODE_TRANSACTION_TOO_LARGE":          10,
 		"TRANSACTION_ERROR_CODE_ALREADY_PROCESSED":              48,
+		"TRANSACTION_ERROR_CODE_COMPUTATIONAL_BUDGET_EXCEEDED":  49,
 		"TRANSACTION_ERROR_CODE_ACCOUNT_NOT_FOUND":              4,
 		"TRANSACTION_ERROR_CODE_INVALID_ACCOUNT":                5,
 		"TRANSACTION_ERROR_CODE_INVALID_BLOCKHASH_FORMAT":       9,
@@ -337,7 +340,7 @@ const file_protochain_solana_transaction_v1_error_proto_rawDesc = "" +
 	"\tcertainty\x18\x05 \x01(\x0e2@.protochain.solana.transaction.v1.TransactionSubmissionCertaintyR\tcertainty\x12\x1c\n" +
 	"\tblockhash\x18\x06 \x01(\tR\tblockhash\x122\n" +
 	"\x15blockhash_expiry_slot\x18\a \x01(\x04R\x13blockhashExpirySlot\x12\x1c\n" +
-	"\tsignature\x18\b \x01(\tR\tsignature*\x95\t\n" +
+	"\tsignature\x18\b \x01(\tR\tsignature*\xcf\t\n" +
 	"\x14TransactionErrorCode\x12&\n" +
 	"\"TRANSACTION_ERROR_CODE_UNSPECIFIED\x10\x00\x12.\n" +
 	"*TRANSACTION_ERROR_CODE_INVALID_TRANSACTION\x10\x01\x12,\n" +
@@ -345,7 +348,8 @@ const file_protochain_solana_transaction_v1_error_proto_rawDesc = "" +
 	"4TRANSACTION_ERROR_CODE_SIGNATURE_VERIFICATION_FAILED\x10\x03\x120\n" +
 	",TRANSACTION_ERROR_CODE_TRANSACTION_TOO_LARGE\x10\n" +
 	"\x12,\n" +
-	"(TRANSACTION_ERROR_CODE_ALREADY_PROCESSED\x100\x12,\n" +
+	"(TRANSACTION_ERROR_CODE_ALREADY_PROCESSED\x100\x128\n" +
+	"4TRANSACTION_ERROR_CODE_COMPUTATIONAL_BUDGET_EXCEEDED\x101\x12,\n" +
 	"(TRANSACTION_ERROR_CODE_ACCOUNT_NOT_FOUND\x10\x04\x12*\n" +
 	"&TRANSACTION_ERROR_CODE_INVALID_ACCOUNT\x10\x05\x123\n" +
 	"/TRANSACTION_ERROR_CODE_INVALID_BLOCKHASH_FORMAT\x10\t\x12.\n" +

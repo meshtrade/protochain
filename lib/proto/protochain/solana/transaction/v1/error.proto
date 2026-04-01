@@ -58,6 +58,7 @@ enum TransactionErrorCode {
 
   // Transaction Error
   TRANSACTION_ERROR_CODE_ALREADY_PROCESSED = 48;            // Transaction already processed 
+  TRANSACTION_ERROR_CODE_COMPUTATIONAL_BUDGET_EXCEEDED = 49;// Transaction exceeded configured computational budget 
 
   // Account and validation errors
   TRANSACTION_ERROR_CODE_ACCOUNT_NOT_FOUND = 4;             // Required account doesn't exist

@@ -209,8 +209,8 @@ const fn classify_transaction_error(transaction_error: &TransactionError) -> Sub
         | TransactionError::CommitCancelled => SubmissionResult::FailedValidation,
 
         // Instruction-level errors require detailed analysis
-        TransactionError::InstructionError(instruction_index, instruction_error) => {
-            classify_instruction_error(*instruction_index, instruction_error)
+        TransactionError::InstructionError(_, instruction_error) => {
+            classify_instruction_error(instruction_error)
         }
     }
 }
@@ -222,7 +222,6 @@ const fn classify_transaction_error(transaction_error: &TransactionError) -> Sub
 ///
 /// Reference: solana-sdk instruction error definitions
 const fn classify_instruction_error(
-    _instruction_index: u8,
     instruction_error: &InstructionError,
 ) -> SubmissionResult {
     match instruction_error {
@@ -233,12 +232,12 @@ const fn classify_instruction_error(
         InstructionError::MissingRequiredSignature => SubmissionResult::FailedInvalidSignature,
 
         // Compute budget exhausted during execution
-        InstructionError::ComputationalBudgetExceeded => SubmissionResult::FailedNetworkError,
+        InstructionError::ComputationalBudgetExceeded => SubmissionResult::ComputationalBudgetExceeded,
 
         // Most instruction errors are validation issues - handled by wildcard below
 
         // Program-specific custom error codes
-        InstructionError::Custom(_error_code) => {
+        InstructionError::Custom(_) => {
             // Custom error codes are program-specific and could indicate various issues
             // Without context about the specific program, treat as validation error
             SubmissionResult::FailedValidation

@@ -25,13 +25,14 @@ const (
 type SubmissionResult int32
 
 const (
-	SubmissionResult_SUBMISSION_RESULT_UNSPECIFIED               SubmissionResult = 0
-	SubmissionResult_SUBMISSION_RESULT_SUBMITTED                 SubmissionResult = 1 // Transaction successfully submitted to network
-	SubmissionResult_SUBMISSION_RESULT_FAILED_VALIDATION         SubmissionResult = 2 // Transaction failed pre-submission validation
-	SubmissionResult_SUBMISSION_RESULT_FAILED_NETWORK_ERROR      SubmissionResult = 3 // Network/RPC error prevented submission
-	SubmissionResult_SUBMISSION_RESULT_FAILED_INSUFFICIENT_FUNDS SubmissionResult = 4 // Fee payer has insufficient balance
-	SubmissionResult_SUBMISSION_RESULT_FAILED_INVALID_SIGNATURE  SubmissionResult = 5 // Transaction signature validation failed
-	SubmissionResult_SUBMISSION_RESULT_INDETERMINATE             SubmissionResult = 6 // NEW: State unknown - use structured_error for resolution
+	SubmissionResult_SUBMISSION_RESULT_UNSPECIFIED                   SubmissionResult = 0
+	SubmissionResult_SUBMISSION_RESULT_SUBMITTED                     SubmissionResult = 1 // Transaction successfully submitted to network
+	SubmissionResult_SUBMISSION_RESULT_FAILED_VALIDATION             SubmissionResult = 2 // Transaction failed pre-submission validation
+	SubmissionResult_SUBMISSION_RESULT_FAILED_NETWORK_ERROR          SubmissionResult = 3 // Network/RPC error prevented submission
+	SubmissionResult_SUBMISSION_RESULT_FAILED_INSUFFICIENT_FUNDS     SubmissionResult = 4 // Fee payer has insufficient balance
+	SubmissionResult_SUBMISSION_RESULT_FAILED_INVALID_SIGNATURE      SubmissionResult = 5 // Transaction signature validation failed
+	SubmissionResult_SUBMISSION_RESULT_INDETERMINATE                 SubmissionResult = 6 // State unknown - use structured_error for resolution
+	SubmissionResult_SUBMISSION_RESULT_COMPUTATIONAL_BUDGET_EXCEEDED SubmissionResult = 7 // Transaction exceeded the configured compute budget
 )
 
 // Enum value maps for SubmissionResult.
@@ -44,15 +45,17 @@ var (
 		4: "SUBMISSION_RESULT_FAILED_INSUFFICIENT_FUNDS",
 		5: "SUBMISSION_RESULT_FAILED_INVALID_SIGNATURE",
 		6: "SUBMISSION_RESULT_INDETERMINATE",
+		7: "SUBMISSION_RESULT_COMPUTATIONAL_BUDGET_EXCEEDED",
 	}
 	SubmissionResult_value = map[string]int32{
-		"SUBMISSION_RESULT_UNSPECIFIED":               0,
-		"SUBMISSION_RESULT_SUBMITTED":                 1,
-		"SUBMISSION_RESULT_FAILED_VALIDATION":         2,
-		"SUBMISSION_RESULT_FAILED_NETWORK_ERROR":      3,
-		"SUBMISSION_RESULT_FAILED_INSUFFICIENT_FUNDS": 4,
-		"SUBMISSION_RESULT_FAILED_INVALID_SIGNATURE":  5,
-		"SUBMISSION_RESULT_INDETERMINATE":             6,
+		"SUBMISSION_RESULT_UNSPECIFIED":                   0,
+		"SUBMISSION_RESULT_SUBMITTED":                     1,
+		"SUBMISSION_RESULT_FAILED_VALIDATION":             2,
+		"SUBMISSION_RESULT_FAILED_NETWORK_ERROR":          3,
+		"SUBMISSION_RESULT_FAILED_INSUFFICIENT_FUNDS":     4,
+		"SUBMISSION_RESULT_FAILED_INVALID_SIGNATURE":      5,
+		"SUBMISSION_RESULT_INDETERMINATE":                 6,
+		"SUBMISSION_RESULT_COMPUTATIONAL_BUDGET_EXCEEDED": 7,
 	}
 )
 
@@ -1301,7 +1304,7 @@ const file_protochain_solana_transaction_v1_service_proto_rawDesc = "" +
 	"\rerror_message\x18\x04 \x01(\tR\ferrorMessage\x12\x12\n" +
 	"\x04logs\x18\x05 \x03(\tR\x04logs\x124\n" +
 	"\x16compute_units_consumed\x18\x06 \x01(\x04R\x14computeUnitsConsumed\x12Y\n" +
-	"\x12current_commitment\x18\a \x01(\x0e2*.protochain.solana.type.v1.CommitmentLevelR\x11currentCommitment*\xb1\x02\n" +
+	"\x12current_commitment\x18\a \x01(\x0e2*.protochain.solana.type.v1.CommitmentLevelR\x11currentCommitment*\xe6\x02\n" +
 	"\x10SubmissionResult\x12!\n" +
 	"\x1dSUBMISSION_RESULT_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bSUBMISSION_RESULT_SUBMITTED\x10\x01\x12'\n" +
@@ -1309,7 +1312,8 @@ const file_protochain_solana_transaction_v1_service_proto_rawDesc = "" +
 	"&SUBMISSION_RESULT_FAILED_NETWORK_ERROR\x10\x03\x12/\n" +
 	"+SUBMISSION_RESULT_FAILED_INSUFFICIENT_FUNDS\x10\x04\x12.\n" +
 	"*SUBMISSION_RESULT_FAILED_INVALID_SIGNATURE\x10\x05\x12#\n" +
-	"\x1fSUBMISSION_RESULT_INDETERMINATE\x10\x06*\x9d\x02\n" +
+	"\x1fSUBMISSION_RESULT_INDETERMINATE\x10\x06\x123\n" +
+	"/SUBMISSION_RESULT_COMPUTATIONAL_BUDGET_EXCEEDED\x10\a*\x9d\x02\n" +
 	"\x11TransactionStatus\x12\"\n" +
 	"\x1eTRANSACTION_STATUS_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bTRANSACTION_STATUS_RECEIVED\x10\x01\x12 \n" +
