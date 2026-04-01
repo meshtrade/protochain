@@ -1,4 +1,3 @@
-use protochain_api::SubmissionResult;
 use solana_sdk::{signature::Signature, transaction::Transaction as SolanaTransaction};
 use tonic::{Request, Response, Status};
 use tracing::{debug, error, info};
