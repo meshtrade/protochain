@@ -47,6 +47,7 @@ const (
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_PROGRAM_ERROR                  TransactionErrorCode = 6  // Program execution failed
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_INSTRUCTION_ERROR              TransactionErrorCode = 7  // Instruction execution failed
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_PRECOMPILE_VERIFICATION_FAILED TransactionErrorCode = 8  // Precompile verification failed
+	TransactionErrorCode_TRANSACTION_ERROR_CODE_COMPUTATIONAL_BUDGET_EXCEEDED  TransactionErrorCode = 49 // Exceeded configured compute unit limit - requires re-signing
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_INSUFFICIENT_FUNDS             TransactionErrorCode = 20 // Add funds, same transaction works
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_ACCOUNT_IN_USE                 TransactionErrorCode = 21 // Account locked, wait for unlock
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_WOULD_EXCEED_BLOCK_LIMIT       TransactionErrorCode = 22 // Block capacity limit, try next block
@@ -77,6 +78,7 @@ var (
 		6:  "TRANSACTION_ERROR_CODE_PROGRAM_ERROR",
 		7:  "TRANSACTION_ERROR_CODE_INSTRUCTION_ERROR",
 		8:  "TRANSACTION_ERROR_CODE_PRECOMPILE_VERIFICATION_FAILED",
+		49: "TRANSACTION_ERROR_CODE_COMPUTATIONAL_BUDGET_EXCEEDED",
 		20: "TRANSACTION_ERROR_CODE_INSUFFICIENT_FUNDS",
 		21: "TRANSACTION_ERROR_CODE_ACCOUNT_IN_USE",
 		22: "TRANSACTION_ERROR_CODE_WOULD_EXCEED_BLOCK_LIMIT",
@@ -104,6 +106,7 @@ var (
 		"TRANSACTION_ERROR_CODE_PROGRAM_ERROR":                  6,
 		"TRANSACTION_ERROR_CODE_INSTRUCTION_ERROR":              7,
 		"TRANSACTION_ERROR_CODE_PRECOMPILE_VERIFICATION_FAILED": 8,
+		"TRANSACTION_ERROR_CODE_COMPUTATIONAL_BUDGET_EXCEEDED":  49,
 		"TRANSACTION_ERROR_CODE_INSUFFICIENT_FUNDS":             20,
 		"TRANSACTION_ERROR_CODE_ACCOUNT_IN_USE":                 21,
 		"TRANSACTION_ERROR_CODE_WOULD_EXCEED_BLOCK_LIMIT":       22,
@@ -337,7 +340,7 @@ const file_protochain_solana_transaction_v1_error_proto_rawDesc = "" +
 	"\tcertainty\x18\x05 \x01(\x0e2@.protochain.solana.transaction.v1.TransactionSubmissionCertaintyR\tcertainty\x12\x1c\n" +
 	"\tblockhash\x18\x06 \x01(\tR\tblockhash\x122\n" +
 	"\x15blockhash_expiry_slot\x18\a \x01(\x04R\x13blockhashExpirySlot\x12\x1c\n" +
-	"\tsignature\x18\b \x01(\tR\tsignature*\x95\t\n" +
+	"\tsignature\x18\b \x01(\tR\tsignature*\xcf\t\n" +
 	"\x14TransactionErrorCode\x12&\n" +
 	"\"TRANSACTION_ERROR_CODE_UNSPECIFIED\x10\x00\x12.\n" +
 	"*TRANSACTION_ERROR_CODE_INVALID_TRANSACTION\x10\x01\x12,\n" +
@@ -352,7 +355,8 @@ const file_protochain_solana_transaction_v1_error_proto_rawDesc = "" +
 	"*TRANSACTION_ERROR_CODE_BLOCKHASH_NOT_FOUND\x10\v\x12(\n" +
 	"$TRANSACTION_ERROR_CODE_PROGRAM_ERROR\x10\x06\x12,\n" +
 	"(TRANSACTION_ERROR_CODE_INSTRUCTION_ERROR\x10\a\x129\n" +
-	"5TRANSACTION_ERROR_CODE_PRECOMPILE_VERIFICATION_FAILED\x10\b\x12-\n" +
+	"5TRANSACTION_ERROR_CODE_PRECOMPILE_VERIFICATION_FAILED\x10\b\x128\n" +
+	"4TRANSACTION_ERROR_CODE_COMPUTATIONAL_BUDGET_EXCEEDED\x101\x12-\n" +
 	")TRANSACTION_ERROR_CODE_INSUFFICIENT_FUNDS\x10\x14\x12)\n" +
 	"%TRANSACTION_ERROR_CODE_ACCOUNT_IN_USE\x10\x15\x123\n" +
 	"/TRANSACTION_ERROR_CODE_WOULD_EXCEED_BLOCK_LIMIT\x10\x16\x127\n" +

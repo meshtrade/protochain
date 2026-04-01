@@ -232,8 +232,8 @@ const fn classify_transaction_error(
         SdkTransactionError::BlockhashNotFound => TransactionErrorCode::BlockhashNotFound,
 
         // Program execution and instruction errors
-        SdkTransactionError::InstructionError(instruction_index, instruction_error) => {
-            classify_instruction_error(*instruction_index, instruction_error)
+        SdkTransactionError::InstructionError(_, instruction_error) => {
+            classify_instruction_error(instruction_error)
         }
 
         // Transaction structure and validation errors (PERMANENT)
@@ -260,10 +260,7 @@ const fn classify_transaction_error(
 /// Classifies instruction-level errors
 ///
 /// Provides detailed classification for errors that occur during program execution
-const fn classify_instruction_error(
-    _instruction_index: u8,
-    instruction_error: &InstructionError,
-) -> TransactionErrorCode {
+const fn classify_instruction_error(instruction_error: &InstructionError) -> TransactionErrorCode {
     match instruction_error {
         // Program detected insufficient funds (TEMPORARY)
         InstructionError::InsufficientFunds => TransactionErrorCode::InsufficientFunds,
@@ -273,9 +270,9 @@ const fn classify_instruction_error(
             TransactionErrorCode::SignatureVerificationFailed
         }
 
-        // Compute budget exhausted (TEMPORARY - network capacity issue)
+        // Compute budget exhausted (PERMANENT - requires increasing compute unit limit and re-signing)
         InstructionError::ComputationalBudgetExceeded => {
-            TransactionErrorCode::WouldExceedBlockLimit
+            TransactionErrorCode::ComputationalBudgetExceeded
         }
 
         // Program-specific custom error codes (PERMANENT - program logic issues)
