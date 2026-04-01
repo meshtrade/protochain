@@ -116,11 +116,8 @@ pub(super) fn classify_submission_error(error: &ClientError) -> SubmissionResult
         // Network transport errors - connectivity, timeouts, HTTP issues (INDETERMINATE)
         ClientErrorKind::Io(_) => SubmissionResult::Indeterminate,
 
-        ClientErrorKind::Reqwest(reqwest_error) => {
-            if reqwest_error.is_timeout() {
-                // Timeouts are especially dangerous - transaction might have been sent
-            }
-            // Connection/request failures - also indeterminate
+        ClientErrorKind::Reqwest(_) => {
+            // Connection/request/timeout failures - also indeterminate
             SubmissionResult::Indeterminate
         }
 
@@ -272,9 +269,10 @@ fn classify_by_message(error_message: &str) -> SubmissionResult {
         SubmissionResult::FailedInsufficientFunds
     } else if error_str.contains("invalid") && error_str.contains("signature") {
         SubmissionResult::FailedInvalidSignature
+    } else if error_str.contains("timeout") { 
+        SubmissionResult::Indeterminate // don't know if the transaction was actually received
     } else if error_str.contains("network")
         || error_str.contains("connection")
-        || error_str.contains("timeout")
     {
         SubmissionResult::FailedNetworkError
     } else {
