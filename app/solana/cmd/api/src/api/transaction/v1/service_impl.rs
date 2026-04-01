@@ -221,9 +221,7 @@ const fn classify_transaction_error(transaction_error: &TransactionError) -> Sub
 /// transaction instructions, enabling precise error handling for program-specific issues.
 ///
 /// Reference: solana-sdk instruction error definitions
-const fn classify_instruction_error(
-    instruction_error: &InstructionError,
-) -> SubmissionResult {
+const fn classify_instruction_error(instruction_error: &InstructionError) -> SubmissionResult {
     match instruction_error {
         // Program detected insufficient funds (e.g., token transfer, program fee)
         InstructionError::InsufficientFunds => SubmissionResult::FailedInsufficientFunds,
@@ -232,7 +230,9 @@ const fn classify_instruction_error(
         InstructionError::MissingRequiredSignature => SubmissionResult::FailedInvalidSignature,
 
         // Compute budget exhausted during execution
-        InstructionError::ComputationalBudgetExceeded => SubmissionResult::ComputationalBudgetExceeded,
+        InstructionError::ComputationalBudgetExceeded => {
+            SubmissionResult::ComputationalBudgetExceeded
+        }
 
         // Most instruction errors are validation issues - handled by wildcard below
 
@@ -268,7 +268,10 @@ fn classify_by_message(error_message: &str) -> SubmissionResult {
         SubmissionResult::FailedInsufficientFunds
     } else if error_str.contains("invalid") && error_str.contains("signature") {
         SubmissionResult::FailedInvalidSignature
-    } else if error_str.contains("network") || error_str.contains("connection") || error_str.contains("timeout") {
+    } else if error_str.contains("network")
+        || error_str.contains("connection")
+        || error_str.contains("timeout")
+    {
         SubmissionResult::Indeterminate
     } else {
         // Default to validation error for unknown unstructured errors

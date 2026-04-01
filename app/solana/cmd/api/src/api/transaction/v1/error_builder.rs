@@ -254,9 +254,7 @@ const fn classify_transaction_error(
 /// Classifies instruction-level errors
 ///
 /// Provides detailed classification for errors that occur during program execution
-const fn classify_instruction_error(
-    instruction_error: &InstructionError,
-) -> TransactionErrorCode {
+const fn classify_instruction_error(instruction_error: &InstructionError) -> TransactionErrorCode {
     match instruction_error {
         // Program detected insufficient funds (TEMPORARY)
         InstructionError::InsufficientFunds => TransactionErrorCode::InsufficientFunds,
