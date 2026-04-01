@@ -1,7 +1,7 @@
-use protochain_api::Transaction;
 use protochain_api::protochain::solana::transaction::v1::{
     SubmissionResult, TransactionError, TransactionErrorCode, TransactionSubmissionCertainty,
 };
+use protochain_api::Transaction;
 use serde_json;
 use solana_rpc_client_api::client_error::Error as ClientError;
 use solana_rpc_client_api::{
@@ -54,10 +54,12 @@ pub fn build_structured_error(
     let transaction_blockhash = transaction
         .recent_blockhash
         .parse()
-        .unwrap_or_else(|_| solana_sdk::hash::Hash::default()); 
+        .unwrap_or_else(|_| solana_sdk::hash::Hash::default());
 
     // Extract transaction signature if the transaction was submitted or indeterminate, so client can verify transaction state
-    let signature = if submission_result == SubmissionResult::Submitted || submission_result == SubmissionResult::Indeterminate {
+    let signature = if submission_result == SubmissionResult::Submitted
+        || submission_result == SubmissionResult::Indeterminate
+    {
         &transaction.signature
     } else {
         ""
@@ -106,9 +108,15 @@ fn classify_error_with_certainty(
         ClientErrorKind::TransactionError(transaction_error) => {
             let classified_transaction_error = classify_transaction_error(transaction_error);
             if classified_transaction_error == TransactionErrorCode::AlreadyProcessed {
-                (classify_transaction_error(transaction_error), TransactionSubmissionCertainty::Submitted)
+                (
+                    classify_transaction_error(transaction_error),
+                    TransactionSubmissionCertainty::Submitted,
+                )
             } else {
-                (classify_transaction_error(transaction_error), TransactionSubmissionCertainty::NotSubmitted)
+                (
+                    classify_transaction_error(transaction_error),
+                    TransactionSubmissionCertainty::NotSubmitted,
+                )
             }
         }
 
@@ -190,9 +198,7 @@ const fn classify_transaction_error(
         }
 
         // Transaction already processed (PERMANENT - runtime will not process transaction again)
-        SdkTransactionError::AlreadyProcessed => {
-            TransactionErrorCode::AlreadyProcessed
-        }
+        SdkTransactionError::AlreadyProcessed => TransactionErrorCode::AlreadyProcessed,
 
         // Network capacity issues (TEMPORARY - try next block)
         SdkTransactionError::WouldExceedMaxBlockCostLimit

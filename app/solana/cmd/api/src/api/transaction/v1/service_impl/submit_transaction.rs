@@ -145,7 +145,7 @@ impl super::TransactionServiceImpl {
                 let classification = super::classify_submission_error(&e);
 
                 // Get current slot for blockhash resolution
-                let current_slot = self.rpc_client.get_slot().await.unwrap_or(0); 
+                let current_slot = self.rpc_client.get_slot().await.unwrap_or(0);
 
                 // Build comprehensive structured error
                 let structured_err = error_builder::build_structured_error(
