@@ -293,17 +293,32 @@ const fn classify_instruction_error(
 pub const fn determine_retryability(code: TransactionErrorCode) -> bool {
     matches!(
         code,
+        // Insufficient funds of an account part of the transaction at the time the transaction was submitted
+        // this is something that can change since the account may be
+        // funded before the block hash expires
         TransactionErrorCode::InsufficientFunds
+            // Account part of transaction is being used in a different
+            // transaction that is also being validated by the network
+            // at the time this transaction was submitted, so retrying 
+            // could work
             | TransactionErrorCode::AccountInUse
+            // Transaction's compute would exceed the current block's limit
+            // so it is preemptively rejected, so retrying could 
+            // work if a new block is created
             | TransactionErrorCode::WouldExceedBlockLimit
+            // During the transaction simulation step some non-determinstic
+            // failure caused an error, so it should be safe to retry
             | TransactionErrorCode::TransientSimulationFailure
-            | TransactionErrorCode::NetworkError
-            | TransactionErrorCode::Timeout
+            // The RPC node where the transaction is being submitted
+            // is possibly behind or in some other inconsistent state.
+            // Could possibly be busy catching up or the RPC provider
+            // might switch out the unhealthy node with a healthy node 
+            // so retrying might resolve the issue
             | TransactionErrorCode::NodeUnhealthy
+            // The RPC node has rate limited your submission request
+            // waiting before submitting again will possibly resolve the 
+            // error
             | TransactionErrorCode::RateLimited
-            | TransactionErrorCode::RpcError
-            | TransactionErrorCode::ConnectionFailed
-            | TransactionErrorCode::RequestFailed
     )
 }
 
