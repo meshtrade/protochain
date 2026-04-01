@@ -56,8 +56,8 @@ enum TransactionErrorCode {
   TRANSACTION_ERROR_CODE_SIGNATURE_VERIFICATION_FAILED = 3; // Signature verification failed
   TRANSACTION_ERROR_CODE_TRANSACTION_TOO_LARGE = 10;        // Transaction exceeds size limits
 
-  // Transaction Error
-  TRANSACTION_ERROR_CODE_ALREADY_PROCESSED = 48;            // Transaction already processed 
+  // Transaction already completed — previously processed by the runtime
+  TRANSACTION_ERROR_CODE_ALREADY_PROCESSED = 48;            // Transaction already processed
 
   // Account and validation errors
   TRANSACTION_ERROR_CODE_ACCOUNT_NOT_FOUND = 4;             // Required account doesn't exist
