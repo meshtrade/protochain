@@ -90,11 +90,11 @@ pub enum TransactionErrorCode {
     SignatureVerificationFailed = 3,
     /// Transaction exceeds size limits
     TransactionTooLarge = 10,
-    /// Transaction Error
+    /// Transaction already completed — previously processed by the runtime
     ///
-    /// Transaction already processed 
+    /// Transaction already processed
     AlreadyProcessed = 48,
-    /// Transaction exceeded configured computational budget 
+    /// Transaction exceeded configured computational budget
     ComputationalBudgetExceeded = 49,
     /// Account and validation errors
     ///

@@ -144,7 +144,7 @@ function collectGeneratedExports(dirPath) {
         baseName.endsWith('_web_protochaints')) {
       // Avoid duplicates
       if (!seenExports.has(baseName)) {
-        exports.push(`export * from "./${baseName}";`);
+        exports.push(`export * from './${baseName}';`);
         seenExports.add(baseName);
       }
     }

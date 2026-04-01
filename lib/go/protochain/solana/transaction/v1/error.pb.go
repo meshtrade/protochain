@@ -36,7 +36,7 @@ const (
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_INVALID_SIGNATURE             TransactionErrorCode = 2  // Missing or invalid signatures
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_SIGNATURE_VERIFICATION_FAILED TransactionErrorCode = 3  // Signature verification failed
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_TRANSACTION_TOO_LARGE         TransactionErrorCode = 10 // Transaction exceeds size limits
-	// Transaction Error
+	// Transaction already completed — previously processed by the runtime
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_ALREADY_PROCESSED             TransactionErrorCode = 48 // Transaction already processed
 	TransactionErrorCode_TRANSACTION_ERROR_CODE_COMPUTATIONAL_BUDGET_EXCEEDED TransactionErrorCode = 49 // Transaction exceeded configured computational budget
 	// Account and validation errors

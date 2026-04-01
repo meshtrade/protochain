@@ -87,13 +87,12 @@ fn classify_error_with_certainty(
     client_error: &ClientError,
 ) -> (TransactionErrorCode, TransactionSubmissionCertainty) {
     match &*client_error.kind {
-        // Preflight failures - CERTAIN transaction was NOT sent
+        // Preflight failures - generally CERTAIN transaction was NOT sent,
+        // except AlreadyProcessed which means it WAS previously submitted
         ClientErrorKind::RpcError(RpcError::RpcResponseError {
             data: RpcResponseErrorData::SendTransactionPreflightFailure(simulation_result),
             ..
         }) => {
-            let certainty = TransactionSubmissionCertainty::NotSubmitted;
-
             let error_code = simulation_result
                 .err
                 .as_ref()
@@ -101,17 +100,24 @@ fn classify_error_with_certainty(
                     classify_transaction_error(&SdkTransactionError::from(tx_error.clone()))
                 });
 
+            let certainty = if error_code == TransactionErrorCode::AlreadyProcessed {
+                TransactionSubmissionCertainty::Submitted
+            } else {
+                TransactionSubmissionCertainty::NotSubmitted
+            };
+
             (error_code, certainty)
         }
 
         // Direct transaction errors - usually from preflight or validation
         ClientErrorKind::TransactionError(transaction_error) => {
-            let classified_transaction_error = classify_transaction_error(transaction_error);
-            if classified_transaction_error == TransactionErrorCode::AlreadyProcessed {
-                (classified_transaction_error, TransactionSubmissionCertainty::Submitted)
+            let code = classify_transaction_error(transaction_error);
+            let certainty = if code == TransactionErrorCode::AlreadyProcessed {
+                TransactionSubmissionCertainty::Submitted
             } else {
-                (classified_transaction_error, TransactionSubmissionCertainty::NotSubmitted)
-            }
+                TransactionSubmissionCertainty::NotSubmitted
+            };
+            (code, certainty)
         }
 
         // Node health issues - INDETERMINATE (might have received it first)

@@ -268,11 +268,11 @@ fn classify_by_message(error_message: &str) -> SubmissionResult {
         SubmissionResult::FailedInsufficientFunds
     } else if error_str.contains("invalid") && error_str.contains("signature") {
         SubmissionResult::FailedInvalidSignature
-    } else if error_str.contains("network")
+    } else if error_str.contains("timeout")
+        || error_str.contains("network")
         || error_str.contains("connection")
-        || error_str.contains("timeout")
     {
-        SubmissionResult::Indeterminate
+        SubmissionResult::Indeterminate // don't know if the transaction was actually received
     } else {
         // Default to validation error for unknown unstructured errors
         SubmissionResult::FailedValidation
