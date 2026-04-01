@@ -270,7 +270,7 @@ const fn classify_instruction_error(instruction_error: &InstructionError) -> Tra
             TransactionErrorCode::SignatureVerificationFailed
         }
 
-        // Compute budget exhausted (TEMPORARY - network capacity issue)
+        // Compute budget exhausted (PERMANENT - requires increasing compute unit limit and re-signing)
         InstructionError::ComputationalBudgetExceeded => {
             TransactionErrorCode::ComputationalBudgetExceeded
         }

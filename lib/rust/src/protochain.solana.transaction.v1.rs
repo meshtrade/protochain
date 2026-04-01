@@ -94,8 +94,6 @@ pub enum TransactionErrorCode {
     ///
     /// Transaction already processed
     AlreadyProcessed = 48,
-    /// Transaction exceeded configured computational budget
-    ComputationalBudgetExceeded = 49,
     /// Account and validation errors
     ///
     /// Required account doesn't exist
@@ -114,6 +112,8 @@ pub enum TransactionErrorCode {
     InstructionError = 7,
     /// Precompile verification failed
     PrecompileVerificationFailed = 8,
+    /// Exceeded configured compute unit limit - requires re-signing
+    ComputationalBudgetExceeded = 49,
     // TEMPORARY FAILURES - Same exact transaction could succeed later without modification
     // These are truly transient conditions affecting the same signed transaction
 
@@ -158,7 +158,6 @@ impl TransactionErrorCode {
             TransactionErrorCode::SignatureVerificationFailed => "TRANSACTION_ERROR_CODE_SIGNATURE_VERIFICATION_FAILED",
             TransactionErrorCode::TransactionTooLarge => "TRANSACTION_ERROR_CODE_TRANSACTION_TOO_LARGE",
             TransactionErrorCode::AlreadyProcessed => "TRANSACTION_ERROR_CODE_ALREADY_PROCESSED",
-            TransactionErrorCode::ComputationalBudgetExceeded => "TRANSACTION_ERROR_CODE_COMPUTATIONAL_BUDGET_EXCEEDED",
             TransactionErrorCode::AccountNotFound => "TRANSACTION_ERROR_CODE_ACCOUNT_NOT_FOUND",
             TransactionErrorCode::InvalidAccount => "TRANSACTION_ERROR_CODE_INVALID_ACCOUNT",
             TransactionErrorCode::InvalidBlockhashFormat => "TRANSACTION_ERROR_CODE_INVALID_BLOCKHASH_FORMAT",
@@ -166,6 +165,7 @@ impl TransactionErrorCode {
             TransactionErrorCode::ProgramError => "TRANSACTION_ERROR_CODE_PROGRAM_ERROR",
             TransactionErrorCode::InstructionError => "TRANSACTION_ERROR_CODE_INSTRUCTION_ERROR",
             TransactionErrorCode::PrecompileVerificationFailed => "TRANSACTION_ERROR_CODE_PRECOMPILE_VERIFICATION_FAILED",
+            TransactionErrorCode::ComputationalBudgetExceeded => "TRANSACTION_ERROR_CODE_COMPUTATIONAL_BUDGET_EXCEEDED",
             TransactionErrorCode::InsufficientFunds => "TRANSACTION_ERROR_CODE_INSUFFICIENT_FUNDS",
             TransactionErrorCode::AccountInUse => "TRANSACTION_ERROR_CODE_ACCOUNT_IN_USE",
             TransactionErrorCode::WouldExceedBlockLimit => "TRANSACTION_ERROR_CODE_WOULD_EXCEED_BLOCK_LIMIT",
@@ -189,7 +189,6 @@ impl TransactionErrorCode {
             "TRANSACTION_ERROR_CODE_SIGNATURE_VERIFICATION_FAILED" => Some(Self::SignatureVerificationFailed),
             "TRANSACTION_ERROR_CODE_TRANSACTION_TOO_LARGE" => Some(Self::TransactionTooLarge),
             "TRANSACTION_ERROR_CODE_ALREADY_PROCESSED" => Some(Self::AlreadyProcessed),
-            "TRANSACTION_ERROR_CODE_COMPUTATIONAL_BUDGET_EXCEEDED" => Some(Self::ComputationalBudgetExceeded),
             "TRANSACTION_ERROR_CODE_ACCOUNT_NOT_FOUND" => Some(Self::AccountNotFound),
             "TRANSACTION_ERROR_CODE_INVALID_ACCOUNT" => Some(Self::InvalidAccount),
             "TRANSACTION_ERROR_CODE_INVALID_BLOCKHASH_FORMAT" => Some(Self::InvalidBlockhashFormat),
@@ -197,6 +196,7 @@ impl TransactionErrorCode {
             "TRANSACTION_ERROR_CODE_PROGRAM_ERROR" => Some(Self::ProgramError),
             "TRANSACTION_ERROR_CODE_INSTRUCTION_ERROR" => Some(Self::InstructionError),
             "TRANSACTION_ERROR_CODE_PRECOMPILE_VERIFICATION_FAILED" => Some(Self::PrecompileVerificationFailed),
+            "TRANSACTION_ERROR_CODE_COMPUTATIONAL_BUDGET_EXCEEDED" => Some(Self::ComputationalBudgetExceeded),
             "TRANSACTION_ERROR_CODE_INSUFFICIENT_FUNDS" => Some(Self::InsufficientFunds),
             "TRANSACTION_ERROR_CODE_ACCOUNT_IN_USE" => Some(Self::AccountInUse),
             "TRANSACTION_ERROR_CODE_WOULD_EXCEED_BLOCK_LIMIT" => Some(Self::WouldExceedBlockLimit),
