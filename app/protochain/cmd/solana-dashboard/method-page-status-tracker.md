@@ -7,5 +7,6 @@ All method pages that are not yet implemented MUST show an "Under Construction" 
 | Service | Method | Route | Status |
 |---|---|---|---|
 | Account V1 | GenerateNewKeyPair | `/account-v1/generate-new-key-pair` | Complete |
+| Account V1 | GetAccount | `/account-v1/get-account` | Complete |
 | Account V1 | FundNative | `/account-v1/fund-native` | Complete |
 | Program > Token V1 | ParseMint | `/program/token-v1/parse-mint` | Complete |

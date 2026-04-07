@@ -26,7 +26,7 @@ import { NavTree } from "./nav-tree";
 
 const URL_PRESETS = [
   { label: "Local (Docker Compose)", url: "http://localhost:50064" },
-  { label: "Production", url: "https://protochain.mesh.trade" },
+  { label: "Production", url: "https://protochain-solana-api.mesh.trade" },
   { label: "Test", url: "https://protochain-test.mesh.trade" },
 ] as const;
 
