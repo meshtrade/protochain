@@ -26,10 +26,17 @@ interface ProtochainContextValue {
 
 const ProtochainContext = createContext<ProtochainContextValue | null>(null);
 
-const DEFAULT_URL = "http://localhost:50064";
+const DEFAULT_URL = "http://localhost:50051";
+
+function getInitialServerUrl(): string {
+  if (typeof window === "undefined") return DEFAULT_URL;
+  const params = new URLSearchParams(window.location.search);
+  const rpc = params.get("rpc");
+  return rpc?.trim() || DEFAULT_URL;
+}
 
 export function ProtochainProvider({ children }: { children: ReactNode }) {
-  const [serverUrl, setServerUrl] = useState(DEFAULT_URL);
+  const [serverUrl, setServerUrl] = useState(getInitialServerUrl);
 
   const clients = useMemo(() => {
     const opts = [WithServerUrl(serverUrl), WithLogging()];
