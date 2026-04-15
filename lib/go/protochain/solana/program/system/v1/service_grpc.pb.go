@@ -24,6 +24,7 @@ const (
 	Service_Allocate_FullMethodName               = "/protochain.solana.program.system.v1.Service/Allocate"
 	Service_Assign_FullMethodName                 = "/protochain.solana.program.system.v1.Service/Assign"
 	Service_CreateWithSeed_FullMethodName         = "/protochain.solana.program.system.v1.Service/CreateWithSeed"
+	Service_BuildMemo_FullMethodName              = "/protochain.solana.program.system.v1.Service/BuildMemo"
 	Service_AllocateWithSeed_FullMethodName       = "/protochain.solana.program.system.v1.Service/AllocateWithSeed"
 	Service_AssignWithSeed_FullMethodName         = "/protochain.solana.program.system.v1.Service/AssignWithSeed"
 	Service_TransferWithSeed_FullMethodName       = "/protochain.solana.program.system.v1.Service/TransferWithSeed"
@@ -44,6 +45,7 @@ type ServiceClient interface {
 	Allocate(ctx context.Context, in *AllocateRequest, opts ...grpc.CallOption) (*AllocateResponse, error)
 	Assign(ctx context.Context, in *AssignRequest, opts ...grpc.CallOption) (*AssignResponse, error)
 	CreateWithSeed(ctx context.Context, in *CreateWithSeedRequest, opts ...grpc.CallOption) (*CreateWithSeedResponse, error)
+	BuildMemo(ctx context.Context, in *BuildMemoRequest, opts ...grpc.CallOption) (*BuildMemoResponse, error)
 	// Extended system program operations
 	AllocateWithSeed(ctx context.Context, in *AllocateWithSeedRequest, opts ...grpc.CallOption) (*AllocateWithSeedResponse, error)
 	AssignWithSeed(ctx context.Context, in *AssignWithSeedRequest, opts ...grpc.CallOption) (*AssignWithSeedResponse, error)
@@ -107,6 +109,16 @@ func (c *serviceClient) CreateWithSeed(ctx context.Context, in *CreateWithSeedRe
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CreateWithSeedResponse)
 	err := c.cc.Invoke(ctx, Service_CreateWithSeed_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) BuildMemo(ctx context.Context, in *BuildMemoRequest, opts ...grpc.CallOption) (*BuildMemoResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BuildMemoResponse)
+	err := c.cc.Invoke(ctx, Service_BuildMemo_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -203,6 +215,7 @@ type ServiceServer interface {
 	Allocate(context.Context, *AllocateRequest) (*AllocateResponse, error)
 	Assign(context.Context, *AssignRequest) (*AssignResponse, error)
 	CreateWithSeed(context.Context, *CreateWithSeedRequest) (*CreateWithSeedResponse, error)
+	BuildMemo(context.Context, *BuildMemoRequest) (*BuildMemoResponse, error)
 	// Extended system program operations
 	AllocateWithSeed(context.Context, *AllocateWithSeedRequest) (*AllocateWithSeedResponse, error)
 	AssignWithSeed(context.Context, *AssignWithSeedRequest) (*AssignWithSeedResponse, error)
@@ -236,6 +249,9 @@ func (UnimplementedServiceServer) Assign(context.Context, *AssignRequest) (*Assi
 }
 func (UnimplementedServiceServer) CreateWithSeed(context.Context, *CreateWithSeedRequest) (*CreateWithSeedResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateWithSeed not implemented")
+}
+func (UnimplementedServiceServer) BuildMemo(context.Context, *BuildMemoRequest) (*BuildMemoResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BuildMemo not implemented")
 }
 func (UnimplementedServiceServer) AllocateWithSeed(context.Context, *AllocateWithSeedRequest) (*AllocateWithSeedResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AllocateWithSeed not implemented")
@@ -368,6 +384,24 @@ func _Service_CreateWithSeed_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ServiceServer).CreateWithSeed(ctx, req.(*CreateWithSeedRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_BuildMemo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BuildMemoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).BuildMemo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_BuildMemo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).BuildMemo(ctx, req.(*BuildMemoRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -542,6 +576,10 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateWithSeed",
 			Handler:    _Service_CreateWithSeed_Handler,
+		},
+		{
+			MethodName: "BuildMemo",
+			Handler:    _Service_BuildMemo_Handler,
 		},
 		{
 			MethodName: "AllocateWithSeed",

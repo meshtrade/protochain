@@ -10,5 +10,8 @@
     "go.useLanguageServer": true,
     "go.alternateTools": {
         "go": "go"
+    },
+    "[proto]": {
+        "editor.formatOnSave": false
     }
 }

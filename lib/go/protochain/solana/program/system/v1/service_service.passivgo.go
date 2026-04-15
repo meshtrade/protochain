@@ -148,6 +148,14 @@ func (s *serviceService) CreateWithSeed(ctx context.Context, request *CreateWith
 	})
 }
 
+// BuildMemo executes the BuildMemo RPC method with automatic
+// client-side validation, timeout handling, distributed tracing, and authentication.
+func (s *serviceService) BuildMemo(ctx context.Context, request *BuildMemoRequest) (*BuildMemoResponse, error) {
+	return common.Execute(s.Executor(), ctx, "BuildMemo", request, func(ctx context.Context) (*BuildMemoResponse, error) {
+		return s.GrpcClient().BuildMemo(ctx, request)
+	})
+}
+
 // AllocateWithSeed executes the AllocateWithSeed RPC method with automatic
 // client-side validation, timeout handling, distributed tracing, and authentication.
 func (s *serviceService) AllocateWithSeed(ctx context.Context, request *AllocateWithSeedRequest) (*AllocateWithSeedResponse, error) {

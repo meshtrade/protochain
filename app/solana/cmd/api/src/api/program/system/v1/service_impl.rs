@@ -5,9 +5,9 @@ use protochain_api::protochain::solana::program::system::v1::{
     AdvanceNonceAccountResponse, AllocateRequest, AllocateResponse, AllocateWithSeedRequest,
     AllocateWithSeedResponse, AssignRequest, AssignResponse, AssignWithSeedRequest,
     AssignWithSeedResponse, AuthorizeNonceAccountRequest, AuthorizeNonceAccountResponse,
-    CreateRequest, CreateResponse, CreateWithSeedRequest, CreateWithSeedResponse,
-    InitializeNonceAccountRequest, InitializeNonceAccountResponse, TransferRequest,
-    TransferResponse, TransferWithSeedRequest, TransferWithSeedResponse,
+    BuildMemoRequest, BuildMemoResponse, CreateRequest, CreateResponse, CreateWithSeedRequest,
+    CreateWithSeedResponse, InitializeNonceAccountRequest, InitializeNonceAccountResponse,
+    TransferRequest, TransferResponse, TransferWithSeedRequest, TransferWithSeedResponse,
     UpgradeNonceAccountRequest, UpgradeNonceAccountResponse, WithdrawNonceAccountRequest,
     WithdrawNonceAccountResponse,
 };
@@ -15,6 +15,7 @@ use protochain_api::protochain::solana::program::system::v1::{
 mod allocate;
 mod assign;
 mod create;
+mod memo;
 mod nonce;
 mod transfer;
 
@@ -147,5 +148,13 @@ impl SystemProgramService for SystemProgramServiceImpl {
         request: Request<UpgradeNonceAccountRequest>,
     ) -> Result<Response<UpgradeNonceAccountResponse>, Status> {
         self.handle_upgrade_nonce_account(request)
+    }
+
+    /// Builds a memo instruction.
+    async fn build_memo(
+        &self,
+        request: Request<BuildMemoRequest>,
+    ) -> Result<Response<BuildMemoResponse>, Status> {
+        self.handle_build_memo(request)
     }
 }

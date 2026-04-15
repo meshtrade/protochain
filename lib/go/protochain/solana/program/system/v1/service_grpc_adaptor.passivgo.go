@@ -130,6 +130,23 @@ func (a *ServiceGRPCAdaptor) CreateWithSeed(ctx context.Context, request *Create
 	return createWithSeedResponse, nil
 }
 
+// BuildMemo exposes the BuildMemo method of the Service interface over gRPC
+func (a *ServiceGRPCAdaptor) BuildMemo(ctx context.Context, request *BuildMemoRequest) (*BuildMemoResponse, error) {
+	ctx, span := a.tracer.Start(
+		ctx,
+		ServiceServiceProviderName+"GRPCAdaptor.BuildMemo",
+	)
+	defer span.End()
+
+	// call the service interface implementation
+	buildMemoResponse, err := a.service.BuildMemo(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return buildMemoResponse, nil
+}
+
 // AllocateWithSeed exposes the AllocateWithSeed method of the Service interface over gRPC
 func (a *ServiceGRPCAdaptor) AllocateWithSeed(ctx context.Context, request *AllocateWithSeedRequest) (*AllocateWithSeedResponse, error) {
 	ctx, span := a.tracer.Start(

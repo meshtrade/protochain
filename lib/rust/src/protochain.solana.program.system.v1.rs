@@ -80,6 +80,23 @@ pub struct CreateWithSeedRequest {
     #[prost(uint64, tag="6")]
     pub space: u64,
 }
+/// BuildMemoRequest creates a build memo instruction with the given memo message
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BuildMemoRequest {
+    /// The message to display in the memo 
+    #[prost(string, tag="1")]
+    pub memo: ::prost::alloc::string::String,
+    /// Optional signer pub keys to determine if they sign the transaction this memo will be part of
+    #[prost(string, repeated, tag="2")]
+    pub signers: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct BuildMemoResponse {
+    #[prost(message, optional, tag="1")]
+    pub instruction: ::core::option::Option<super::super::super::transaction::v1::SolanaInstruction>,
+}
 /// Extended request messages for new operations
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
