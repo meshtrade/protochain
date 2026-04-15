@@ -228,6 +228,36 @@ pub mod service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        pub async fn build_memo(
+            &mut self,
+            request: impl tonic::IntoRequest<super::BuildMemoRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::BuildMemoResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protochain.solana.program.system.v1.Service/BuildMemo",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protochain.solana.program.system.v1.Service",
+                        "BuildMemo",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         pub async fn allocate_with_seed(
             &mut self,
             request: impl tonic::IntoRequest<super::AllocateWithSeedRequest>,
@@ -504,6 +534,13 @@ pub mod service_server {
             request: tonic::Request<super::CreateWithSeedRequest>,
         ) -> std::result::Result<
             tonic::Response<super::CreateWithSeedResponse>,
+            tonic::Status,
+        >;
+        async fn build_memo(
+            &self,
+            request: tonic::Request<super::BuildMemoRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::BuildMemoResponse>,
             tonic::Status,
         >;
         async fn allocate_with_seed(
@@ -841,6 +878,49 @@ pub mod service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = CreateWithSeedSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protochain.solana.program.system.v1.Service/BuildMemo" => {
+                    #[allow(non_camel_case_types)]
+                    struct BuildMemoSvc<T: Service>(pub Arc<T>);
+                    impl<T: Service> tonic::server::UnaryService<super::BuildMemoRequest>
+                    for BuildMemoSvc<T> {
+                        type Response = super::BuildMemoResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::BuildMemoRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as Service>::build_memo(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = BuildMemoSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

@@ -2602,6 +2602,7 @@ dependencies = [
  "solana-system-interface 3.1.0",
  "solana-transaction-status",
  "spl-associated-token-account",
+ "spl-memo-interface",
  "spl-pod",
  "spl-token",
  "spl-token-2022",

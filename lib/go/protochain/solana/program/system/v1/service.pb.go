@@ -370,6 +370,105 @@ func (x *CreateWithSeedRequest) GetSpace() uint64 {
 	return 0
 }
 
+// BuildMemoRequest creates a build memo instruction with the given memo message
+type BuildMemoRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The message to display in the memo
+	Memo string `protobuf:"bytes,1,opt,name=memo,proto3" json:"memo,omitempty"`
+	// Optional signer pub keys to determine if they sign the transaction this memo will be part of
+	Signers       []string `protobuf:"bytes,2,rep,name=signers,proto3" json:"signers,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BuildMemoRequest) Reset() {
+	*x = BuildMemoRequest{}
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BuildMemoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BuildMemoRequest) ProtoMessage() {}
+
+func (x *BuildMemoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BuildMemoRequest.ProtoReflect.Descriptor instead.
+func (*BuildMemoRequest) Descriptor() ([]byte, []int) {
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *BuildMemoRequest) GetMemo() string {
+	if x != nil {
+		return x.Memo
+	}
+	return ""
+}
+
+func (x *BuildMemoRequest) GetSigners() []string {
+	if x != nil {
+		return x.Signers
+	}
+	return nil
+}
+
+type BuildMemoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Instruction   *v1.SolanaInstruction  `protobuf:"bytes,1,opt,name=instruction,proto3" json:"instruction,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BuildMemoResponse) Reset() {
+	*x = BuildMemoResponse{}
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BuildMemoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BuildMemoResponse) ProtoMessage() {}
+
+func (x *BuildMemoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BuildMemoResponse.ProtoReflect.Descriptor instead.
+func (*BuildMemoResponse) Descriptor() ([]byte, []int) {
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *BuildMemoResponse) GetInstruction() *v1.SolanaInstruction {
+	if x != nil {
+		return x.Instruction
+	}
+	return nil
+}
+
 // Extended request messages for new operations
 type AllocateWithSeedRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -383,7 +482,7 @@ type AllocateWithSeedRequest struct {
 
 func (x *AllocateWithSeedRequest) Reset() {
 	*x = AllocateWithSeedRequest{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[5]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -395,7 +494,7 @@ func (x *AllocateWithSeedRequest) String() string {
 func (*AllocateWithSeedRequest) ProtoMessage() {}
 
 func (x *AllocateWithSeedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[5]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -408,7 +507,7 @@ func (x *AllocateWithSeedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AllocateWithSeedRequest.ProtoReflect.Descriptor instead.
 func (*AllocateWithSeedRequest) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{5}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *AllocateWithSeedRequest) GetAccount() string {
@@ -451,7 +550,7 @@ type AssignWithSeedRequest struct {
 
 func (x *AssignWithSeedRequest) Reset() {
 	*x = AssignWithSeedRequest{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[6]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -463,7 +562,7 @@ func (x *AssignWithSeedRequest) String() string {
 func (*AssignWithSeedRequest) ProtoMessage() {}
 
 func (x *AssignWithSeedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[6]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -476,7 +575,7 @@ func (x *AssignWithSeedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignWithSeedRequest.ProtoReflect.Descriptor instead.
 func (*AssignWithSeedRequest) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{6}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *AssignWithSeedRequest) GetAccount() string {
@@ -520,7 +619,7 @@ type TransferWithSeedRequest struct {
 
 func (x *TransferWithSeedRequest) Reset() {
 	*x = TransferWithSeedRequest{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[7]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -532,7 +631,7 @@ func (x *TransferWithSeedRequest) String() string {
 func (*TransferWithSeedRequest) ProtoMessage() {}
 
 func (x *TransferWithSeedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[7]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -545,7 +644,7 @@ func (x *TransferWithSeedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransferWithSeedRequest.ProtoReflect.Descriptor instead.
 func (*TransferWithSeedRequest) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{7}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *TransferWithSeedRequest) GetFrom() string {
@@ -593,7 +692,7 @@ type InitializeNonceAccountRequest struct {
 
 func (x *InitializeNonceAccountRequest) Reset() {
 	*x = InitializeNonceAccountRequest{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[8]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -605,7 +704,7 @@ func (x *InitializeNonceAccountRequest) String() string {
 func (*InitializeNonceAccountRequest) ProtoMessage() {}
 
 func (x *InitializeNonceAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[8]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -618,7 +717,7 @@ func (x *InitializeNonceAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InitializeNonceAccountRequest.ProtoReflect.Descriptor instead.
 func (*InitializeNonceAccountRequest) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{8}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *InitializeNonceAccountRequest) GetNonceAccount() string {
@@ -646,7 +745,7 @@ type AuthorizeNonceAccountRequest struct {
 
 func (x *AuthorizeNonceAccountRequest) Reset() {
 	*x = AuthorizeNonceAccountRequest{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[9]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -658,7 +757,7 @@ func (x *AuthorizeNonceAccountRequest) String() string {
 func (*AuthorizeNonceAccountRequest) ProtoMessage() {}
 
 func (x *AuthorizeNonceAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[9]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -671,7 +770,7 @@ func (x *AuthorizeNonceAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizeNonceAccountRequest.ProtoReflect.Descriptor instead.
 func (*AuthorizeNonceAccountRequest) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{9}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *AuthorizeNonceAccountRequest) GetNonceAccount() string {
@@ -707,7 +806,7 @@ type WithdrawNonceAccountRequest struct {
 
 func (x *WithdrawNonceAccountRequest) Reset() {
 	*x = WithdrawNonceAccountRequest{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[10]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -719,7 +818,7 @@ func (x *WithdrawNonceAccountRequest) String() string {
 func (*WithdrawNonceAccountRequest) ProtoMessage() {}
 
 func (x *WithdrawNonceAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[10]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -732,7 +831,7 @@ func (x *WithdrawNonceAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WithdrawNonceAccountRequest.ProtoReflect.Descriptor instead.
 func (*WithdrawNonceAccountRequest) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{10}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *WithdrawNonceAccountRequest) GetNonceAccount() string {
@@ -773,7 +872,7 @@ type AdvanceNonceAccountRequest struct {
 
 func (x *AdvanceNonceAccountRequest) Reset() {
 	*x = AdvanceNonceAccountRequest{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[11]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -785,7 +884,7 @@ func (x *AdvanceNonceAccountRequest) String() string {
 func (*AdvanceNonceAccountRequest) ProtoMessage() {}
 
 func (x *AdvanceNonceAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[11]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -798,7 +897,7 @@ func (x *AdvanceNonceAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdvanceNonceAccountRequest.ProtoReflect.Descriptor instead.
 func (*AdvanceNonceAccountRequest) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{11}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *AdvanceNonceAccountRequest) GetNonceAccount() string {
@@ -824,7 +923,7 @@ type UpgradeNonceAccountRequest struct {
 
 func (x *UpgradeNonceAccountRequest) Reset() {
 	*x = UpgradeNonceAccountRequest{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[12]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -836,7 +935,7 @@ func (x *UpgradeNonceAccountRequest) String() string {
 func (*UpgradeNonceAccountRequest) ProtoMessage() {}
 
 func (x *UpgradeNonceAccountRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[12]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -849,7 +948,7 @@ func (x *UpgradeNonceAccountRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpgradeNonceAccountRequest.ProtoReflect.Descriptor instead.
 func (*UpgradeNonceAccountRequest) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{12}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *UpgradeNonceAccountRequest) GetNonceAccount() string {
@@ -869,7 +968,7 @@ type CreateResponse struct {
 
 func (x *CreateResponse) Reset() {
 	*x = CreateResponse{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[13]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -881,7 +980,7 @@ func (x *CreateResponse) String() string {
 func (*CreateResponse) ProtoMessage() {}
 
 func (x *CreateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[13]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -894,7 +993,7 @@ func (x *CreateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateResponse.ProtoReflect.Descriptor instead.
 func (*CreateResponse) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{13}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *CreateResponse) GetInstruction() *v1.SolanaInstruction {
@@ -913,7 +1012,7 @@ type TransferResponse struct {
 
 func (x *TransferResponse) Reset() {
 	*x = TransferResponse{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[14]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -925,7 +1024,7 @@ func (x *TransferResponse) String() string {
 func (*TransferResponse) ProtoMessage() {}
 
 func (x *TransferResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[14]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -938,7 +1037,7 @@ func (x *TransferResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransferResponse.ProtoReflect.Descriptor instead.
 func (*TransferResponse) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{14}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *TransferResponse) GetInstruction() *v1.SolanaInstruction {
@@ -957,7 +1056,7 @@ type AllocateResponse struct {
 
 func (x *AllocateResponse) Reset() {
 	*x = AllocateResponse{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[15]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -969,7 +1068,7 @@ func (x *AllocateResponse) String() string {
 func (*AllocateResponse) ProtoMessage() {}
 
 func (x *AllocateResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[15]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -982,7 +1081,7 @@ func (x *AllocateResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AllocateResponse.ProtoReflect.Descriptor instead.
 func (*AllocateResponse) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{15}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *AllocateResponse) GetInstruction() *v1.SolanaInstruction {
@@ -1001,7 +1100,7 @@ type AssignResponse struct {
 
 func (x *AssignResponse) Reset() {
 	*x = AssignResponse{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[16]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1013,7 +1112,7 @@ func (x *AssignResponse) String() string {
 func (*AssignResponse) ProtoMessage() {}
 
 func (x *AssignResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[16]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1026,7 +1125,7 @@ func (x *AssignResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignResponse.ProtoReflect.Descriptor instead.
 func (*AssignResponse) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{16}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *AssignResponse) GetInstruction() *v1.SolanaInstruction {
@@ -1045,7 +1144,7 @@ type CreateWithSeedResponse struct {
 
 func (x *CreateWithSeedResponse) Reset() {
 	*x = CreateWithSeedResponse{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[17]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1057,7 +1156,7 @@ func (x *CreateWithSeedResponse) String() string {
 func (*CreateWithSeedResponse) ProtoMessage() {}
 
 func (x *CreateWithSeedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[17]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1070,7 +1169,7 @@ func (x *CreateWithSeedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateWithSeedResponse.ProtoReflect.Descriptor instead.
 func (*CreateWithSeedResponse) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{17}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *CreateWithSeedResponse) GetInstruction() *v1.SolanaInstruction {
@@ -1089,7 +1188,7 @@ type AllocateWithSeedResponse struct {
 
 func (x *AllocateWithSeedResponse) Reset() {
 	*x = AllocateWithSeedResponse{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[18]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1101,7 +1200,7 @@ func (x *AllocateWithSeedResponse) String() string {
 func (*AllocateWithSeedResponse) ProtoMessage() {}
 
 func (x *AllocateWithSeedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[18]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1114,7 +1213,7 @@ func (x *AllocateWithSeedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AllocateWithSeedResponse.ProtoReflect.Descriptor instead.
 func (*AllocateWithSeedResponse) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{18}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *AllocateWithSeedResponse) GetInstruction() *v1.SolanaInstruction {
@@ -1133,7 +1232,7 @@ type AssignWithSeedResponse struct {
 
 func (x *AssignWithSeedResponse) Reset() {
 	*x = AssignWithSeedResponse{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[19]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1145,7 +1244,7 @@ func (x *AssignWithSeedResponse) String() string {
 func (*AssignWithSeedResponse) ProtoMessage() {}
 
 func (x *AssignWithSeedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[19]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1158,7 +1257,7 @@ func (x *AssignWithSeedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AssignWithSeedResponse.ProtoReflect.Descriptor instead.
 func (*AssignWithSeedResponse) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{19}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *AssignWithSeedResponse) GetInstruction() *v1.SolanaInstruction {
@@ -1177,7 +1276,7 @@ type TransferWithSeedResponse struct {
 
 func (x *TransferWithSeedResponse) Reset() {
 	*x = TransferWithSeedResponse{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[20]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1189,7 +1288,7 @@ func (x *TransferWithSeedResponse) String() string {
 func (*TransferWithSeedResponse) ProtoMessage() {}
 
 func (x *TransferWithSeedResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[20]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1202,7 +1301,7 @@ func (x *TransferWithSeedResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransferWithSeedResponse.ProtoReflect.Descriptor instead.
 func (*TransferWithSeedResponse) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{20}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *TransferWithSeedResponse) GetInstruction() *v1.SolanaInstruction {
@@ -1221,7 +1320,7 @@ type InitializeNonceAccountResponse struct {
 
 func (x *InitializeNonceAccountResponse) Reset() {
 	*x = InitializeNonceAccountResponse{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[21]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1233,7 +1332,7 @@ func (x *InitializeNonceAccountResponse) String() string {
 func (*InitializeNonceAccountResponse) ProtoMessage() {}
 
 func (x *InitializeNonceAccountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[21]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1246,7 +1345,7 @@ func (x *InitializeNonceAccountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InitializeNonceAccountResponse.ProtoReflect.Descriptor instead.
 func (*InitializeNonceAccountResponse) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{21}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *InitializeNonceAccountResponse) GetInstruction() *v1.SolanaInstruction {
@@ -1265,7 +1364,7 @@ type AuthorizeNonceAccountResponse struct {
 
 func (x *AuthorizeNonceAccountResponse) Reset() {
 	*x = AuthorizeNonceAccountResponse{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[22]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1277,7 +1376,7 @@ func (x *AuthorizeNonceAccountResponse) String() string {
 func (*AuthorizeNonceAccountResponse) ProtoMessage() {}
 
 func (x *AuthorizeNonceAccountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[22]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1290,7 +1389,7 @@ func (x *AuthorizeNonceAccountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizeNonceAccountResponse.ProtoReflect.Descriptor instead.
 func (*AuthorizeNonceAccountResponse) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{22}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *AuthorizeNonceAccountResponse) GetInstruction() *v1.SolanaInstruction {
@@ -1309,7 +1408,7 @@ type WithdrawNonceAccountResponse struct {
 
 func (x *WithdrawNonceAccountResponse) Reset() {
 	*x = WithdrawNonceAccountResponse{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[23]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1321,7 +1420,7 @@ func (x *WithdrawNonceAccountResponse) String() string {
 func (*WithdrawNonceAccountResponse) ProtoMessage() {}
 
 func (x *WithdrawNonceAccountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[23]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1334,7 +1433,7 @@ func (x *WithdrawNonceAccountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WithdrawNonceAccountResponse.ProtoReflect.Descriptor instead.
 func (*WithdrawNonceAccountResponse) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{23}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *WithdrawNonceAccountResponse) GetInstruction() *v1.SolanaInstruction {
@@ -1353,7 +1452,7 @@ type AdvanceNonceAccountResponse struct {
 
 func (x *AdvanceNonceAccountResponse) Reset() {
 	*x = AdvanceNonceAccountResponse{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[24]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1365,7 +1464,7 @@ func (x *AdvanceNonceAccountResponse) String() string {
 func (*AdvanceNonceAccountResponse) ProtoMessage() {}
 
 func (x *AdvanceNonceAccountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[24]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1378,7 +1477,7 @@ func (x *AdvanceNonceAccountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AdvanceNonceAccountResponse.ProtoReflect.Descriptor instead.
 func (*AdvanceNonceAccountResponse) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{24}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *AdvanceNonceAccountResponse) GetInstruction() *v1.SolanaInstruction {
@@ -1397,7 +1496,7 @@ type UpgradeNonceAccountResponse struct {
 
 func (x *UpgradeNonceAccountResponse) Reset() {
 	*x = UpgradeNonceAccountResponse{}
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[25]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1409,7 +1508,7 @@ func (x *UpgradeNonceAccountResponse) String() string {
 func (*UpgradeNonceAccountResponse) ProtoMessage() {}
 
 func (x *UpgradeNonceAccountResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[25]
+	mi := &file_protochain_solana_program_system_v1_service_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1422,7 +1521,7 @@ func (x *UpgradeNonceAccountResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpgradeNonceAccountResponse.ProtoReflect.Descriptor instead.
 func (*UpgradeNonceAccountResponse) Descriptor() ([]byte, []int) {
-	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{25}
+	return file_protochain_solana_program_system_v1_service_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *UpgradeNonceAccountResponse) GetInstruction() *v1.SolanaInstruction {
@@ -1461,7 +1560,12 @@ const file_protochain_solana_program_system_v1_service_proto_rawDesc = "" +
 	"\x04base\x18\x03 \x01(\tR\x04base\x12\x12\n" +
 	"\x04seed\x18\x04 \x01(\tR\x04seed\x12\x1a\n" +
 	"\blamports\x18\x05 \x01(\x04R\blamports\x12\x14\n" +
-	"\x05space\x18\x06 \x01(\x04R\x05space\"q\n" +
+	"\x05space\x18\x06 \x01(\x04R\x05space\"@\n" +
+	"\x10BuildMemoRequest\x12\x12\n" +
+	"\x04memo\x18\x01 \x01(\tR\x04memo\x12\x18\n" +
+	"\asigners\x18\x02 \x03(\tR\asigners\"j\n" +
+	"\x11BuildMemoResponse\x12U\n" +
+	"\vinstruction\x18\x01 \x01(\v23.protochain.solana.transaction.v1.SolanaInstructionR\vinstruction\"q\n" +
 	"\x17AllocateWithSeedRequest\x12\x18\n" +
 	"\aaccount\x18\x01 \x01(\tR\aaccount\x12\x12\n" +
 	"\x04base\x18\x02 \x01(\tR\x04base\x12\x12\n" +
@@ -1520,13 +1624,14 @@ const file_protochain_solana_program_system_v1_service_proto_rawDesc = "" +
 	"\x1bAdvanceNonceAccountResponse\x12U\n" +
 	"\vinstruction\x18\x01 \x01(\v23.protochain.solana.transaction.v1.SolanaInstructionR\vinstruction\"t\n" +
 	"\x1bUpgradeNonceAccountResponse\x12U\n" +
-	"\vinstruction\x18\x01 \x01(\v23.protochain.solana.transaction.v1.SolanaInstructionR\vinstruction2\xb6\x0e\n" +
+	"\vinstruction\x18\x01 \x01(\v23.protochain.solana.transaction.v1.SolanaInstructionR\vinstruction2\xb2\x0f\n" +
 	"\aService\x12q\n" +
 	"\x06Create\x122.protochain.solana.program.system.v1.CreateRequest\x1a3.protochain.solana.program.system.v1.CreateResponse\x12w\n" +
 	"\bTransfer\x124.protochain.solana.program.system.v1.TransferRequest\x1a5.protochain.solana.program.system.v1.TransferResponse\x12w\n" +
 	"\bAllocate\x124.protochain.solana.program.system.v1.AllocateRequest\x1a5.protochain.solana.program.system.v1.AllocateResponse\x12q\n" +
 	"\x06Assign\x122.protochain.solana.program.system.v1.AssignRequest\x1a3.protochain.solana.program.system.v1.AssignResponse\x12\x89\x01\n" +
-	"\x0eCreateWithSeed\x12:.protochain.solana.program.system.v1.CreateWithSeedRequest\x1a;.protochain.solana.program.system.v1.CreateWithSeedResponse\x12\x8f\x01\n" +
+	"\x0eCreateWithSeed\x12:.protochain.solana.program.system.v1.CreateWithSeedRequest\x1a;.protochain.solana.program.system.v1.CreateWithSeedResponse\x12z\n" +
+	"\tBuildMemo\x125.protochain.solana.program.system.v1.BuildMemoRequest\x1a6.protochain.solana.program.system.v1.BuildMemoResponse\x12\x8f\x01\n" +
 	"\x10AllocateWithSeed\x12<.protochain.solana.program.system.v1.AllocateWithSeedRequest\x1a=.protochain.solana.program.system.v1.AllocateWithSeedResponse\x12\x89\x01\n" +
 	"\x0eAssignWithSeed\x12:.protochain.solana.program.system.v1.AssignWithSeedRequest\x1a;.protochain.solana.program.system.v1.AssignWithSeedResponse\x12\x8f\x01\n" +
 	"\x10TransferWithSeed\x12<.protochain.solana.program.system.v1.TransferWithSeedRequest\x1a=.protochain.solana.program.system.v1.TransferWithSeedResponse\x12\xa1\x01\n" +
@@ -1548,81 +1653,86 @@ func file_protochain_solana_program_system_v1_service_proto_rawDescGZIP() []byte
 	return file_protochain_solana_program_system_v1_service_proto_rawDescData
 }
 
-var file_protochain_solana_program_system_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
+var file_protochain_solana_program_system_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
 var file_protochain_solana_program_system_v1_service_proto_goTypes = []any{
 	(*CreateRequest)(nil),                  // 0: protochain.solana.program.system.v1.CreateRequest
 	(*TransferRequest)(nil),                // 1: protochain.solana.program.system.v1.TransferRequest
 	(*AllocateRequest)(nil),                // 2: protochain.solana.program.system.v1.AllocateRequest
 	(*AssignRequest)(nil),                  // 3: protochain.solana.program.system.v1.AssignRequest
 	(*CreateWithSeedRequest)(nil),          // 4: protochain.solana.program.system.v1.CreateWithSeedRequest
-	(*AllocateWithSeedRequest)(nil),        // 5: protochain.solana.program.system.v1.AllocateWithSeedRequest
-	(*AssignWithSeedRequest)(nil),          // 6: protochain.solana.program.system.v1.AssignWithSeedRequest
-	(*TransferWithSeedRequest)(nil),        // 7: protochain.solana.program.system.v1.TransferWithSeedRequest
-	(*InitializeNonceAccountRequest)(nil),  // 8: protochain.solana.program.system.v1.InitializeNonceAccountRequest
-	(*AuthorizeNonceAccountRequest)(nil),   // 9: protochain.solana.program.system.v1.AuthorizeNonceAccountRequest
-	(*WithdrawNonceAccountRequest)(nil),    // 10: protochain.solana.program.system.v1.WithdrawNonceAccountRequest
-	(*AdvanceNonceAccountRequest)(nil),     // 11: protochain.solana.program.system.v1.AdvanceNonceAccountRequest
-	(*UpgradeNonceAccountRequest)(nil),     // 12: protochain.solana.program.system.v1.UpgradeNonceAccountRequest
-	(*CreateResponse)(nil),                 // 13: protochain.solana.program.system.v1.CreateResponse
-	(*TransferResponse)(nil),               // 14: protochain.solana.program.system.v1.TransferResponse
-	(*AllocateResponse)(nil),               // 15: protochain.solana.program.system.v1.AllocateResponse
-	(*AssignResponse)(nil),                 // 16: protochain.solana.program.system.v1.AssignResponse
-	(*CreateWithSeedResponse)(nil),         // 17: protochain.solana.program.system.v1.CreateWithSeedResponse
-	(*AllocateWithSeedResponse)(nil),       // 18: protochain.solana.program.system.v1.AllocateWithSeedResponse
-	(*AssignWithSeedResponse)(nil),         // 19: protochain.solana.program.system.v1.AssignWithSeedResponse
-	(*TransferWithSeedResponse)(nil),       // 20: protochain.solana.program.system.v1.TransferWithSeedResponse
-	(*InitializeNonceAccountResponse)(nil), // 21: protochain.solana.program.system.v1.InitializeNonceAccountResponse
-	(*AuthorizeNonceAccountResponse)(nil),  // 22: protochain.solana.program.system.v1.AuthorizeNonceAccountResponse
-	(*WithdrawNonceAccountResponse)(nil),   // 23: protochain.solana.program.system.v1.WithdrawNonceAccountResponse
-	(*AdvanceNonceAccountResponse)(nil),    // 24: protochain.solana.program.system.v1.AdvanceNonceAccountResponse
-	(*UpgradeNonceAccountResponse)(nil),    // 25: protochain.solana.program.system.v1.UpgradeNonceAccountResponse
-	(*v1.SolanaInstruction)(nil),           // 26: protochain.solana.transaction.v1.SolanaInstruction
+	(*BuildMemoRequest)(nil),               // 5: protochain.solana.program.system.v1.BuildMemoRequest
+	(*BuildMemoResponse)(nil),              // 6: protochain.solana.program.system.v1.BuildMemoResponse
+	(*AllocateWithSeedRequest)(nil),        // 7: protochain.solana.program.system.v1.AllocateWithSeedRequest
+	(*AssignWithSeedRequest)(nil),          // 8: protochain.solana.program.system.v1.AssignWithSeedRequest
+	(*TransferWithSeedRequest)(nil),        // 9: protochain.solana.program.system.v1.TransferWithSeedRequest
+	(*InitializeNonceAccountRequest)(nil),  // 10: protochain.solana.program.system.v1.InitializeNonceAccountRequest
+	(*AuthorizeNonceAccountRequest)(nil),   // 11: protochain.solana.program.system.v1.AuthorizeNonceAccountRequest
+	(*WithdrawNonceAccountRequest)(nil),    // 12: protochain.solana.program.system.v1.WithdrawNonceAccountRequest
+	(*AdvanceNonceAccountRequest)(nil),     // 13: protochain.solana.program.system.v1.AdvanceNonceAccountRequest
+	(*UpgradeNonceAccountRequest)(nil),     // 14: protochain.solana.program.system.v1.UpgradeNonceAccountRequest
+	(*CreateResponse)(nil),                 // 15: protochain.solana.program.system.v1.CreateResponse
+	(*TransferResponse)(nil),               // 16: protochain.solana.program.system.v1.TransferResponse
+	(*AllocateResponse)(nil),               // 17: protochain.solana.program.system.v1.AllocateResponse
+	(*AssignResponse)(nil),                 // 18: protochain.solana.program.system.v1.AssignResponse
+	(*CreateWithSeedResponse)(nil),         // 19: protochain.solana.program.system.v1.CreateWithSeedResponse
+	(*AllocateWithSeedResponse)(nil),       // 20: protochain.solana.program.system.v1.AllocateWithSeedResponse
+	(*AssignWithSeedResponse)(nil),         // 21: protochain.solana.program.system.v1.AssignWithSeedResponse
+	(*TransferWithSeedResponse)(nil),       // 22: protochain.solana.program.system.v1.TransferWithSeedResponse
+	(*InitializeNonceAccountResponse)(nil), // 23: protochain.solana.program.system.v1.InitializeNonceAccountResponse
+	(*AuthorizeNonceAccountResponse)(nil),  // 24: protochain.solana.program.system.v1.AuthorizeNonceAccountResponse
+	(*WithdrawNonceAccountResponse)(nil),   // 25: protochain.solana.program.system.v1.WithdrawNonceAccountResponse
+	(*AdvanceNonceAccountResponse)(nil),    // 26: protochain.solana.program.system.v1.AdvanceNonceAccountResponse
+	(*UpgradeNonceAccountResponse)(nil),    // 27: protochain.solana.program.system.v1.UpgradeNonceAccountResponse
+	(*v1.SolanaInstruction)(nil),           // 28: protochain.solana.transaction.v1.SolanaInstruction
 }
 var file_protochain_solana_program_system_v1_service_proto_depIdxs = []int32{
-	26, // 0: protochain.solana.program.system.v1.CreateResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
-	26, // 1: protochain.solana.program.system.v1.TransferResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
-	26, // 2: protochain.solana.program.system.v1.AllocateResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
-	26, // 3: protochain.solana.program.system.v1.AssignResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
-	26, // 4: protochain.solana.program.system.v1.CreateWithSeedResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
-	26, // 5: protochain.solana.program.system.v1.AllocateWithSeedResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
-	26, // 6: protochain.solana.program.system.v1.AssignWithSeedResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
-	26, // 7: protochain.solana.program.system.v1.TransferWithSeedResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
-	26, // 8: protochain.solana.program.system.v1.InitializeNonceAccountResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
-	26, // 9: protochain.solana.program.system.v1.AuthorizeNonceAccountResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
-	26, // 10: protochain.solana.program.system.v1.WithdrawNonceAccountResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
-	26, // 11: protochain.solana.program.system.v1.AdvanceNonceAccountResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
-	26, // 12: protochain.solana.program.system.v1.UpgradeNonceAccountResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
-	0,  // 13: protochain.solana.program.system.v1.Service.Create:input_type -> protochain.solana.program.system.v1.CreateRequest
-	1,  // 14: protochain.solana.program.system.v1.Service.Transfer:input_type -> protochain.solana.program.system.v1.TransferRequest
-	2,  // 15: protochain.solana.program.system.v1.Service.Allocate:input_type -> protochain.solana.program.system.v1.AllocateRequest
-	3,  // 16: protochain.solana.program.system.v1.Service.Assign:input_type -> protochain.solana.program.system.v1.AssignRequest
-	4,  // 17: protochain.solana.program.system.v1.Service.CreateWithSeed:input_type -> protochain.solana.program.system.v1.CreateWithSeedRequest
-	5,  // 18: protochain.solana.program.system.v1.Service.AllocateWithSeed:input_type -> protochain.solana.program.system.v1.AllocateWithSeedRequest
-	6,  // 19: protochain.solana.program.system.v1.Service.AssignWithSeed:input_type -> protochain.solana.program.system.v1.AssignWithSeedRequest
-	7,  // 20: protochain.solana.program.system.v1.Service.TransferWithSeed:input_type -> protochain.solana.program.system.v1.TransferWithSeedRequest
-	8,  // 21: protochain.solana.program.system.v1.Service.InitializeNonceAccount:input_type -> protochain.solana.program.system.v1.InitializeNonceAccountRequest
-	9,  // 22: protochain.solana.program.system.v1.Service.AuthorizeNonceAccount:input_type -> protochain.solana.program.system.v1.AuthorizeNonceAccountRequest
-	10, // 23: protochain.solana.program.system.v1.Service.WithdrawNonceAccount:input_type -> protochain.solana.program.system.v1.WithdrawNonceAccountRequest
-	11, // 24: protochain.solana.program.system.v1.Service.AdvanceNonceAccount:input_type -> protochain.solana.program.system.v1.AdvanceNonceAccountRequest
-	12, // 25: protochain.solana.program.system.v1.Service.UpgradeNonceAccount:input_type -> protochain.solana.program.system.v1.UpgradeNonceAccountRequest
-	13, // 26: protochain.solana.program.system.v1.Service.Create:output_type -> protochain.solana.program.system.v1.CreateResponse
-	14, // 27: protochain.solana.program.system.v1.Service.Transfer:output_type -> protochain.solana.program.system.v1.TransferResponse
-	15, // 28: protochain.solana.program.system.v1.Service.Allocate:output_type -> protochain.solana.program.system.v1.AllocateResponse
-	16, // 29: protochain.solana.program.system.v1.Service.Assign:output_type -> protochain.solana.program.system.v1.AssignResponse
-	17, // 30: protochain.solana.program.system.v1.Service.CreateWithSeed:output_type -> protochain.solana.program.system.v1.CreateWithSeedResponse
-	18, // 31: protochain.solana.program.system.v1.Service.AllocateWithSeed:output_type -> protochain.solana.program.system.v1.AllocateWithSeedResponse
-	19, // 32: protochain.solana.program.system.v1.Service.AssignWithSeed:output_type -> protochain.solana.program.system.v1.AssignWithSeedResponse
-	20, // 33: protochain.solana.program.system.v1.Service.TransferWithSeed:output_type -> protochain.solana.program.system.v1.TransferWithSeedResponse
-	21, // 34: protochain.solana.program.system.v1.Service.InitializeNonceAccount:output_type -> protochain.solana.program.system.v1.InitializeNonceAccountResponse
-	22, // 35: protochain.solana.program.system.v1.Service.AuthorizeNonceAccount:output_type -> protochain.solana.program.system.v1.AuthorizeNonceAccountResponse
-	23, // 36: protochain.solana.program.system.v1.Service.WithdrawNonceAccount:output_type -> protochain.solana.program.system.v1.WithdrawNonceAccountResponse
-	24, // 37: protochain.solana.program.system.v1.Service.AdvanceNonceAccount:output_type -> protochain.solana.program.system.v1.AdvanceNonceAccountResponse
-	25, // 38: protochain.solana.program.system.v1.Service.UpgradeNonceAccount:output_type -> protochain.solana.program.system.v1.UpgradeNonceAccountResponse
-	26, // [26:39] is the sub-list for method output_type
-	13, // [13:26] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	28, // 0: protochain.solana.program.system.v1.BuildMemoResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	28, // 1: protochain.solana.program.system.v1.CreateResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	28, // 2: protochain.solana.program.system.v1.TransferResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	28, // 3: protochain.solana.program.system.v1.AllocateResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	28, // 4: protochain.solana.program.system.v1.AssignResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	28, // 5: protochain.solana.program.system.v1.CreateWithSeedResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	28, // 6: protochain.solana.program.system.v1.AllocateWithSeedResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	28, // 7: protochain.solana.program.system.v1.AssignWithSeedResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	28, // 8: protochain.solana.program.system.v1.TransferWithSeedResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	28, // 9: protochain.solana.program.system.v1.InitializeNonceAccountResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	28, // 10: protochain.solana.program.system.v1.AuthorizeNonceAccountResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	28, // 11: protochain.solana.program.system.v1.WithdrawNonceAccountResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	28, // 12: protochain.solana.program.system.v1.AdvanceNonceAccountResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	28, // 13: protochain.solana.program.system.v1.UpgradeNonceAccountResponse.instruction:type_name -> protochain.solana.transaction.v1.SolanaInstruction
+	0,  // 14: protochain.solana.program.system.v1.Service.Create:input_type -> protochain.solana.program.system.v1.CreateRequest
+	1,  // 15: protochain.solana.program.system.v1.Service.Transfer:input_type -> protochain.solana.program.system.v1.TransferRequest
+	2,  // 16: protochain.solana.program.system.v1.Service.Allocate:input_type -> protochain.solana.program.system.v1.AllocateRequest
+	3,  // 17: protochain.solana.program.system.v1.Service.Assign:input_type -> protochain.solana.program.system.v1.AssignRequest
+	4,  // 18: protochain.solana.program.system.v1.Service.CreateWithSeed:input_type -> protochain.solana.program.system.v1.CreateWithSeedRequest
+	5,  // 19: protochain.solana.program.system.v1.Service.BuildMemo:input_type -> protochain.solana.program.system.v1.BuildMemoRequest
+	7,  // 20: protochain.solana.program.system.v1.Service.AllocateWithSeed:input_type -> protochain.solana.program.system.v1.AllocateWithSeedRequest
+	8,  // 21: protochain.solana.program.system.v1.Service.AssignWithSeed:input_type -> protochain.solana.program.system.v1.AssignWithSeedRequest
+	9,  // 22: protochain.solana.program.system.v1.Service.TransferWithSeed:input_type -> protochain.solana.program.system.v1.TransferWithSeedRequest
+	10, // 23: protochain.solana.program.system.v1.Service.InitializeNonceAccount:input_type -> protochain.solana.program.system.v1.InitializeNonceAccountRequest
+	11, // 24: protochain.solana.program.system.v1.Service.AuthorizeNonceAccount:input_type -> protochain.solana.program.system.v1.AuthorizeNonceAccountRequest
+	12, // 25: protochain.solana.program.system.v1.Service.WithdrawNonceAccount:input_type -> protochain.solana.program.system.v1.WithdrawNonceAccountRequest
+	13, // 26: protochain.solana.program.system.v1.Service.AdvanceNonceAccount:input_type -> protochain.solana.program.system.v1.AdvanceNonceAccountRequest
+	14, // 27: protochain.solana.program.system.v1.Service.UpgradeNonceAccount:input_type -> protochain.solana.program.system.v1.UpgradeNonceAccountRequest
+	15, // 28: protochain.solana.program.system.v1.Service.Create:output_type -> protochain.solana.program.system.v1.CreateResponse
+	16, // 29: protochain.solana.program.system.v1.Service.Transfer:output_type -> protochain.solana.program.system.v1.TransferResponse
+	17, // 30: protochain.solana.program.system.v1.Service.Allocate:output_type -> protochain.solana.program.system.v1.AllocateResponse
+	18, // 31: protochain.solana.program.system.v1.Service.Assign:output_type -> protochain.solana.program.system.v1.AssignResponse
+	19, // 32: protochain.solana.program.system.v1.Service.CreateWithSeed:output_type -> protochain.solana.program.system.v1.CreateWithSeedResponse
+	6,  // 33: protochain.solana.program.system.v1.Service.BuildMemo:output_type -> protochain.solana.program.system.v1.BuildMemoResponse
+	20, // 34: protochain.solana.program.system.v1.Service.AllocateWithSeed:output_type -> protochain.solana.program.system.v1.AllocateWithSeedResponse
+	21, // 35: protochain.solana.program.system.v1.Service.AssignWithSeed:output_type -> protochain.solana.program.system.v1.AssignWithSeedResponse
+	22, // 36: protochain.solana.program.system.v1.Service.TransferWithSeed:output_type -> protochain.solana.program.system.v1.TransferWithSeedResponse
+	23, // 37: protochain.solana.program.system.v1.Service.InitializeNonceAccount:output_type -> protochain.solana.program.system.v1.InitializeNonceAccountResponse
+	24, // 38: protochain.solana.program.system.v1.Service.AuthorizeNonceAccount:output_type -> protochain.solana.program.system.v1.AuthorizeNonceAccountResponse
+	25, // 39: protochain.solana.program.system.v1.Service.WithdrawNonceAccount:output_type -> protochain.solana.program.system.v1.WithdrawNonceAccountResponse
+	26, // 40: protochain.solana.program.system.v1.Service.AdvanceNonceAccount:output_type -> protochain.solana.program.system.v1.AdvanceNonceAccountResponse
+	27, // 41: protochain.solana.program.system.v1.Service.UpgradeNonceAccount:output_type -> protochain.solana.program.system.v1.UpgradeNonceAccountResponse
+	28, // [28:42] is the sub-list for method output_type
+	14, // [14:28] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_protochain_solana_program_system_v1_service_proto_init() }
@@ -1636,7 +1746,7 @@ func file_protochain_solana_program_system_v1_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_protochain_solana_program_system_v1_service_proto_rawDesc), len(file_protochain_solana_program_system_v1_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   26,
+			NumMessages:   28,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

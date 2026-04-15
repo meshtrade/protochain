@@ -13,6 +13,7 @@ service Service {
   rpc Allocate(AllocateRequest) returns (AllocateResponse);
   rpc Assign(AssignRequest) returns (AssignResponse);
   rpc CreateWithSeed(CreateWithSeedRequest) returns (CreateWithSeedResponse);
+  rpc BuildMemo(BuildMemoRequest) returns (BuildMemoResponse);
 
   // Extended system program operations
   rpc AllocateWithSeed(AllocateWithSeedRequest) returns (AllocateWithSeedResponse);
@@ -93,6 +94,19 @@ message CreateWithSeedRequest {
   
   // Number of bytes of memory to allocate for the account
   uint64 space = 6;
+}
+
+// BuildMemoRequest creates a build memo instruction with the given memo message
+message BuildMemoRequest {
+  // The message to display in the memo 
+  string memo = 1;
+
+  // Optional signer pub keys to determine if they sign the transaction this memo will be part of
+  repeated string signers = 2;
+}
+
+message BuildMemoResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
 }
 
 // Extended request messages for new operations

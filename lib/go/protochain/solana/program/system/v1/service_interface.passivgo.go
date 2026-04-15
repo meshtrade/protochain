@@ -18,6 +18,8 @@ type ServiceInterface interface {
 
 	CreateWithSeed(ctx context.Context, request *CreateWithSeedRequest) (*CreateWithSeedResponse, error)
 
+	BuildMemo(ctx context.Context, request *BuildMemoRequest) (*BuildMemoResponse, error)
+
 	// Extended system program operations
 	AllocateWithSeed(ctx context.Context, request *AllocateWithSeedRequest) (*AllocateWithSeedResponse, error)
 
