@@ -27,6 +27,7 @@ use crate::api::common::solana_conversions::sdk_instruction_to_proto;
 use super::super::extensions::helpers::{
     holding_account_total_space, validate_no_duplicate_holding_account_extensions,
 };
+use super::super::extensions::immutable_owner;
 use super::TokenProgramServiceImpl;
 
 impl TokenProgramServiceImpl {
@@ -126,6 +127,33 @@ impl TokenProgramServiceImpl {
                                 ))
                             })?;
                             instructions.push(sdk_instruction_to_proto(enable_memo_ix));
+                        }
+                    }
+                    token2022_holding_account_extension::Extension::ImmutableOwner(_) => {
+                        // Reallocate account to include ImmutableOwner extension
+                        let reallocate_ix = reallocate(
+                            &TOKEN_2022_PROGRAM_ID,
+                            &ata_address,
+                            &payer_pubkey,
+                            &owner_pubkey,
+                            &[&owner_pubkey],
+                            &[ExtensionType::ImmutableOwner],
+                        )
+                        .map_err(|e| {
+                            Status::internal(format!(
+                                "could not create reallocation instruction for immutable owner extension: {e}"
+                            ))
+                        })?;
+                        instructions.push(sdk_instruction_to_proto(reallocate_ix));
+
+                        // Initialize immutable owner
+                        let init_ixs =
+                            immutable_owner::build_immutable_owner_holding_account_instructions(
+                                &TOKEN_2022_PROGRAM_ID,
+                                &ata_address,
+                            )?;
+                        for ix in init_ixs {
+                            instructions.push(sdk_instruction_to_proto(ix));
                         }
                     }
                 }
