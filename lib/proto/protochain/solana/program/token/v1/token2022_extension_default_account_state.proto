@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package protochain.solana.program.token.v1;
+
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1";
+
+// Configuration for the Token-2022 Default Account State extension.
+//
+// When enabled, all new token accounts for this mint are created in the
+// specified default state. This is commonly used with `FROZEN` to require
+// the freeze authority to explicitly approve each holder before they can
+// transact.
+//
+// Requires the mint to have a freeze authority set.
+// Must be configured at mint creation time.
+message Token2022ExtensionDefaultAccountState {
+  // The default state for new token accounts.
+  AccountState state = 1;
+}
+
+// Possible states for a token account.
+enum AccountState {
+  // Unspecified / default — should not be used explicitly.
+  ACCOUNT_STATE_UNSPECIFIED = 0;
+
+  // Accounts are created in the normal initialized state (default behaviour
+  // when this extension is not present).
+  ACCOUNT_STATE_INITIALIZED = 1;
+
+  // Accounts are created in the frozen state. The freeze authority must
+  // explicitly thaw each account before the owner can transact.
+  ACCOUNT_STATE_FROZEN = 2;
+}

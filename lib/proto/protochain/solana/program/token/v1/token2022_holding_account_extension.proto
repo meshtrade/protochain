@@ -3,6 +3,7 @@ syntax = "proto3";
 package protochain.solana.program.token.v1;
 
 import "protochain/solana/program/token/v1/memo_transfer_config.proto";
+import "protochain/solana/program/token/v1/token2022_extension_immutable_owner.proto";
 
 option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1";
 
@@ -16,8 +17,10 @@ message Token2022HoldingAccountExtension {
   oneof extension {
     // Memo Transfer extension: requires every inbound transfer to include a memo.
     MemoTransferConfig memo_transfer = 1;
-    // Future holding account extensions go here, e.g.:
-    // CpiGuardConfig cpi_guard = 2;
-    // ImmutableOwnerConfig immutable_owner = 3;
+
+    // Immutable Owner extension: prevents the token account's owner from
+    // being changed. Automatically enabled for ATAs under Token-2022, but
+    // can be explicitly requested for clarity.
+    Token2022ExtensionImmutableOwner immutable_owner = 2;
   }
 }

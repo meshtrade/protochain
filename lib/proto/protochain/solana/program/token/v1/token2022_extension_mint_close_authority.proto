@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package protochain.solana.program.token.v1;
+
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1";
+
+// Configuration for the Token-2022 Mint Close Authority extension.
+//
+// When enabled, allows the designated authority to close the mint account and
+// reclaim its rent-exempt lamports. Without this extension a mint account can
+// never be closed.
+//
+// The close authority must be set at mint creation time — it cannot be added
+// after initialisation.
+message Token2022ExtensionMintCloseAuthority {
+  // The public key of the authority that may close the mint account.
+  // If empty, defaults to the mint authority.
+  string close_authority_pub_key = 1;
+}

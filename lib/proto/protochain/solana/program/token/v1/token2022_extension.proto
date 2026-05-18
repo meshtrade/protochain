@@ -3,17 +3,43 @@ syntax = "proto3";
 package protochain.solana.program.token.v1;
 
 import "protochain/solana/program/token/v1/token2022_extension_metadata.proto";
+import "protochain/solana/program/token/v1/token2022_extension_mint_close_authority.proto";
+import "protochain/solana/program/token/v1/token2022_extension_transfer_fee.proto";
+import "protochain/solana/program/token/v1/token2022_extension_default_account_state.proto";
+import "protochain/solana/program/token/v1/token2022_extension_permanent_delegate.proto";
+import "protochain/solana/program/token/v1/token2022_extension_pausable.proto";
 
 option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1";
 
-// Wrapper for Token-2022 extensions.
+// Wrapper for Token-2022 mint extensions.
+//
+// Each extension is initialised at mint creation time via CreateToken2022Mint.
+// Extensions cannot be added after the mint account has been created.
 message Token2022Extension {
   oneof extension {
+    // Token Metadata extension — stores name, symbol, URI and custom
+    // key-value pairs directly on the mint account.
     protochain.solana.program.token.v1.Token2022ExtensionMetadata metadata = 1;
-    // Other extension support COMING SOON!
-    // protochain.solana.program.token.v1.TransferHookConfig transfer_hook = 2;
-    // protochain.solana.program.token.v1.TransferFeeConfig transfer_fee = 3;
-    // protochain.solana.program.token.v1.InterestBearingConfig interest_bearing = 4;
-    // string permanent_delegate_pub_key = 5;
+
+    // Mint Close Authority extension — allows the designated authority to
+    // close the mint account and reclaim its rent-exempt lamports.
+    protochain.solana.program.token.v1.Token2022ExtensionMintCloseAuthority mint_close_authority = 2;
+
+    // Transfer Fee extension — assesses a fee (in basis points) on every
+    // token transfer, withheld in the destination account for later
+    // collection.
+    protochain.solana.program.token.v1.Token2022ExtensionTransferFee transfer_fee = 3;
+
+    // Default Account State extension — new token accounts for this mint
+    // are created in the specified state (e.g. Frozen).
+    protochain.solana.program.token.v1.Token2022ExtensionDefaultAccountState default_account_state = 4;
+
+    // Permanent Delegate extension — grants an irrevocable delegate
+    // authority over all token accounts for this mint.
+    protochain.solana.program.token.v1.Token2022ExtensionPermanentDelegate permanent_delegate = 5;
+
+    // Pausable extension — allows the pause authority to halt all minting,
+    // burning, and transferring for this mint.
+    protochain.solana.program.token.v1.Token2022ExtensionPausable pausable = 6;
   }
 }
