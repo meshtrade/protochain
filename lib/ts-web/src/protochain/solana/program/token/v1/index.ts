@@ -15,8 +15,14 @@ export * from './memo_transfer_config_pb';
 export * from './service_pb';
 export * from './service_web_protochaints';
 export * from './spl_token_metadata_pb';
+export * from './token2022_extension_default_account_state_pb';
+export * from './token2022_extension_immutable_owner_pb';
 export * from './token2022_extension_metadata_pb';
+export * from './token2022_extension_mint_close_authority_pb';
+export * from './token2022_extension_pausable_pb';
 export * from './token2022_extension_pb';
+export * from './token2022_extension_permanent_delegate_pb';
+export * from './token2022_extension_transfer_fee_pb';
 export * from './token2022_holding_account_extension_pb';
 export * from './token_program_pb';
 

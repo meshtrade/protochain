@@ -21,12 +21,20 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Wrapper for Token-2022 extensions.
+// Wrapper for Token-2022 mint extensions.
+//
+// Each extension is initialised at mint creation time via CreateToken2022Mint.
+// Extensions cannot be added after the mint account has been created.
 type Token2022Extension struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Extension:
 	//
 	//	*Token2022Extension_Metadata
+	//	*Token2022Extension_MintCloseAuthority
+	//	*Token2022Extension_TransferFee
+	//	*Token2022Extension_DefaultAccountState
+	//	*Token2022Extension_PermanentDelegate
+	//	*Token2022Extension_Pausable
 	Extension     isToken2022Extension_Extension `protobuf_oneof:"extension"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -78,23 +86,116 @@ func (x *Token2022Extension) GetMetadata() *Token2022ExtensionMetadata {
 	return nil
 }
 
+func (x *Token2022Extension) GetMintCloseAuthority() *Token2022ExtensionMintCloseAuthority {
+	if x != nil {
+		if x, ok := x.Extension.(*Token2022Extension_MintCloseAuthority); ok {
+			return x.MintCloseAuthority
+		}
+	}
+	return nil
+}
+
+func (x *Token2022Extension) GetTransferFee() *Token2022ExtensionTransferFee {
+	if x != nil {
+		if x, ok := x.Extension.(*Token2022Extension_TransferFee); ok {
+			return x.TransferFee
+		}
+	}
+	return nil
+}
+
+func (x *Token2022Extension) GetDefaultAccountState() *Token2022ExtensionDefaultAccountState {
+	if x != nil {
+		if x, ok := x.Extension.(*Token2022Extension_DefaultAccountState); ok {
+			return x.DefaultAccountState
+		}
+	}
+	return nil
+}
+
+func (x *Token2022Extension) GetPermanentDelegate() *Token2022ExtensionPermanentDelegate {
+	if x != nil {
+		if x, ok := x.Extension.(*Token2022Extension_PermanentDelegate); ok {
+			return x.PermanentDelegate
+		}
+	}
+	return nil
+}
+
+func (x *Token2022Extension) GetPausable() *Token2022ExtensionPausable {
+	if x != nil {
+		if x, ok := x.Extension.(*Token2022Extension_Pausable); ok {
+			return x.Pausable
+		}
+	}
+	return nil
+}
+
 type isToken2022Extension_Extension interface {
 	isToken2022Extension_Extension()
 }
 
 type Token2022Extension_Metadata struct {
+	// Token Metadata extension — stores name, symbol, URI and custom
+	// key-value pairs directly on the mint account.
 	Metadata *Token2022ExtensionMetadata `protobuf:"bytes,1,opt,name=metadata,proto3,oneof"`
 }
 
+type Token2022Extension_MintCloseAuthority struct {
+	// Mint Close Authority extension — allows the designated authority to
+	// close the mint account and reclaim its rent-exempt lamports.
+	MintCloseAuthority *Token2022ExtensionMintCloseAuthority `protobuf:"bytes,2,opt,name=mint_close_authority,json=mintCloseAuthority,proto3,oneof"`
+}
+
+type Token2022Extension_TransferFee struct {
+	// Transfer Fee extension — assesses a fee (in basis points) on every
+	// token transfer, withheld in the destination account for later
+	// collection.
+	TransferFee *Token2022ExtensionTransferFee `protobuf:"bytes,3,opt,name=transfer_fee,json=transferFee,proto3,oneof"`
+}
+
+type Token2022Extension_DefaultAccountState struct {
+	// Default Account State extension — new token accounts for this mint
+	// are created in the specified state (e.g. Frozen).
+	DefaultAccountState *Token2022ExtensionDefaultAccountState `protobuf:"bytes,4,opt,name=default_account_state,json=defaultAccountState,proto3,oneof"`
+}
+
+type Token2022Extension_PermanentDelegate struct {
+	// Permanent Delegate extension — grants an irrevocable delegate
+	// authority over all token accounts for this mint.
+	PermanentDelegate *Token2022ExtensionPermanentDelegate `protobuf:"bytes,5,opt,name=permanent_delegate,json=permanentDelegate,proto3,oneof"`
+}
+
+type Token2022Extension_Pausable struct {
+	// Pausable extension — allows the pause authority to halt all minting,
+	// burning, and transferring for this mint.
+	Pausable *Token2022ExtensionPausable `protobuf:"bytes,6,opt,name=pausable,proto3,oneof"`
+}
+
 func (*Token2022Extension_Metadata) isToken2022Extension_Extension() {}
+
+func (*Token2022Extension_MintCloseAuthority) isToken2022Extension_Extension() {}
+
+func (*Token2022Extension_TransferFee) isToken2022Extension_Extension() {}
+
+func (*Token2022Extension_DefaultAccountState) isToken2022Extension_Extension() {}
+
+func (*Token2022Extension_PermanentDelegate) isToken2022Extension_Extension() {}
+
+func (*Token2022Extension_Pausable) isToken2022Extension_Extension() {}
 
 var File_protochain_solana_program_token_v1_token2022_extension_proto protoreflect.FileDescriptor
 
 const file_protochain_solana_program_token_v1_token2022_extension_proto_rawDesc = "" +
 	"\n" +
-	"<protochain/solana/program/token/v1/token2022_extension.proto\x12\"protochain.solana.program.token.v1\x1aEprotochain/solana/program/token/v1/token2022_extension_metadata.proto\"\x7f\n" +
+	"<protochain/solana/program/token/v1/token2022_extension.proto\x12\"protochain.solana.program.token.v1\x1aEprotochain/solana/program/token/v1/token2022_extension_metadata.proto\x1aQprotochain/solana/program/token/v1/token2022_extension_mint_close_authority.proto\x1aIprotochain/solana/program/token/v1/token2022_extension_transfer_fee.proto\x1aRprotochain/solana/program/token/v1/token2022_extension_default_account_state.proto\x1aOprotochain/solana/program/token/v1/token2022_extension_permanent_delegate.proto\x1aEprotochain/solana/program/token/v1/token2022_extension_pausable.proto\"\xbe\x05\n" +
 	"\x12Token2022Extension\x12\\\n" +
-	"\bmetadata\x18\x01 \x01(\v2>.protochain.solana.program.token.v1.Token2022ExtensionMetadataH\x00R\bmetadataB\v\n" +
+	"\bmetadata\x18\x01 \x01(\v2>.protochain.solana.program.token.v1.Token2022ExtensionMetadataH\x00R\bmetadata\x12|\n" +
+	"\x14mint_close_authority\x18\x02 \x01(\v2H.protochain.solana.program.token.v1.Token2022ExtensionMintCloseAuthorityH\x00R\x12mintCloseAuthority\x12f\n" +
+	"\ftransfer_fee\x18\x03 \x01(\v2A.protochain.solana.program.token.v1.Token2022ExtensionTransferFeeH\x00R\vtransferFee\x12\x7f\n" +
+	"\x15default_account_state\x18\x04 \x01(\v2I.protochain.solana.program.token.v1.Token2022ExtensionDefaultAccountStateH\x00R\x13defaultAccountState\x12x\n" +
+	"\x12permanent_delegate\x18\x05 \x01(\v2G.protochain.solana.program.token.v1.Token2022ExtensionPermanentDelegateH\x00R\x11permanentDelegate\x12\\\n" +
+	"\bpausable\x18\x06 \x01(\v2>.protochain.solana.program.token.v1.Token2022ExtensionPausableH\x00R\bpausableB\v\n" +
 	"\textensionBTZRgithub.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1b\x06proto3"
 
 var (
@@ -111,16 +212,26 @@ func file_protochain_solana_program_token_v1_token2022_extension_proto_rawDescGZ
 
 var file_protochain_solana_program_token_v1_token2022_extension_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_protochain_solana_program_token_v1_token2022_extension_proto_goTypes = []any{
-	(*Token2022Extension)(nil),         // 0: protochain.solana.program.token.v1.Token2022Extension
-	(*Token2022ExtensionMetadata)(nil), // 1: protochain.solana.program.token.v1.Token2022ExtensionMetadata
+	(*Token2022Extension)(nil),                    // 0: protochain.solana.program.token.v1.Token2022Extension
+	(*Token2022ExtensionMetadata)(nil),            // 1: protochain.solana.program.token.v1.Token2022ExtensionMetadata
+	(*Token2022ExtensionMintCloseAuthority)(nil),  // 2: protochain.solana.program.token.v1.Token2022ExtensionMintCloseAuthority
+	(*Token2022ExtensionTransferFee)(nil),         // 3: protochain.solana.program.token.v1.Token2022ExtensionTransferFee
+	(*Token2022ExtensionDefaultAccountState)(nil), // 4: protochain.solana.program.token.v1.Token2022ExtensionDefaultAccountState
+	(*Token2022ExtensionPermanentDelegate)(nil),   // 5: protochain.solana.program.token.v1.Token2022ExtensionPermanentDelegate
+	(*Token2022ExtensionPausable)(nil),            // 6: protochain.solana.program.token.v1.Token2022ExtensionPausable
 }
 var file_protochain_solana_program_token_v1_token2022_extension_proto_depIdxs = []int32{
 	1, // 0: protochain.solana.program.token.v1.Token2022Extension.metadata:type_name -> protochain.solana.program.token.v1.Token2022ExtensionMetadata
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	2, // 1: protochain.solana.program.token.v1.Token2022Extension.mint_close_authority:type_name -> protochain.solana.program.token.v1.Token2022ExtensionMintCloseAuthority
+	3, // 2: protochain.solana.program.token.v1.Token2022Extension.transfer_fee:type_name -> protochain.solana.program.token.v1.Token2022ExtensionTransferFee
+	4, // 3: protochain.solana.program.token.v1.Token2022Extension.default_account_state:type_name -> protochain.solana.program.token.v1.Token2022ExtensionDefaultAccountState
+	5, // 4: protochain.solana.program.token.v1.Token2022Extension.permanent_delegate:type_name -> protochain.solana.program.token.v1.Token2022ExtensionPermanentDelegate
+	6, // 5: protochain.solana.program.token.v1.Token2022Extension.pausable:type_name -> protochain.solana.program.token.v1.Token2022ExtensionPausable
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_protochain_solana_program_token_v1_token2022_extension_proto_init() }
@@ -129,8 +240,18 @@ func file_protochain_solana_program_token_v1_token2022_extension_proto_init() {
 		return
 	}
 	file_protochain_solana_program_token_v1_token2022_extension_metadata_proto_init()
+	file_protochain_solana_program_token_v1_token2022_extension_mint_close_authority_proto_init()
+	file_protochain_solana_program_token_v1_token2022_extension_transfer_fee_proto_init()
+	file_protochain_solana_program_token_v1_token2022_extension_default_account_state_proto_init()
+	file_protochain_solana_program_token_v1_token2022_extension_permanent_delegate_proto_init()
+	file_protochain_solana_program_token_v1_token2022_extension_pausable_proto_init()
 	file_protochain_solana_program_token_v1_token2022_extension_proto_msgTypes[0].OneofWrappers = []any{
 		(*Token2022Extension_Metadata)(nil),
+		(*Token2022Extension_MintCloseAuthority)(nil),
+		(*Token2022Extension_TransferFee)(nil),
+		(*Token2022Extension_DefaultAccountState)(nil),
+		(*Token2022Extension_PermanentDelegate)(nil),
+		(*Token2022Extension_Pausable)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
