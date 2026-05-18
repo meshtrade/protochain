@@ -128,6 +128,21 @@ pub(crate) fn mint_create_account_space(
             token2022_extension::Extension::Metadata(_) => {
                 sdk_extension_types.push(ExtensionType::MetadataPointer);
             }
+            token2022_extension::Extension::MintCloseAuthority(_) => {
+                sdk_extension_types.push(ExtensionType::MintCloseAuthority);
+            }
+            token2022_extension::Extension::TransferFee(_) => {
+                sdk_extension_types.push(ExtensionType::TransferFeeConfig);
+            }
+            token2022_extension::Extension::DefaultAccountState(_) => {
+                sdk_extension_types.push(ExtensionType::DefaultAccountState);
+            }
+            token2022_extension::Extension::PermanentDelegate(_) => {
+                sdk_extension_types.push(ExtensionType::PermanentDelegate);
+            }
+            token2022_extension::Extension::Pausable(_) => {
+                sdk_extension_types.push(ExtensionType::Pausable);
+            }
         }
     }
 
@@ -183,6 +198,21 @@ pub(crate) fn mint_total_space_for_rent(
                 extra_variable_len += token_metadata.tlv_size_of().map_err(|e| {
                     Status::internal(format!("failed to calculate metadata TLV size: {e}"))
                 })?;
+            }
+            token2022_extension::Extension::MintCloseAuthority(_) => {
+                sdk_extension_types.push(ExtensionType::MintCloseAuthority);
+            }
+            token2022_extension::Extension::TransferFee(_) => {
+                sdk_extension_types.push(ExtensionType::TransferFeeConfig);
+            }
+            token2022_extension::Extension::DefaultAccountState(_) => {
+                sdk_extension_types.push(ExtensionType::DefaultAccountState);
+            }
+            token2022_extension::Extension::PermanentDelegate(_) => {
+                sdk_extension_types.push(ExtensionType::PermanentDelegate);
+            }
+            token2022_extension::Extension::Pausable(_) => {
+                sdk_extension_types.push(ExtensionType::Pausable);
             }
         }
     }

@@ -24,6 +24,11 @@ pub(crate) fn validate_no_duplicate_extensions(
             .ok_or_else(|| Status::invalid_argument("Extension must have a type set"))?
         {
             token2022_extension::Extension::Metadata(_) => "Metadata",
+            token2022_extension::Extension::MintCloseAuthority(_) => "MintCloseAuthority",
+            token2022_extension::Extension::TransferFee(_) => "TransferFee",
+            token2022_extension::Extension::DefaultAccountState(_) => "DefaultAccountState",
+            token2022_extension::Extension::PermanentDelegate(_) => "PermanentDelegate",
+            token2022_extension::Extension::Pausable(_) => "Pausable",
         };
         if !seen.insert(key) {
             return Err(Status::invalid_argument(format!("Duplicate extension: {key}")));
@@ -45,6 +50,7 @@ pub(crate) fn validate_no_duplicate_holding_account_extensions(
             .ok_or_else(|| Status::invalid_argument("Extension must have a type set"))?
         {
             token2022_holding_account_extension::Extension::MemoTransfer(_) => "MemoTransfer",
+            token2022_holding_account_extension::Extension::ImmutableOwner(_) => "ImmutableOwner",
         };
         if !seen.insert(key) {
             return Err(Status::invalid_argument(format!(
@@ -71,6 +77,9 @@ pub(crate) fn holding_account_extension_types(
         {
             token2022_holding_account_extension::Extension::MemoTransfer(_) => {
                 types.push(ExtensionType::MemoTransfer);
+            }
+            token2022_holding_account_extension::Extension::ImmutableOwner(_) => {
+                types.push(ExtensionType::ImmutableOwner);
             }
         }
     }
