@@ -9,9 +9,12 @@ use protochain_api::protochain::solana::program::token::v1::{
 };
 
 use solana_commitment_config::CommitmentConfig;
-use solana_sdk::pubkey::Pubkey;
+use solana_sdk::{program_pack::Pack, pubkey::Pubkey};
 use spl_token::ID as SPL_TOKEN_PROGRAM_ID;
-use spl_token_2022::{instruction::close_account, ID as TOKEN_2022_PROGRAM_ID};
+use spl_token_2022::{
+    extension::StateWithExtensions, instruction::close_account, state::Account as TokenAccount,
+    ID as TOKEN_2022_PROGRAM_ID,
+};
 
 use crate::api::common::solana_conversions::sdk_instruction_to_proto;
 
@@ -66,6 +69,27 @@ impl TokenProgramServiceImpl {
         }
 
         let token_program_id = account.owner;
+
+        // --- check token balance is zero ------------------------------------
+        let token_balance = if token_program_id == TOKEN_2022_PROGRAM_ID {
+            StateWithExtensions::<TokenAccount>::unpack(&account.data)
+                .map_err(|e| {
+                    Status::internal(format!("Failed to parse Token-2022 account data: {e}"))
+                })?
+                .base
+                .amount
+        } else {
+            TokenAccount::unpack(&account.data)
+                .map_err(|e| Status::internal(format!("Failed to parse token account data: {e}")))?
+                .amount
+        };
+
+        if token_balance > 0 {
+            return Err(Status::failed_precondition(format!(
+                "Token account still holds {token_balance} tokens; \
+                 transfer or burn all tokens before closing the account"
+            )));
+        }
 
         // --- build instruction ----------------------------------------------
         let instruction = close_account(
