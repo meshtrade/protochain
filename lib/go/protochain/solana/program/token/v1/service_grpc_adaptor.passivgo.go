@@ -147,6 +147,40 @@ func (a *ServiceGRPCAdaptor) Mint(ctx context.Context, request *MintRequest) (*M
 	return mintResponse, nil
 }
 
+// FreezeTokenAccount exposes the FreezeTokenAccount method of the Service interface over gRPC
+func (a *ServiceGRPCAdaptor) FreezeTokenAccount(ctx context.Context, request *FreezeTokenAccountRequest) (*FreezeTokenAccountResponse, error) {
+	ctx, span := a.tracer.Start(
+		ctx,
+		ServiceServiceProviderName+"GRPCAdaptor.FreezeTokenAccount",
+	)
+	defer span.End()
+
+	// call the service interface implementation
+	freezeTokenAccountResponse, err := a.service.FreezeTokenAccount(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return freezeTokenAccountResponse, nil
+}
+
+// ThawTokenAccount exposes the ThawTokenAccount method of the Service interface over gRPC
+func (a *ServiceGRPCAdaptor) ThawTokenAccount(ctx context.Context, request *ThawTokenAccountRequest) (*ThawTokenAccountResponse, error) {
+	ctx, span := a.tracer.Start(
+		ctx,
+		ServiceServiceProviderName+"GRPCAdaptor.ThawTokenAccount",
+	)
+	defer span.End()
+
+	// call the service interface implementation
+	thawTokenAccountResponse, err := a.service.ThawTokenAccount(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return thawTokenAccountResponse, nil
+}
+
 // CloseTokenAccount exposes the CloseTokenAccount method of the Service interface over gRPC
 func (a *ServiceGRPCAdaptor) CloseTokenAccount(ctx context.Context, request *CloseTokenAccountRequest) (*CloseTokenAccountResponse, error) {
 	ctx, span := a.tracer.Start(

@@ -258,6 +258,66 @@ pub mod service_client {
                 );
             self.inner.unary(req, path, codec).await
         }
+        pub async fn freeze_token_account(
+            &mut self,
+            request: impl tonic::IntoRequest<super::FreezeTokenAccountRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FreezeTokenAccountResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protochain.solana.program.token.v1.Service/FreezeTokenAccount",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protochain.solana.program.token.v1.Service",
+                        "FreezeTokenAccount",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
+        pub async fn thaw_token_account(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ThawTokenAccountRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ThawTokenAccountResponse>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/protochain.solana.program.token.v1.Service/ThawTokenAccount",
+            );
+            let mut req = request.into_request();
+            req.extensions_mut()
+                .insert(
+                    GrpcMethod::new(
+                        "protochain.solana.program.token.v1.Service",
+                        "ThawTokenAccount",
+                    ),
+                );
+            self.inner.unary(req, path, codec).await
+        }
         pub async fn close_token_account(
             &mut self,
             request: impl tonic::IntoRequest<super::CloseTokenAccountRequest>,
@@ -336,6 +396,20 @@ pub mod service_server {
             &self,
             request: tonic::Request<super::MintRequest>,
         ) -> std::result::Result<tonic::Response<super::MintResponse>, tonic::Status>;
+        async fn freeze_token_account(
+            &self,
+            request: tonic::Request<super::FreezeTokenAccountRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::FreezeTokenAccountResponse>,
+            tonic::Status,
+        >;
+        async fn thaw_token_account(
+            &self,
+            request: tonic::Request<super::ThawTokenAccountRequest>,
+        ) -> std::result::Result<
+            tonic::Response<super::ThawTokenAccountResponse>,
+            tonic::Status,
+        >;
         async fn close_token_account(
             &self,
             request: tonic::Request<super::CloseTokenAccountRequest>,
@@ -685,6 +759,96 @@ pub mod service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let method = MintSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protochain.solana.program.token.v1.Service/FreezeTokenAccount" => {
+                    #[allow(non_camel_case_types)]
+                    struct FreezeTokenAccountSvc<T: Service>(pub Arc<T>);
+                    impl<
+                        T: Service,
+                    > tonic::server::UnaryService<super::FreezeTokenAccountRequest>
+                    for FreezeTokenAccountSvc<T> {
+                        type Response = super::FreezeTokenAccountResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::FreezeTokenAccountRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as Service>::freeze_token_account(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = FreezeTokenAccountSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            )
+                            .apply_max_message_size_config(
+                                max_decoding_message_size,
+                                max_encoding_message_size,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/protochain.solana.program.token.v1.Service/ThawTokenAccount" => {
+                    #[allow(non_camel_case_types)]
+                    struct ThawTokenAccountSvc<T: Service>(pub Arc<T>);
+                    impl<
+                        T: Service,
+                    > tonic::server::UnaryService<super::ThawTokenAccountRequest>
+                    for ThawTokenAccountSvc<T> {
+                        type Response = super::ThawTokenAccountResponse;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ThawTokenAccountRequest>,
+                        ) -> Self::Future {
+                            let inner = Arc::clone(&self.0);
+                            let fut = async move {
+                                <T as Service>::thaw_token_account(&inner, request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let max_decoding_message_size = self.max_decoding_message_size;
+                    let max_encoding_message_size = self.max_encoding_message_size;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let method = ThawTokenAccountSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

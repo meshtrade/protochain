@@ -77,6 +77,27 @@ type ServiceInterface interface {
 	// authority must be a single key-pair signer.
 	Mint(ctx context.Context, request *MintRequest) (*MintResponse, error)
 
+	// Freezes a token account, preventing any token transfers or other
+	// operations until the account is thawed.
+	//
+	// Token Program Agnostic — the service reads the token account on-chain to
+	// determine the owning token program.
+	//
+	// The returned instruction must be signed by the mint's freeze authority.
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	FreezeTokenAccount(ctx context.Context, request *FreezeTokenAccountRequest) (*FreezeTokenAccountResponse, error)
+
+	// Thaws a previously frozen token account, restoring normal operations.
+	//
+	// Token Program Agnostic — the service reads the token account on-chain to
+	// determine the owning token program.
+	//
+	// The returned instruction must be signed by the mint's freeze authority.
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	ThawTokenAccount(ctx context.Context, request *ThawTokenAccountRequest) (*ThawTokenAccountResponse, error)
+
 	// Closes a token account, transferring its remaining SOL rent to a
 	// destination address.
 	//

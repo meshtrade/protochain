@@ -81,6 +81,27 @@ service Service {
   // authority must be a single key-pair signer.
   rpc Mint(MintRequest) returns (MintResponse);
 
+  // Freezes a token account, preventing any token transfers or other
+  // operations until the account is thawed.
+  //
+  // Token Program Agnostic — the service reads the token account on-chain to
+  // determine the owning token program.
+  //
+  // The returned instruction must be signed by the mint's freeze authority.
+  //
+  // NOTE: Multi-sig authorities are not yet supported.
+  rpc FreezeTokenAccount(FreezeTokenAccountRequest) returns (FreezeTokenAccountResponse);
+
+  // Thaws a previously frozen token account, restoring normal operations.
+  //
+  // Token Program Agnostic — the service reads the token account on-chain to
+  // determine the owning token program.
+  //
+  // The returned instruction must be signed by the mint's freeze authority.
+  //
+  // NOTE: Multi-sig authorities are not yet supported.
+  rpc ThawTokenAccount(ThawTokenAccountRequest) returns (ThawTokenAccountResponse);
+
   // Closes a token account, transferring its remaining SOL rent to a
   // destination address.
   //
@@ -300,6 +321,40 @@ message MintRequest {
 
 // Response containing Mint instruction
 message MintResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
+// Request to freeze a token account.
+message FreezeTokenAccountRequest {
+  // The public key of the token account to freeze (Base58).
+  string token_account_pub_key = 1;
+
+  // The public key of the mint associated with the token account (Base58).
+  string mint_pub_key = 2;
+
+  // The freeze authority of the mint (Base58). Must sign the transaction.
+  string freeze_authority_pub_key = 3;
+}
+
+// Response containing the freeze account instruction.
+message FreezeTokenAccountResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
+// Request to thaw a frozen token account.
+message ThawTokenAccountRequest {
+  // The public key of the token account to thaw (Base58).
+  string token_account_pub_key = 1;
+
+  // The public key of the mint associated with the token account (Base58).
+  string mint_pub_key = 2;
+
+  // The freeze authority of the mint (Base58). Must sign the transaction.
+  string freeze_authority_pub_key = 3;
+}
+
+// Response containing the thaw account instruction.
+message ThawTokenAccountResponse {
   protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
 }
 

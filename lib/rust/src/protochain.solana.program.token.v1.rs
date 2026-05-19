@@ -640,6 +640,48 @@ pub struct MintResponse {
     #[prost(message, optional, tag="1")]
     pub instruction: ::core::option::Option<super::super::super::transaction::v1::SolanaInstruction>,
 }
+/// Request to freeze a token account.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FreezeTokenAccountRequest {
+    /// The public key of the token account to freeze (Base58).
+    #[prost(string, tag="1")]
+    pub token_account_pub_key: ::prost::alloc::string::String,
+    /// The public key of the mint associated with the token account (Base58).
+    #[prost(string, tag="2")]
+    pub mint_pub_key: ::prost::alloc::string::String,
+    /// The freeze authority of the mint (Base58). Must sign the transaction.
+    #[prost(string, tag="3")]
+    pub freeze_authority_pub_key: ::prost::alloc::string::String,
+}
+/// Response containing the freeze account instruction.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct FreezeTokenAccountResponse {
+    #[prost(message, optional, tag="1")]
+    pub instruction: ::core::option::Option<super::super::super::transaction::v1::SolanaInstruction>,
+}
+/// Request to thaw a frozen token account.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ThawTokenAccountRequest {
+    /// The public key of the token account to thaw (Base58).
+    #[prost(string, tag="1")]
+    pub token_account_pub_key: ::prost::alloc::string::String,
+    /// The public key of the mint associated with the token account (Base58).
+    #[prost(string, tag="2")]
+    pub mint_pub_key: ::prost::alloc::string::String,
+    /// The freeze authority of the mint (Base58). Must sign the transaction.
+    #[prost(string, tag="3")]
+    pub freeze_authority_pub_key: ::prost::alloc::string::String,
+}
+/// Response containing the thaw account instruction.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ThawTokenAccountResponse {
+    #[prost(message, optional, tag="1")]
+    pub instruction: ::core::option::Option<super::super::super::transaction::v1::SolanaInstruction>,
+}
 /// Request to close a token account.
 ///
 /// The token account must have a zero token balance. Any remaining SOL
