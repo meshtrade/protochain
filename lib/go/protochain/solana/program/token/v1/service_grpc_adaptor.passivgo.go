@@ -146,3 +146,20 @@ func (a *ServiceGRPCAdaptor) Mint(ctx context.Context, request *MintRequest) (*M
 
 	return mintResponse, nil
 }
+
+// CloseTokenAccount exposes the CloseTokenAccount method of the Service interface over gRPC
+func (a *ServiceGRPCAdaptor) CloseTokenAccount(ctx context.Context, request *CloseTokenAccountRequest) (*CloseTokenAccountResponse, error) {
+	ctx, span := a.tracer.Start(
+		ctx,
+		ServiceServiceProviderName+"GRPCAdaptor.CloseTokenAccount",
+	)
+	defer span.End()
+
+	// call the service interface implementation
+	closeTokenAccountResponse, err := a.service.CloseTokenAccount(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return closeTokenAccountResponse, nil
+}

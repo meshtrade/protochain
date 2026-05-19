@@ -8,7 +8,9 @@
 //! - [`parse_mint`]             — `ParseMint`
 //! - [`create_holding_account`] — `CreateToken2022HoldingAccount`, `CreateSPLTokenHoldingAccount`
 //! - [`mint`]                   — `Mint` (MintToChecked)
+//! - [`close_token_account`]    — `CloseTokenAccount`
 
+mod close_token_account;
 mod create_holding_account;
 mod create_mint;
 mod mint;
@@ -19,7 +21,8 @@ use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
 use protochain_api::protochain::solana::program::token::v1::{
-    service_server::Service as TokenProgramService, CreateSplTokenHoldingAccountRequest,
+    service_server::Service as TokenProgramService, CloseTokenAccountRequest,
+    CloseTokenAccountResponse, CreateSplTokenHoldingAccountRequest,
     CreateSplTokenHoldingAccountResponse, CreateSplTokenMintRequest, CreateSplTokenMintResponse,
     CreateToken2022HoldingAccountRequest, CreateToken2022HoldingAccountResponse,
     CreateToken2022MintRequest, CreateToken2022MintResponse, MintRequest, MintResponse,
@@ -103,6 +106,13 @@ impl TokenProgramService for TokenProgramServiceImpl {
 
     async fn mint(&self, request: Request<MintRequest>) -> Result<Response<MintResponse>, Status> {
         self.handle_mint(request).await
+    }
+
+    async fn close_token_account(
+        &self,
+        request: Request<CloseTokenAccountRequest>,
+    ) -> Result<Response<CloseTokenAccountResponse>, Status> {
+        self.handle_close_token_account(request).await
     }
 }
 

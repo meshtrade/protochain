@@ -80,6 +80,19 @@ service Service {
   // NOTE: Multi-sig mint authorities are not yet supported.  The on-chain mint
   // authority must be a single key-pair signer.
   rpc Mint(MintRequest) returns (MintResponse);
+
+  // Closes a token account, transferring its remaining SOL rent to a
+  // destination address.
+  //
+  // Token Program Agnostic — the service reads the token account on-chain to
+  // determine the owning token program. The token account must have a zero
+  // token balance before it can be closed.
+  //
+  // The returned instruction must be signed by the token account's owner
+  // (or close authority, if one is set).
+  //
+  // NOTE: Multi-sig authorities are not yet supported.
+  rpc CloseTokenAccount(CloseTokenAccountRequest) returns (CloseTokenAccountResponse);
 }
 
 // Request to create and fully initialise a Token-2022 mint account.
@@ -287,5 +300,27 @@ message MintRequest {
 
 // Response containing Mint instruction
 message MintResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
+// Request to close a token account.
+//
+// The token account must have a zero token balance. Any remaining SOL
+// (rent-exempt lamports) is transferred to the destination address.
+message CloseTokenAccountRequest {
+  // The public key of the token account to close (Base58).
+  string token_account_pub_key = 1;
+
+  // The public key that will receive the remaining SOL rent (Base58).
+  // Typically the owner of the token account.
+  string destination_pub_key = 2;
+
+  // The authority allowed to close the token account (Base58).
+  // This is the token account owner unless a close authority has been set.
+  string authority_pub_key = 3;
+}
+
+// Response containing the close account instruction.
+message CloseTokenAccountResponse {
   protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
 }

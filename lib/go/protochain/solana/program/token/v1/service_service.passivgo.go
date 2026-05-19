@@ -155,3 +155,11 @@ func (s *serviceService) Mint(ctx context.Context, request *MintRequest) (*MintR
 		return s.GrpcClient().Mint(ctx, request)
 	})
 }
+
+// CloseTokenAccount executes the CloseTokenAccount RPC method with automatic
+// client-side validation, timeout handling, distributed tracing, and authentication.
+func (s *serviceService) CloseTokenAccount(ctx context.Context, request *CloseTokenAccountRequest) (*CloseTokenAccountResponse, error) {
+	return common.Execute(s.Executor(), ctx, "CloseTokenAccount", request, func(ctx context.Context) (*CloseTokenAccountResponse, error) {
+		return s.GrpcClient().CloseTokenAccount(ctx, request)
+	})
+}

@@ -640,5 +640,31 @@ pub struct MintResponse {
     #[prost(message, optional, tag="1")]
     pub instruction: ::core::option::Option<super::super::super::transaction::v1::SolanaInstruction>,
 }
+/// Request to close a token account.
+///
+/// The token account must have a zero token balance. Any remaining SOL
+/// (rent-exempt lamports) is transferred to the destination address.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CloseTokenAccountRequest {
+    /// The public key of the token account to close (Base58).
+    #[prost(string, tag="1")]
+    pub token_account_pub_key: ::prost::alloc::string::String,
+    /// The public key that will receive the remaining SOL rent (Base58).
+    /// Typically the owner of the token account.
+    #[prost(string, tag="2")]
+    pub destination_pub_key: ::prost::alloc::string::String,
+    /// The authority allowed to close the token account (Base58).
+    /// This is the token account owner unless a close authority has been set.
+    #[prost(string, tag="3")]
+    pub authority_pub_key: ::prost::alloc::string::String,
+}
+/// Response containing the close account instruction.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct CloseTokenAccountResponse {
+    #[prost(message, optional, tag="1")]
+    pub instruction: ::core::option::Option<super::super::super::transaction::v1::SolanaInstruction>,
+}
 include!("protochain.solana.program.token.v1.tonic.rs");
 // @@protoc_insertion_point(module)

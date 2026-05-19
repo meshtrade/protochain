@@ -76,6 +76,19 @@ type ServiceInterface interface {
 	// NOTE: Multi-sig mint authorities are not yet supported.  The on-chain mint
 	// authority must be a single key-pair signer.
 	Mint(ctx context.Context, request *MintRequest) (*MintResponse, error)
+
+	// Closes a token account, transferring its remaining SOL rent to a
+	// destination address.
+	//
+	// Token Program Agnostic — the service reads the token account on-chain to
+	// determine the owning token program. The token account must have a zero
+	// token balance before it can be closed.
+	//
+	// The returned instruction must be signed by the token account's owner
+	// (or close authority, if one is set).
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	CloseTokenAccount(ctx context.Context, request *CloseTokenAccountRequest) (*CloseTokenAccountResponse, error)
 }
 
 const ServiceServiceProviderName = "protochain-solana-program-token-v1-Service"
