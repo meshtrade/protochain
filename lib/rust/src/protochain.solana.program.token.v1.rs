@@ -185,11 +185,148 @@ pub struct Token2022ExtensionMetadata {
     #[prost(map="string, string", tag="6")]
     pub additional_metadata: ::std::collections::HashMap<::prost::alloc::string::String, ::prost::alloc::string::String>,
 }
-/// Wrapper for Token-2022 extensions.
+/// Configuration for the Token-2022 Mint Close Authority extension.
+///
+/// When enabled, allows the designated authority to close the mint account and
+/// reclaim its rent-exempt lamports. Without this extension a mint account can
+/// never be closed.
+///
+/// The close authority must be set at mint creation time — it cannot be added
+/// after initialisation.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Token2022ExtensionMintCloseAuthority {
+    /// The public key of the authority that may close the mint account.
+    /// If empty, defaults to the mint authority.
+    #[prost(string, tag="1")]
+    pub close_authority_pub_key: ::prost::alloc::string::String,
+}
+/// Configuration for the Token-2022 Transfer Fee extension.
+///
+/// When enabled, a fee is assessed on every token transfer. The fee is
+/// expressed in basis points (hundredths of a percent) of the transfer amount,
+/// capped at a maximum fee. Fees are withheld in the destination token account
+/// and can be harvested by the withdraw authority.
+///
+/// Must be configured at mint creation time.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Token2022ExtensionTransferFee {
+    /// The authority that can modify the transfer fee parameters.
+    /// If empty, no authority is set and the fee configuration is immutable.
+    #[prost(string, tag="1")]
+    pub transfer_fee_config_authority_pub_key: ::prost::alloc::string::String,
+    /// The authority that can withdraw withheld fees from token accounts.
+    /// If empty, no withdraw authority is set.
+    #[prost(string, tag="2")]
+    pub withdraw_withheld_authority_pub_key: ::prost::alloc::string::String,
+    /// Fee assessed on each transfer, in basis points of the transfer amount.
+    /// One basis point = 0.01%. For example: 100 = 1%, 250 = 2.5%, 10000 = 100%.
+    /// Maximum value: 10000.
+    #[prost(uint32, tag="3")]
+    pub transfer_fee_basis_points: u32,
+    /// Maximum fee assessed on any single transfer, in base token units.
+    /// For example, with 6 decimals: "1000000" = 1.0 token maximum fee.
+    /// Use "0" for no maximum (fee is always calculated from basis points).
+    #[prost(uint64, tag="4")]
+    pub maximum_fee: u64,
+}
+/// Configuration for the Token-2022 Default Account State extension.
+///
+/// When enabled, all new token accounts for this mint are created in the
+/// specified default state. This is commonly used with `FROZEN` to require
+/// the freeze authority to explicitly approve each holder before they can
+/// transact.
+///
+/// Requires the mint to have a freeze authority set.
+/// Must be configured at mint creation time.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct Token2022ExtensionDefaultAccountState {
+    /// The default state for new token accounts.
+    #[prost(enumeration="AccountState", tag="1")]
+    pub state: i32,
+}
+/// Possible states for a token account.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum AccountState {
+    /// Unspecified / default — should not be used explicitly.
+    Unspecified = 0,
+    /// Accounts are created in the normal initialized state (default behaviour
+    /// when this extension is not present).
+    Initialized = 1,
+    /// Accounts are created in the frozen state. The freeze authority must
+    /// explicitly thaw each account before the owner can transact.
+    Frozen = 2,
+}
+impl AccountState {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            AccountState::Unspecified => "ACCOUNT_STATE_UNSPECIFIED",
+            AccountState::Initialized => "ACCOUNT_STATE_INITIALIZED",
+            AccountState::Frozen => "ACCOUNT_STATE_FROZEN",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "ACCOUNT_STATE_UNSPECIFIED" => Some(Self::Unspecified),
+            "ACCOUNT_STATE_INITIALIZED" => Some(Self::Initialized),
+            "ACCOUNT_STATE_FROZEN" => Some(Self::Frozen),
+            _ => None,
+        }
+    }
+}
+/// Configuration for the Token-2022 Permanent Delegate extension.
+///
+/// When enabled, grants an irrevocable delegate authority over ALL token
+/// accounts for this mint. The permanent delegate can transfer or burn tokens
+/// from any holder's account without the holder's consent.
+///
+/// Use cases include regulated assets (compliance seizure), subscription
+/// tokens, and revocable access tokens.
+///
+/// Must be configured at mint creation time. Cannot be changed after
+/// initialisation.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Token2022ExtensionPermanentDelegate {
+    /// The public key of the permanent delegate that has transfer and burn
+    /// authority over all token accounts for this mint.
+    #[prost(string, tag="1")]
+    pub delegate_pub_key: ::prost::alloc::string::String,
+}
+/// Configuration for the Token-2022 Pausable extension.
+///
+/// When enabled, the designated pause authority can halt all minting, burning,
+/// and transferring of tokens for this mint. While paused, no token operations
+/// can be performed until the authority resumes activity.
+///
+/// Use cases include emergency circuit breakers, regulatory compliance holds,
+/// and migration freezes.
+///
+/// Must be configured at mint creation time.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Token2022ExtensionPausable {
+    /// The public key of the authority that can pause and resume activity on
+    /// the mint. If empty, defaults to the mint authority.
+    #[prost(string, tag="1")]
+    pub authority_pub_key: ::prost::alloc::string::String,
+}
+/// Wrapper for Token-2022 mint extensions.
+///
+/// Each extension is initialised at mint creation time via CreateToken2022Mint.
+/// Extensions cannot be added after the mint account has been created.
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Token2022Extension {
-    #[prost(oneof="token2022_extension::Extension", tags="1")]
+    #[prost(oneof="token2022_extension::Extension", tags="1, 2, 3, 4, 5, 6")]
     pub extension: ::core::option::Option<token2022_extension::Extension>,
 }
 /// Nested message and enum types in `Token2022Extension`.
@@ -197,14 +334,46 @@ pub mod token2022_extension {
     #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum Extension {
-        /// Other extension support COMING SOON!
-        /// protochain.solana.program.token.v1.TransferHookConfig transfer_hook = 2;
-        /// protochain.solana.program.token.v1.TransferFeeConfig transfer_fee = 3;
-        /// protochain.solana.program.token.v1.InterestBearingConfig interest_bearing = 4;
-        /// string permanent_delegate_pub_key = 5;
+        /// Token Metadata extension — stores name, symbol, URI and custom
+        /// key-value pairs directly on the mint account.
         #[prost(message, tag="1")]
         Metadata(super::Token2022ExtensionMetadata),
+        /// Mint Close Authority extension — allows the designated authority to
+        /// close the mint account and reclaim its rent-exempt lamports.
+        #[prost(message, tag="2")]
+        MintCloseAuthority(super::Token2022ExtensionMintCloseAuthority),
+        /// Transfer Fee extension — assesses a fee (in basis points) on every
+        /// token transfer, withheld in the destination account for later
+        /// collection.
+        #[prost(message, tag="3")]
+        TransferFee(super::Token2022ExtensionTransferFee),
+        /// Default Account State extension — new token accounts for this mint
+        /// are created in the specified state (e.g. Frozen).
+        #[prost(message, tag="4")]
+        DefaultAccountState(super::Token2022ExtensionDefaultAccountState),
+        /// Permanent Delegate extension — grants an irrevocable delegate
+        /// authority over all token accounts for this mint.
+        #[prost(message, tag="5")]
+        PermanentDelegate(super::Token2022ExtensionPermanentDelegate),
+        /// Pausable extension — allows the pause authority to halt all minting,
+        /// burning, and transferring for this mint.
+        #[prost(message, tag="6")]
+        Pausable(super::Token2022ExtensionPausable),
     }
+}
+/// Configuration for the Token-2022 Immutable Owner extension on a holding
+/// account.
+///
+/// When enabled, the token account's owner cannot be changed via the
+/// `SetAuthority` instruction. This provides stronger ownership guarantees
+/// and is automatically enabled for all Associated Token Accounts (ATAs)
+/// created via the ATA program under Token-2022.
+///
+/// This extension has no configuration fields — its presence alone activates
+/// the restriction.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct Token2022ExtensionImmutableOwner {
 }
 /// Wrapper for Token-2022 extensions that can be enabled on a holding account
 /// (Associated Token Account).
@@ -215,7 +384,7 @@ pub mod token2022_extension {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
 pub struct Token2022HoldingAccountExtension {
-    #[prost(oneof="token2022_holding_account_extension::Extension", tags="1")]
+    #[prost(oneof="token2022_holding_account_extension::Extension", tags="1, 2")]
     pub extension: ::core::option::Option<token2022_holding_account_extension::Extension>,
 }
 /// Nested message and enum types in `Token2022HoldingAccountExtension`.
@@ -224,12 +393,13 @@ pub mod token2022_holding_account_extension {
 #[derive(Clone, Copy, PartialEq, ::prost::Oneof)]
     pub enum Extension {
         /// Memo Transfer extension: requires every inbound transfer to include a memo.
-        ///
-        /// Future holding account extensions go here, e.g.:
-        /// CpiGuardConfig cpi_guard = 2;
-        /// ImmutableOwnerConfig immutable_owner = 3;
         #[prost(message, tag="1")]
         MemoTransfer(super::MemoTransferConfig),
+        /// Immutable Owner extension: prevents the token account's owner from
+        /// being changed. Automatically enabled for ATAs under Token-2022, but
+        /// can be explicitly requested for clarity.
+        #[prost(message, tag="2")]
+        ImmutableOwner(super::Token2022ExtensionImmutableOwner),
     }
 }
 /// Request to create and fully initialise a Token-2022 mint account.

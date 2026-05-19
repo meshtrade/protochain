@@ -32,6 +32,7 @@ type Token2022HoldingAccountExtension struct {
 	// Types that are valid to be assigned to Extension:
 	//
 	//	*Token2022HoldingAccountExtension_MemoTransfer
+	//	*Token2022HoldingAccountExtension_ImmutableOwner
 	Extension     isToken2022HoldingAccountExtension_Extension `protobuf_oneof:"extension"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -83,6 +84,15 @@ func (x *Token2022HoldingAccountExtension) GetMemoTransfer() *MemoTransferConfig
 	return nil
 }
 
+func (x *Token2022HoldingAccountExtension) GetImmutableOwner() *Token2022ExtensionImmutableOwner {
+	if x != nil {
+		if x, ok := x.Extension.(*Token2022HoldingAccountExtension_ImmutableOwner); ok {
+			return x.ImmutableOwner
+		}
+	}
+	return nil
+}
+
 type isToken2022HoldingAccountExtension_Extension interface {
 	isToken2022HoldingAccountExtension_Extension()
 }
@@ -92,16 +102,27 @@ type Token2022HoldingAccountExtension_MemoTransfer struct {
 	MemoTransfer *MemoTransferConfig `protobuf:"bytes,1,opt,name=memo_transfer,json=memoTransfer,proto3,oneof"`
 }
 
+type Token2022HoldingAccountExtension_ImmutableOwner struct {
+	// Immutable Owner extension: prevents the token account's owner from
+	// being changed. Automatically enabled for ATAs under Token-2022, but
+	// can be explicitly requested for clarity.
+	ImmutableOwner *Token2022ExtensionImmutableOwner `protobuf:"bytes,2,opt,name=immutable_owner,json=immutableOwner,proto3,oneof"`
+}
+
 func (*Token2022HoldingAccountExtension_MemoTransfer) isToken2022HoldingAccountExtension_Extension() {
+}
+
+func (*Token2022HoldingAccountExtension_ImmutableOwner) isToken2022HoldingAccountExtension_Extension() {
 }
 
 var File_protochain_solana_program_token_v1_token2022_holding_account_extension_proto protoreflect.FileDescriptor
 
 const file_protochain_solana_program_token_v1_token2022_holding_account_extension_proto_rawDesc = "" +
 	"\n" +
-	"Lprotochain/solana/program/token/v1/token2022_holding_account_extension.proto\x12\"protochain.solana.program.token.v1\x1a=protochain/solana/program/token/v1/memo_transfer_config.proto\"\x8e\x01\n" +
+	"Lprotochain/solana/program/token/v1/token2022_holding_account_extension.proto\x12\"protochain.solana.program.token.v1\x1a=protochain/solana/program/token/v1/memo_transfer_config.proto\x1aLprotochain/solana/program/token/v1/token2022_extension_immutable_owner.proto\"\xff\x01\n" +
 	" Token2022HoldingAccountExtension\x12]\n" +
-	"\rmemo_transfer\x18\x01 \x01(\v26.protochain.solana.program.token.v1.MemoTransferConfigH\x00R\fmemoTransferB\v\n" +
+	"\rmemo_transfer\x18\x01 \x01(\v26.protochain.solana.program.token.v1.MemoTransferConfigH\x00R\fmemoTransfer\x12o\n" +
+	"\x0fimmutable_owner\x18\x02 \x01(\v2D.protochain.solana.program.token.v1.Token2022ExtensionImmutableOwnerH\x00R\x0eimmutableOwnerB\v\n" +
 	"\textensionBTZRgithub.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1b\x06proto3"
 
 var (
@@ -120,14 +141,16 @@ var file_protochain_solana_program_token_v1_token2022_holding_account_extension_
 var file_protochain_solana_program_token_v1_token2022_holding_account_extension_proto_goTypes = []any{
 	(*Token2022HoldingAccountExtension)(nil), // 0: protochain.solana.program.token.v1.Token2022HoldingAccountExtension
 	(*MemoTransferConfig)(nil),               // 1: protochain.solana.program.token.v1.MemoTransferConfig
+	(*Token2022ExtensionImmutableOwner)(nil), // 2: protochain.solana.program.token.v1.Token2022ExtensionImmutableOwner
 }
 var file_protochain_solana_program_token_v1_token2022_holding_account_extension_proto_depIdxs = []int32{
 	1, // 0: protochain.solana.program.token.v1.Token2022HoldingAccountExtension.memo_transfer:type_name -> protochain.solana.program.token.v1.MemoTransferConfig
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	2, // 1: protochain.solana.program.token.v1.Token2022HoldingAccountExtension.immutable_owner:type_name -> protochain.solana.program.token.v1.Token2022ExtensionImmutableOwner
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_protochain_solana_program_token_v1_token2022_holding_account_extension_proto_init() }
@@ -136,8 +159,10 @@ func file_protochain_solana_program_token_v1_token2022_holding_account_extension
 		return
 	}
 	file_protochain_solana_program_token_v1_memo_transfer_config_proto_init()
+	file_protochain_solana_program_token_v1_token2022_extension_immutable_owner_proto_init()
 	file_protochain_solana_program_token_v1_token2022_holding_account_extension_proto_msgTypes[0].OneofWrappers = []any{
 		(*Token2022HoldingAccountExtension_MemoTransfer)(nil),
+		(*Token2022HoldingAccountExtension_ImmutableOwner)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

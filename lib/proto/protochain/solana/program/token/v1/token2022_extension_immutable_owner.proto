@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package protochain.solana.program.token.v1;
+
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1";
+
+// Configuration for the Token-2022 Immutable Owner extension on a holding
+// account.
+//
+// When enabled, the token account's owner cannot be changed via the
+// `SetAuthority` instruction. This provides stronger ownership guarantees
+// and is automatically enabled for all Associated Token Accounts (ATAs)
+// created via the ATA program under Token-2022.
+//
+// This extension has no configuration fields — its presence alone activates
+// the restriction.
+message Token2022ExtensionImmutableOwner {}

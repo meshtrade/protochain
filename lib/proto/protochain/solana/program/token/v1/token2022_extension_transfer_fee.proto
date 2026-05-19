@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package protochain.solana.program.token.v1;
+
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1";
+
+// Configuration for the Token-2022 Transfer Fee extension.
+//
+// When enabled, a fee is assessed on every token transfer. The fee is
+// expressed in basis points (hundredths of a percent) of the transfer amount,
+// capped at a maximum fee. Fees are withheld in the destination token account
+// and can be harvested by the withdraw authority.
+//
+// Must be configured at mint creation time.
+message Token2022ExtensionTransferFee {
+  // The authority that can modify the transfer fee parameters.
+  // If empty, no authority is set and the fee configuration is immutable.
+  string transfer_fee_config_authority_pub_key = 1;
+
+  // The authority that can withdraw withheld fees from token accounts.
+  // If empty, no withdraw authority is set.
+  string withdraw_withheld_authority_pub_key = 2;
+
+  // Fee assessed on each transfer, in basis points of the transfer amount.
+  // One basis point = 0.01%. For example: 100 = 1%, 250 = 2.5%, 10000 = 100%.
+  // Maximum value: 10000.
+  uint32 transfer_fee_basis_points = 3;
+
+  // Maximum fee assessed on any single transfer, in base token units.
+  // For example, with 6 decimals: "1000000" = 1.0 token maximum fee.
+  // Use "0" for no maximum (fee is always calculated from basis points).
+  uint64 maximum_fee = 4;
+}

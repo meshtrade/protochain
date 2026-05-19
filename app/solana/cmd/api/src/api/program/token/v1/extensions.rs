@@ -3,8 +3,14 @@
 //! Each supported extension lives in its own sub-module. The top-level helpers
 //! here orchestrate across all extensions.
 
+mod default_account_state;
 pub(crate) mod helpers;
+pub(crate) mod immutable_owner;
 mod metadata;
+mod mint_close_authority;
+mod pausable;
+mod permanent_delegate;
+mod transfer_fee;
 
 use tonic::Status;
 
@@ -18,10 +24,6 @@ use protochain_api::protochain::solana::program::token::v1::{
 /// Extracts Token-2022 extensions from a parsed mint account and converts them
 /// to proto `Token2022Extension` messages.
 ///
-/// Currently supports:
-///   - **Metadata**: reads `MetadataPointer` + `TokenMetadata` TLV data and
-///     returns a `Token2022ExtensionMetadata` proto.
-///
 /// Extensions that are not present on the account are silently skipped.
 pub(crate) fn extract_token2022_extensions(
     state: &StateWithExtensions<'_, Mint>,
@@ -32,6 +34,21 @@ pub(crate) fn extract_token2022_extensions(
     if let Some(ext) = metadata::extract_metadata_extension(state, account_pubkey) {
         extensions.push(ext);
     }
+    if let Some(ext) = mint_close_authority::extract_mint_close_authority_extension(state) {
+        extensions.push(ext);
+    }
+    if let Some(ext) = transfer_fee::extract_transfer_fee_extension(state) {
+        extensions.push(ext);
+    }
+    if let Some(ext) = default_account_state::extract_default_account_state_extension(state) {
+        extensions.push(ext);
+    }
+    if let Some(ext) = permanent_delegate::extract_permanent_delegate_extension(state) {
+        extensions.push(ext);
+    }
+    if let Some(ext) = pausable::extract_pausable_extension(state) {
+        extensions.push(ext);
+    }
 
     extensions
 }
@@ -39,16 +56,12 @@ pub(crate) fn extract_token2022_extensions(
 /// Builds the ordered list of SDK instructions needed to initialise a Token-2022
 /// mint with the requested extensions.
 ///
-/// The instruction sequence for a mint with the Metadata extension is:
-///   1. `initialize_metadata_pointer`  – must precede `initialize_mint`
+/// The instruction sequence is:
+///   1. Extension pre-init instructions (must precede `initialize_mint`)
 ///   2. `initialize_mint`
-///   3. `initialize_token_metadata`    – must follow `initialize_mint`
-///   4. `update_field` × N             – one per additional-metadata entry
+///   3. Extension post-init instructions (must follow `initialize_mint`)
 ///
 /// For a plain mint (no extensions) only step 2 is emitted.
-///
-/// New extension types can be supported by adding arms to the pre/post match
-/// blocks and collecting the relevant instructions.
 #[allow(clippy::result_large_err)]
 pub(crate) fn build_token2022_mint_instructions(
     token_program_id: &Pubkey,
@@ -75,6 +88,56 @@ pub(crate) fn build_token2022_mint_instructions(
                     mint_pubkey,
                     mint_authority,
                     meta,
+                )?;
+                pre_init_instructions.append(&mut pre);
+                post_init_instructions.append(&mut post);
+            }
+            token2022_extension::Extension::MintCloseAuthority(config) => {
+                let (mut pre, mut post) =
+                    mint_close_authority::build_mint_close_authority_instructions(
+                        token_program_id,
+                        mint_pubkey,
+                        mint_authority,
+                        config,
+                    )?;
+                pre_init_instructions.append(&mut pre);
+                post_init_instructions.append(&mut post);
+            }
+            token2022_extension::Extension::TransferFee(config) => {
+                let (mut pre, mut post) = transfer_fee::build_transfer_fee_instructions(
+                    token_program_id,
+                    mint_pubkey,
+                    config,
+                )?;
+                pre_init_instructions.append(&mut pre);
+                post_init_instructions.append(&mut post);
+            }
+            token2022_extension::Extension::DefaultAccountState(config) => {
+                let (mut pre, mut post) =
+                    default_account_state::build_default_account_state_instructions(
+                        token_program_id,
+                        mint_pubkey,
+                        *config,
+                    )?;
+                pre_init_instructions.append(&mut pre);
+                post_init_instructions.append(&mut post);
+            }
+            token2022_extension::Extension::PermanentDelegate(config) => {
+                let (mut pre, mut post) =
+                    permanent_delegate::build_permanent_delegate_instructions(
+                        token_program_id,
+                        mint_pubkey,
+                        config,
+                    )?;
+                pre_init_instructions.append(&mut pre);
+                post_init_instructions.append(&mut post);
+            }
+            token2022_extension::Extension::Pausable(config) => {
+                let (mut pre, mut post) = pausable::build_pausable_instructions(
+                    token_program_id,
+                    mint_pubkey,
+                    mint_authority,
+                    config,
                 )?;
                 pre_init_instructions.append(&mut pre);
                 post_init_instructions.append(&mut post);

@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package protochain.solana.program.token.v1;
+
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1";
+
+// Configuration for the Token-2022 Pausable extension.
+//
+// When enabled, the designated pause authority can halt all minting, burning,
+// and transferring of tokens for this mint. While paused, no token operations
+// can be performed until the authority resumes activity.
+//
+// Use cases include emergency circuit breakers, regulatory compliance holds,
+// and migration freezes.
+//
+// Must be configured at mint creation time.
+message Token2022ExtensionPausable {
+  // The public key of the authority that can pause and resume activity on
+  // the mint. If empty, defaults to the mint authority.
+  string authority_pub_key = 1;
+}

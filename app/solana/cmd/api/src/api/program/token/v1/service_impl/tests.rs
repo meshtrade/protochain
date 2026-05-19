@@ -39,7 +39,7 @@ fn parse_human_amount_rejects_excess_decimals() {
     // 1.2345 with a 2-decimal mint must NOT silently truncate to 1.23.
     let err = parse_human_amount("1.2345", 2).unwrap_err();
     let msg = err.message();
-    assert!(msg.contains("more fractional digits"), "Expected precision error, got: {msg}",);
+    assert!(msg.contains("more fractional digits"), "Expected precision error, got: {msg}");
     assert!(msg.contains("1.2345"), "Error should echo the input");
     assert!(msg.contains("1.23"), "Error should show what it would truncate to");
 }

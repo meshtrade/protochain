@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package protochain.solana.program.token.v1;
+
+option go_package = "github.com/meshtrade/protochain/lib/go/protochain/solana/program/token/v1;token_v1";
+
+// Configuration for the Token-2022 Permanent Delegate extension.
+//
+// When enabled, grants an irrevocable delegate authority over ALL token
+// accounts for this mint. The permanent delegate can transfer or burn tokens
+// from any holder's account without the holder's consent.
+//
+// Use cases include regulated assets (compliance seizure), subscription
+// tokens, and revocable access tokens.
+//
+// Must be configured at mint creation time. Cannot be changed after
+// initialisation.
+message Token2022ExtensionPermanentDelegate {
+  // The public key of the permanent delegate that has transfer and burn
+  // authority over all token accounts for this mint.
+  string delegate_pub_key = 1;
+}
