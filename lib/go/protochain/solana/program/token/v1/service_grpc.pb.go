@@ -25,6 +25,9 @@ const (
 	Service_CreateToken2022HoldingAccount_FullMethodName = "/protochain.solana.program.token.v1.Service/CreateToken2022HoldingAccount"
 	Service_CreateSPLTokenHoldingAccount_FullMethodName  = "/protochain.solana.program.token.v1.Service/CreateSPLTokenHoldingAccount"
 	Service_Mint_FullMethodName                          = "/protochain.solana.program.token.v1.Service/Mint"
+	Service_FreezeTokenAccount_FullMethodName            = "/protochain.solana.program.token.v1.Service/FreezeTokenAccount"
+	Service_ThawTokenAccount_FullMethodName              = "/protochain.solana.program.token.v1.Service/ThawTokenAccount"
+	Service_CloseTokenAccount_FullMethodName             = "/protochain.solana.program.token.v1.Service/CloseTokenAccount"
 )
 
 // ServiceClient is the client API for Service service.
@@ -96,6 +99,37 @@ type ServiceClient interface {
 	// NOTE: Multi-sig mint authorities are not yet supported.  The on-chain mint
 	// authority must be a single key-pair signer.
 	Mint(ctx context.Context, in *MintRequest, opts ...grpc.CallOption) (*MintResponse, error)
+	// Freezes a token account, preventing any token transfers or other
+	// operations until the account is thawed.
+	//
+	// Token Program Agnostic — the service reads the token account on-chain to
+	// determine the owning token program.
+	//
+	// The returned instruction must be signed by the mint's freeze authority.
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	FreezeTokenAccount(ctx context.Context, in *FreezeTokenAccountRequest, opts ...grpc.CallOption) (*FreezeTokenAccountResponse, error)
+	// Thaws a previously frozen token account, restoring normal operations.
+	//
+	// Token Program Agnostic — the service reads the token account on-chain to
+	// determine the owning token program.
+	//
+	// The returned instruction must be signed by the mint's freeze authority.
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	ThawTokenAccount(ctx context.Context, in *ThawTokenAccountRequest, opts ...grpc.CallOption) (*ThawTokenAccountResponse, error)
+	// Closes a token account, transferring its remaining SOL rent to a
+	// destination address.
+	//
+	// Token Program Agnostic — the service reads the token account on-chain to
+	// determine the owning token program. The token account must have a zero
+	// token balance before it can be closed.
+	//
+	// The returned instruction must be signed by the token account's owner
+	// (or close authority, if one is set).
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	CloseTokenAccount(ctx context.Context, in *CloseTokenAccountRequest, opts ...grpc.CallOption) (*CloseTokenAccountResponse, error)
 }
 
 type serviceClient struct {
@@ -160,6 +194,36 @@ func (c *serviceClient) Mint(ctx context.Context, in *MintRequest, opts ...grpc.
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(MintResponse)
 	err := c.cc.Invoke(ctx, Service_Mint_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) FreezeTokenAccount(ctx context.Context, in *FreezeTokenAccountRequest, opts ...grpc.CallOption) (*FreezeTokenAccountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FreezeTokenAccountResponse)
+	err := c.cc.Invoke(ctx, Service_FreezeTokenAccount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) ThawTokenAccount(ctx context.Context, in *ThawTokenAccountRequest, opts ...grpc.CallOption) (*ThawTokenAccountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ThawTokenAccountResponse)
+	err := c.cc.Invoke(ctx, Service_ThawTokenAccount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) CloseTokenAccount(ctx context.Context, in *CloseTokenAccountRequest, opts ...grpc.CallOption) (*CloseTokenAccountResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CloseTokenAccountResponse)
+	err := c.cc.Invoke(ctx, Service_CloseTokenAccount_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -235,6 +299,37 @@ type ServiceServer interface {
 	// NOTE: Multi-sig mint authorities are not yet supported.  The on-chain mint
 	// authority must be a single key-pair signer.
 	Mint(context.Context, *MintRequest) (*MintResponse, error)
+	// Freezes a token account, preventing any token transfers or other
+	// operations until the account is thawed.
+	//
+	// Token Program Agnostic — the service reads the token account on-chain to
+	// determine the owning token program.
+	//
+	// The returned instruction must be signed by the mint's freeze authority.
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	FreezeTokenAccount(context.Context, *FreezeTokenAccountRequest) (*FreezeTokenAccountResponse, error)
+	// Thaws a previously frozen token account, restoring normal operations.
+	//
+	// Token Program Agnostic — the service reads the token account on-chain to
+	// determine the owning token program.
+	//
+	// The returned instruction must be signed by the mint's freeze authority.
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	ThawTokenAccount(context.Context, *ThawTokenAccountRequest) (*ThawTokenAccountResponse, error)
+	// Closes a token account, transferring its remaining SOL rent to a
+	// destination address.
+	//
+	// Token Program Agnostic — the service reads the token account on-chain to
+	// determine the owning token program. The token account must have a zero
+	// token balance before it can be closed.
+	//
+	// The returned instruction must be signed by the token account's owner
+	// (or close authority, if one is set).
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	CloseTokenAccount(context.Context, *CloseTokenAccountRequest) (*CloseTokenAccountResponse, error)
 	mustEmbedUnimplementedServiceServer()
 }
 
@@ -262,6 +357,15 @@ func (UnimplementedServiceServer) CreateSPLTokenHoldingAccount(context.Context, 
 }
 func (UnimplementedServiceServer) Mint(context.Context, *MintRequest) (*MintResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Mint not implemented")
+}
+func (UnimplementedServiceServer) FreezeTokenAccount(context.Context, *FreezeTokenAccountRequest) (*FreezeTokenAccountResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FreezeTokenAccount not implemented")
+}
+func (UnimplementedServiceServer) ThawTokenAccount(context.Context, *ThawTokenAccountRequest) (*ThawTokenAccountResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ThawTokenAccount not implemented")
+}
+func (UnimplementedServiceServer) CloseTokenAccount(context.Context, *CloseTokenAccountRequest) (*CloseTokenAccountResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CloseTokenAccount not implemented")
 }
 func (UnimplementedServiceServer) mustEmbedUnimplementedServiceServer() {}
 func (UnimplementedServiceServer) testEmbeddedByValue()                 {}
@@ -392,6 +496,60 @@ func _Service_Mint_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Service_FreezeTokenAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FreezeTokenAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).FreezeTokenAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_FreezeTokenAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).FreezeTokenAccount(ctx, req.(*FreezeTokenAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_ThawTokenAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ThawTokenAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).ThawTokenAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_ThawTokenAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).ThawTokenAccount(ctx, req.(*ThawTokenAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Service_CloseTokenAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CloseTokenAccountRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).CloseTokenAccount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_CloseTokenAccount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).CloseTokenAccount(ctx, req.(*CloseTokenAccountRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Service_ServiceDesc is the grpc.ServiceDesc for Service service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -422,6 +580,18 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Mint",
 			Handler:    _Service_Mint_Handler,
+		},
+		{
+			MethodName: "FreezeTokenAccount",
+			Handler:    _Service_FreezeTokenAccount_Handler,
+		},
+		{
+			MethodName: "ThawTokenAccount",
+			Handler:    _Service_ThawTokenAccount_Handler,
+		},
+		{
+			MethodName: "CloseTokenAccount",
+			Handler:    _Service_CloseTokenAccount_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

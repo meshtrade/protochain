@@ -76,6 +76,40 @@ type ServiceInterface interface {
 	// NOTE: Multi-sig mint authorities are not yet supported.  The on-chain mint
 	// authority must be a single key-pair signer.
 	Mint(ctx context.Context, request *MintRequest) (*MintResponse, error)
+
+	// Freezes a token account, preventing any token transfers or other
+	// operations until the account is thawed.
+	//
+	// Token Program Agnostic — the service reads the token account on-chain to
+	// determine the owning token program.
+	//
+	// The returned instruction must be signed by the mint's freeze authority.
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	FreezeTokenAccount(ctx context.Context, request *FreezeTokenAccountRequest) (*FreezeTokenAccountResponse, error)
+
+	// Thaws a previously frozen token account, restoring normal operations.
+	//
+	// Token Program Agnostic — the service reads the token account on-chain to
+	// determine the owning token program.
+	//
+	// The returned instruction must be signed by the mint's freeze authority.
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	ThawTokenAccount(ctx context.Context, request *ThawTokenAccountRequest) (*ThawTokenAccountResponse, error)
+
+	// Closes a token account, transferring its remaining SOL rent to a
+	// destination address.
+	//
+	// Token Program Agnostic — the service reads the token account on-chain to
+	// determine the owning token program. The token account must have a zero
+	// token balance before it can be closed.
+	//
+	// The returned instruction must be signed by the token account's owner
+	// (or close authority, if one is set).
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	CloseTokenAccount(ctx context.Context, request *CloseTokenAccountRequest) (*CloseTokenAccountResponse, error)
 }
 
 const ServiceServiceProviderName = "protochain-solana-program-token-v1-Service"

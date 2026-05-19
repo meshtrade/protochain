@@ -8,9 +8,13 @@
 //! - [`parse_mint`]             — `ParseMint`
 //! - [`create_holding_account`] — `CreateToken2022HoldingAccount`, `CreateSPLTokenHoldingAccount`
 //! - [`mint`]                   — `Mint` (MintToChecked)
+//! - [`close_token_account`]    — `CloseTokenAccount`
+//! - [`freeze_thaw_token_account`] — `FreezeTokenAccount`, `ThawTokenAccount`
 
+mod close_token_account;
 mod create_holding_account;
 mod create_mint;
+mod freeze_thaw_token_account;
 mod mint;
 mod parse_mint;
 
@@ -19,11 +23,13 @@ use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
 use protochain_api::protochain::solana::program::token::v1::{
-    service_server::Service as TokenProgramService, CreateSplTokenHoldingAccountRequest,
+    service_server::Service as TokenProgramService, CloseTokenAccountRequest,
+    CloseTokenAccountResponse, CreateSplTokenHoldingAccountRequest,
     CreateSplTokenHoldingAccountResponse, CreateSplTokenMintRequest, CreateSplTokenMintResponse,
     CreateToken2022HoldingAccountRequest, CreateToken2022HoldingAccountResponse,
-    CreateToken2022MintRequest, CreateToken2022MintResponse, MintRequest, MintResponse,
-    ParseMintRequest, ParseMintResponse,
+    CreateToken2022MintRequest, CreateToken2022MintResponse, FreezeTokenAccountRequest,
+    FreezeTokenAccountResponse, MintRequest, MintResponse, ParseMintRequest, ParseMintResponse,
+    ThawTokenAccountRequest, ThawTokenAccountResponse,
 };
 
 use solana_client::nonblocking::rpc_client::RpcClient;
@@ -103,6 +109,27 @@ impl TokenProgramService for TokenProgramServiceImpl {
 
     async fn mint(&self, request: Request<MintRequest>) -> Result<Response<MintResponse>, Status> {
         self.handle_mint(request).await
+    }
+
+    async fn freeze_token_account(
+        &self,
+        request: Request<FreezeTokenAccountRequest>,
+    ) -> Result<Response<FreezeTokenAccountResponse>, Status> {
+        self.handle_freeze_token_account(request).await
+    }
+
+    async fn thaw_token_account(
+        &self,
+        request: Request<ThawTokenAccountRequest>,
+    ) -> Result<Response<ThawTokenAccountResponse>, Status> {
+        self.handle_thaw_token_account(request).await
+    }
+
+    async fn close_token_account(
+        &self,
+        request: Request<CloseTokenAccountRequest>,
+    ) -> Result<Response<CloseTokenAccountResponse>, Status> {
+        self.handle_close_token_account(request).await
     }
 }
 

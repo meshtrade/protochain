@@ -155,3 +155,27 @@ func (s *serviceService) Mint(ctx context.Context, request *MintRequest) (*MintR
 		return s.GrpcClient().Mint(ctx, request)
 	})
 }
+
+// FreezeTokenAccount executes the FreezeTokenAccount RPC method with automatic
+// client-side validation, timeout handling, distributed tracing, and authentication.
+func (s *serviceService) FreezeTokenAccount(ctx context.Context, request *FreezeTokenAccountRequest) (*FreezeTokenAccountResponse, error) {
+	return common.Execute(s.Executor(), ctx, "FreezeTokenAccount", request, func(ctx context.Context) (*FreezeTokenAccountResponse, error) {
+		return s.GrpcClient().FreezeTokenAccount(ctx, request)
+	})
+}
+
+// ThawTokenAccount executes the ThawTokenAccount RPC method with automatic
+// client-side validation, timeout handling, distributed tracing, and authentication.
+func (s *serviceService) ThawTokenAccount(ctx context.Context, request *ThawTokenAccountRequest) (*ThawTokenAccountResponse, error) {
+	return common.Execute(s.Executor(), ctx, "ThawTokenAccount", request, func(ctx context.Context) (*ThawTokenAccountResponse, error) {
+		return s.GrpcClient().ThawTokenAccount(ctx, request)
+	})
+}
+
+// CloseTokenAccount executes the CloseTokenAccount RPC method with automatic
+// client-side validation, timeout handling, distributed tracing, and authentication.
+func (s *serviceService) CloseTokenAccount(ctx context.Context, request *CloseTokenAccountRequest) (*CloseTokenAccountResponse, error) {
+	return common.Execute(s.Executor(), ctx, "CloseTokenAccount", request, func(ctx context.Context) (*CloseTokenAccountResponse, error) {
+		return s.GrpcClient().CloseTokenAccount(ctx, request)
+	})
+}
