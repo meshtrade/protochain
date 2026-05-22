@@ -1,6 +1,6 @@
 {
   "name": "@protochain/ts-web",
-  "version": "1.0.0",
+  "version": "1.8.0",
   "type": "commonjs",
   "description": "Protochain TypeScript SDK (browser optimized)",
   "main": "./dist/index.js",
