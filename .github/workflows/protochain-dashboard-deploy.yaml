@@ -1,0 +1,171 @@
+name: Deploy protochain-dashboard docker image
+
+on:
+  push:
+    tags:
+      - 'protochain-dashboard/v*.*.*'
+
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.2.3)'
+        required: true
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/protochain-dashboard
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Extract version once, share across jobs
+  # ---------------------------------------------------------------------------
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Extract version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#protochain-dashboard/v}"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Extracted version: ${VERSION}"
+  # ---------------------------------------------------------------------------
+  # Build per-platform images in parallel (native runners, no QEMU)
+  # ---------------------------------------------------------------------------
+  build:
+    needs: prepare
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+
+    runs-on: ${{ matrix.runner }}
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # -------------------------------------------------------------------
+      # Generate TypeScript protobuf bindings (_pb.ts + _protochaints.ts)
+      # These are not committed — must be generated before Docker build.
+      # -------------------------------------------------------------------
+      - name: Install buf
+        uses: bufbuild/buf-setup-action@v1
+
+      - name: Set up Node.js (for custom protoc plugin)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Build custom TS protoc plugin
+        run: |
+          cd tool/protoc-gen/cmd/protochain_ts_web
+          yarn install --frozen-lockfile 2>/dev/null || yarn install
+          yarn build
+      - name: Generate TypeScript protobuf code
+        run: |
+          buf lint lib/proto
+          buf generate lib/proto --template lib/_code_gen/buf.gen.yaml --path lib/proto/protochain/solana
+      - name: Verify generated files exist
+        run: |
+          test -f lib/ts-web/src/protochain/solana/account/v1/account_pb.ts
+          test -f lib/ts-web/src/protochain/solana/account/v1/service_web_protochaints.ts
+          echo "✅ Generated TS files verified"
+      # -------------------------------------------------------------------
+      # Docker build + push
+      # -------------------------------------------------------------------
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: app/protochain/ci/dashboard/Dockerfile
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ matrix.platform }}
+          cache-to: type=gha,scope=${{ matrix.platform }},mode=max
+
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digest-${{ matrix.runner }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # ---------------------------------------------------------------------------
+  # Merge per-platform digests into a single multi-arch manifest
+  # ---------------------------------------------------------------------------
+  merge:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digest-*
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create and push multi-arch manifest
+        working-directory: /tmp/digests
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          VERSION="${{ needs.prepare.outputs.version }}"
+          # Build the list of per-platform digest references
+          DIGEST_ARGS=$(printf "${IMAGE}@sha256:%s " *)
+          # Create manifest for versioned tag and latest
+          docker buildx imagetools create \
+            --tag "${IMAGE}:${VERSION}" \
+            --tag "${IMAGE}:latest" \
+            ${DIGEST_ARGS}
+      - name: Inspect manifest
+        run: |
+          IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}"
+          VERSION="${{ needs.prepare.outputs.version }}"
+          docker buildx imagetools inspect "${IMAGE}:${VERSION}"
