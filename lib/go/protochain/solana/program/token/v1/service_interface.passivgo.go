@@ -98,6 +98,20 @@ type ServiceInterface interface {
 	// NOTE: Multi-sig authorities are not yet supported.
 	ThawTokenAccount(ctx context.Context, request *ThawTokenAccountRequest) (*ThawTokenAccountResponse, error)
 
+	// Burns tokens from a token account, permanently reducing the total supply.
+	//
+	// Token Program Agnostic — the service reads the mint account on-chain to
+	// determine the owning token program and the decimal precision.
+	//
+	// The Associated Token Account (ATA) for the source owner is derived
+	// automatically from the mint and the owner address.
+	//
+	// The returned instruction must be signed by the token account owner
+	// (or delegate, if one is set).
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	BurnToken(ctx context.Context, request *BurnTokenRequest) (*BurnTokenResponse, error)
+
 	// Closes a token account, transferring its remaining SOL rent to a
 	// destination address.
 	//

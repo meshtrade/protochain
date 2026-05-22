@@ -10,3 +10,5 @@ All method pages that are not yet implemented MUST show an "Under Construction" 
 | Account V1 | GetAccount | `/account-v1/get-account` | Complete |
 | Account V1 | FundNative | `/account-v1/fund-native` | Complete |
 | Program > Token V1 | ParseMint | `/program/token-v1/parse-mint` | Complete |
+| Program > Token V1 | CreateToken2022Mint | `/program/token-v1/create-token-2022-mint` | Complete |
+| Program > Token V1 | Mint | `/program/token-v1/mint` | Complete |

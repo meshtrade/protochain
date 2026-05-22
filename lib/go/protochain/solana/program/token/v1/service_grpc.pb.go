@@ -27,6 +27,7 @@ const (
 	Service_Mint_FullMethodName                          = "/protochain.solana.program.token.v1.Service/Mint"
 	Service_FreezeTokenAccount_FullMethodName            = "/protochain.solana.program.token.v1.Service/FreezeTokenAccount"
 	Service_ThawTokenAccount_FullMethodName              = "/protochain.solana.program.token.v1.Service/ThawTokenAccount"
+	Service_BurnToken_FullMethodName                     = "/protochain.solana.program.token.v1.Service/BurnToken"
 	Service_CloseTokenAccount_FullMethodName             = "/protochain.solana.program.token.v1.Service/CloseTokenAccount"
 )
 
@@ -118,6 +119,19 @@ type ServiceClient interface {
 	//
 	// NOTE: Multi-sig authorities are not yet supported.
 	ThawTokenAccount(ctx context.Context, in *ThawTokenAccountRequest, opts ...grpc.CallOption) (*ThawTokenAccountResponse, error)
+	// Burns tokens from a token account, permanently reducing the total supply.
+	//
+	// Token Program Agnostic — the service reads the mint account on-chain to
+	// determine the owning token program and the decimal precision.
+	//
+	// The Associated Token Account (ATA) for the source owner is derived
+	// automatically from the mint and the owner address.
+	//
+	// The returned instruction must be signed by the token account owner
+	// (or delegate, if one is set).
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	BurnToken(ctx context.Context, in *BurnTokenRequest, opts ...grpc.CallOption) (*BurnTokenResponse, error)
 	// Closes a token account, transferring its remaining SOL rent to a
 	// destination address.
 	//
@@ -214,6 +228,16 @@ func (c *serviceClient) ThawTokenAccount(ctx context.Context, in *ThawTokenAccou
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ThawTokenAccountResponse)
 	err := c.cc.Invoke(ctx, Service_ThawTokenAccount_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) BurnToken(ctx context.Context, in *BurnTokenRequest, opts ...grpc.CallOption) (*BurnTokenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BurnTokenResponse)
+	err := c.cc.Invoke(ctx, Service_BurnToken_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -318,6 +342,19 @@ type ServiceServer interface {
 	//
 	// NOTE: Multi-sig authorities are not yet supported.
 	ThawTokenAccount(context.Context, *ThawTokenAccountRequest) (*ThawTokenAccountResponse, error)
+	// Burns tokens from a token account, permanently reducing the total supply.
+	//
+	// Token Program Agnostic — the service reads the mint account on-chain to
+	// determine the owning token program and the decimal precision.
+	//
+	// The Associated Token Account (ATA) for the source owner is derived
+	// automatically from the mint and the owner address.
+	//
+	// The returned instruction must be signed by the token account owner
+	// (or delegate, if one is set).
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	BurnToken(context.Context, *BurnTokenRequest) (*BurnTokenResponse, error)
 	// Closes a token account, transferring its remaining SOL rent to a
 	// destination address.
 	//
@@ -363,6 +400,9 @@ func (UnimplementedServiceServer) FreezeTokenAccount(context.Context, *FreezeTok
 }
 func (UnimplementedServiceServer) ThawTokenAccount(context.Context, *ThawTokenAccountRequest) (*ThawTokenAccountResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ThawTokenAccount not implemented")
+}
+func (UnimplementedServiceServer) BurnToken(context.Context, *BurnTokenRequest) (*BurnTokenResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BurnToken not implemented")
 }
 func (UnimplementedServiceServer) CloseTokenAccount(context.Context, *CloseTokenAccountRequest) (*CloseTokenAccountResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CloseTokenAccount not implemented")
@@ -532,6 +572,24 @@ func _Service_ThawTokenAccount_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Service_BurnToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BurnTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).BurnToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_BurnToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).BurnToken(ctx, req.(*BurnTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Service_CloseTokenAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CloseTokenAccountRequest)
 	if err := dec(in); err != nil {
@@ -588,6 +646,10 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ThawTokenAccount",
 			Handler:    _Service_ThawTokenAccount_Handler,
+		},
+		{
+			MethodName: "BurnToken",
+			Handler:    _Service_BurnToken_Handler,
 		},
 		{
 			MethodName: "CloseTokenAccount",
