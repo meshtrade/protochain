@@ -112,6 +112,20 @@ type ServiceInterface interface {
 	// NOTE: Multi-sig authorities are not yet supported.
 	BurnToken(ctx context.Context, request *BurnTokenRequest) (*BurnTokenResponse, error)
 
+	// Transfers tokens between token accounts using the TransferChecked instruction.
+	//
+	// Token Program Agnostic — the service reads the mint account on-chain to
+	// determine the owning token program and the decimal precision.
+	//
+	// The Associated Token Accounts (ATAs) for both the source and destination
+	// owners are derived automatically from the mint and the owner addresses.
+	//
+	// The returned instruction must be signed by the source token account owner
+	// (or delegate, if one is set).
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	TransferToken(ctx context.Context, request *TransferTokenRequest) (*TransferTokenResponse, error)
+
 	// Closes a token account, transferring its remaining SOL rent to a
 	// destination address.
 	//

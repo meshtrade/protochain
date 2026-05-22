@@ -198,6 +198,23 @@ func (a *ServiceGRPCAdaptor) BurnToken(ctx context.Context, request *BurnTokenRe
 	return burnTokenResponse, nil
 }
 
+// TransferToken exposes the TransferToken method of the Service interface over gRPC
+func (a *ServiceGRPCAdaptor) TransferToken(ctx context.Context, request *TransferTokenRequest) (*TransferTokenResponse, error) {
+	ctx, span := a.tracer.Start(
+		ctx,
+		ServiceServiceProviderName+"GRPCAdaptor.TransferToken",
+	)
+	defer span.End()
+
+	// call the service interface implementation
+	transferTokenResponse, err := a.service.TransferToken(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return transferTokenResponse, nil
+}
+
 // CloseTokenAccount exposes the CloseTokenAccount method of the Service interface over gRPC
 func (a *ServiceGRPCAdaptor) CloseTokenAccount(ctx context.Context, request *CloseTokenAccountRequest) (*CloseTokenAccountResponse, error) {
 	ctx, span := a.tracer.Start(

@@ -749,5 +749,53 @@ pub struct BurnTokenResponse {
     #[prost(message, optional, tag="1")]
     pub instruction: ::core::option::Option<super::super::super::transaction::v1::SolanaInstruction>,
 }
+/// Request to transfer tokens between token accounts.
+///
+/// The service retrieves the mint account on-chain to resolve the decimal
+/// precision and owning token program — so callers do not need to supply
+/// those values.
+///
+/// NOTE: Multi-sig authorities are not yet supported.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TransferTokenRequest {
+    /// Public key of the token mint (Base58).
+    #[prost(string, tag="1")]
+    pub mint_pub_key: ::prost::alloc::string::String,
+    /// Public key of the **system account** (wallet) that owns the source
+    /// token account.  The Associated Token Account (ATA) is derived
+    /// automatically from this owner and the mint.
+    ///
+    /// Do NOT pass the ATA address itself — pass the owner's system account.
+    #[prost(string, tag="2")]
+    pub source_owner_pub_key: ::prost::alloc::string::String,
+    /// Public key of the **system account** (wallet) that owns the destination
+    /// token account.  The Associated Token Account (ATA) is derived
+    /// automatically from this owner and the mint.
+    ///
+    /// Do NOT pass the ATA address itself — pass the owner's system account.
+    #[prost(string, tag="3")]
+    pub destination_owner_pub_key: ::prost::alloc::string::String,
+    /// Human-readable token amount as a decimal string.
+    ///
+    /// Express the amount in whole-token units (e.g. "1.5" for one-and-a-half
+    /// tokens).  The service converts this to the on-chain base-unit
+    /// representation using the mint's decimal precision.
+    ///
+    /// Examples (assuming 6 decimals):
+    ///    "1.0"     → 1 000 000 base units
+    ///    "0.5"     → 500 000 base units
+    ///    "1000"    → 1 000 000 000 base units
+    ///    "0.000001"→ 1 base unit
+    #[prost(string, tag="4")]
+    pub amount: ::prost::alloc::string::String,
+}
+/// Response containing the transfer instruction.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TransferTokenResponse {
+    #[prost(message, optional, tag="1")]
+    pub instruction: ::core::option::Option<super::super::super::transaction::v1::SolanaInstruction>,
+}
 include!("protochain.solana.program.token.v1.tonic.rs");
 // @@protoc_insertion_point(module)
