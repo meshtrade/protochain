@@ -116,6 +116,20 @@ service Service {
   // NOTE: Multi-sig authorities are not yet supported.
   rpc BurnToken(BurnTokenRequest) returns (BurnTokenResponse);
 
+  // Transfers tokens between token accounts using the TransferChecked instruction.
+  //
+  // Token Program Agnostic — the service reads the mint account on-chain to
+  // determine the owning token program and the decimal precision.
+  //
+  // The Associated Token Accounts (ATAs) for both the source and destination
+  // owners are derived automatically from the mint and the owner addresses.
+  //
+  // The returned instruction must be signed by the source token account owner
+  // (or delegate, if one is set).
+  //
+  // NOTE: Multi-sig authorities are not yet supported.
+  rpc TransferToken(TransferTokenRequest) returns (TransferTokenResponse);
+
   // Closes a token account, transferring its remaining SOL rent to a
   // destination address.
   //
@@ -428,5 +442,49 @@ message BurnTokenRequest {
 
 // Response containing the burn instruction.
 message BurnTokenResponse {
+  protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
+}
+
+// Request to transfer tokens between token accounts.
+//
+// The service retrieves the mint account on-chain to resolve the decimal
+// precision and owning token program — so callers do not need to supply
+// those values.
+//
+// NOTE: Multi-sig authorities are not yet supported.
+message TransferTokenRequest {
+  // Public key of the token mint (Base58).
+  string mint_pub_key = 1;
+
+  // Public key of the **system account** (wallet) that owns the source
+  // token account.  The Associated Token Account (ATA) is derived
+  // automatically from this owner and the mint.
+  //
+  // Do NOT pass the ATA address itself — pass the owner's system account.
+  string source_owner_pub_key = 2;
+
+  // Public key of the **system account** (wallet) that owns the destination
+  // token account.  The Associated Token Account (ATA) is derived
+  // automatically from this owner and the mint.
+  //
+  // Do NOT pass the ATA address itself — pass the owner's system account.
+  string destination_owner_pub_key = 3;
+
+  // Human-readable token amount as a decimal string.
+  //
+  // Express the amount in whole-token units (e.g. "1.5" for one-and-a-half
+  // tokens).  The service converts this to the on-chain base-unit
+  // representation using the mint's decimal precision.
+  //
+  // Examples (assuming 6 decimals):
+  //   "1.0"     → 1 000 000 base units
+  //   "0.5"     → 500 000 base units
+  //   "1000"    → 1 000 000 000 base units
+  //   "0.000001"→ 1 base unit
+  string amount = 4;
+}
+
+// Response containing the transfer instruction.
+message TransferTokenResponse {
   protochain.solana.transaction.v1.SolanaInstruction instruction = 1;
 }

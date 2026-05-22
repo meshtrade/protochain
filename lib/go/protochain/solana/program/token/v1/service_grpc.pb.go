@@ -28,6 +28,7 @@ const (
 	Service_FreezeTokenAccount_FullMethodName            = "/protochain.solana.program.token.v1.Service/FreezeTokenAccount"
 	Service_ThawTokenAccount_FullMethodName              = "/protochain.solana.program.token.v1.Service/ThawTokenAccount"
 	Service_BurnToken_FullMethodName                     = "/protochain.solana.program.token.v1.Service/BurnToken"
+	Service_TransferToken_FullMethodName                 = "/protochain.solana.program.token.v1.Service/TransferToken"
 	Service_CloseTokenAccount_FullMethodName             = "/protochain.solana.program.token.v1.Service/CloseTokenAccount"
 )
 
@@ -132,6 +133,19 @@ type ServiceClient interface {
 	//
 	// NOTE: Multi-sig authorities are not yet supported.
 	BurnToken(ctx context.Context, in *BurnTokenRequest, opts ...grpc.CallOption) (*BurnTokenResponse, error)
+	// Transfers tokens between token accounts using the TransferChecked instruction.
+	//
+	// Token Program Agnostic — the service reads the mint account on-chain to
+	// determine the owning token program and the decimal precision.
+	//
+	// The Associated Token Accounts (ATAs) for both the source and destination
+	// owners are derived automatically from the mint and the owner addresses.
+	//
+	// The returned instruction must be signed by the source token account owner
+	// (or delegate, if one is set).
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	TransferToken(ctx context.Context, in *TransferTokenRequest, opts ...grpc.CallOption) (*TransferTokenResponse, error)
 	// Closes a token account, transferring its remaining SOL rent to a
 	// destination address.
 	//
@@ -238,6 +252,16 @@ func (c *serviceClient) BurnToken(ctx context.Context, in *BurnTokenRequest, opt
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(BurnTokenResponse)
 	err := c.cc.Invoke(ctx, Service_BurnToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceClient) TransferToken(ctx context.Context, in *TransferTokenRequest, opts ...grpc.CallOption) (*TransferTokenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TransferTokenResponse)
+	err := c.cc.Invoke(ctx, Service_TransferToken_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -355,6 +379,19 @@ type ServiceServer interface {
 	//
 	// NOTE: Multi-sig authorities are not yet supported.
 	BurnToken(context.Context, *BurnTokenRequest) (*BurnTokenResponse, error)
+	// Transfers tokens between token accounts using the TransferChecked instruction.
+	//
+	// Token Program Agnostic — the service reads the mint account on-chain to
+	// determine the owning token program and the decimal precision.
+	//
+	// The Associated Token Accounts (ATAs) for both the source and destination
+	// owners are derived automatically from the mint and the owner addresses.
+	//
+	// The returned instruction must be signed by the source token account owner
+	// (or delegate, if one is set).
+	//
+	// NOTE: Multi-sig authorities are not yet supported.
+	TransferToken(context.Context, *TransferTokenRequest) (*TransferTokenResponse, error)
 	// Closes a token account, transferring its remaining SOL rent to a
 	// destination address.
 	//
@@ -403,6 +440,9 @@ func (UnimplementedServiceServer) ThawTokenAccount(context.Context, *ThawTokenAc
 }
 func (UnimplementedServiceServer) BurnToken(context.Context, *BurnTokenRequest) (*BurnTokenResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BurnToken not implemented")
+}
+func (UnimplementedServiceServer) TransferToken(context.Context, *TransferTokenRequest) (*TransferTokenResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method TransferToken not implemented")
 }
 func (UnimplementedServiceServer) CloseTokenAccount(context.Context, *CloseTokenAccountRequest) (*CloseTokenAccountResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CloseTokenAccount not implemented")
@@ -590,6 +630,24 @@ func _Service_BurnToken_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Service_TransferToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TransferTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceServer).TransferToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Service_TransferToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceServer).TransferToken(ctx, req.(*TransferTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Service_CloseTokenAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CloseTokenAccountRequest)
 	if err := dec(in); err != nil {
@@ -650,6 +708,10 @@ var Service_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BurnToken",
 			Handler:    _Service_BurnToken_Handler,
+		},
+		{
+			MethodName: "TransferToken",
+			Handler:    _Service_TransferToken_Handler,
 		},
 		{
 			MethodName: "CloseTokenAccount",

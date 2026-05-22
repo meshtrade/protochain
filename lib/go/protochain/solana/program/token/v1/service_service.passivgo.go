@@ -180,6 +180,14 @@ func (s *serviceService) BurnToken(ctx context.Context, request *BurnTokenReques
 	})
 }
 
+// TransferToken executes the TransferToken RPC method with automatic
+// client-side validation, timeout handling, distributed tracing, and authentication.
+func (s *serviceService) TransferToken(ctx context.Context, request *TransferTokenRequest) (*TransferTokenResponse, error) {
+	return common.Execute(s.Executor(), ctx, "TransferToken", request, func(ctx context.Context) (*TransferTokenResponse, error) {
+		return s.GrpcClient().TransferToken(ctx, request)
+	})
+}
+
 // CloseTokenAccount executes the CloseTokenAccount RPC method with automatic
 // client-side validation, timeout handling, distributed tracing, and authentication.
 func (s *serviceService) CloseTokenAccount(ctx context.Context, request *CloseTokenAccountRequest) (*CloseTokenAccountResponse, error) {

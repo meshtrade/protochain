@@ -8,6 +8,8 @@
 //! - [`parse_mint`]             — `ParseMint`
 //! - [`create_holding_account`] — `CreateToken2022HoldingAccount`, `CreateSPLTokenHoldingAccount`
 //! - [`mint`]                   — `Mint` (MintToChecked)
+//! - [`transfer`]               — `TransferToken` (TransferChecked)
+//! - [`burn`]                   — `BurnToken` (BurnChecked)
 //! - [`close_token_account`]    — `CloseTokenAccount`
 //! - [`freeze_thaw_token_account`] — `FreezeTokenAccount`, `ThawTokenAccount`
 
@@ -18,6 +20,7 @@ mod create_mint;
 mod freeze_thaw_token_account;
 mod mint;
 mod parse_mint;
+mod transfer;
 
 use std::sync::Arc;
 
@@ -30,7 +33,7 @@ use protochain_api::protochain::solana::program::token::v1::{
     CreateToken2022HoldingAccountRequest, CreateToken2022HoldingAccountResponse,
     CreateToken2022MintRequest, CreateToken2022MintResponse, FreezeTokenAccountRequest,
     FreezeTokenAccountResponse, MintRequest, MintResponse, ParseMintRequest, ParseMintResponse,
-    ThawTokenAccountRequest, ThawTokenAccountResponse,
+    ThawTokenAccountRequest, ThawTokenAccountResponse, TransferTokenRequest, TransferTokenResponse,
 };
 
 use solana_client::nonblocking::rpc_client::RpcClient;
@@ -131,6 +134,13 @@ impl TokenProgramService for TokenProgramServiceImpl {
         request: Request<BurnTokenRequest>,
     ) -> Result<Response<BurnTokenResponse>, Status> {
         self.handle_burn_token(request).await
+    }
+
+    async fn transfer_token(
+        &self,
+        request: Request<TransferTokenRequest>,
+    ) -> Result<Response<TransferTokenResponse>, Status> {
+        self.handle_transfer_token(request).await
     }
 
     async fn close_token_account(

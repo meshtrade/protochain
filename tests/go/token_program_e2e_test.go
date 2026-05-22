@@ -846,6 +846,183 @@ func (suite *TokenProgramE2ETestSuite) Test_05_Token_e2e() {
 	suite.T().Logf("   solana confirm %s --url http://localhost:8899", submittedMintTx.Signature)
 }
 
+// Test_06_TransferToken_e2e tests transferring tokens between two holding accounts
+func (suite *TokenProgramE2ETestSuite) Test_06_TransferToken_e2e() {
+	suite.T().Log("🎯 Testing Token Transfer between Holding Accounts")
+
+	// ────────── Setup: payer, mint, source wallet, destination wallet ──────────
+
+	// Generate and fund payer account
+	payKeyResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
+	suite.Require().NoError(err, "Should generate payer keypair")
+
+	fundResp, err := suite.accountService.FundNative(suite.ctx, &account_v1.FundNativeRequest{
+		Address: payKeyResp.KeyPair.PublicKey,
+		Amount:  "5000000000", // 5 SOL
+	})
+	suite.Require().NoError(err, "Should fund payer account")
+	suite.monitorTransactionToCompletion(fundResp.GetSignature())
+	suite.T().Logf("  Funded payer account: %s", payKeyResp.KeyPair.PublicKey)
+
+	// Generate mint account keypair
+	mintKeyResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
+	suite.Require().NoError(err, "Should generate mint keypair")
+
+	// Create Token-2022 mint (6 decimals, no extensions)
+	createMintResp, err := suite.tokenProgramService.CreateToken2022Mint(suite.ctx, &token_v1.CreateToken2022MintRequest{
+		PayerPubKey:           payKeyResp.KeyPair.PublicKey,
+		MintPubKey:            mintKeyResp.KeyPair.PublicKey,
+		MintAuthorityPubKey:   payKeyResp.KeyPair.PublicKey,
+		FreezeAuthorityPubKey: payKeyResp.KeyPair.PublicKey,
+		Decimals:              6,
+	})
+	suite.Require().NoError(err, "Should create Token-2022 mint")
+
+	// Submit mint creation transaction
+	suite.submitAndConfirm(
+		createMintResp.Instructions,
+		payKeyResp.KeyPair.PublicKey,
+		[]string{payKeyResp.KeyPair.PrivateKey, mintKeyResp.KeyPair.PrivateKey},
+	)
+	suite.T().Logf("  Mint created: %s", mintKeyResp.KeyPair.PublicKey)
+
+	// ────────── Create source holding account ──────────
+
+	sourceWalletResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
+	suite.Require().NoError(err, "Should generate source wallet keypair")
+
+	sourceHoldingResp, err := suite.tokenProgramService.CreateToken2022HoldingAccount(suite.ctx, &token_v1.CreateToken2022HoldingAccountRequest{
+		PayerPubKey: payKeyResp.KeyPair.PublicKey,
+		MintPubKey:  mintKeyResp.KeyPair.PublicKey,
+		OwnerPubKey: sourceWalletResp.KeyPair.PublicKey,
+	})
+	suite.Require().NoError(err, "Should create source holding account")
+
+	suite.submitAndConfirm(
+		sourceHoldingResp.Instructions,
+		payKeyResp.KeyPair.PublicKey,
+		[]string{payKeyResp.KeyPair.PrivateKey},
+	)
+	suite.T().Logf("  Source holding account created for wallet: %s", sourceWalletResp.KeyPair.PublicKey)
+
+	// ────────── Create destination holding account ──────────
+
+	destWalletResp, err := suite.accountService.GenerateNewKeyPair(suite.ctx, &account_v1.GenerateNewKeyPairRequest{})
+	suite.Require().NoError(err, "Should generate destination wallet keypair")
+
+	destHoldingResp, err := suite.tokenProgramService.CreateToken2022HoldingAccount(suite.ctx, &token_v1.CreateToken2022HoldingAccountRequest{
+		PayerPubKey: payKeyResp.KeyPair.PublicKey,
+		MintPubKey:  mintKeyResp.KeyPair.PublicKey,
+		OwnerPubKey: destWalletResp.KeyPair.PublicKey,
+	})
+	suite.Require().NoError(err, "Should create destination holding account")
+
+	suite.submitAndConfirm(
+		destHoldingResp.Instructions,
+		payKeyResp.KeyPair.PublicKey,
+		[]string{payKeyResp.KeyPair.PrivateKey},
+	)
+	suite.T().Logf("  Destination holding account created for wallet: %s", destWalletResp.KeyPair.PublicKey)
+
+	// ────────── Mint tokens to source ──────────
+
+	mintInstr, err := suite.tokenProgramService.Mint(suite.ctx, &token_v1.MintRequest{
+		MintPubKey:             mintKeyResp.KeyPair.PublicKey,
+		DestinationOwnerPubKey: sourceWalletResp.KeyPair.PublicKey,
+		Amount:                 "10.0", // 10 tokens
+	})
+	suite.Require().NoError(err, "Should create mint instruction")
+
+	suite.submitAndConfirm(
+		[]*transaction_v1.SolanaInstruction{mintInstr.Instruction},
+		payKeyResp.KeyPair.PublicKey,
+		[]string{payKeyResp.KeyPair.PrivateKey}, // payer is mint authority
+	)
+	suite.T().Logf("  Minted 10.0 tokens to source wallet")
+
+	// ────────── Transfer tokens from source to destination ──────────
+
+	transferInstr, err := suite.tokenProgramService.TransferToken(suite.ctx, &token_v1.TransferTokenRequest{
+		MintPubKey:             mintKeyResp.KeyPair.PublicKey,
+		SourceOwnerPubKey:      sourceWalletResp.KeyPair.PublicKey,
+		DestinationOwnerPubKey: destWalletResp.KeyPair.PublicKey,
+		Amount:                 "3.5", // 3.5 tokens
+	})
+	suite.Require().NoError(err, "Should create transfer instruction")
+	suite.Require().NotNil(transferInstr.Instruction, "Transfer instruction should not be nil")
+
+	suite.submitAndConfirm(
+		[]*transaction_v1.SolanaInstruction{transferInstr.Instruction},
+		payKeyResp.KeyPair.PublicKey,
+		[]string{payKeyResp.KeyPair.PrivateKey, sourceWalletResp.KeyPair.PrivateKey}, // payer + source owner
+	)
+	suite.T().Logf("  Transferred 3.5 tokens from source to destination")
+
+	// ────────── Verify supply unchanged (transfer doesn't change supply) ──────────
+
+	var parsedMint *token_v1.ParseMintResponse
+	for attempt := 1; attempt <= 10; attempt++ {
+		parsedMint, err = suite.tokenProgramService.ParseMint(suite.ctx, &token_v1.ParseMintRequest{
+			AccountAddress: mintKeyResp.KeyPair.PublicKey,
+		})
+		suite.Require().NoError(err, "Should parse mint account (attempt %d)", attempt)
+
+		if parsedMint != nil && parsedMint.Mint != nil && parsedMint.Mint.Supply == "10000000" {
+			break
+		}
+		if attempt < 10 {
+			time.Sleep(200 * time.Millisecond)
+		}
+	}
+	suite.Assert().Equal("10000000", parsedMint.Mint.Supply,
+		"Mint supply should remain at 10_000_000 base units (10.0 tokens) after transfer")
+
+	suite.T().Logf("✅ Token transfer verified successfully:")
+	suite.T().Logf("   Mint: %s", mintKeyResp.KeyPair.PublicKey)
+	suite.T().Logf("   Source owner: %s", sourceWalletResp.KeyPair.PublicKey)
+	suite.T().Logf("   Dest owner: %s", destWalletResp.KeyPair.PublicKey)
+	suite.T().Logf("   Transferred: 3.5 tokens")
+}
+
+// submitAndConfirm is a test helper that compiles, signs, submits, and monitors
+// a transaction to completion. It fails the current test on any error.
+func (suite *TokenProgramE2ETestSuite) submitAndConfirm(
+	instructions []*transaction_v1.SolanaInstruction,
+	feePayer string,
+	privateKeys []string,
+) {
+	suite.T().Helper()
+
+	tx := &transaction_v1.Transaction{
+		Instructions: instructions,
+		State:        transaction_v1.TransactionState_TRANSACTION_STATE_DRAFT,
+	}
+
+	compiled, err := suite.transactionService.CompileTransaction(suite.ctx, &transaction_v1.CompileTransactionRequest{
+		Transaction: tx,
+		FeePayer:    feePayer,
+	})
+	suite.Require().NoError(err, "Should compile transaction")
+
+	signed, err := suite.transactionService.SignTransaction(suite.ctx, &transaction_v1.SignTransactionRequest{
+		Transaction: compiled.Transaction,
+		SigningMethod: &transaction_v1.SignTransactionRequest_PrivateKeys{
+			PrivateKeys: &transaction_v1.SignWithPrivateKeys{
+				PrivateKeys: privateKeys,
+			},
+		},
+	})
+	suite.Require().NoError(err, "Should sign transaction")
+
+	submitted, err := suite.transactionService.SubmitTransaction(suite.ctx, &transaction_v1.SubmitTransactionRequest{
+		Transaction: signed.Transaction,
+	})
+	suite.Require().NoError(err, "Should submit transaction")
+	suite.Require().NotEmpty(submitted.Signature, "Signature should not be empty (error: %s)", submitted.ErrorMessage)
+
+	suite.monitorTransactionToCompletion(submitted.Signature)
+}
+
 // monitorTransactionToCompletion monitors a transaction via websocket streaming
 // until it reaches CONFIRMED or FINALIZED status, failing the test on error/timeout/drop.
 func (suite *TokenProgramE2ETestSuite) monitorTransactionToCompletion(signature string) {
