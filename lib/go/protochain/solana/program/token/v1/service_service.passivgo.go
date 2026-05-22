@@ -172,6 +172,14 @@ func (s *serviceService) ThawTokenAccount(ctx context.Context, request *ThawToke
 	})
 }
 
+// BurnToken executes the BurnToken RPC method with automatic
+// client-side validation, timeout handling, distributed tracing, and authentication.
+func (s *serviceService) BurnToken(ctx context.Context, request *BurnTokenRequest) (*BurnTokenResponse, error) {
+	return common.Execute(s.Executor(), ctx, "BurnToken", request, func(ctx context.Context) (*BurnTokenResponse, error) {
+		return s.GrpcClient().BurnToken(ctx, request)
+	})
+}
+
 // CloseTokenAccount executes the CloseTokenAccount RPC method with automatic
 // client-side validation, timeout handling, distributed tracing, and authentication.
 func (s *serviceService) CloseTokenAccount(ctx context.Context, request *CloseTokenAccountRequest) (*CloseTokenAccountResponse, error) {

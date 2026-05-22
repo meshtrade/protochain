@@ -181,6 +181,23 @@ func (a *ServiceGRPCAdaptor) ThawTokenAccount(ctx context.Context, request *Thaw
 	return thawTokenAccountResponse, nil
 }
 
+// BurnToken exposes the BurnToken method of the Service interface over gRPC
+func (a *ServiceGRPCAdaptor) BurnToken(ctx context.Context, request *BurnTokenRequest) (*BurnTokenResponse, error) {
+	ctx, span := a.tracer.Start(
+		ctx,
+		ServiceServiceProviderName+"GRPCAdaptor.BurnToken",
+	)
+	defer span.End()
+
+	// call the service interface implementation
+	burnTokenResponse, err := a.service.BurnToken(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return burnTokenResponse, nil
+}
+
 // CloseTokenAccount exposes the CloseTokenAccount method of the Service interface over gRPC
 func (a *ServiceGRPCAdaptor) CloseTokenAccount(ctx context.Context, request *CloseTokenAccountRequest) (*CloseTokenAccountResponse, error) {
 	ctx, span := a.tracer.Start(

@@ -11,6 +11,7 @@
 //! - [`close_token_account`]    — `CloseTokenAccount`
 //! - [`freeze_thaw_token_account`] — `FreezeTokenAccount`, `ThawTokenAccount`
 
+mod burn;
 mod close_token_account;
 mod create_holding_account;
 mod create_mint;
@@ -23,8 +24,8 @@ use std::sync::Arc;
 use tonic::{Request, Response, Status};
 
 use protochain_api::protochain::solana::program::token::v1::{
-    service_server::Service as TokenProgramService, CloseTokenAccountRequest,
-    CloseTokenAccountResponse, CreateSplTokenHoldingAccountRequest,
+    service_server::Service as TokenProgramService, BurnTokenRequest, BurnTokenResponse,
+    CloseTokenAccountRequest, CloseTokenAccountResponse, CreateSplTokenHoldingAccountRequest,
     CreateSplTokenHoldingAccountResponse, CreateSplTokenMintRequest, CreateSplTokenMintResponse,
     CreateToken2022HoldingAccountRequest, CreateToken2022HoldingAccountResponse,
     CreateToken2022MintRequest, CreateToken2022MintResponse, FreezeTokenAccountRequest,
@@ -123,6 +124,13 @@ impl TokenProgramService for TokenProgramServiceImpl {
         request: Request<ThawTokenAccountRequest>,
     ) -> Result<Response<ThawTokenAccountResponse>, Status> {
         self.handle_thaw_token_account(request).await
+    }
+
+    async fn burn_token(
+        &self,
+        request: Request<BurnTokenRequest>,
+    ) -> Result<Response<BurnTokenResponse>, Status> {
+        self.handle_burn_token(request).await
     }
 
     async fn close_token_account(
