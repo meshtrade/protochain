@@ -2,6 +2,8 @@
 
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { toJson } from "@bufbuild/protobuf";
+import { ParseMintResponseSchema } from "@protochain/ts-web/solana/program/token/v1";
 import { useProtochain } from "@/providers/protochain-provider";
 import { RequestForm } from "@/components/method/request-form";
 import { ResponsePanel } from "@/components/method/response-panel";
@@ -26,7 +28,9 @@ function ParseMintForm() {
       const res = await programTokenService.parseMint({
         accountAddress,
       } as Parameters<typeof programTokenService.parseMint>[0]);
-      setResponse(res);
+      // Serialize through the proto schema so enums render as their string
+      // names (e.g. ACCOUNT_STATE_FROZEN) and oneof wrappers flatten cleanly.
+      setResponse(toJson(ParseMintResponseSchema, res, { enumAsInteger: false }));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
