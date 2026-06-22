@@ -13,7 +13,7 @@
     "@base-ui/react": "^1.3.0",
     "@bufbuild/protobuf": "^2.11.0",
     "@hookform/resolvers": "^5.2.2",
-    "@protochain/ts-web": "*",
+    "@protochain/ts-web": "1.9.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

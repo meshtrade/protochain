@@ -896,6 +896,14 @@
   resolved "https://registry.yarnpkg.com/@oxc-project/types/-/types-0.122.0.tgz#2f4e77a3b183c87b2a326affd703ef71ba836601"
   integrity sha512-oLAl5kBpV4w69UtFZ9xqcmTi+GENWOcPF7FCrczTiBbmC0ibXxCwyvZGbO39rCVEuLGAZM84DH0pUIyyv/YJzA==
 
+"@protochain/ts-web@1.9.0":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@protochain/ts-web/-/ts-web-1.9.0.tgz#dd2518cb199fe4ced6629679598687ad786089cc"
+  integrity sha512-n1nZzkYhVOfU+A9ln+1OA6ETYmbB2wJ/H834lK2Jrx1EsjrNOALU9oGPxGZjVqslHNgeRdVbs3FjJ+DlJ4i3pQ==
+  dependencies:
+    "@connectrpc/connect" "^2.0.0"
+    "@connectrpc/connect-web" "^2.0.0"
+
 "@radix-ui/primitive@1.1.3":
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/@radix-ui/primitive/-/primitive-1.1.3.tgz#e2dbc13bdc5e4168f4334f75832d7bdd3e2de5ba"
